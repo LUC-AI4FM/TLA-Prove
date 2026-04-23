@@ -3,7 +3,7 @@
 import json, sys
 from pathlib import Path
 
-ROOT = Path("/home/REDACTED-USER/ChatTLA")
+ROOT = Path(__file__).resolve().parents[3]
 WORK = ROOT / "outputs/diamond_gen/transactions_databases_work"
 OUT  = ROOT / "outputs/diamond_gen/transactions_databases.jsonl"
 
