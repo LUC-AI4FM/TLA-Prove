@@ -41,7 +41,7 @@ def wilson_95(k: int, n: int) -> tuple[float, float]:
 def model_class(model: str) -> str:
     if model == "chattla:20b" or model.startswith("chattla:"):
         return "fine-tuned"
-    if model == "gpt-oss:20b":
+    if model.startswith("gpt-oss:"):
         return "base"
     return "general"
 
@@ -104,7 +104,11 @@ def main() -> int:
         by_group[(r["model"], r["regime"])].append(r)
 
     report_parts: list[str] = []
-    report_parts.append(f"Input: {in_path}")
+    try:
+        in_display = in_path.resolve().relative_to(REPO_ROOT)
+    except ValueError:
+        in_display = in_path
+    report_parts.append(f"Input: {in_display}")
     report_parts.append(f"Rows: {len(rows)}")
     report_parts.append("")
 
