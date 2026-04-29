@@ -1,33 +1,43 @@
 Input: outputs/diamond_multimodel/results.csv
-Rows: 69
+Rows: 180
 
 Tier Distribution (by model/regime)
-model       | regime      | n  | t0 | t1 | t2 | t3 | t4 | diamond% | wilson95     
-------------+-------------+----+----+----+----+----+----+----------+--------------
-chattla:20b | piecewise   | 30 | 3  | 25 | 0  | 0  | 2  | 6.7%     | [1.8%, 21.3%]
-chattla:20b | single_shot | 30 | 21 | 7  | 0  | 0  | 2  | 6.7%     | [1.8%, 21.3%]
-gpt-oss:20b | single_shot | 9  | 4  | 4  | 0  | 0  | 1  | 11.1%    | [2.0%, 43.5%]
+model        | regime      | n  | t0 | t1 | t2 | t3 | t4 | diamond% | wilson95     
+-------------+-------------+----+----+----+----+----+----+----------+--------------
+chattla:20b  | piecewise   | 30 | 3  | 25 | 0  | 0  | 2  | 6.7%     | [1.8%, 21.3%]
+chattla:20b  | single_shot | 30 | 21 | 7  | 0  | 0  | 2  | 6.7%     | [1.8%, 21.3%]
+gpt-oss:120b | piecewise   | 30 | 12 | 18 | 0  | 0  | 0  | 0.0%     | [0.0%, 11.4%]
+gpt-oss:120b | single_shot | 30 | 25 | 3  | 0  | 0  | 2  | 6.7%     | [1.8%, 21.3%]
+gpt-oss:20b  | piecewise   | 30 | 4  | 23 | 0  | 0  | 3  | 10.0%    | [3.5%, 25.6%]
+gpt-oss:20b  | single_shot | 30 | 19 | 6  | 0  | 1  | 4  | 13.3%    | [5.3%, 29.7%]
 
 Failure Modes (non-Diamond only)
-model       | regime      | non_diamond_n | %fail_D1 | %fail_D2 | %fail_D3 | %fail_D4
-------------+-------------+---------------+----------+----------+----------+---------
-chattla:20b | piecewise   | 28            | 10.7%    | 89.3%    | 0.0%     | 0.0%    
-chattla:20b | single_shot | 28            | 75.0%    | 25.0%    | 0.0%     | 0.0%    
-gpt-oss:20b | single_shot | 8             | 50.0%    | 50.0%    | 0.0%     | 0.0%    
+model        | regime      | non_diamond_n | %fail_D1 | %fail_D2 | %fail_D3 | %fail_D4
+-------------+-------------+---------------+----------+----------+----------+---------
+chattla:20b  | piecewise   | 28            | 10.7%    | 89.3%    | 0.0%     | 0.0%    
+chattla:20b  | single_shot | 28            | 75.0%    | 25.0%    | 0.0%     | 0.0%    
+gpt-oss:120b | piecewise   | 30            | 40.0%    | 60.0%    | 0.0%     | 0.0%    
+gpt-oss:120b | single_shot | 28            | 89.3%    | 10.7%    | 0.0%     | 0.0%    
+gpt-oss:20b  | piecewise   | 27            | 14.8%    | 85.2%    | 0.0%     | 0.0%    
+gpt-oss:20b  | single_shot | 26            | 73.1%    | 23.1%    | 0.0%     | 3.8%    
 
 Piecewise Delta (Diamond pass rate)
-model       | single_shot | piecewise | delta  | noise_floor | delta_exceeds_noise
-------------+-------------+-----------+--------+-------------+--------------------
-chattla:20b | 6.7%        | 6.7%      | +0.0pp | 19.5pp      | no                 
-gpt-oss:20b | NA          | NA        | NA     | NA          | NA                 
+model        | single_shot | piecewise | delta  | noise_floor | delta_exceeds_noise
+-------------+-------------+-----------+--------+-------------+--------------------
+chattla:20b  | 6.7%        | 6.7%      | +0.0pp | 19.5pp      | no                 
+gpt-oss:120b | 6.7%        | 0.0%      | -6.7pp | 15.4pp      | no                 
+gpt-oss:20b  | 13.3%       | 10.0%     | -3.3pp | 23.3pp      | no                 
 
 Cross-Model Ranking (piecewise)
-rank | model       | class      | n  | diamond% | wilson95     
------+-------------+------------+----+----------+--------------
-1    | chattla:20b | fine-tuned | 30 | 6.7%     | [1.8%, 21.3%]
+rank | model        | class      | n  | diamond% | wilson95     
+-----+--------------+------------+----+----------+--------------
+1    | gpt-oss:20b  | base       | 30 | 10.0%    | [3.5%, 25.6%]
+2    | chattla:20b  | fine-tuned | 30 | 6.7%     | [1.8%, 21.3%]
+3    | gpt-oss:120b | base       | 30 | 0.0%     | [0.0%, 11.4%]
 
 Cross-Model Ranking (single_shot)
-rank | model       | class      | n  | diamond% | wilson95     
------+-------------+------------+----+----------+--------------
-1    | gpt-oss:20b | base       | 9  | 11.1%    | [2.0%, 43.5%]
-2    | chattla:20b | fine-tuned | 30 | 6.7%     | [1.8%, 21.3%]
+rank | model        | class      | n  | diamond% | wilson95     
+-----+--------------+------------+----+----------+--------------
+1    | gpt-oss:20b  | base       | 30 | 13.3%    | [5.3%, 29.7%]
+2    | chattla:20b  | fine-tuned | 30 | 6.7%     | [1.8%, 21.3%]
+3    | gpt-oss:120b | base       | 30 | 6.7%     | [1.8%, 21.3%]
