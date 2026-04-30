@@ -102,6 +102,13 @@ def main() -> None:
                         help="Path to repair pairs JSONL")
     parser.add_argument("--smoke", action="store_true",
                         help="2 steps, no checkpoint, sanity-check the wiring")
+    parser.add_argument("--reward-variance-window", type=int, default=50,
+                        help="Reward-flatness watchdog: window size (steps) for variance check")
+    parser.add_argument("--reward-variance-threshold", type=float, default=1e-4,
+                        help="Reward-flatness watchdog: abort if variance < threshold for the full window")
+    parser.add_argument("--abort-flag-path",
+                        default=str(_REPO_ROOT / "outputs" / "grpo" / "abort_flag"),
+                        help="Path to write when watchdog trips (rl_loop polls this)")
     args = parser.parse_args()
 
     if args.model is None:
@@ -119,6 +126,47 @@ def main() -> None:
         load_repair_prompts,
     )
     from src.rlvr_canary.repair_reward import register_before_scores, repair_reward
+    from transformers import TrainerCallback
+
+    # ── Reward-flatness watchdog ─────────────────────────────────────────
+    # Records per-step mean reward; aborts training if variance collapses
+    # (entropy collapse / zero-signal regime, e.g. commit c81e677).
+    _step_rewards: list[float] = []
+
+    def _watchdog_reward(prompts=None, completions=None, **kwargs):
+        rewards = repair_reward(prompts=prompts, completions=completions, **kwargs)
+        if rewards:
+            _step_rewards.append(sum(rewards) / len(rewards))
+        return rewards
+
+    class RewardFlatnessWatchdog(TrainerCallback):
+        def __init__(self, window: int, threshold: float, flag_path: str):
+            self.window = window
+            self.threshold = threshold
+            self.flag_path = Path(flag_path)
+            self.flag_path.parent.mkdir(parents=True, exist_ok=True)
+
+        def on_step_end(self, args_, state, control, **kwargs):
+            if len(_step_rewards) < self.window:
+                return control
+            window = _step_rewards[-self.window:]
+            mean = sum(window) / len(window)
+            var = sum((r - mean) ** 2 for r in window) / len(window)
+            if var < self.threshold:
+                msg = (
+                    f"reward variance {var:.6g} < {self.threshold} "
+                    f"for last {self.window} steps (mean={mean:.4f}); aborting"
+                )
+                print(f"[rl-repair] WATCHDOG: {msg}")
+                self.flag_path.write_text(
+                    f"reason=reward_flatness\n"
+                    f"steps_completed={state.global_step}\n"
+                    f"variance={var:.6g}\n"
+                    f"window={self.window}\n"
+                    f"mean_reward={mean:.4f}\n"
+                )
+                control.should_training_stop = True
+            return control
 
     if args.smoke:
         args.max_steps = 2
@@ -218,13 +266,22 @@ def main() -> None:
     )
 
     # -- Trainer --------------------------------------------------------
+    watchdog = RewardFlatnessWatchdog(
+        window=args.reward_variance_window,
+        threshold=args.reward_variance_threshold,
+        flag_path=args.abort_flag_path,
+    )
+    # Pre-emptively clear any stale abort flag from a previous run.
+    Path(args.abort_flag_path).unlink(missing_ok=True)
+
     trainer = GRPOTrainer(
         model=model,
         processing_class=tokenizer,
         args=config,
         train_dataset=train_ds,
-        reward_funcs=[repair_reward],
+        reward_funcs=[_watchdog_reward],
         peft_config=peft_config,
+        callbacks=[watchdog],
     )
 
     total_params = sum(p.numel() for p in model.parameters())

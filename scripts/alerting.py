@@ -256,6 +256,77 @@ def alert_metric_drop(
     )
 
 
+def alert_grpo_abort(reason: str, cycle_id: int = 0, steps_completed: int = 0):
+    """Alert: GRPO training aborted (reward-flatness watchdog or other)."""
+    body = (
+        f"GRPO training aborted at cycle {cycle_id} after {steps_completed} steps.\n\n"
+        f"Reason: {reason}\n\n"
+        "The cycle will fall back to SFT-only for the merge/GGUF/publish chain.\n"
+        "If this repeats, investigate reward signal: check repair_reward variance, "
+        "prompt formatting, base model output quality.\n\n"
+        f"Host: {socket.gethostname()}\n"
+        f"Time: {datetime.datetime.now().isoformat()}"
+    )
+    send_email(
+        f"C{cycle_id} GRPO ABORT: {reason[:60]}",
+        body,
+        category="grpo_abort",
+    )
+
+
+def alert_release_gate_fail(
+    holdout_sany: float,
+    holdout_tlc: float,
+    baseline_sany: float,
+    baseline_tlc: float,
+    cycle_id: int = 0,
+):
+    """Alert: holdout benchmark failed the release gate (no HF publish + Ollama deploy)."""
+    body = (
+        f"Release gate FAILED at cycle {cycle_id}. "
+        "Checkpoint kept locally; HF publish + Ollama deploy skipped.\n\n"
+        f"  Holdout SANY:  {holdout_sany:.0%}  (baseline ≥ {baseline_sany:.0%})\n"
+        f"  Holdout TLC:   {holdout_tlc:.0%}  (baseline ≥ {baseline_tlc:.0%})\n\n"
+        "Gate state recorded in data/benchmarks/release_gate_state.json.\n"
+        "Possible causes:\n"
+        "  - GRPO reward signal regressed model quality\n"
+        "  - SFT warm-start config off (lr too high, epochs too many)\n"
+        "  - Holdout drift — verify benchmark suite hasn't changed\n\n"
+        f"Host: {socket.gethostname()}\n"
+        f"Time: {datetime.datetime.now().isoformat()}"
+    )
+    send_email(
+        f"C{cycle_id} GATE FAIL: SANY {holdout_sany:.0%} / TLC {holdout_tlc:.0%}",
+        body,
+        category="release_gate",
+    )
+
+
+def alert_v20_published(
+    version: int,
+    holdout_sany: float,
+    holdout_tlc: float,
+    cycle_id: int = 0,
+):
+    """Alert: a GRPO-trained model passed the gate and published as v{N}."""
+    body = (
+        f"v{version} published successfully at cycle {cycle_id}.\n\n"
+        "First GRPO-trained release (architecture: SFT warm-start + Repair GRPO).\n\n"
+        f"  Holdout SANY:  {holdout_sany:.0%}\n"
+        f"  Holdout TLC:   {holdout_tlc:.0%}\n\n"
+        "Available at:\n"
+        f"  HF:    https://huggingface.co/EricSpencer00/chattla-20b\n"
+        f"  Local: ollama pull chattla:20b\n\n"
+        f"Host: {socket.gethostname()}\n"
+        f"Time: {datetime.datetime.now().isoformat()}"
+    )
+    send_email(
+        f"v{version} PUBLISHED: GRPO release (SANY {holdout_sany:.0%} / TLC {holdout_tlc:.0%})",
+        body,
+        category="release",
+    )
+
+
 def alert_disk_critical(free_gb: float, cycle_id: int = 0):
     """Alert: disk critically low, retrain will fail."""
     body = (

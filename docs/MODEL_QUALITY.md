@@ -27,6 +27,18 @@
 - Bugfix rows teach recovery from **real TLC feedback** strings.
 - **v13 (2026-04-03)**: SFT checkpoint-155 + DPO checkpoint-17 (17 gold pairs, beta=0.1, lr=5e-6, 1 epoch). Results: **9/20 SANY (45%), 5/20 TLC (25%)** — up from 6/20 SANY (30%), 2/20 TLC (10%) in v11. DPO loss reached 0.6106 (below random ln(2)=0.693) with 100% reward accuracy and +0.1726 margins.
 
+## v20 — GRPO architecture (in progress)
+
+The autonomous loop now uses **`RETRAIN_MODE=sft_then_grpo_repair`** (set in `scripts/rl_loop.py`): one SFT epoch on diamond data preserves the v13 floor, then **Repair GRPO** (`scripts/train_rl_repair.py`) layers on top using `data/processed/ralph_repair_pairs.jsonl` with the improvement-delta reward in `src/rlvr_canary/repair_reward.py`.
+
+Safeguards:
+- **Reward-flatness watchdog** in `train_rl_repair.py` aborts GRPO and keeps the SFT-only checkpoint if reward variance collapses for 50 consecutive steps (entropy-collapse protection — see commit `c81e677`).
+- **Release gate** in `rl_loop._check_release_gate()` blocks HF publish + Ollama deploy unless the full-benchmark holdout meets the v13 floor (≥45% SANY, ≥25% TLC). State persists to `data/benchmarks/release_gate_state.json`.
+- **Periodic Ralph collection** (every 5 cycles, capped via `RL_MAX_RALPH_PER_CYCLE`) appends fresh repair pairs so the GRPO dataset grows over time.
+- **Nighttime-only by default** (`CHATTLA_GRPO_NIGHT_ONLY=1`): GRPO step takes ~10h, so daytime cycles fall back to SFT-only.
+
+v20 baseline numbers will be filled in here once the gate first passes.
+
 ## Hugging Face Hub
 
 After each successful RL retrain (merge + GGUF + Ollama), the loop runs **`src.training.publish_hf`** when `HF_TOKEN` is set. It uploads versioned `gguf/chattla-20b-vN-Q8_0.gguf`, `gguf/Modelfile`, and patches `README.md` from `outputs/hf_readme/README.md` (plus latest **full** benchmark CSV if present). Disable with `python scripts/rl_loop.py --no-publish-hf`. State file: `data/benchmarks/hf_publish_state.json`.

@@ -82,9 +82,12 @@ try:
     from scripts.alerting import (
         alert_cycle_summary,
         alert_disk_critical,
+        alert_grpo_abort,
         alert_loop_crash,
         alert_metric_drop,
+        alert_release_gate_fail,
         alert_retrain_outcome,
+        alert_v20_published,
     )
     _ALERTING_OK = True
 except ImportError:
@@ -136,6 +139,25 @@ _TEACHER_GOLD_JSONL    = _REPO_ROOT / "data" / "processed" / "teacher_gold.jsonl
 # Hugging Face Hub (after successful merge + GGUF). Requires HF_TOKEN in env.
 PUBLISH_HF_DEFAULT = True
 _HF_REPO = "EricSpencer00/chattla-20b"
+
+# ── Retrain mode (v20 GRPO release) ──────────────────────────────────────────
+# "sft": legacy incremental SFT only (pre-v20 behavior, kept as fallback)
+# "sft_then_grpo_repair": SFT warm-start, then Repair GRPO on top.
+# Override with CHATTLA_RETRAIN_MODE env var.
+RETRAIN_MODE = os.environ.get("CHATTLA_RETRAIN_MODE", "sft_then_grpo_repair")
+GRPO_REPAIR_MAX_STEPS = int(os.environ.get("CHATTLA_GRPO_REPAIR_STEPS", "300"))
+GRPO_REPAIR_TIMEOUT_S = int(os.environ.get("CHATTLA_GRPO_REPAIR_TIMEOUT", "57600"))  # 16 h
+GRPO_NIGHT_ONLY = os.environ.get("CHATTLA_GRPO_NIGHT_ONLY", "1").strip() not in ("0", "false", "no")
+_GRPO_ABORT_FLAG = _REPO_ROOT / "outputs" / "grpo" / "abort_flag"
+_GRPO_REPAIR_CKPT_DIR = _REPO_ROOT / "outputs" / "checkpoints_rl_repair"
+_RALPH_REPAIR_PAIRS = _REPO_ROOT / "data" / "processed" / "ralph_repair_pairs.jsonl"
+_RL_MAX_RALPH_PER_CYCLE = int(os.environ.get("RL_MAX_RALPH_PER_CYCLE", "10"))
+
+# Release gate: holdout (full benchmark) baseline thresholds for v20 publish.
+# Anchored to v13's documented numbers (9/20 = 45% SANY, 5/20 = 25% TLC).
+RELEASE_GATE_SANY_FLOOR = float(os.environ.get("CHATTLA_GATE_SANY", "0.45"))
+RELEASE_GATE_TLC_FLOOR  = float(os.environ.get("CHATTLA_GATE_TLC",  "0.25"))
+_RELEASE_GATE_STATE = _REPO_ROOT / "data" / "benchmarks" / "release_gate_state.json"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Logging
@@ -2418,6 +2440,23 @@ def rebuild_and_retrain(cycle_id: int = 0, publish_hf: bool = PUBLISH_HF_DEFAULT
         log.error("[retrain] Merge timed out")
         return "failed"
 
+    # 3.5. Repair GRPO step (v20+ default).
+    #      Layers a Repair GRPO LoRA on top of the SFT-merged model. If GRPO
+    #      aborts (watchdog, timeout, subprocess failure), the merged_model
+    #      is restored to SFT-only and the cycle continues — graceful degrade,
+    #      never block the loop. Daytime cycles fall back to SFT-only when
+    #      GRPO_NIGHT_ONLY is set, since the step takes ~10h.
+    if RETRAIN_MODE == "sft_then_grpo_repair":
+        if GRPO_NIGHT_ONLY and not is_nighttime():
+            log.info("[retrain] GRPO_NIGHT_ONLY=1 and daytime — skipping GRPO step (SFT-only)")
+        else:
+            grpo_ok, grpo_reason = _run_grpo_repair_step(
+                cycle_id=cycle_id,
+                merged_model_dir=merged_model_dir,
+                env=env,
+            )
+            log.info(f"[retrain] GRPO step: applied={grpo_ok} reason={grpo_reason}")
+
     # 4. Convert to GGUF + register with Ollama
     #    BUT FIRST: eval-gate — quick SANY check on merged model before deploying.
     #    If the new model is worse than the old one, abort deploy and keep the old GGUF.
@@ -2662,6 +2701,198 @@ def rebuild_and_retrain(cycle_id: int = 0, publish_hf: bool = PUBLISH_HF_DEFAULT
 
     # HF publish is now handled by the caller after a full benchmark quality gate.
     return "ok"
+
+
+def _run_grpo_repair_step(
+    cycle_id: int,
+    merged_model_dir: Path,
+    env: dict,
+) -> tuple[bool, str]:
+    """Run Repair GRPO on top of the SFT-merged model.
+
+    Layers a Repair-GRPO LoRA on top of the SFT-merged model in-place.
+
+    Returns (grpo_applied, reason).
+      - (True,  "ok"):     GRPO LoRA merged into merged_model
+      - (False, reason):   GRPO skipped or aborted; merged_model is SFT-only
+    """
+    if RETRAIN_MODE != "sft_then_grpo_repair":
+        return False, f"retrain_mode={RETRAIN_MODE}"
+
+    if not merged_model_dir.exists() or not (merged_model_dir / "config.json").is_file():
+        return False, "no merged_model after SFT step"
+
+    if not _RALPH_REPAIR_PAIRS.exists():
+        return False, f"no repair pairs at {_RALPH_REPAIR_PAIRS.name}"
+
+    # Snapshot the SFT-merged model so we can roll back if anything in the
+    # GRPO chain breaks. cp -al is ~instant despite ~39 GB.
+    import shutil as _shutil_grpo
+    sft_snapshot = _REPO_ROOT / "outputs" / f"merged_model.sft-c{cycle_id}"
+    for _stale in (_REPO_ROOT / "outputs").glob("merged_model.sft-c*"):
+        if _stale != sft_snapshot:
+            _shutil_grpo.rmtree(_stale, ignore_errors=True)
+    if sft_snapshot.exists():
+        _shutil_grpo.rmtree(sft_snapshot, ignore_errors=True)
+    cp_result = subprocess.run(
+        ["cp", "-al", str(merged_model_dir), str(sft_snapshot)],
+        capture_output=True, text=True,
+    )
+    if cp_result.returncode != 0:
+        return False, f"snapshot failed: {(cp_result.stderr or '')[-200:]}"
+    log.info(f"[grpo] SFT snapshot → {sft_snapshot.name}")
+
+    def _restore_sft_snapshot() -> None:
+        if not sft_snapshot.exists():
+            return
+        if merged_model_dir.exists():
+            _shutil_grpo.rmtree(merged_model_dir, ignore_errors=True)
+        try:
+            _shutil_grpo.move(str(sft_snapshot), str(merged_model_dir))
+            log.warning(f"[grpo] Restored SFT-only merged_model from {sft_snapshot.name}")
+        except Exception as _re:
+            log.error(f"[grpo] Failed to restore SFT snapshot: {_re}")
+
+    # Clear any stale abort flag from a prior run before starting.
+    _GRPO_ABORT_FLAG.unlink(missing_ok=True)
+    # Wipe stale checkpoints from previous cycles.
+    if _GRPO_REPAIR_CKPT_DIR.exists():
+        _shutil_grpo.rmtree(_GRPO_REPAIR_CKPT_DIR, ignore_errors=True)
+
+    log.info(
+        f"[grpo] Starting Repair GRPO on {merged_model_dir.name} "
+        f"(max_steps={GRPO_REPAIR_MAX_STEPS}, timeout={GRPO_REPAIR_TIMEOUT_S//3600}h)"
+    )
+    grpo_cmd = [
+        sys.executable, "-m", "scripts.train_rl_repair",
+        "--model", str(merged_model_dir),
+        "--max-steps", str(GRPO_REPAIR_MAX_STEPS),
+        "--output-dir", str(_GRPO_REPAIR_CKPT_DIR),
+    ]
+    try:
+        result = subprocess.run(
+            grpo_cmd,
+            cwd=str(_REPO_ROOT), env=env,
+            capture_output=True, text=True,
+            timeout=GRPO_REPAIR_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired:
+        log.error(f"[grpo] GRPO timed out after {GRPO_REPAIR_TIMEOUT_S}s")
+        if _ALERTING_OK:
+            alert_grpo_abort(f"timeout after {GRPO_REPAIR_TIMEOUT_S}s", cycle_id=cycle_id)
+        _restore_sft_snapshot()
+        return False, "timeout"
+
+    if result.returncode != 0:
+        tail = (result.stderr or result.stdout or "")[-400:]
+        log.error(f"[grpo] GRPO subprocess failed (rc={result.returncode}): {tail}")
+        if _ALERTING_OK:
+            alert_grpo_abort(f"subprocess failed: {tail[:80]}", cycle_id=cycle_id)
+        _restore_sft_snapshot()
+        return False, f"subprocess rc={result.returncode}"
+
+    if _GRPO_ABORT_FLAG.exists():
+        reason = _GRPO_ABORT_FLAG.read_text().strip().splitlines()[0] if _GRPO_ABORT_FLAG.read_text().strip() else "unknown"
+        log.warning(f"[grpo] Watchdog triggered abort: {reason}")
+        if _ALERTING_OK:
+            alert_grpo_abort(reason, cycle_id=cycle_id)
+        _GRPO_ABORT_FLAG.unlink(missing_ok=True)
+        _restore_sft_snapshot()
+        return False, f"watchdog: {reason}"
+
+    grpo_lora = _GRPO_REPAIR_CKPT_DIR / "final"
+    if not grpo_lora.is_dir():
+        log.error(f"[grpo] GRPO finished but no final/ adapter at {grpo_lora}")
+        _restore_sft_snapshot()
+        return False, "no final adapter"
+
+    # Merge GRPO LoRA on top of the SFT snapshot, overwriting merged_model in place.
+    log.info(f"[grpo] Merging GRPO LoRA from {grpo_lora.name} → merged_model")
+    merge_cmd = [
+        sys.executable, "-m", "src.training.merge_lora",
+        "--checkpoint", str(grpo_lora),
+        "--base-model", str(sft_snapshot),
+    ]
+    try:
+        result = subprocess.run(
+            merge_cmd, cwd=str(_REPO_ROOT), env=env,
+            capture_output=True, text=True, timeout=1800,
+        )
+    except subprocess.TimeoutExpired:
+        log.error("[grpo] GRPO merge timed out — restoring SFT-only")
+        _restore_sft_snapshot()
+        return False, "merge timeout"
+    if result.returncode != 0:
+        log.error(f"[grpo] GRPO merge failed: {(result.stderr or '')[-400:]} — restoring SFT-only")
+        _restore_sft_snapshot()
+        return False, "merge failed"
+
+    # Success: drop the SFT snapshot now that GRPO weights are in merged_model.
+    _shutil_grpo.rmtree(sft_snapshot, ignore_errors=True)
+    log.info("[grpo] Repair GRPO merged into merged_model successfully")
+    return True, "ok"
+
+
+def _check_release_gate(
+    sany_rate: float,
+    tlc_rate: float,
+    cycle_id: int,
+    is_full_benchmark: bool,
+) -> bool:
+    """Decide whether the new model is allowed to publish to HF.
+
+    A full-benchmark holdout score must clear absolute floors anchored to the
+    last documented release (v13: 45% SANY, 25% TLC). A quick eval is too
+    noisy and fails the gate by default.
+
+    Persists the decision to data/benchmarks/release_gate_state.json so we
+    can see at a glance which cycles passed.
+    """
+    passed = (
+        is_full_benchmark
+        and sany_rate >= RELEASE_GATE_SANY_FLOOR
+        and tlc_rate >= RELEASE_GATE_TLC_FLOOR
+    )
+    state = {
+        "cycle_id": cycle_id,
+        "checked_at": datetime.datetime.now().isoformat(timespec="seconds"),
+        "is_full_benchmark": is_full_benchmark,
+        "sany_rate": sany_rate,
+        "tlc_rate": tlc_rate,
+        "sany_floor": RELEASE_GATE_SANY_FLOOR,
+        "tlc_floor": RELEASE_GATE_TLC_FLOOR,
+        "passed": passed,
+        "retrain_mode": RETRAIN_MODE,
+    }
+    try:
+        _RELEASE_GATE_STATE.parent.mkdir(parents=True, exist_ok=True)
+        _RELEASE_GATE_STATE.write_text(json.dumps(state, indent=2))
+    except OSError as _re:
+        log.warning(f"[gate] Could not write {_RELEASE_GATE_STATE}: {_re}")
+
+    if not passed:
+        if not is_full_benchmark:
+            log.info(
+                f"[gate] Skipping HF publish (quick eval only — gate requires full benchmark)"
+            )
+        else:
+            log.warning(
+                f"[gate] FAIL: SANY {sany_rate:.0%} (floor {RELEASE_GATE_SANY_FLOOR:.0%}) "
+                f"TLC {tlc_rate:.0%} (floor {RELEASE_GATE_TLC_FLOOR:.0%})"
+            )
+            if _ALERTING_OK:
+                alert_release_gate_fail(
+                    holdout_sany=sany_rate, holdout_tlc=tlc_rate,
+                    baseline_sany=RELEASE_GATE_SANY_FLOOR,
+                    baseline_tlc=RELEASE_GATE_TLC_FLOOR,
+                    cycle_id=cycle_id,
+                )
+    else:
+        log.info(
+            f"[gate] PASS: SANY {sany_rate:.0%} ≥ {RELEASE_GATE_SANY_FLOOR:.0%} "
+            f"and TLC {tlc_rate:.0%} ≥ {RELEASE_GATE_TLC_FLOOR:.0%}"
+        )
+    return passed
 
 
 def publish_to_hf(cycle_id: int) -> bool:
@@ -3092,6 +3323,46 @@ def run_cycle(
         log.info(f"[phase2] Persisted {n_sft} SFT examples, {n_dpo} DPO pairs. "
                  f"Accumulated: {accumulated_new}")
 
+        # ── Phase 2.5: Periodic Ralph repair-pair collection (v20+ GRPO) ──
+        # Grows ralph_repair_pairs.jsonl over time so the Repair GRPO step has
+        # fresh, diverse training data. Runs every 5 cycles, capped to
+        # RL_MAX_RALPH_PER_CYCLE topics, max-iters=3 to keep it bounded
+        # (~5 min cost). Failures are non-fatal — the loop continues.
+        if (
+            RETRAIN_MODE == "sft_then_grpo_repair"
+            and cycle_id > 0
+            and cycle_id % 5 == 0
+            and _RL_MAX_RALPH_PER_CYCLE > 0
+        ):
+            log.info(
+                f"[phase2.5] Periodic Ralph collection (≤{_RL_MAX_RALPH_PER_CYCLE} topics, append)"
+            )
+            try:
+                ralph_result = subprocess.run(
+                    [
+                        sys.executable, "-m", "scripts.collect_ralph_trajectories",
+                        "--append",
+                        "--max-iters", "3",
+                        "--workers", "1",
+                        "--max-topics", str(_RL_MAX_RALPH_PER_CYCLE),
+                    ],
+                    cwd=str(_REPO_ROOT),
+                    capture_output=True, text=True,
+                    timeout=900,  # 15 min hard cap
+                )
+                if ralph_result.returncode == 0:
+                    log.info(f"[phase2.5] Ralph collection done: "
+                             f"{(ralph_result.stdout or '').strip().splitlines()[-1] if ralph_result.stdout else 'ok'}")
+                else:
+                    log.warning(
+                        f"[phase2.5] Ralph collection non-fatal failure: "
+                        f"{(ralph_result.stderr or '')[-200:]}"
+                    )
+            except subprocess.TimeoutExpired:
+                log.warning("[phase2.5] Ralph collection timed out (non-fatal)")
+            except Exception as _re:
+                log.warning(f"[phase2.5] Ralph collection error (non-fatal): {_re}")
+
         if _SHUTDOWN:
             stats.cycle_duration_s = time.time() - t0
             return stats, accumulated_new, gold_prompt_ids
@@ -3120,7 +3391,7 @@ def run_cycle(
                     just_retrained = True
                     log.info("[phase3] Retrain + deploy complete!")
                     if _ALERTING_OK:
-                        alert_retrain_outcome(cycle_id, "ok", mode="dpo_or_sft")
+                        alert_retrain_outcome(cycle_id, "ok", mode=RETRAIN_MODE)
                 elif outcome == "skipped_vram":
                     log.info("[phase3] Retrain deferred due to memory; will attempt next cycle.")
                 else:
@@ -3182,13 +3453,35 @@ def run_cycle(
         if just_retrained and publish_hf:
             prev_best_tlc = best_historical_full_tlc() or 0.0
             eval_tlc_safe = full_tlc if isinstance(full_tlc, float) else 0.0
+            eval_sany_safe = full_sany if isinstance(full_sany, float) else 0.0
+            # v20+ release gate: hold publish until holdout clears v13 baseline floors.
+            gate_passed = _check_release_gate(
+                sany_rate=eval_sany_safe, tlc_rate=eval_tlc_safe,
+                cycle_id=cycle_id,
+                is_full_benchmark=stats.benchmark_full_suite,
+            )
             if stats.benchmark_full_suite:
-                # Full benchmark: publish if TLC matches or exceeds best
-                if eval_tlc_safe >= prev_best_tlc and eval_tlc_safe > 0:
+                # Full benchmark: publish if TLC matches or exceeds best AND release gate passes
+                if gate_passed and eval_tlc_safe >= prev_best_tlc and eval_tlc_safe > 0:
                     log.info(
                         f"[phase4] TLC {eval_tlc_safe:.0%} >= previous best {prev_best_tlc:.0%} — publishing to HF"
                     )
-                    publish_to_hf(cycle_id)
+                    if publish_to_hf(cycle_id):
+                        # Read the version we just published so the alert is accurate.
+                        try:
+                            _hf_state = json.loads(
+                                (_REPO_ROOT / "data" / "benchmarks" / "hf_publish_state.json").read_text()
+                            )
+                            _published_ver = int(_hf_state.get("last_published_version", 0))
+                        except (OSError, json.JSONDecodeError, ValueError):
+                            _published_ver = 0
+                        if _ALERTING_OK and _published_ver:
+                            alert_v20_published(
+                                version=_published_ver,
+                                holdout_sany=eval_sany_safe,
+                                holdout_tlc=eval_tlc_safe,
+                                cycle_id=cycle_id,
+                            )
                 else:
                     log.warning(
                         f"[phase4] TLC {eval_tlc_safe:.0%} < previous best {prev_best_tlc:.0%} (or zero) "
@@ -3227,16 +3520,13 @@ def run_cycle(
                         })
                         RETRAIN_THRESHOLD = max(RETRAIN_THRESHOLD, accumulated_new + 50)
             else:
-                # Quick eval: also publish if TLC looks decent (within 5pp of best or first publish)
-                if eval_tlc_safe > 0 and eval_tlc_safe >= (prev_best_tlc - 0.05):
-                    log.info(
-                        f"[phase4] Quick eval TLC {eval_tlc_safe:.0%} looks good — publishing to HF"
-                    )
-                    publish_to_hf(cycle_id)
-                else:
-                    log.info(
-                        f"[phase4] Quick eval TLC {eval_tlc_safe:.0%} below threshold — skip HF"
-                    )
+                # Quick eval: gate already failed (release gate requires full benchmark).
+                # The legacy quick-eval publish path is disabled under v20+ since the
+                # noise floor is too high for a release decision.
+                log.info(
+                    f"[phase4] Quick eval TLC {eval_tlc_safe:.0%} — HF publish requires "
+                    "full benchmark; skipping (will publish on next benchmark-every cycle if gate passes)"
+                )
 
     except Exception as e:
         stats.error = f"{type(e).__name__}: {str(e)[:200]}"

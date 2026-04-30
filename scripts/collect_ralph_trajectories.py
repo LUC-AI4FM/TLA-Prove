@@ -235,6 +235,12 @@ def main() -> int:
                         default="data/processed/ralph_repair_pairs.jsonl")
     parser.add_argument("--smoke", action="store_true",
                         help="5 topics, 2 iters for quick sanity check")
+    parser.add_argument("--append", action="store_true",
+                        help="Append to output files instead of overwriting "
+                        "(used by rl_loop's per-cycle collection)")
+    parser.add_argument("--max-topics", type=int, default=0,
+                        help="Cap on topics this run (0=all). Used by rl_loop "
+                        "to keep per-cycle collection bounded.")
     args = parser.parse_args()
 
     if args.smoke:
@@ -260,12 +266,17 @@ def main() -> int:
         (ex.nl_description, ex.prompt_id, args.model, args.max_iters)
         for ex in examples
     ]
+    if args.max_topics > 0 and len(work) > args.max_topics:
+        # Sample deterministically from the start; the prompt list is already curated.
+        work = work[: args.max_topics]
+        print(f"[trajectories] Capped to {len(work)} topics (--max-topics)")
 
     # Output paths
     traj_path = _REPO_ROOT / args.out_trajectories
     pairs_path = _REPO_ROOT / args.out_pairs
     traj_path.parent.mkdir(parents=True, exist_ok=True)
     pairs_path.parent.mkdir(parents=True, exist_ok=True)
+    open_mode = "a" if args.append else "w"
 
     total_trajectories = 0
     total_pairs = 0
@@ -273,7 +284,7 @@ def main() -> int:
     t0 = time.monotonic()
 
     # Process — use serial execution if workers=1 (easier debugging)
-    with open(traj_path, "w") as tf, open(pairs_path, "w") as pf:
+    with open(traj_path, open_mode) as tf, open(pairs_path, open_mode) as pf:
         if args.workers <= 1:
             for item in work:
                 traj_dict, pairs = _worker(item)
