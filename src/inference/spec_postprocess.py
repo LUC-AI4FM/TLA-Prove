@@ -55,25 +55,28 @@ _LATEX_OP_REPLACEMENTS = [
 
 # Detects an orphan conjunction block:
 #
-#     VARIABLES x, y, z
-#                                  <- one or more blank lines
-#         /\ x = ...               <- conjunction lines, indented
+#     VARIABLES x, y, z         <- last non-blank line BEFORE the gap MUST be
+#                                  a declaration (VARIABLES/VARIABLE/CONSTANTS/
+#                                  CONSTANT). Crucially, it must NOT contain
+#                                  `==` — otherwise we are below an operator
+#                                  definition and the conjunction is anchored.
+#                                  <- one blank line
+#         /\ x = ...            <- one or more indented conjunction lines
 #         /\ y = ...
 #
-# The block must be indented (col >= 4) and not preceded on the same
-# logical paragraph by an operator definition (no `Name ==` in the gap).
-# We assume the orphan block is the type invariant; prepending `TypeOK ==`
-# is the most common correct fix and matches the harmony prompt's rules.
+# Conservative form: only triggers when the line directly above the blank
+# is a bare declaration. We previously allowed an optional second line in
+# the gap, which over-matched cases like `Init ==` separating a TypeOK-style
+# block from the VARIABLES — turning valid specs into broken ones.
 _ORPHAN_CONJ_RE = re.compile(
     r"""
-    (^                                # capture group 1: anchor block
-        (?:VARIABLES|VARIABLE)        #   VARIABLES line
-        [^\n]*\n                      #   rest of that line
-        (?:[^\n]*\n)?                 #   optional second VARIABLES continuation
-        \s*\n                         #   one blank line
+    (^                                  # group 1: anchor (decl line + blank)
+        (?:VARIABLES|VARIABLE|CONSTANTS|CONSTANT)\b
+        [^\n=]*\n                       # decl line, must NOT contain '='
+        \n                              # exactly one blank line
     )
-    (                                 # capture group 2: orphan conjunction
-        (?:[ \t]+/\\[^\n]*\n)+        #   one or more `   /\\ ...` lines
+    (                                   # group 2: orphan conjunction body
+        (?:[ \t]+/\\[^\n]*\n)+          # >=1 indented `/\\ ...` lines
     )
     """,
     re.MULTILINE | re.VERBOSE,
