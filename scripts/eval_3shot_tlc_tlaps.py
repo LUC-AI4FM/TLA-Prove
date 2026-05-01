@@ -27,13 +27,14 @@ from src.inference.ollama_client import (  # noqa: E402
     _extract_tla,
     _sanitize_spec,
 )
+from src.inference.spec_postprocess import postprocess_spec  # noqa: E402
 from src.training.dataset_builder import _DEVELOPER_PROMPT  # noqa: E402
 from src.validators.sany_validator import validate_string as sany_validate  # noqa: E402
 from src.validators.tlc_validator import validate_string as tlc_validate  # noqa: E402
 from src.validators.tlaps_validator import validate_string as tlaps_validate  # noqa: E402
 
 MODEL = "chattla:20b"
-TIMEOUT_S = 30
+TIMEOUT_S = 90  # bumped from 30s — see analysis of 4 timeouts in v19 holdout
 MAX_RETRIES = 3
 HOLDOUT = REPO / "data" / "processed" / "diamond_eval_holdout.jsonl"
 
@@ -213,6 +214,13 @@ def run_one(client: ChatTLAClient, rec: dict) -> dict:
         identical = (attempt > 0 and spec == prev_spec)
         log(f"  generated {len(spec)} chars in {gen_elapsed:.1f}s"
             + ("  ⚠ IDENTICAL to previous shot" if identical else ""))
+
+        # Postprocess: rewrite known mechanical mistakes (LaTeX op aliases,
+        # orphan conjunction blocks, sub-expression UNCHANGED) before SANY
+        # sees the spec. See src/inference/spec_postprocess.py for rationale.
+        spec, pp_stats = postprocess_spec(spec)
+        if any(pp_stats.values()):
+            log(f"  postprocess: {pp_stats}")
         prev_spec = spec
 
         # SANY
@@ -237,21 +245,28 @@ def run_one(client: ChatTLAClient, rec: dict) -> dict:
         if getattr(tlc_r, "tlc_violations", None):
             log(f"    violation: {tlc_r.tlc_violations[0][:120]}")
 
-        # TLAPS
-        tlaps_r = tlaps_validate(spec, module_name=module)
+        # TLAPS (optional — skip cleanly if tlapm not installed)
+        try:
+            tlaps_r = tlaps_validate(spec, module_name=module)
+            log(f"  TLAPS: tier={tlaps_r.tier}  "
+                f"obligations={tlaps_r.obligations_proved}/{tlaps_r.obligations_total}")
+            tlaps_tier_str = tlaps_r.tier
+            tlaps_ok = tlaps_r.tier in ("proved", "no_theorems")
+        except FileNotFoundError:
+            tlaps_r = None
+            tlaps_tier_str = "skipped"
+            tlaps_ok = True  # not blocking on TLAPS when tlapm absent
+            log("  TLAPS: skipped (tlapm not installed)")
         last_tlaps = tlaps_r
-        log(f"  TLAPS: tier={tlaps_r.tier}  "
-            f"obligations={tlaps_r.obligations_proved}/{tlaps_r.obligations_total}")
 
         _dump_shot(module, attempt, spec, sany_r, tlc_r, tlaps_r)
         tlc_ok = tlc_r.tier == "gold"
-        tlaps_ok = tlaps_r.tier in ("proved", "no_theorems")
         if tlc_ok and tlaps_ok:
             log(f"  ✓ FIXED at shot {attempt}")
             return {
                 "module": module, "batch": rec.get("batch", ""),
                 "result": "fixed", "attempts_used": attempt + 1,
-                "tlc_tier": tlc_r.tier, "tlaps_tier": tlaps_r.tier,
+                "tlc_tier": tlc_r.tier, "tlaps_tier": tlaps_tier_str,
             }
 
         # Anything left to feed back?
@@ -262,7 +277,7 @@ def run_one(client: ChatTLAClient, rec: dict) -> dict:
             return {
                 "module": module, "batch": rec.get("batch", ""),
                 "result": "no_feedback_stop", "attempts_used": attempt + 1,
-                "tlc_tier": tlc_r.tier, "tlaps_tier": tlaps_r.tier,
+                "tlc_tier": tlc_r.tier, "tlaps_tier": tlaps_tier_str,
             }
 
     # exhausted retries
