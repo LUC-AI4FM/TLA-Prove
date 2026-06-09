@@ -385,6 +385,14 @@ def test_classify_failure_family_common_adequacy_basins():
 def test_classify_failure_family_syntax_and_tlc():
     assert classify_failure_family({
         "success": False,
+        "phase": "generation",
+        "diagnostics": "ollama-cloud:qwen failed: Read timed out.",
+        "judge_reason": "",
+        "semantic": {},
+    }) == "generation_error"
+
+    assert classify_failure_family({
+        "success": False,
         "phase": "sany",
         "diagnostics": "Precedence conflict between ops \\lor and \\land.",
         "judge_reason": "",
