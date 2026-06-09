@@ -52,6 +52,7 @@ class SemanticInfo:
     action_coverage: float = 0.0         # 0.0–1.0; 1.0 = all actions reachable
     total_actions: int = 0
     dead_actions: list[str] = field(default_factory=list)  # action names with 0 states
+    coverage_observed: bool = False      # TRUE when TLC printed coverage rows
     # State space
     distinct_states: int = 0
     total_states: int = 0
@@ -204,6 +205,7 @@ def validate_file(
     cmd = [
         "java", "-cp", str(jar),
         "tlc2.TLC",
+        "-coverage", "1",
         "-config", str(cfg_path),
         str(tla_path),
     ]
@@ -386,7 +388,7 @@ def _parse_violations(output: str) -> list[str]:
     return violations
 
 
-def _parse_coverage(output: str) -> tuple[int, list[str], int]:
+def _parse_coverage(output: str) -> tuple[int, list[str], int, bool]:
     """Parse TLC coverage stats to find dead actions.
 
     TLC prints lines like:
@@ -397,16 +399,18 @@ def _parse_coverage(output: str) -> tuple[int, list[str], int]:
     The format is <name ...>: distinct:total
     An action with 0:0 or 0:N is dead (unreachable from Init via Next).
 
-    Returns (total_actions, dead_action_names, distinct_states).
+    Returns (total_actions, dead_action_names, distinct_states, coverage_observed).
     """
     total_actions = 0
     dead: list[str] = []
     distinct_states = 0
+    coverage_observed = False
 
     for line in output.splitlines():
         # Match coverage lines: <ActionName line ...>: N:M
         m = re.match(r"<(\w+)\s+line\s+\d+.*?>:\s*(\d+):(\d+)", line.strip())
         if m:
+            coverage_observed = True
             name, distinct_str, total_str = m.group(1), m.group(2), m.group(3)
             if name in ("Init",):
                 continue  # Init is always covered
@@ -422,7 +426,7 @@ def _parse_coverage(output: str) -> tuple[int, list[str], int]:
     if all_distinct:
         distinct_states = int(all_distinct[-1])
 
-    return total_actions, dead, distinct_states
+    return total_actions, dead, distinct_states, coverage_observed
 
 
 def _parse_state_counts(output: str) -> tuple[int, int]:
@@ -512,6 +516,31 @@ def _extract_property_names(tla_content: str, cfg_content: str = "") -> list[str
         _extract_cfg_property_names(cfg_content)
         + _extract_declared_property_names(tla_content)
     )
+
+
+def _extract_static_action_names(tla_content: str) -> list[str]:
+    """Best-effort action names referenced by Next when TLC coverage is unavailable."""
+    blocks = _definition_blocks(tla_content)
+    next_body = blocks.get("Next", "")
+    if not next_body:
+        return []
+
+    excluded = {
+        "Init", "Next", "Spec", "TypeOK", "vars", "Safety", "Invariant",
+    }
+    action_like = [
+        name for name, body in blocks.items()
+        if name not in excluded and _looks_like_action(body)
+    ]
+    referenced = [
+        name for name in action_like
+        if re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}\s*(?:\(|\b)", next_body)
+    ]
+    return _dedupe(referenced)
+
+
+def _looks_like_action(body: str) -> bool:
+    return bool(re.search(r"\bUNCHANGED\b|[A-Za-z_][A-Za-z0-9_]*\s*'", body))
 
 
 def _looks_like_temporal_property(name: str, body: str) -> bool:
@@ -704,9 +733,13 @@ def compute_semantic_info(
     info = SemanticInfo()
 
     # 1. Coverage / reachability
-    total_actions, dead_actions, distinct_states = _parse_coverage(tlc_output)
+    total_actions, dead_actions, distinct_states, coverage_observed = _parse_coverage(tlc_output)
+    if not coverage_observed:
+        total_actions = len(_extract_static_action_names(tla_content))
+        dead_actions = []
     info.total_actions = total_actions
     info.dead_actions = dead_actions
+    info.coverage_observed = coverage_observed
     info.action_coverage = (
         (total_actions - len(dead_actions)) / total_actions
         if total_actions > 0 else 0.0
