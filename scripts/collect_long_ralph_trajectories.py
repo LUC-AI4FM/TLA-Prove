@@ -614,19 +614,35 @@ def generate_step(
     branch_directive: str = "",
 ) -> dict:
     t0 = time.monotonic()
-    raw = (
-        gen.initial(ex.nl_description, ex.module_name, frozen)
-        if parent_iteration is None
-        else gen.repair(
-            ex.nl_description,
-            ex.module_name,
-            previous_spec,
-            diagnostics,
-            iteration,
-            frozen,
-            args.repair_mode,
+    try:
+        raw = (
+            gen.initial(ex.nl_description, ex.module_name, frozen)
+            if parent_iteration is None
+            else gen.repair(
+                ex.nl_description,
+                ex.module_name,
+                previous_spec,
+                diagnostics,
+                iteration,
+                frozen,
+                args.repair_mode,
+            )
         )
-    )
+    except Exception as exc:
+        return generation_error_step(
+            ex,
+            gen,
+            previous_spec,
+            iteration,
+            parent_iteration,
+            history,
+            branch_id,
+            branch_focus,
+            branch_depth,
+            round(time.monotonic() - t0, 2),
+            exc,
+            branch_directive=branch_directive,
+        )
     spec = _sanitize_spec(_extract_tla(raw))
     verdict = validate_candidate(spec, args.success_gate, args.tlc_timeout)
     proof_success = bool(verdict["success"])
@@ -689,6 +705,56 @@ def generate_step(
         "spec": spec,
     }
     step["score"] = objective_score(step)
+    step["repair_context"] = rebuild_step_context(
+        step, history + [step], branch_directive=branch_directive,
+    )
+    return step
+
+
+def generation_error_step(
+    ex,
+    gen: Generator,
+    previous_spec: str,
+    iteration: int,
+    parent_iteration: int | None,
+    history: list[dict],
+    branch_id: str,
+    branch_focus: str,
+    branch_depth: int,
+    elapsed: float,
+    exc: Exception,
+    *,
+    branch_directive: str = "",
+) -> dict:
+    diagnostics = f"{gen.name} generation failed: {type(exc).__name__}: {exc}"
+    step = {
+        "iteration": iteration,
+        "parent_iteration": parent_iteration,
+        "branch_id": branch_id,
+        "branch_focus": branch_focus,
+        "branch_depth": branch_depth,
+        "generator": gen.name,
+        "elapsed": elapsed,
+        "module": ex.module_name,
+        "tier": "malformed",
+        "raw_score": 0.0,
+        "score": 0.0,
+        "proof_success": False,
+        "success": False,
+        "diamond": False,
+        "model_audit_ok": None,
+        "model_audit_reason": "",
+        "judge_ok": None,
+        "judge_reason": "",
+        "phase": "generation",
+        "failure_signature": failure_signature("generation", diagnostics),
+        "failure_family": "generation_error",
+        "spec_hash": stable_spec_hash(previous_spec),
+        "malformed": False,
+        "diagnostics": diagnostics,
+        "semantic": {},
+        "spec": previous_spec,
+    }
     step["repair_context"] = rebuild_step_context(
         step, history + [step], branch_directive=branch_directive,
     )
@@ -1324,6 +1390,9 @@ def classify_failure_family(verdict: dict) -> str:
         str(verdict.get("diagnostics") or ""),
     ]).lower()
     semantic = verdict.get("semantic") or {}
+
+    if phase == "generation":
+        return "generation_error"
 
     if phase == "sany":
         if "precedence conflict" in text:
