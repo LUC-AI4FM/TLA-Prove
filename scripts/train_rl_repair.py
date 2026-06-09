@@ -48,8 +48,13 @@ if str(_REPO_ROOT) not in sys.path:
 
 def _resolve_base_model() -> str:
     """Pick the best available MERGED base model in priority order."""
+    env_base = os.environ.get("CHATTLA_BASE_MODEL")
+    if env_base:
+        return env_base
     candidates = [
         _REPO_ROOT / "outputs" / "merged_model_dpo_piecewise",
+        _REPO_ROOT / "outputs" / "merged_model_repair",
+        _REPO_ROOT / "outputs" / "merged_model_v20",
         _REPO_ROOT / "outputs" / "merged_model_v14",
         _REPO_ROOT / "outputs" / "merged_model_v13",
         _REPO_ROOT / "outputs" / "merged_model",
@@ -57,7 +62,7 @@ def _resolve_base_model() -> str:
     for c in candidates:
         if c.is_dir() and (c / "config.json").is_file():
             return str(c)
-    return "openai/gpt-oss-20b"
+    return "EricSpencer00/chattla-20b"
 
 
 def main() -> None:
