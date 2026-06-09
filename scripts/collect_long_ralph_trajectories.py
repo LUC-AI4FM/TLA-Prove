@@ -324,7 +324,7 @@ def main() -> int:
     parser.add_argument("--teacher-model", default=os.getenv("OLLAMA_CLOUD_MODEL", "qwen3-coder:480b"))
     parser.add_argument("--initial-provider", choices=["student", "teacher"], default="student")
     parser.add_argument("--repair-provider", choices=["student", "teacher", "alternate"], default="teacher")
-    parser.add_argument("--success-gate", choices=["gold", "diamond"], default="diamond")
+    parser.add_argument("--success-gate", choices=["gold", "diamond"], default=os.getenv("CHATTLA_SUCCESS_GATE", "diamond"))
     parser.add_argument(
         "--max-iters",
         type=int,
@@ -354,6 +354,13 @@ def main() -> int:
     parser.add_argument("--summary", default="data/processed/long_ralph/summary.json")
     parser.add_argument("--freeze-properties", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--final-judge", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--acceptance-mode",
+        choices=["proof", "audit"],
+        default=os.getenv("CHATTLA_ACCEPTANCE_MODE", "audit"),
+        help="proof stops at SANY/TLC/semantic gate; audit also requires modeling-audit gates.",
+    )
+    parser.add_argument("--local-model-audit", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--repair-mode", choices=["full", "diff"], default="diff")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -366,7 +373,7 @@ def main() -> int:
         args.initial_provider == "teacher"
         or args.repair_provider in {"teacher", "alternate"}
         or args.freeze_properties
-        or args.final_judge
+        or (args.final_judge and args.acceptance_mode == "audit")
     )
     if needs_teacher and not api_key and not args.dry_run:
         raise SystemExit("OLLAMA_API_KEY is required. Source ~/.config/chattla/ollama.env first.")
@@ -390,6 +397,8 @@ def main() -> int:
             "repair_provider": args.repair_provider,
             "repair_mode": args.repair_mode,
             "success_gate": args.success_gate,
+            "acceptance_mode": args.acceptance_mode,
+            "local_model_audit": args.local_model_audit,
             "final_judge": args.final_judge,
             "freeze_properties": args.freeze_properties,
             "semantic_stall_stop": args.semantic_stall_stop,
@@ -476,8 +485,6 @@ def run_one(ex, student: Generator, teacher: OllamaCloud, args: argparse.Namespa
         if frozen:
             print(f"  frozen: {frozen[:100].replace(chr(10), ' ')}")
 
-    previous_spec = ""
-    diagnostics = ""
     policy_steps: list[LongRunStep] = []
     raw_steps: list[dict] = []
     best_score = 0.0
@@ -491,11 +498,11 @@ def run_one(ex, student: Generator, teacher: OllamaCloud, args: argparse.Namespa
     while True:
         n += 1
         gen = pick_generator(n, args, student, teacher)
-        parent = raw_steps[-1] if raw_steps else None
+        parent = select_repair_parent(raw_steps)
         step = generate_step(
             ex, gen, teacher, args, frozen,
-            previous_spec=previous_spec,
-            diagnostics=diagnostics,
+            previous_spec=parent.get("spec", "") if parent else "",
+            diagnostics=repair_context_for_parent(parent, raw_steps),
             iteration=n,
             parent_iteration=parent.get("iteration") if parent else None,
             history=raw_steps,
@@ -526,23 +533,30 @@ def run_one(ex, student: Generator, teacher: OllamaCloud, args: argparse.Namespa
             stop_reason = decision.reason
             break
 
-        previous_spec = step["spec"]
-        diagnostics = step["repair_context"]
-
         if should_start_parallel_branches(raw_steps, args, last_branch_at):
             branch_round += 1
-            root = raw_steps[-1]
+            root = select_repair_parent(raw_steps) or raw_steps[-1]
             results = run_parallel_branches(
                 ex, teacher, args, frozen, root, branch_round,
             )
             selected = select_branch_result(results)
             for result in branch_results_for_recording(results, selected):
                 branch_steps = result.get("steps") or []
-                parent_by_depth = root
+                iteration_map = {root.get("iteration"): root.get("iteration")}
                 for branch_step in branch_steps:
+                    old_iteration = branch_step.get("iteration")
+                    old_parent_iteration = branch_step.get("parent_iteration")
                     n += 1
                     branch_step["iteration"] = n
-                    branch_step["parent_iteration"] = parent_by_depth.get("iteration")
+                    branch_step["parent_iteration"] = iteration_map.get(
+                        old_parent_iteration,
+                        root.get("iteration"),
+                    )
+                    iteration_map[old_iteration] = n
+                    parent_for_record = step_by_iteration(
+                        raw_steps,
+                        branch_step.get("parent_iteration"),
+                    )
                     branch_step["repair_context"] = rebuild_step_context(
                         branch_step, raw_steps + [branch_step],
                     )
@@ -551,16 +565,13 @@ def run_one(ex, student: Generator, teacher: OllamaCloud, args: argparse.Namespa
                     )
                     record_step(
                         ex, frozen, branch_step, args,
-                        raw_steps, policy_steps, parent_by_depth,
+                        raw_steps, policy_steps, parent_for_record,
                     )
                     print_step(branch_step)
-                    parent_by_depth = branch_step
             last_branch_at = n
 
             selected_step = selected_final_step(selected)
             if selected_step:
-                previous_spec = selected_step["spec"]
-                diagnostics = selected_step["repair_context"]
                 if selected_step["success"]:
                     stop_reason = "success"
                     break
@@ -618,7 +629,22 @@ def generate_step(
     )
     spec = _sanitize_spec(_extract_tla(raw))
     verdict = validate_candidate(spec, args.success_gate, args.tlc_timeout)
-    if verdict["success"] and args.final_judge:
+    proof_success = bool(verdict["success"])
+    verdict["proof_success"] = proof_success
+    verdict["model_audit_ok"] = None
+    verdict["model_audit_reason"] = ""
+    if proof_success and args.acceptance_mode == "audit" and args.local_model_audit:
+        audit_ok, audit_reason = audit_candidate(
+            ex.nl_description, frozen, spec, verdict["semantic"]
+        )
+        verdict["model_audit_ok"] = audit_ok
+        verdict["model_audit_reason"] = audit_reason
+        if not audit_ok:
+            verdict["success"] = False
+            verdict["phase"] = "adequacy"
+            verdict["diagnostics"] = audit_reason
+
+    if verdict["success"] and args.acceptance_mode == "audit" and args.final_judge:
         judge_ok, judge_reason = judge_candidate(
             teacher, ex.nl_description, frozen, spec, verdict["semantic"]
         )
@@ -646,8 +672,11 @@ def generate_step(
         "tier": verdict["tier"],
         "raw_score": verdict["score"],
         "score": 0.0,
+        "proof_success": verdict.get("proof_success", False),
         "success": verdict["success"],
         "diamond": verdict["diamond"],
+        "model_audit_ok": verdict.get("model_audit_ok"),
+        "model_audit_reason": verdict.get("model_audit_reason", ""),
         "judge_ok": verdict.get("judge_ok"),
         "judge_reason": verdict.get("judge_reason", ""),
         "phase": verdict["phase"],
@@ -880,17 +909,19 @@ def run_branch(
         "do not preserve a failing structure just because recent attempts did."
     )
     steps: list[dict] = []
-    previous_spec = root.get("spec", "")
-    diagnostics = _trim_context(f"{root.get('repair_context') or root.get('diagnostics', '')}\n\n{branch_directive}")
-    parent_iteration = int(root.get("iteration") or 0)
+    root_iteration = int(root.get("iteration") or 0)
     for depth in range(1, args.branch_iters + 1):
+        branch_history = [root] + steps
+        parent = select_repair_parent(branch_history) or root
         step = generate_step(
             ex, teacher, teacher, args, frozen,
-            previous_spec=previous_spec,
-            diagnostics=diagnostics,
-            iteration=parent_iteration + depth,
-            parent_iteration=parent_iteration,
-            history=[root] + steps,
+            previous_spec=parent.get("spec", ""),
+            diagnostics=_trim_context(
+                f"{repair_context_for_parent(parent, branch_history)}\n\n{branch_directive}"
+            ),
+            iteration=root_iteration + depth,
+            parent_iteration=parent.get("iteration"),
+            history=branch_history,
             branch_id=branch_id,
             branch_focus=focus_name,
             branch_depth=depth,
@@ -899,9 +930,6 @@ def run_branch(
         steps.append(step)
         if step["success"]:
             break
-        previous_spec = step["spec"]
-        diagnostics = step["repair_context"]
-        parent_iteration = step["iteration"]
     return {
         "branch_id": branch_id,
         "branch_focus": focus_name,
@@ -947,7 +975,39 @@ def selected_final_step(result: dict | None) -> dict | None:
     if not result:
         return None
     steps = result.get("steps") or []
-    return steps[-1] if steps else None
+    return max(steps, key=acceptance_frontier_key) if steps else None
+
+
+def select_repair_parent(steps: list[dict]) -> dict | None:
+    if not steps:
+        return None
+    return max(steps, key=acceptance_frontier_key)
+
+
+def step_by_iteration(steps: list[dict], iteration: int | None) -> dict | None:
+    for step in reversed(steps):
+        if step.get("iteration") == iteration:
+            return step
+    return None
+
+
+def repair_context_for_parent(parent: dict | None, history: list[dict]) -> str:
+    if not parent:
+        return ""
+    context = parent.get("repair_context") or parent.get("diagnostics", "")
+    latest = history[-1] if history else parent
+    if latest is parent or latest.get("iteration") == parent.get("iteration"):
+        return context
+
+    latest_reason = latest.get("judge_reason") or latest.get("diagnostics") or ""
+    note = (
+        "Repair from the strongest current frontier candidate below. "
+        "A newer attempt regressed and is provided only as a warning, not as the base spec.\n"
+        f"Regressed attempt: iter={latest.get('iteration')} tier={latest.get('tier')} "
+        f"phase={latest.get('phase')} family={latest.get('failure_family')} "
+        f"reason={_compact(latest_reason, 220)}"
+    )
+    return _trim_context(f"{context}\n\n{note}")
 
 
 def branch_results_for_recording(results: list[dict], selected: dict) -> list[dict]:
@@ -1081,6 +1141,8 @@ def _repair_pair(traj: dict, before: dict, after: dict, pair_index: int) -> dict
         "after_diamond": after["diamond"],
         "before_phase": before["phase"],
         "after_phase": after["phase"],
+        "after_proof_success": after.get("proof_success"),
+        "after_model_audit_ok": after.get("model_audit_ok"),
         "after_success": after["success"],
         "after_judge_ok": after.get("judge_ok"),
         "before_failure_family": before.get("failure_family", ""),
@@ -1559,11 +1621,78 @@ def save_accepted_spec(traj: dict, accepted_dir: Path) -> Path | None:
         "final_score": final["score"],
         "final_tier": final["tier"],
         "final_phase": final["phase"],
+        "proof_success": final.get("proof_success"),
+        "model_audit_ok": final.get("model_audit_ok"),
+        "model_audit_reason": final.get("model_audit_reason", ""),
         "judge_ok": final.get("judge_ok"),
         "frozen_properties": traj.get("frozen_properties", ""),
         "semantic": final.get("semantic", {}),
     }, indent=2) + "\n", encoding="utf-8")
     return spec_path
+
+
+def audit_candidate(
+    description: str,
+    frozen: str,
+    spec: str,
+    semantic: dict,
+) -> tuple[bool, str]:
+    """Deterministic modeling audit before the optional LLM adequacy judge."""
+    requirement = _with_frozen(description, frozen).lower()
+    spec_text = spec or ""
+    semantic = semantic or {}
+
+    if int(semantic.get("distinct_states") or 0) <= 1:
+        return False, "Local modeling audit: reachable state space is static or nearly static."
+    if int(semantic.get("invariants_checked") or 0) <= 0:
+        return False, "Local modeling audit: no safety invariant is checked by TLC."
+    if bool(semantic.get("trivial_invariant")):
+        return False, "Local modeling audit: checked invariant appears trivial or vacuous."
+    if bool(semantic.get("mutation_tested")) and not bool(semantic.get("mutation_caught")):
+        return False, "Local modeling audit: invariants did not catch the mutation test."
+
+    if _requirement_needs_liveness(requirement):
+        if int(semantic.get("properties_checked") or 0) <= 0:
+            return (
+                False,
+                "Local modeling audit: requirement asks for waiting/progress/liveness, "
+                "but no temporal property is checked by TLC.",
+            )
+        if not re.search(r"\b[WS]F_", spec_text):
+            return (
+                False,
+                "Local modeling audit: requirement asks for progress, but Spec has no WF_/SF_ fairness.",
+            )
+
+    missing = _missing_requirement_model_tokens(requirement, spec_text)
+    if missing:
+        return False, f"Local modeling audit: missing explicit model element for {missing}."
+
+    return True, ""
+
+
+def _requirement_needs_liveness(requirement: str) -> bool:
+    return any(
+        token in requirement
+        for token in (
+            "wait", "waiting", "blocked", "blocks", "eventual", "eventually",
+            "progress", "liveness", "fairness", "starv", "terminate", "proceed",
+        )
+    )
+
+
+def _missing_requirement_model_tokens(requirement: str, spec: str) -> str:
+    checks = [
+        ("waiter/waiting state", ("wait", "blocked", "blocks", "queue", "fifo"), r"(?i)\b(wait|queue|fifo|pc)\b"),
+        ("reader state", ("reader", "readers"), r"(?i)\breader"),
+        ("writer state", ("writer", "writers"), r"(?i)\bwriter"),
+        ("acquire/P action", ("acquire", " p()", " p operation"), r"(?i)\b(Acquire|P)\s*\(?"),
+        ("release/V action", ("release", " v()", " v operation"), r"(?i)\b(Release|V)\s*\(?"),
+    ]
+    for label, requirement_tokens, spec_pattern in checks:
+        if any(token in requirement for token in requirement_tokens) and not re.search(spec_pattern, spec):
+            return label
+    return ""
 
 
 def freeze_properties(teacher: OllamaCloud, description: str) -> str:
@@ -1790,11 +1919,16 @@ def _state_level_property(line: str) -> bool:
 
 
 def _judge_status(verdict: dict) -> str:
+    parts = []
+    if verdict.get("model_audit_ok") is True:
+        parts.append("audit=ok")
+    elif verdict.get("model_audit_ok") is False:
+        parts.append("audit=reject")
     if verdict.get("judge_ok") is True:
-        return " judge=ok"
-    if verdict.get("judge_ok") is False:
-        return " judge=reject"
-    return ""
+        parts.append("judge=ok")
+    elif verdict.get("judge_ok") is False:
+        parts.append("judge=reject")
+    return f" {' '.join(parts)}" if parts else ""
 
 
 def _compact(text: str, limit: int) -> str:

@@ -93,6 +93,12 @@ run_pipeline() {
     *) semantic_stall_arg="--semantic-stall-stop" ;;
   esac
 
+  local local_audit_arg
+  case "${CHATTLA_LOCAL_MODEL_AUDIT:-1}" in
+    0|false|FALSE|no|NO) local_audit_arg="--no-local-model-audit" ;;
+    *) local_audit_arg="--local-model-audit" ;;
+  esac
+
   echo "[$(ts)] Phase 1: collect long Ralph trajectories" | tee -a "$LOG"
   "$PY" -u -m scripts.collect_long_ralph_trajectories \
     --student-model "${CHATTLA_STUDENT_MODEL:-chattla:20b}" \
@@ -100,7 +106,9 @@ run_pipeline() {
     --initial-provider "${CHATTLA_INITIAL_PROVIDER:-student}" \
     --repair-provider "${CHATTLA_REPAIR_PROVIDER:-teacher}" \
     --repair-mode "${CHATTLA_REPAIR_MODE:-diff}" \
-    --success-gate "${CHATTLA_SUCCESS_GATE:-diamond}" \
+    --success-gate "${CHATTLA_SUCCESS_GATE:-gold}" \
+    --acceptance-mode "${CHATTLA_ACCEPTANCE_MODE:-proof}" \
+    "$local_audit_arg" \
     --max-iters "${CHATTLA_MAX_ITERS:-0}" \
     --max-same-failure-family-iters "${CHATTLA_MAX_SAME_FAILURE_FAMILY_ITERS:-24}" \
     --max-frontier-stall-iters "${CHATTLA_MAX_FRONTIER_STALL_ITERS:-96}" \

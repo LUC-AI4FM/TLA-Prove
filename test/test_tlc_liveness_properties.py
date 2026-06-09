@@ -6,6 +6,7 @@ from src.validators.tlc_validator import (
     _DEFAULT_JAR,
     _autogenerate_cfg,
     _extract_declared_property_names,
+    _extract_static_action_names,
     validate_string,
 )
 
@@ -53,6 +54,23 @@ EventuallyOne == <> (x = 1)
 """
 
     assert _extract_declared_property_names(spec) == ["EventuallyOne"]
+
+
+def test_static_action_extractor_finds_named_actions_in_next():
+    spec = r"""---- MODULE ActionNames ----
+VARIABLES pc
+vars == <<pc>>
+Init == pc = "idle"
+Acquire(p) == /\ pc = "idle"
+              /\ pc' = "holding"
+Release == /\ pc = "holding"
+           /\ pc' = "idle"
+Next == (\E p \in 1..3 : Acquire(p)) \/ Release
+TypeOK == pc \in {"idle", "holding"}
+====
+"""
+
+    assert _extract_static_action_names(spec) == ["Acquire", "Release"]
 
 
 def test_declared_failing_liveness_is_not_false_gold():

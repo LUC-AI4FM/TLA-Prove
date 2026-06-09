@@ -40,6 +40,23 @@ export CHATTLA_BASE_MODEL=EricSpencer00/chattla-20b
 export CHATTLA_AISEC_STORE=aisec-102.cs.luc.edu:~/chattla-long-runs
 ```
 
+## Acceptance workflow
+
+Use two stages:
+
+1. Proof collection: `CHATTLA_ACCEPTANCE_MODE=proof` and `CHATTLA_SUCCESS_GATE=gold`.
+   This stops once a candidate passes SANY and TLC. It is the default launcher mode,
+   because it banks proof-passing candidates instead of losing the run to later
+   adequacy repairs.
+2. Modeling audit: rerun with `CHATTLA_ACCEPTANCE_MODE=audit` and
+   `CHATTLA_SUCCESS_GATE=diamond`. This adds the deterministic local modeling audit
+   plus the optional final adequacy judge, checking that invariants, temporal
+   properties, fairness, waiting state, acquire/release actions, and domain actors
+   are actually represented.
+
+The collector records both `proof_success` and final `success` on each step, so
+proof-passing specs remain visible even when a modeling audit rejects them.
+
 ## Stop policy
 
 The collector is adaptive, not three-shot:
@@ -83,3 +100,8 @@ adequacy issues rather than long TLC timeout loops:
 Interpretation: the diff-repair path is moving the search into more localized
 spec edits and repeated adequacy/liveness corrections, but it has not yet
 produced accepted specs on this run.
+
+Follow-up fix: the loop now repairs from the strongest current frontier candidate
+instead of the most recent regressed child. TLC is also run with coverage enabled,
+with a static action-name fallback, so proof-passing specs are not mislabeled as
+having zero action coverage when TLC did not print coverage rows.

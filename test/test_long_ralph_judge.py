@@ -2,6 +2,7 @@ from scripts.collect_long_ralph_trajectories import (
     _apply_unified_diff,
     _extract_unified_diff,
     _patched_spec_from_response,
+    audit_candidate,
     acceptance_frontier_key,
     build_repair_context,
     branch_focuses_for_family,
@@ -14,7 +15,9 @@ from scripts.collect_long_ralph_trajectories import (
     objective_score,
     parse_judge_response,
     same_failure_family_tail_count,
+    select_repair_parent,
     select_branch_result,
+    selected_final_step,
     semantic_repair_hint,
     should_stop_for_frontier_stall,
     should_stop_for_semantic_stall,
@@ -510,6 +513,120 @@ def test_select_branch_result_prefers_success_then_score():
     }
 
     assert select_branch_result([losing, winning])["branch_id"] == "r1b2"
+
+
+def test_selected_branch_step_prefers_best_frontier_over_last_regression():
+    gold = {
+        "success": False,
+        "judge_ok": False,
+        "score": 0.84,
+        "diamond": True,
+        "tier": "gold",
+        "phase": "adequacy",
+        "iteration": 2,
+        "failure_family": "weak_fairness",
+        "semantic": {
+            "properties_declared": True,
+            "properties_checked": 1,
+            "distinct_states": 4,
+            "total_actions": 2,
+            "action_coverage": 1.0,
+        },
+    }
+    regressed = gold | {
+        "score": 0.1,
+        "diamond": False,
+        "tier": "bronze",
+        "phase": "sany",
+        "iteration": 3,
+        "failure_family": "syntax",
+        "semantic": {},
+    }
+
+    selected = selected_final_step({"branch_id": "r1b1", "steps": [gold, regressed]})
+
+    assert selected is gold
+
+
+def test_select_repair_parent_anchors_to_best_frontier_after_regression():
+    gold = {
+        "iteration": 4,
+        "success": False,
+        "judge_ok": False,
+        "score": 0.84,
+        "diamond": True,
+        "tier": "gold",
+        "phase": "adequacy",
+        "failure_family": "weak_fairness",
+        "semantic": {
+            "properties_declared": True,
+            "properties_checked": 1,
+            "distinct_states": 4,
+            "total_actions": 2,
+            "action_coverage": 1.0,
+        },
+    }
+    syntax = gold | {
+        "iteration": 5,
+        "score": 0.0,
+        "diamond": False,
+        "tier": "bronze",
+        "phase": "sany",
+        "failure_family": "syntax",
+        "semantic": {},
+    }
+
+    parent = select_repair_parent([gold, syntax])
+
+    assert parent is gold
+
+
+def test_local_modeling_audit_requires_checked_liveness_when_requirement_mentions_waiting():
+    ok, reason = audit_candidate(
+        "A binary semaphore where blocked waiters eventually acquire.",
+        "",
+        "---- MODULE BinarySemaphore ----\nSpec == Init /\\ [][Next]_vars\n====",
+        {
+            "distinct_states": 4,
+            "invariants_checked": 1,
+            "trivial_invariant": False,
+            "mutation_tested": True,
+            "mutation_caught": True,
+            "properties_declared": False,
+            "properties_checked": 0,
+        },
+    )
+
+    assert ok is False
+    assert "liveness" in reason.lower()
+
+
+def test_local_modeling_audit_accepts_checked_invariants_and_liveness_shape():
+    ok, reason = audit_candidate(
+        "A binary semaphore where blocked waiters eventually acquire.",
+        "",
+        (
+            "---- MODULE BinarySemaphore ----\n"
+            "Proc == 1..3\n"
+            "VARIABLES pc, waiters\n"
+            "Spec == Init /\\ [][Next]_vars /\\ WF_vars(Next)\n"
+            "Safety == TypeOK\n"
+            "WaitersEventuallyAcquire == \\A p \\in Proc : [](pc[p] = \"waiting\" => <>(pc[p] = \"holding\"))\n"
+            "===="
+        ),
+        {
+            "distinct_states": 4,
+            "invariants_checked": 1,
+            "trivial_invariant": False,
+            "mutation_tested": True,
+            "mutation_caught": True,
+            "properties_declared": True,
+            "properties_checked": 1,
+        },
+    )
+
+    assert ok is True
+    assert reason == ""
 
 
 def test_objective_score_caps_gold_rejects_below_success():
