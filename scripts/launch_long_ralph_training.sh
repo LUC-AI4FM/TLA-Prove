@@ -31,6 +31,11 @@ fi
 
 ts() { date '+%Y-%m-%d %H:%M:%S'; }
 
+normalize_host() {
+  local host="${1%%.*}"
+  printf '%s' "${host//-/}"
+}
+
 load_env() {
   if [[ -f "$HOME/.config/chattla/ollama.env" ]]; then
     # shellcheck disable=SC1090
@@ -53,7 +58,7 @@ sync_to_aisec() {
   local remote="${CHATTLA_AISEC_STORE:-aisec-102.cs.luc.edu:~/chattla-long-runs}"
   if [[ "$remote" == *:* ]]; then
     local remote_host="${remote%%:*}"
-    if [[ "$remote_host" == "$(hostname -s)" ]]; then
+    if [[ "$(normalize_host "$remote_host")" == "$(normalize_host "$(hostname -s)")" ]]; then
       return 0
     fi
   fi
@@ -78,10 +83,12 @@ run_pipeline() {
   local cloud_only="${CHATTLA_CLOUD_ONLY:-0}"
   local skip_grpo="${CHATTLA_SKIP_GRPO:-0}"
 
-  if [[ "$host_short" == "aisec-102" ]]; then
-    cloud_only=1
-    skip_grpo=1
-  fi
+  case "$host_short" in
+    aisec-102|aisec102)
+      cloud_only=1
+      skip_grpo=1
+      ;;
+  esac
 
   if [[ "$cloud_only" == 1 ]]; then
     export CHATTLA_INITIAL_PROVIDER="${CHATTLA_INITIAL_PROVIDER:-teacher}"
