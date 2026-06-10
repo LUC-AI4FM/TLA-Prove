@@ -2,12 +2,12 @@
 
 Goal: train the canonical ChatTLA student from long verifier-guided repair
 trajectories, using Ollama Cloud as the strong repair teacher and `REDACTED-HOST`
-as the durable artifact store.
+as the durable artifact store and cloud-only launch host.
 
 ## Host roles
 
-- `REDACTED-HOST.cs.luc.edu`: artifact store for trajectories, repair pairs, summaries, checkpoints, and logs.
-- `REDACTED-HOST`: owned GPU host; use for smoke/full runs when idle.
+- `REDACTED-HOST.cs.luc.edu`: default cloud-only long-Ralph host plus artifact store for trajectories, repair pairs, summaries, checkpoints, and logs.
+- `REDACTED-HOST`: optional GPU host for the retrain phase if you explicitly want a local GRPO pass.
 - `polaris`: fastest training host; use once collection/training smoke passes and queue time is acceptable.
 
 ## Key setup
@@ -22,7 +22,7 @@ Replace `HOST` with `REDACTED-HOST.cs.luc.edu`, `REDACTED-HOST`, or `polaris`.
 
 ## Run
 
-From the target training host:
+From `REDACTED-HOST` for cloud-only collection, or a GPU host if you want the local retrain phase:
 
 ```bash
 cd /path/to/ChatTLA
@@ -38,6 +38,11 @@ export CHATTLA_MAX_ITERS=64
 export OLLAMA_CLOUD_MODEL=qwen3-coder:480b
 export CHATTLA_BASE_MODEL=EricSpencer00/chattla-20b
 export CHATTLA_AISEC_STORE=REDACTED-HOST.cs.luc.edu:~/chattla-long-runs
+export CHATTLA_CLOUD_ONLY=1
+export CHATTLA_SKIP_GRPO=1
+export CHATTLA_INITIAL_PROVIDER=teacher
+export CHATTLA_REPAIR_PROVIDER=teacher
+export CHATTLA_LOCAL_MODEL_AUDIT=0
 ```
 
 ## Acceptance workflow
@@ -45,9 +50,9 @@ export CHATTLA_AISEC_STORE=REDACTED-HOST.cs.luc.edu:~/chattla-long-runs
 Use two stages:
 
 1. Proof collection: `CHATTLA_ACCEPTANCE_MODE=proof` and `CHATTLA_SUCCESS_GATE=gold`.
-   This stops once a candidate passes SANY and TLC. It is the default launcher mode,
-   because it banks proof-passing candidates instead of losing the run to later
-   adequacy repairs.
+   This stops once a candidate passes SANY and TLC. It is the default launcher mode
+   on `REDACTED-HOST` when `CHATTLA_CLOUD_ONLY=1`, because it banks proof-passing
+   candidates without spending local GPU cycles on the retrain phase.
 2. Modeling audit: rerun with `CHATTLA_ACCEPTANCE_MODE=audit` and
    `CHATTLA_SUCCESS_GATE=diamond`. This adds the deterministic local modeling audit
    plus the optional final adequacy judge, checking that invariants, temporal
