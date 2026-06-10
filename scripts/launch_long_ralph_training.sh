@@ -51,6 +51,12 @@ load_env() {
 sync_to_aisec() {
   local path="$1"
   local remote="${CHATTLA_AISEC_STORE:-aisec-102.cs.luc.edu:~/chattla-long-runs}"
+  if [[ "$remote" == *:* ]]; then
+    local remote_host="${remote%%:*}"
+    if [[ "$remote_host" == "$(hostname -s)" ]]; then
+      return 0
+    fi
+  fi
   if command -v rsync >/dev/null 2>&1; then
     rsync -az "$path/" "$remote/$(hostname -s)-$(basename "$path")/" \
       >>"$LOG" 2>&1 || echo "[$(ts)] WARN: rsync to $remote failed" | tee -a "$LOG"
@@ -67,6 +73,21 @@ run_pipeline() {
   export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
   export CHATTLA_BASE_MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
   export OLLAMA_CLOUD_MODEL="${OLLAMA_CLOUD_MODEL:-qwen3-coder:480b}"
+  local host_short
+  host_short="$(hostname -s)"
+  local cloud_only="${CHATTLA_CLOUD_ONLY:-0}"
+  local skip_grpo="${CHATTLA_SKIP_GRPO:-0}"
+
+  if [[ "$host_short" == "aisec-102" ]]; then
+    cloud_only=1
+    skip_grpo=1
+  fi
+
+  if [[ "$cloud_only" == 1 ]]; then
+    export CHATTLA_INITIAL_PROVIDER="${CHATTLA_INITIAL_PROVIDER:-teacher}"
+    export CHATTLA_REPAIR_PROVIDER="${CHATTLA_REPAIR_PROVIDER:-teacher}"
+    export CHATTLA_LOCAL_MODEL_AUDIT="${CHATTLA_LOCAL_MODEL_AUDIT:-0}"
+  fi
 
   local stamp
   stamp="$(date '+%Y%m%d_%H%M%S')"
@@ -77,6 +98,7 @@ run_pipeline() {
 
   echo "[$(ts)] ===== Long Ralph Training Run =====" | tee -a "$LOG"
   echo "[$(ts)] repo=$REPO" | tee -a "$LOG"
+  echo "[$(ts)] host=$host_short cloud_only=$cloud_only skip_grpo=$skip_grpo" | tee -a "$LOG"
   echo "[$(ts)] python=$PY" | tee -a "$LOG"
   echo "[$(ts)] run_dir=$run_dir" | tee -a "$LOG"
   echo "[$(ts)] base=$CHATTLA_BASE_MODEL teacher=$OLLAMA_CLOUD_MODEL" | tee -a "$LOG"
@@ -133,6 +155,12 @@ run_pipeline() {
   ln -sfn "$run_abs" data/processed/long_ralph/latest
   cp "$run_dir/repair_pairs.jsonl" data/processed/ralph_repair_pairs_long_latest.jsonl
   sync_to_aisec "$run_dir"
+
+  if [[ "$skip_grpo" == 1 ]]; then
+    echo "[$(ts)] Cloud-only mode enabled; skipping local GRPO retrain" | tee -a "$LOG"
+    echo "[$(ts)] ===== Long Ralph Cloud-Only Run Finished =====" | tee -a "$LOG"
+    return 0
+  fi
 
   local pairs
   pairs="$(wc -l < "$run_dir/repair_pairs.jsonl" | tr -d ' ')"
