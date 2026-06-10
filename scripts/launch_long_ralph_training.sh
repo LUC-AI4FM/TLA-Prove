@@ -80,6 +80,11 @@ run_pipeline() {
   export OLLAMA_CLOUD_MODEL="${OLLAMA_CLOUD_MODEL:-qwen3-coder:480b}"
   local host_short
   host_short="$(hostname -s)"
+  case "$host_short" in
+    REDACTED-HOST)
+      export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-4,5,6,7}"
+      ;;
+  esac
   local cloud_only="${CHATTLA_CLOUD_ONLY:-0}"
   local skip_grpo="${CHATTLA_SKIP_GRPO:-0}"
 
@@ -106,6 +111,9 @@ run_pipeline() {
   echo "[$(ts)] ===== Long Ralph Training Run =====" | tee -a "$LOG"
   echo "[$(ts)] repo=$REPO" | tee -a "$LOG"
   echo "[$(ts)] host=$host_short cloud_only=$cloud_only skip_grpo=$skip_grpo" | tee -a "$LOG"
+  if [[ -n "${CUDA_VISIBLE_DEVICES:-}" ]]; then
+    echo "[$(ts)] cuda_visible_devices=$CUDA_VISIBLE_DEVICES" | tee -a "$LOG"
+  fi
   echo "[$(ts)] python=$PY" | tee -a "$LOG"
   echo "[$(ts)] run_dir=$run_dir" | tee -a "$LOG"
   echo "[$(ts)] base=$CHATTLA_BASE_MODEL teacher=$OLLAMA_CLOUD_MODEL" | tee -a "$LOG"
