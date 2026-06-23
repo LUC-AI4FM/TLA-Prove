@@ -1,0 +1,331 @@
+"""inductiveness.py — TLC-based inductive-invariant checker (the CEGIS oracle).
+
+This is the core decision procedure of the ChatTLA v2 TLAPS proof-search loop.
+Given a TLA+ module and the name of a candidate invariant, it decides whether
+that invariant is *inductive* for the spec's ``Next`` action, i.e.
+
+    Inv /\\ [Next]_vars => Inv'
+
+If the invariant is not inductive, TLC produces a counterexample-to-induction
+(CTI): a pair of states ``s -> s'`` where ``Inv(s)`` holds but ``Inv(s')`` does
+not.  CEGIS uses this trace to strengthen the proposed invariant and retry.
+
+Encoding (the standard TLC inductive-invariant trick)
+-----------------------------------------------------
+We do NOT use ``Init`` as the initial predicate.  Conceptually the .cfg is::
+
+    INIT  <inv_name>
+    NEXT  Next
+    INVARIANT <inv_name>
+
+``INIT <inv_name>`` tells TLC to start from *every* state satisfying the
+candidate invariant, ``NEXT Next`` takes a single step, and
+``INVARIANT <inv_name>`` checks the invariant still holds in the successor.  A
+clean run proves the inductive step; an invariant violation is exactly a CTI.
+
+Enumerability caveat / why we generate a helper INIT operator
+-------------------------------------------------------------
+TLC can only use a predicate as an INIT if it can *enumerate* the states that
+satisfy it — i.e. the predicate must pin every variable to a finite domain
+(e.g. ``x \\in 0..3``).  A candidate invariant like ``Bad == x < 3`` *constrains*
+``x`` but never gives TLC a domain to enumerate, so ``INIT Bad`` fails with
+"the identifier x is either undefined or not an operator".
+
+To stay enumerable we synthesise a helper operator appended to the module::
+
+    <INIT_OP> == TypeOK /\\ <inv_name>
+
+and point ``INIT`` at it, while ``INVARIANT`` still names the candidate
+invariant.  ``TypeOK`` (when the module defines it) supplies the finite domain;
+the conjunction restricts to Inv-states.  If no ``TypeOK`` exists we fall back to
+``INIT <inv_name>`` directly and rely on the invariant itself being enumerable.
+
+We mirror ``src/validators/tlc_validator.py``: same jar discovery
+(``_TLA_TOOLS_JAR``), same ``java -cp <jar> tlc2.TLC -config <cfg> <tla>``
+invocation, same temp-dir + stdout-parsing strategy (TLC exit codes are not
+reliable across versions).
+"""
+
+from __future__ import annotations
+
+import re
+import subprocess
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+
+# Reuse the repo's jar discovery rather than reinventing it.
+from src.validators.sany_validator import _TLA_TOOLS_JAR
+
+_DEFAULT_JAR = _TLA_TOOLS_JAR
+_MODULE_RE = re.compile(r"-{4,}\s*MODULE\s+(\w+)", re.IGNORECASE)
+_MODULE_END_RE = re.compile(r"^={4,}\s*$", re.MULTILINE)
+# Name of the synthesised enumerable INIT operator. Underscore-suffixed to
+# avoid colliding with anything a user-authored module is likely to define.
+_IND_INIT_OP = "IndInit_ChatTLA"
+# A finite type-bound operator we conjoin into INIT so TLC can enumerate.
+_TYPE_BOUND_NAME = "TypeOK"
+
+
+@dataclass
+class InductivenessResult:
+    inductive: bool
+    cti: str | None = None     # the TLC counterexample trace text, when not inductive
+    error: str | None = None   # tooling/parse error, if the check could not run
+
+
+def check_inductive(
+    module_src: str,
+    inv_name: str,
+    *,
+    timeout: int = 90,
+) -> InductivenessResult:
+    """Decide whether ``inv_name`` is inductive for ``module_src``'s ``Next``.
+
+    Parameters
+    ----------
+    module_src : str   Full TLA+ module source text.
+    inv_name   : str   Name of the candidate invariant operator in the module.
+    timeout    : int   Seconds before TLC is killed (reported as an error).
+
+    Returns
+    -------
+    InductivenessResult
+        ``inductive=True``  — TLC ran clean: the invariant is preserved by Next.
+        ``inductive=False`` with ``cti`` — TLC found a counterexample-to-induction.
+        ``inductive=False`` with ``error`` — the check could not run (parse error,
+        TLC failure, timeout, missing jar, ...).
+    """
+    if not _DEFAULT_JAR.exists():
+        return InductivenessResult(
+            inductive=False,
+            error=f"tla2tools.jar not found at {_DEFAULT_JAR}",
+        )
+
+    mod_match = _MODULE_RE.search(module_src)
+    if not mod_match:
+        return InductivenessResult(
+            inductive=False,
+            error="Could not parse MODULE name from source.",
+        )
+    module_name = mod_match.group(1)
+
+    # Decide on an enumerable INIT predicate. If the module defines a TypeOK
+    # type bound (and it is not the candidate itself), conjoin it with the
+    # candidate via a synthesised helper operator so TLC can enumerate the
+    # starting states. Otherwise use the candidate directly.
+    has_type_bound = _defines_operator(module_src, _TYPE_BOUND_NAME)
+    if has_type_bound and inv_name != _TYPE_BOUND_NAME:
+        init_predicate = _IND_INIT_OP
+        tla_text = _inject_ind_init(module_src, inv_name)
+    else:
+        init_predicate = inv_name
+        tla_text = module_src
+
+    cfg_text = _build_cfg(init_predicate, inv_name)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        tla_path = tmp / f"{module_name}.tla"
+        cfg_path = tmp / f"{module_name}.cfg"
+        tla_path.write_text(tla_text, encoding="utf-8")
+        cfg_path.write_text(cfg_text, encoding="utf-8")
+
+        cmd = [
+            "java", "-cp", str(_DEFAULT_JAR),
+            "tlc2.TLC",
+            "-config", str(cfg_path),
+            str(tla_path),
+        ]
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=tmp,  # TLC resolves EXTENDS / writes states relative to cwd
+            )
+        except subprocess.TimeoutExpired:
+            return InductivenessResult(
+                inductive=False,
+                error=f"TLC timed out after {timeout}s "
+                      "(INIT-as-predicate state space too large to enumerate).",
+            )
+        except Exception as exc:  # pragma: no cover - defensive
+            return InductivenessResult(
+                inductive=False,
+                error=f"TLC invocation failed: {exc!r}",
+            )
+
+        stdout = result.stdout + result.stderr
+
+        # Tooling failure (SANY parse error, bad cfg, non-enumerable INIT, etc.)
+        # must be distinguished from a genuine invariant violation.
+        if _is_tooling_error(stdout):
+            return InductivenessResult(
+                inductive=False,
+                error=_extract_tooling_error(stdout),
+            )
+
+        if _invariant_violated(stdout):
+            # Not inductive: capture the printed counterexample-to-induction.
+            return InductivenessResult(
+                inductive=False,
+                cti=_extract_cti(stdout) or stdout.strip(),
+            )
+
+        if _completed_clean(stdout):
+            return InductivenessResult(inductive=True)
+
+        # TLC neither violated the invariant nor reported clean success and we
+        # could not classify the output as a tooling error — surface the raw
+        # output so the caller can diagnose rather than silently trusting it.
+        return InductivenessResult(
+            inductive=False,
+            error="TLC produced no conclusive result:\n" + stdout.strip(),
+        )
+
+
+# ---------------------------------------------------------------------------
+# cfg generation
+# ---------------------------------------------------------------------------
+
+def _build_cfg(init_predicate: str, inv_name: str) -> str:
+    """Build the inductive-step .cfg: start from all Inv-states, step once, recheck.
+
+    ``init_predicate`` is the (possibly synthesised, enumerable) operator used as
+    INIT; ``inv_name`` is the candidate invariant checked after one Next step.
+    This is the standard TLC encoding of the inductive step
+    Inv /\\ [Next]_vars => Inv'.
+    """
+    return (
+        f"INIT {init_predicate}\n"
+        f"NEXT Next\n"
+        f"INVARIANT {inv_name}\n"
+    )
+
+
+def _defines_operator(module_src: str, name: str) -> bool:
+    """True if the module defines a top-level operator ``name == ...``."""
+    return bool(re.search(rf"^\s*{re.escape(name)}\s*==", module_src, re.MULTILINE))
+
+
+def _inject_ind_init(module_src: str, inv_name: str) -> str:
+    """Append ``<INIT_OP> == TypeOK /\\ <inv_name>`` just before the module's ====.
+
+    The helper makes INIT enumerable (TypeOK pins the finite domain) while still
+    restricting the start states to those satisfying the candidate invariant.
+    """
+    helper = f"{_IND_INIT_OP} == {_TYPE_BOUND_NAME} /\\ {inv_name}\n"
+    m = _MODULE_END_RE.search(module_src)
+    if not m:
+        # No closing ==== found; append helper then a terminator.
+        return module_src.rstrip() + "\n" + helper + "================================\n"
+    return module_src[:m.start()] + helper + module_src[m.start():]
+
+
+# ---------------------------------------------------------------------------
+# Output classification (TLC exit codes are unreliable; we parse stdout)
+# ---------------------------------------------------------------------------
+
+def _invariant_violated(output: str) -> bool:
+    """TLC prints 'Invariant <name> is violated.' on a CTI."""
+    return bool(re.search(r"Invariant\s+\S+\s+is violated", output, re.IGNORECASE))
+
+
+def _completed_clean(output: str) -> bool:
+    """TLC prints 'Model checking completed. No error has been found.' on success."""
+    return bool(re.search(r"no error has been found", output, re.IGNORECASE))
+
+
+def _is_tooling_error(output: str) -> bool:
+    """Detect parse / semantic / setup errors as opposed to invariant violations.
+
+    An invariant violation is the *expected* not-inductive signal and must NOT
+    be classified here.  Everything else that prevents a meaningful check
+    (SANY parse errors, unknown operators, non-enumerable INIT predicates,
+    config errors) is a tooling error.
+    """
+    if _invariant_violated(output):
+        return False
+    if _completed_clean(output):
+        return False
+
+    error_markers = (
+        r"Parsing or semantic analysis failed",
+        r"was not (?:successfully )?parsed",
+        r"Semantic errors",
+        r"\bSyntax error\b",
+        r"\*\*\* Errors:",                 # SANY error block header
+        r"is not a (?:valid )?TLA",
+        r"Unknown operator",
+        r"Error:.*could not be parsed",
+        r"TLC threw an unexpected exception",
+        r"could not be (?:read|found|evaluated)",
+        r"In evaluation, the identifier .* is either undefined",
+        r"the configuration file",
+        r"Attempted to .* but .* is not enumerable",
+        r"is not enumerable",
+    )
+    if any(re.search(m, output, re.IGNORECASE) for m in error_markers):
+        return True
+
+    # If TLC never reached the "Starting..." / "Computing initial states" phase,
+    # something went wrong before model checking even began.
+    started = re.search(r"(Computing initial states|Starting\.\.\.|Finished computing)", output)
+    has_error_word = re.search(r"^Error:", output, re.MULTILINE)
+    return bool(has_error_word and not started)
+
+
+def _extract_tooling_error(output: str) -> str:
+    """Pull the salient error lines from TLC/SANY output for the error field."""
+    lines: list[str] = []
+    for line in output.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if re.search(r"(error|fail|exception|not parsed|not enumerable|undefined)",
+                     stripped, re.IGNORECASE):
+            # Skip the benign success summary and JVM GC warnings.
+            if re.search(r"no error has been found", stripped, re.IGNORECASE):
+                continue
+            if re.search(r"garbage collector|UseParallelGC", stripped, re.IGNORECASE):
+                continue
+            lines.append(stripped)
+    if lines:
+        return "\n".join(lines)
+    # Fall back to the whole (trimmed) output so the caller has something.
+    return output.strip() or "TLC failed without producing output."
+
+
+def _extract_cti(output: str) -> str | None:
+    """Extract the counterexample-to-induction trace text from TLC output.
+
+    TLC prints, after 'Invariant <name> is violated.':
+        The behavior up to this point is:
+        State 1: <Initial predicate>
+        /\\ x = 2
+        State 2: <Next ...>
+        /\\ x = 3
+    We return from the 'Invariant ... is violated' line through the trace.
+    """
+    m = re.search(r"Invariant\s+\S+\s+is violated", output, re.IGNORECASE)
+    if not m:
+        return None
+    tail = output[m.start():]
+
+    # Trim trailing TLC bookkeeping (state counts, fingerprint stats, timing)
+    # so the CTI is the readable error trace.
+    cut_markers = [
+        r"\n\d+ states generated",
+        r"\nThe number of states",
+        r"\nProgress\(",
+        r"\nFinished in ",
+    ]
+    end = len(tail)
+    for marker in cut_markers:
+        cm = re.search(marker, tail)
+        if cm:
+            end = min(end, cm.start())
+    trace = tail[:end].strip()
+    return trace or None
