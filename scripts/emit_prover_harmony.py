@@ -32,7 +32,7 @@ Your job is to write the PROOF body for that final theorem. Output only the proo
 Use TLAPS syntax: hierarchical step bullets like <1>a, <1>b, <1> QED, the keywords BY, BY DEF, OBVIOUS, USE, DEFINE, SUFFICES, ASSUME, PROVE, CASE, PICK, WITNESS, and the backends PTL, Zenon, SMT.
 Reference earlier theorems and lemmas by name when needed.
 Do not repeat the THEOREM/LEMMA line. Do not output the closing ====.
-Reasoning: medium"""
+Reasoning: low"""
 
 
 def to_messages(chunk: dict) -> list[dict]:

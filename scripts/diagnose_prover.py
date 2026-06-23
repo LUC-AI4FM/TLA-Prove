@@ -23,6 +23,7 @@ from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
 
 from src.validators.tlaps_validator import validate_string
+from src.harmony_extract import extract_final_channel
 
 ADAPTER = REPO / "outputs" / "checkpoints_prover" / "checkpoint-48"
 BASE_MODEL = "openai/gpt-oss-20b"
@@ -70,15 +71,6 @@ def build_synthetic(preamble_plus_stmt: str, proof: str) -> tuple[str, str]:
     return body, new_name
 
 
-def strip_to_proof(text: str) -> str:
-    """Mirror of what TLAPSEvalCallback does: strip analysis channel, take from
-    first <n> bullet."""
-    if "final" in text:
-        text = text[text.index("final") + len("final"):]
-    m = re.search(r"(<\d+>.*)", text, re.DOTALL)
-    return m.group(1).strip() if m else text.strip()
-
-
 @torch.no_grad()
 def generate(model, tokenizer, example: dict, max_new_tokens: int = 1024) -> tuple[str, str]:
     """Return (raw_text, extracted_proof)."""
@@ -93,8 +85,8 @@ def generate(model, tokenizer, example: dict, max_new_tokens: int = 1024) -> tup
         pad_token_id=tokenizer.pad_token_id,
     )
     new = out[0][inputs["input_ids"].shape[1]:]
-    raw = tokenizer.decode(new, skip_special_tokens=True)
-    return raw, strip_to_proof(raw)
+    raw = tokenizer.decode(new, skip_special_tokens=False)
+    return raw, extract_final_channel(raw).proof
 
 
 def run_one(model, tokenizer, example: dict, tag: str) -> dict:
