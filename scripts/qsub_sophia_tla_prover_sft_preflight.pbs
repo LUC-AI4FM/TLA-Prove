@@ -1,6 +1,5 @@
 #!/bin/bash
 #PBS -N chattla_sft_preflight
-#PBS -A EVITA
 #PBS -q by-gpu
 #PBS -l select=1:ngpus=2:ncpus=64:mem=240gb
 #PBS -l walltime=00:45:00
@@ -17,7 +16,7 @@ LOG="outputs/logs/sft_preflight_${JOBNUM}.log"
 OUT="outputs/checkpoints_tla_prover_sft_preflight_${JOBNUM}"
 exec > "$LOG" 2>&1
 
-export HF_HOME=/grand/EVITA/eric-spencer/hf-cache
+export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
 export TRANSFORMERS_CACHE="$HF_HOME"
 export HF_DATASETS_CACHE="$HF_HOME/datasets"
 export HF_HUB_OFFLINE=1
@@ -28,8 +27,8 @@ export CUDA_VISIBLE_DEVICES=0,1
 export OMP_NUM_THREADS=8
 export MKL_NUM_THREADS=8
 
-PY="${CHATTLA_PYTHON:-/home/eric-spencer/.conda/envs/frs/bin/python}"
-BASE_MODEL="${CHATTLA_BASE_MODEL:-/grand/EVITA/eric-spencer/hf-cache/hub/models--EricSpencer00--chattla-20b/snapshots/c1a3e8b5c6916ce4a0ed830e996662ca28e0a262}"
+PY="${CHATTLA_PYTHON:-python3}"
+BASE_MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
 TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl}"
 PROVER_EVAL_FILE="${CHATTLA_TLA_PROVER_EVAL_FILE:-data/processed/prover_eval.jsonl}"
 

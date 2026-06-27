@@ -132,7 +132,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "scripts/wait_for_macmini_and_handoff_known18.sh --mirror-report-only"
             ),
             "install_laptop_wait_handoff_launchagent": (
-                "scripts/install_wait_handoff_launchagent.sh --mac-host ericspencer@100.117.97.102"
+                "CHATTLA_RELAY_HOST=<user@relay-host> scripts/install_wait_handoff_launchagent.sh"
             ),
             "install_laptop_handoff_doctor_launchagent": (
                 "scripts/install_handoff_doctor_launchagent.sh --interval 300"

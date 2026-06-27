@@ -7,18 +7,14 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 DEFAULT_MODULE_LIST = REPO / "data" / "processed" / "tla_prover" / "tlaps_candidate_modules_18.txt"
-DEFAULT_TLAPM = Path("/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm")
-DEFAULT_PYTHON = Path("/home/eric-spencer/.conda/envs/frs/bin/python")
-DEFAULT_BASE_MODEL = Path(
-    "/grand/EVITA/eric-spencer/hf-cache/hub/"
-    "models--EricSpencer00--chattla-20b/snapshots/"
-    "c1a3e8b5c6916ce4a0ed830e996662ca28e0a262"
-)
+DEFAULT_TLAPM = Path(os.environ.get("CHATTLA_TLAPM", "tlapm"))
+DEFAULT_PYTHON = Path(os.environ.get("CHATTLA_PYTHON", sys.executable))
 
 BASE_REQUIRED = [
     "src/",
@@ -106,13 +102,17 @@ def run_preflight(
             errors.append("java is not on PATH")
         env_tlapm = os.environ.get("CHATTLA_TLAPM")
         candidate = tlapm or (Path(env_tlapm) if env_tlapm else DEFAULT_TLAPM)
-        if not candidate.exists():
-            errors.append(f"tlapm not found: {candidate}")
-        elif not os.access(candidate, os.X_OK):
-            errors.append(f"tlapm is not executable: {candidate}")
+        resolved_tlapm = shutil.which(str(candidate)) if not candidate.is_absolute() else None
+        if candidate.is_absolute():
+            if not candidate.exists():
+                errors.append(f"tlapm not found: {candidate}")
+            elif not os.access(candidate, os.X_OK):
+                errors.append(f"tlapm is not executable: {candidate}")
+        elif resolved_tlapm is None:
+            errors.append(f"tlapm not found on PATH: {candidate}")
         if sft_preflight:
             py = Path(os.environ.get("CHATTLA_PYTHON", str(DEFAULT_PYTHON)))
-            base_model = Path(os.environ.get("CHATTLA_BASE_MODEL", str(DEFAULT_BASE_MODEL)))
+            base_model = os.environ.get("CHATTLA_BASE_MODEL", "EricSpencer00/chattla-20b")
             if not py.exists():
                 errors.append(f"python not found: {py}")
             elif not os.access(py, os.X_OK):
@@ -137,8 +137,11 @@ def run_preflight(
                         "python import probe failed: "
                         + (probe.stderr.strip() or probe.stdout.strip() or f"rc={probe.returncode}")
                     )
-            if not (base_model / "config.json").exists():
-                errors.append(f"base model config not found: {base_model / 'config.json'}")
+            base_path = Path(base_model)
+            if (base_path.is_absolute() or base_model.startswith(".")) and not base_path.exists():
+                errors.append(f"base model path not found: {base_path}")
+            elif base_path.exists() and not (base_path / "config.json").exists():
+                errors.append(f"base model config not found: {base_path / 'config.json'}")
     elif shutil.which("java") is None:
         warnings.append("java is not on PATH; use --require-tools on the remote pre-qsub check")
 

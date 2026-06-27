@@ -26,12 +26,18 @@ Runner = Callable[[list[str]], subprocess.CompletedProcess[str]]
 
 
 def default_candidates() -> list[Candidate]:
-    return [
-        Candidate("relay", os.environ.get("CHATTLA_RELAY_HOST") or os.environ.get("CHATTLA_MAC_HOST", "ericspencer@100.117.97.102")),
-        Candidate("sophia_direct", os.environ.get("SOPHIA_HOST", "eric-spencer@sophia.alcf.anl.gov")),
-        Candidate("polaris", os.environ.get("CHATTLA_POLARIS_HOST", "polaris")),
-        Candidate("aisec", os.environ.get("CHATTLA_AISEC_HOST", "aisec")),
-    ]
+    candidates = []
+    for name, env_name in [
+        ("relay", "CHATTLA_RELAY_HOST"),
+        ("mac", "CHATTLA_MAC_HOST"),
+        ("sophia_direct", "SOPHIA_HOST"),
+        ("polaris", "CHATTLA_POLARIS_HOST"),
+        ("aisec", "CHATTLA_AISEC_HOST"),
+    ]:
+        host = os.environ.get(env_name)
+        if host:
+            candidates.append(Candidate(name, host))
+    return candidates
 
 
 def parse_candidate(text: str) -> Candidate:
@@ -104,6 +110,18 @@ def main() -> int:
     args = parser.parse_args()
 
     candidates = [parse_candidate(item) for item in args.candidate] if args.candidate else default_candidates()
+    if not candidates:
+        payload = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "ok": False,
+            "best_candidate": None,
+            "candidates": [],
+            "error": "No candidates configured. Set CHATTLA_RELAY_HOST, SOPHIA_HOST, CHATTLA_POLARIS_HOST, CHATTLA_AISEC_HOST, or pass --candidate.",
+        }
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 1
     payload = probe_candidates(candidates)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -31,7 +31,7 @@ def test_wait_handoff_launchagent_dry_run_prints_plist(tmp_path: Path) -> None:
             "--log-dir",
             str(tmp_path / "logs"),
             "--mac-host",
-            "ericspencer@100.117.97.102",
+            "user@relay.example",
         ],
         cwd=REPO,
         check=True,
@@ -40,7 +40,7 @@ def test_wait_handoff_launchagent_dry_run_prints_plist(tmp_path: Path) -> None:
     )
 
     assert "com.chattla.wait-for-macmini-handoff.plist" in result.stdout
-    assert "ericspencer@100.117.97.102" in result.stdout
+    assert "user@relay.example" in result.stdout
     assert str(REPO / "scripts/wait_for_macmini_and_handoff_known18.sh") in result.stdout
     assert "CHATTLA_HANDOFF_LOG_DIR" in result.stdout
 

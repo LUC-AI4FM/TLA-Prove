@@ -18,7 +18,7 @@ def decide_action(status: dict[str, Any]) -> dict[str, Any]:
     state = status.get("state")
     launch_state = (status.get("launchagent") or {}).get("state")
 
-    if state == "waiting_for_macmini" and launch_state == "running":
+    if state in {"waiting_for_relay", "waiting_for_macmini"} and launch_state == "running":
         return {
             "action": "noop",
             "reason": "wait LaunchAgent is already running",
@@ -30,11 +30,11 @@ def decide_action(status: dict[str, Any]) -> dict[str, Any]:
             "reason": "remote handoff is paused",
             "command": None,
         }
-    if state in {"not_started", "waiting_for_macmini"}:
+    if state in {"not_started", "waiting_for_relay", "waiting_for_macmini"}:
         return {
             "action": "install_wait_launchagent",
             "reason": "handoff has not submitted and wait LaunchAgent is not running",
-            "command": "scripts/install_wait_handoff_launchagent.sh --mac-host ericspencer@100.117.97.102",
+            "command": "scripts/install_wait_handoff_launchagent.sh",
         }
     if state in {"submitted_waiting_for_results", "partial_submit_waiting_for_results", "collecting_results"}:
         return {

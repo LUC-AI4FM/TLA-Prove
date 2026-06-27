@@ -8,7 +8,7 @@ fi
 
 REPO="${CHATTLA_REPO:-$HOME/GitHub/ChatTLA/ChatTLA}"
 CODEX_BIN="${CODEX_BIN:-$HOME/.local/bin/codex}"
-SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/codex-sophia-ctl}"
+SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/${CHATTLA_SOPHIA_CTL_NAME:-chattla-remote-ctl}}"
 AGENT_DIR="$HOME/Library/LaunchAgents"
 SUPERVISOR_PLIST="$AGENT_DIR/com.chattla.codex-goal-supervisor.plist"
 AUTOPILOT_PLIST="$AGENT_DIR/com.chattla.tla-prover-autopilot.plist"

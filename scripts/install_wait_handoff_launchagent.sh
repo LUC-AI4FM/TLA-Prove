@@ -3,11 +3,11 @@ set -euo pipefail
 
 DRY_RUN=0
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MAC_HOST="${CHATTLA_MAC_HOST:-ericspencer@erics-mac-mini.local}"
-MAC_KEY="${CHATTLA_MAC_KEY:-$HOME/.ssh/id_ed25519_mac_mini}"
+MAC_HOST="${CHATTLA_MAC_HOST:-${CHATTLA_RELAY_HOST:-}}"
+MAC_KEY="${CHATTLA_MAC_KEY:-${CHATTLA_RELAY_KEY:-$HOME/.ssh/id_ed25519}}"
 RELAY_HOST="${CHATTLA_RELAY_HOST:-$MAC_HOST}"
 RELAY_KEY="${CHATTLA_RELAY_KEY:-$MAC_KEY}"
-RELAY_LABEL="${CHATTLA_RELAY_LABEL:-Mac mini}"
+RELAY_LABEL="${CHATTLA_RELAY_LABEL:-relay}"
 LOG_DIR="${CHATTLA_HANDOFF_LOG_DIR:-$REPO/outputs/logs}"
 SLEEP_SECONDS="${CHATTLA_MACMINI_WAIT_SLEEP:-60}"
 MAX_ATTEMPTS="${CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS:-0}"
@@ -77,6 +77,11 @@ EOF
   esac
   shift
 done
+
+if [ -z "$MAC_HOST" ]; then
+  echo "Set CHATTLA_MAC_HOST or CHATTLA_RELAY_HOST, or pass --mac-host." >&2
+  exit 2
+fi
 
 WRAPPER="$REPO/scripts/wait_for_macmini_and_handoff_known18.sh"
 STDOUT="$LOG_DIR/wait_for_macmini_launchagent.out.log"
