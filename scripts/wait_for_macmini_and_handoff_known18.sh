@@ -7,7 +7,7 @@ RELAY_KEY="${CHATTLA_RELAY_KEY:-${CHATTLA_MAC_KEY:-$HOME/.ssh/id_ed25519}}"
 RELAY_REPO="${CHATTLA_RELAY_REPO:-${CHATTLA_MAC_REPO:-$HOME/ChatTLA}}"
 RELAY_LABEL="${CHATTLA_RELAY_LABEL:-relay}"
 SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/${CHATTLA_SOPHIA_CTL_NAME:-chattla-remote-ctl}}"
-SOPHIA_HOST="${SOPHIA_HOST:-sophia}"
+REMOTE_HOST="${CHATTLA_REMOTE_HOST:-${SOPHIA_HOST:-}}"
 REMOTE_REPO="${CHATTLA_REMOTE_REPO:-ChatTLA}"
 LOG_DIR="${CHATTLA_HANDOFF_LOG_DIR:-$LOCAL_REPO/outputs/logs}"
 SLEEP_SECONDS="${CHATTLA_MACMINI_WAIT_SLEEP:-60}"
@@ -17,6 +17,10 @@ HANDOFF_ARGS=()
 
 if [ -z "$RELAY_HOST" ]; then
   echo "Set CHATTLA_RELAY_HOST or CHATTLA_MAC_HOST to the relay SSH target." >&2
+  exit 2
+fi
+if [ -z "$REMOTE_HOST" ]; then
+  echo "Set CHATTLA_REMOTE_HOST or SOPHIA_HOST to the remote SSH target." >&2
   exit 2
 fi
 
@@ -63,7 +67,7 @@ mirror_remote_report() {
     -o IdentitiesOnly=yes \
     -i "$RELAY_KEY" \
     "$RELAY_HOST" \
-    "cd '$RELAY_REPO' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:$REMOTE_REPO/$report' '$RELAY_REPO/$report'" \
+    "cd '$RELAY_REPO' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$REMOTE_HOST:$REMOTE_REPO/$report' '$RELAY_REPO/$report'" \
     >> "$LOG" 2>&1 || return 1
   rsync -az \
     -e "ssh -o ConnectTimeout=10 -o BatchMode=yes -o PubkeyAuthentication=yes -o PasswordAuthentication=no -o IdentitiesOnly=yes -i $RELAY_KEY" \

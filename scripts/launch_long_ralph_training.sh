@@ -81,13 +81,9 @@ run_pipeline() {
   export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
   export CHATTLA_BASE_MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
   export OLLAMA_CLOUD_MODEL="${OLLAMA_CLOUD_MODEL:-qwen3-coder:480b}"
-  local host_short
-  host_short="$(hostname -s)"
-  case "$host_short" in
-    REDACTED-HOST)
-      export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-4,5,6,7}"
-      ;;
-  esac
+  if [[ -n "${CHATTLA_CUDA_VISIBLE_DEVICES:-}" ]]; then
+    export CUDA_VISIBLE_DEVICES="$CHATTLA_CUDA_VISIBLE_DEVICES"
+  fi
   local cloud_only="${CHATTLA_CLOUD_ONLY:-0}"
   local skip_grpo="${CHATTLA_SKIP_GRPO:-0}"
 

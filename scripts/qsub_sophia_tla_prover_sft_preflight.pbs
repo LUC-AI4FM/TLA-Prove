@@ -1,9 +1,5 @@
 #!/bin/bash
 #PBS -N chattla_sft_preflight
-#PBS -q by-gpu
-#PBS -l select=1:ngpus=2:ncpus=64:mem=240gb
-#PBS -l walltime=00:45:00
-#PBS -l filesystems=home_fs:grand_fs
 #PBS -j oe
 
 set -euo pipefail
@@ -23,7 +19,9 @@ export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export HF_DATASETS_OFFLINE=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1
+if [ -n "${CHATTLA_CUDA_VISIBLE_DEVICES:-}" ]; then
+  export CUDA_VISIBLE_DEVICES="$CHATTLA_CUDA_VISIBLE_DEVICES"
+fi
 export OMP_NUM_THREADS=8
 export MKL_NUM_THREADS=8
 

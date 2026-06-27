@@ -46,7 +46,7 @@ def test_remote_handoff_dry_run_syncs_known18_modules_and_sft_dependencies() -> 
             "CHATTLA_RELAY_HOST": "relay.example",
             "CHATTLA_RELAY_KEY": "/tmp/relay_key",
             "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
-            "SOPHIA_HOST": "remote-hpc",
+            "CHATTLA_REMOTE_HOST": "remote-hpc",
             "SOPHIA_CTL": "/tmp/remote-ctl",
             "CHATTLA_TLAPM": "/opt/tlaps/bin/tlapm",
         }
@@ -87,6 +87,7 @@ def test_remote_handoff_dry_run_honors_relay_env_over_mac_aliases() -> None:
             "CHATTLA_RELAY_HOST": "relay.example",
             "CHATTLA_RELAY_KEY": "/tmp/relay_key",
             "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
+            "CHATTLA_REMOTE_HOST": "remote-hpc",
         }
     )
 
@@ -112,6 +113,7 @@ def test_remote_handoff_install_launchagents_is_explicit_opt_in() -> None:
             "CHATTLA_RELAY_HOST": "relay.example",
             "CHATTLA_RELAY_KEY": "/tmp/relay_key",
             "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
+            "CHATTLA_REMOTE_HOST": "remote-hpc",
         }
     )
     result = subprocess.run(
@@ -197,6 +199,7 @@ printf '%s\n' "$@" > {tmp_path / "handoff_args"}
                 "CHATTLA_MACMINI_WAIT_SLEEP": "0",
                 "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "5",
                 "CHATTLA_RELAY_HOST": "relay.example",
+                "CHATTLA_REMOTE_HOST": "remote-hpc",
             }
         )
 
@@ -237,6 +240,7 @@ def test_wait_wrapper_gives_up_without_handoff(tmp_path: Path) -> None:
                 "CHATTLA_MACMINI_WAIT_SLEEP": "0",
                 "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "2",
                 "CHATTLA_RELAY_HOST": "relay.example",
+                "CHATTLA_REMOTE_HOST": "remote-hpc",
             }
         )
 
@@ -278,6 +282,7 @@ def test_wait_wrapper_returns_error_when_submission_report_mirror_fails(tmp_path
                 "CHATTLA_MACMINI_WAIT_SLEEP": "0",
                 "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "1",
                 "CHATTLA_RELAY_HOST": "relay.example",
+                "CHATTLA_REMOTE_HOST": "remote-hpc",
             }
         )
 
@@ -327,6 +332,7 @@ def test_wait_wrapper_mirror_only_does_not_resubmit(tmp_path: Path) -> None:
                 "CHATTLA_LOCAL_REPO": str(fake_repo),
                 "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
                 "CHATTLA_RELAY_HOST": "relay.example",
+                "CHATTLA_REMOTE_HOST": "remote-hpc",
             }
         )
 
@@ -370,6 +376,7 @@ exit 255
             "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "1",
             "CHATTLA_RELAY_HOST": "relay.example",
             "CHATTLA_RELAY_KEY": "/tmp/relay_key",
+            "CHATTLA_REMOTE_HOST": "remote-hpc",
         }
     )
 

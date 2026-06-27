@@ -79,3 +79,18 @@ def test_doctor_cli_dry_run_outputs_decision() -> None:
     assert "status" in payload
     assert "decision" in payload
     assert "action" in payload["decision"]
+
+
+def test_doctor_cli_compact_outputs_small_decision_packet() -> None:
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "--repo", str(REPO), "--dry-run", "--no-live", "--compact"],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    payload = json.loads(result.stdout)
+    assert "status" in payload
+    assert "decision" in payload
+    assert "launchagent" not in payload["status"]
+    assert "action" in payload["decision"]

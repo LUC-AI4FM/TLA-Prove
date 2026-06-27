@@ -43,7 +43,7 @@ def test_collect_remote_results_dry_run_uses_job_ids_from_submission_report(tmp_
             "CHATTLA_RELAY_HOST": "relay.example",
             "CHATTLA_RELAY_KEY": "/tmp/relay_key",
             "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
-            "SOPHIA_HOST": "remote-hpc",
+            "CHATTLA_REMOTE_HOST": "remote-hpc",
             "SOPHIA_CTL": "/tmp/remote-ctl",
         }
     )
@@ -76,6 +76,7 @@ def test_collect_remote_results_dry_run_honors_relay_env(tmp_path: Path) -> None
             "CHATTLA_RELAY_HOST": "relay.example",
             "CHATTLA_RELAY_KEY": "/tmp/relay_key",
             "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
+            "CHATTLA_REMOTE_HOST": "remote-hpc",
         }
     )
 
@@ -111,6 +112,7 @@ def test_collect_remote_results_writes_error_report_on_transport_failure(tmp_pat
     env["PATH"] = f"{fake_bin}:{env['PATH']}"
     env["CHATTLA_LOCAL_REPO"] = str(tmp_path)
     env["CHATTLA_RELAY_HOST"] = "relay.example"
+    env["CHATTLA_REMOTE_HOST"] = "remote-hpc"
 
     result = subprocess.run(
         ["bash", str(SCRIPT), "--submission-report", str(report)],

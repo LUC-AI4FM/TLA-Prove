@@ -45,12 +45,16 @@ RELAY_KEY="${CHATTLA_RELAY_KEY:-${CHATTLA_MAC_KEY:-$HOME/.ssh/id_ed25519}}"
 RELAY_REPO="${CHATTLA_RELAY_REPO:-${CHATTLA_MAC_REPO:-$HOME/ChatTLA}}"
 RELAY_LABEL="${CHATTLA_RELAY_LABEL:-relay}"
 SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/${CHATTLA_SOPHIA_CTL_NAME:-chattla-remote-ctl}}"
-SOPHIA_HOST="${SOPHIA_HOST:-sophia}"
+REMOTE_HOST="${CHATTLA_REMOTE_HOST:-${SOPHIA_HOST:-}}"
 REMOTE_REPO="${CHATTLA_REMOTE_REPO:-ChatTLA}"
 REMOTE_TLAPM="${CHATTLA_TLAPM:-tlapm}"
 
 if [ -z "$RELAY_HOST" ]; then
   echo "Set CHATTLA_RELAY_HOST or CHATTLA_MAC_HOST to the relay SSH target." >&2
+  exit 2
+fi
+if [ -z "$REMOTE_HOST" ]; then
+  echo "Set CHATTLA_REMOTE_HOST or SOPHIA_HOST to the remote SSH target." >&2
   exit 2
 fi
 
@@ -82,6 +86,7 @@ FILES=(
   scripts/build_tla_prover_eval_corpus.py
   scripts/build_sany_tlc_eval_corpus.py
   scripts/build_tla_prover_manifest.py
+  scripts/check_tla_prover_pr_ready.py
   scripts/collect_tla_prover_remote_results.sh
   scripts/doctor_tla_prover_handoff.py
   scripts/evaluate_tla_prover_remote_results.py
@@ -153,13 +158,13 @@ else
 fi
 run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && chmod +x scripts/macmini_codex_goal_supervisor.sh scripts/macmini_tla_prover_autopilot.sh scripts/install_macmini_launchagents.sh scripts/install_handoff_doctor_launchagent.sh scripts/sync_macmini_and_submit_known18.sh scripts/wait_for_macmini_and_handoff_known18.sh scripts/watch_tla_prover_remote_results.sh scripts/submit_tla_prover_remote_jobs.sh scripts/preflight_tla_prover_remote.py scripts/preflight_tla_prover_corpora.py scripts/build_tla_prover_eval_corpus.py scripts/build_sany_tlc_eval_corpus.py scripts/diagnose_sany_tlc_pass_corpus.py scripts/collect_tla_prover_remote_results.sh scripts/evaluate_tla_prover_remote_results.py scripts/status_tla_prover_handoff.py scripts/doctor_tla_prover_handoff.py 2>/dev/null || true && $INSTALL_MACMINI_CMD"
 
-run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' 'cd '$REMOTE_REPO' && mkdir -p scripts data/processed/tla_prover outputs/manifests outputs/logs outputs/autoprover'"
+run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$REMOTE_HOST' 'cd '$REMOTE_REPO' && mkdir -p scripts data/processed/tla_prover outputs/manifests outputs/logs outputs/autoprover'"
 for file in "${ALL_FILES[@]}"; do
-  run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && rsync -az --relative '$file' -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:$REMOTE_REPO/'"
+  run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && rsync -az --relative '$file' -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$REMOTE_HOST:$REMOTE_REPO/'"
 done
 
 REMOTE_SUBMIT="cd '$REMOTE_REPO' && CHATTLA_TLAPM='$REMOTE_TLAPM' scripts/submit_tla_prover_remote_jobs.sh"
 if [ "$SUBMIT_SFT_PREFLIGHT" = "1" ]; then
   REMOTE_SUBMIT="$REMOTE_SUBMIT --submit-sft-preflight"
 fi
-run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' '$REMOTE_SUBMIT'"
+run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$REMOTE_HOST' '$REMOTE_SUBMIT'"

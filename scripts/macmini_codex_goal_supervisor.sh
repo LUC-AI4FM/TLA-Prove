@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="${CHATTLA_REPO:-$HOME/GitHub/ChatTLA/ChatTLA}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="${CHATTLA_REPO:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 CODEX="${CODEX_BIN:-$HOME/.local/bin/codex}"
 LOG_DIR="$REPO/outputs/logs"
 PROMPT="$LOG_DIR/macmini_codex_goal_prompt.txt"

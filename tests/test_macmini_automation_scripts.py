@@ -9,7 +9,8 @@ AUTOPILOT = REPO / "scripts" / "macmini_tla_prover_autopilot.sh"
 def test_codex_supervisor_has_preflight_pid_status_and_log_rotation() -> None:
     text = SUPERVISOR.read_text(encoding="utf-8")
 
-    assert 'REPO="${CHATTLA_REPO:-$HOME/GitHub/ChatTLA/ChatTLA}"' in text
+    assert "SCRIPT_DIR=" in text
+    assert 'REPO="${CHATTLA_REPO:-$(cd "$SCRIPT_DIR/.." && pwd)}"' in text
     assert 'CODEX="${CODEX_BIN:-$HOME/.local/bin/codex}"' in text
     assert "PIDFILE=" in text
     assert "STATUS=" in text
@@ -23,7 +24,8 @@ def test_codex_supervisor_has_preflight_pid_status_and_log_rotation() -> None:
 def test_macmini_autopilot_uses_home_defaults_and_status_file() -> None:
     text = AUTOPILOT.read_text(encoding="utf-8")
 
-    assert 'REPO="${CHATTLA_REPO:-$HOME/GitHub/ChatTLA/ChatTLA}"' in text
+    assert "SCRIPT_DIR=" in text
+    assert 'REPO="${CHATTLA_REPO:-$(cd "$SCRIPT_DIR/.." && pwd)}"' in text
     assert "STATUS=" in text
     assert "write_status()" in text
     assert "rotate_log()" in text

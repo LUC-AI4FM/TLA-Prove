@@ -1,9 +1,5 @@
 #!/bin/bash
 #PBS -N tlaps_repro_final
-#PBS -q by-gpu
-#PBS -l select=1:ncpus=16
-#PBS -l walltime=04:00:00
-#PBS -l filesystems=home:grand
 #PBS -j oe
 #PBS -o outputs/logs/tlaps_reproduce_final_${PBS_JOBID}.log
 

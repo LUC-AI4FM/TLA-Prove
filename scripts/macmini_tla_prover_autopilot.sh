@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 set -u
 
-REPO="${CHATTLA_REPO:-$HOME/GitHub/ChatTLA/ChatTLA}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="${CHATTLA_REPO:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/${CHATTLA_SOPHIA_CTL_NAME:-chattla-remote-ctl}}"
-SOPHIA_HOST="${SOPHIA_HOST:-sophia}"
-HF_PROVER_DATASET="${CHATTLA_HF_PROVER_DATASET:-EricSpencer00/chattla-tla-prover-108-108}"
-CHATTLA_BASE_MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+REMOTE_HOST="${CHATTLA_REMOTE_HOST:-${SOPHIA_HOST:-}}"
+HF_NAMESPACE="${CHATTLA_HF_NAMESPACE:-${CHATTLA_HF_ORG:-${HF_ORG:-${USER:-HF}}}}"
+export CHATTLA_HF_NAMESPACE="$HF_NAMESPACE"
+export CHATTLA_HF_PROVER_DATASET_NAME="${CHATTLA_HF_PROVER_DATASET_NAME:-chattla-tla-prover-108-108}"
+export CHATTLA_BASE_MODEL_NAME="${CHATTLA_BASE_MODEL_NAME:-chattla-20b}"
+export CHATTLA_HF_PROVER_DATASET="${CHATTLA_HF_PROVER_DATASET:-$CHATTLA_HF_NAMESPACE/$CHATTLA_HF_PROVER_DATASET_NAME}"
+export CHATTLA_BASE_MODEL="${CHATTLA_BASE_MODEL:-$CHATTLA_HF_NAMESPACE/$CHATTLA_BASE_MODEL_NAME}"
 cd "$REPO" || exit 1
 
 mkdir -p outputs/logs outputs/autopilot data/processed/tla_prover
@@ -46,15 +51,19 @@ while true; do
   write_status "heartbeat"
   echo "[$(ts)] heartbeat"
   if [ -S "$SOPHIA_CTL" ]; then
-    echo "[$(ts)] sophia control socket present"
+    echo "[$(ts)] remote control socket present"
     if [ -f outputs/logs/current_sophia_full_dataset_smoke_job.txt ]; then
       job="$(cat outputs/logs/current_sophia_full_dataset_smoke_job.txt)"
-      ssh -o BatchMode=yes -S "$SOPHIA_CTL" \
-        "$SOPHIA_HOST" \
-        "cd ChatTLA && (qstat -f '$job' 2>/dev/null | egrep 'job_state|queue|exec_host|resources_used.walltime|Exit_status' || qstat -x -f '$job' 2>/dev/null | egrep 'job_state|Exit_status|resources_used.walltime|comment' || true) && ls -l outputs/autoprover/full_dataset_smoke_${job}* 2>/dev/null || true"
+      if [ -n "$REMOTE_HOST" ]; then
+        ssh -o BatchMode=yes -S "$SOPHIA_CTL" \
+          "$REMOTE_HOST" \
+          "cd ChatTLA && (qstat -f '$job' 2>/dev/null | egrep 'job_state|queue|exec_host|resources_used.walltime|Exit_status' || qstat -x -f '$job' 2>/dev/null | egrep 'job_state|Exit_status|resources_used.walltime|comment' || true) && ls -l outputs/autoprover/full_dataset_smoke_${job}* 2>/dev/null || true"
+      else
+        echo "[$(ts)] remote control socket present but CHATTLA_REMOTE_HOST/SOPHIA_HOST missing"
+      fi
     fi
   else
-    echo "[$(ts)] sophia control socket missing"
+    echo "[$(ts)] remote control socket missing"
   fi
   python3 - <<'PY'
 import json
@@ -76,7 +85,9 @@ def fetch_json(url: str) -> dict:
 
 
 try:
-    dataset_id = os.environ.get("CHATTLA_HF_PROVER_DATASET", "EricSpencer00/chattla-tla-prover-108-108")
+    dataset_namespace = os.environ.get("CHATTLA_HF_NAMESPACE", os.environ.get("CHATTLA_HF_ORG", "HF"))
+    dataset_name = os.environ.get("CHATTLA_HF_PROVER_DATASET_NAME", "chattla-tla-prover-108-108")
+    dataset_id = os.environ.get("CHATTLA_HF_PROVER_DATASET", f"{dataset_namespace}/{dataset_name}")
     ds = fetch_json(f"https://huggingface.co/api/datasets/{dataset_id}")
     report["hf_dataset_sha"] = ds.get("sha")
     report["hf_dataset_files"] = sorted(s.get("rfilename") for s in ds.get("siblings", []))
@@ -91,7 +102,8 @@ except Exception as exc:
     report["hf_dataset_error"] = repr(exc)
 
 try:
-    model_id = os.environ.get("CHATTLA_BASE_MODEL", "EricSpencer00/chattla-20b")
+    base_model_name = os.environ.get("CHATTLA_BASE_MODEL_NAME", "chattla-20b")
+    model_id = os.environ.get("CHATTLA_BASE_MODEL", f"{dataset_namespace}/{base_model_name}")
     model = fetch_json(f"https://huggingface.co/api/models/{model_id}")
     report["base_model_id"] = model.get("id")
     report["base_model_sha"] = model.get("sha")
