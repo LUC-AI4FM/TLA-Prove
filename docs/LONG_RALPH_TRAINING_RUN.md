@@ -1,14 +1,13 @@
 # Long Ralph Training Run
 
 Goal: train the canonical ChatTLA student from long verifier-guided repair
-trajectories, using Ollama Cloud as the strong repair teacher and `REDACTED-HOST`
-as the durable artifact store and cloud-only launch host.
+trajectories, using a cloud teacher and an explicitly configured artifact store.
 
 ## Host roles
 
-- `REDACTED-HOST.cs.luc.edu`: default cloud-only long-Ralph host plus artifact store for trajectories, repair pairs, summaries, checkpoints, and logs.
-- `REDACTED-HOST`: optional GPU host for the retrain phase if you explicitly want a local GRPO pass.
-- `polaris`: fastest training host; use once collection/training smoke passes and queue time is acceptable.
+- `CHATTLA_LONG_RALPH_STORE`: optional durable artifact store for trajectories, repair pairs, summaries, checkpoints, and logs.
+- `CHATTLA_CLOUD_ONLY=1`: cloud-only collection mode for hosts without local training capacity.
+- GPU hosts: use for the retrain phase only when local GRPO is intentional.
 
 ## Key setup
 
@@ -18,11 +17,11 @@ Paste the Ollama key into each host that may call the teacher:
 ssh HOST 'mkdir -p ~/.config/chattla && chmod 700 ~/.config/chattla && bash -lc '"'"'read -rsp "OLLAMA_API_KEY: " key; echo; umask 077; printf "export OLLAMA_API_KEY=%q\n" "$key" > ~/.config/chattla/ollama.env; echo saved ~/.config/chattla/ollama.env'"'"''
 ```
 
-Replace `HOST` with `REDACTED-HOST.cs.luc.edu`, `REDACTED-HOST`, or `polaris`.
+Replace `HOST` with the configured machine that may call the teacher.
 
 ## Run
 
-From `REDACTED-HOST` for cloud-only collection, or a GPU host if you want the local retrain phase:
+From a cloud-only collection host, or a GPU host if you want the local retrain phase:
 
 ```bash
 cd /path/to/ChatTLA
@@ -37,7 +36,7 @@ export CHATTLA_MAX_PROMPTS=120
 export CHATTLA_MAX_ITERS=64
 export OLLAMA_CLOUD_MODEL=qwen3-coder:480b
 export CHATTLA_BASE_MODEL=EricSpencer00/chattla-20b
-export CHATTLA_AISEC_STORE=REDACTED-HOST.cs.luc.edu:~/chattla-long-runs
+export CHATTLA_LONG_RALPH_STORE=user@artifact-host:~/chattla-long-runs
 export CHATTLA_CLOUD_ONLY=1
 export CHATTLA_SKIP_GRPO=1
 export CHATTLA_INITIAL_PROVIDER=teacher
@@ -51,7 +50,7 @@ Use two stages:
 
 1. Proof collection: `CHATTLA_ACCEPTANCE_MODE=proof` and `CHATTLA_SUCCESS_GATE=gold`.
    This stops once a candidate passes SANY and TLC. It is the default launcher mode
-   on `REDACTED-HOST` when `CHATTLA_CLOUD_ONLY=1`, because it banks proof-passing
+   when `CHATTLA_CLOUD_ONLY=1`, because it banks proof-passing
    candidates without spending local GPU cycles on the retrain phase.
 2. Modeling audit: rerun with `CHATTLA_ACCEPTANCE_MODE=audit` and
    `CHATTLA_SUCCESS_GATE=diamond`. This adds the deterministic local modeling audit

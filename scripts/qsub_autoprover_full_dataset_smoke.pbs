@@ -1,6 +1,5 @@
 #!/bin/bash
 #PBS -N tla_full_smoke
-#PBS -A EVITA
 #PBS -q by-gpu
 #PBS -l select=1:ncpus=16
 #PBS -l walltime=12:00:00
@@ -16,7 +15,7 @@ JOBNUM="${PBS_JOBID%%.*}"
 OUT="outputs/autoprover/full_dataset_smoke_${JOBNUM}.jsonl"
 SUMMARY="${OUT%.jsonl}.summary.json"
 
-export CHATTLA_TLAPM=/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm
+export CHATTLA_TLAPM="${CHATTLA_TLAPM:-tlapm}"
 
 python3 -u scripts/autoprover_smoke.py \
   --limit 0 \

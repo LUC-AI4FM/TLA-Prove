@@ -35,7 +35,8 @@ mkdir -p outputs/manifests outputs/logs
 
 REPORT="outputs/manifests/tla_prover_remote_submission.json"
 PREFLIGHT="${CHATTLA_REMOTE_PREFLIGHT:-scripts/preflight_tla_prover_remote.py}"
-TLAPM="${CHATTLA_TLAPM:-/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm}"
+TLAPM="${CHATTLA_TLAPM:-tlapm}"
+PBS_ACCOUNT="${CHATTLA_PBS_ACCOUNT:-}"
 HOSTNAME_VALUE="$(hostname 2>/dev/null || echo unknown)"
 KNOWN18_JOB_ID=""
 SFT_PREFLIGHT_JOB_ID=""
@@ -108,10 +109,18 @@ fi
 export CHATTLA_TLAPM="$TLAPM"
 run_stage preflight outputs/logs/tla_prover_remote_preflight.log "$PREFLIGHT" "${PREFLIGHT_ARGS[@]}"
 
-run_stage known18_qsub outputs/logs/tla_prover_known18_qsub.log qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs
+qsub_submit() {
+  if [ -n "$PBS_ACCOUNT" ]; then
+    qsub -A "$PBS_ACCOUNT" "$@"
+  else
+    qsub "$@"
+  fi
+}
+
+run_stage known18_qsub outputs/logs/tla_prover_known18_qsub.log qsub_submit scripts/qsub_autoprover_known18_corrected_smoke.pbs
 KNOWN18_JOB_ID="$(cat outputs/logs/tla_prover_known18_qsub.log)"
 if [ "$SUBMIT_SFT_PREFLIGHT" = "1" ]; then
-  run_stage sft_preflight_qsub outputs/logs/tla_prover_sft_preflight_qsub.log qsub scripts/qsub_sophia_tla_prover_sft_preflight.pbs
+  run_stage sft_preflight_qsub outputs/logs/tla_prover_sft_preflight_qsub.log qsub_submit scripts/qsub_sophia_tla_prover_sft_preflight.pbs
   SFT_PREFLIGHT_JOB_ID="$(cat outputs/logs/tla_prover_sft_preflight_qsub.log)"
 fi
 

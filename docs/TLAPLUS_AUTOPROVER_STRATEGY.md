@@ -305,7 +305,7 @@ The final proof result is now reproducible from source proof artifacts with:
 
 ```bash
 python3 scripts/reproduce_final_tlaps_prover.py \
-  --tlapm /grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm \
+  --tlapm "${CHATTLA_TLAPM:-tlapm}" \
   --out-dir outputs/autoprover/tlaps_reproduced_final_${JOBNUM} \
   --package outputs/autoprover/tlaps_reproduced_final_${JOBNUM}.tar.gz \
   --threads 1 \
@@ -329,8 +329,9 @@ Reproduction job `160816` passed on Sophia:
 - `all_modules_exit_0`: true
 - `no_asterisk`: true
 
-Durable staged artifact:
-`/grand/EVITA/eric-spencer/chattla_artifacts/prover_final_108_108_repro_160816/`.
+Durable staged artifact: set `CHATTLA_ARTIFACT_ROOT` when running
+`scripts/qsub_reproduce_final_tlaps_prover.pbs`; the job writes
+`$CHATTLA_ARTIFACT_ROOT/prover_final_108_108_repro_${JOBNUM}/`.
 
 Public Hugging Face dataset:
 `https://huggingface.co/datasets/EricSpencer00/chattla-tla-prover-108-108`.
@@ -417,8 +418,8 @@ Stop and revise if:
 
 - Add `CHATTLA_TLAPM` support to `tlaps_validator.py`; hard-coding
   `src/shared/tlaps/bin/tlapm` makes the current local checkout unusable.
-- Sophia login nodes do not expose `java`, but Sophia compute nodes do
-  (`/bin/java` observed on `sophia-gpu-01` in PBS job `160680`), so TLC-backed
+- Some login nodes do not expose `java`, but compute nodes may provide it
+  (`/bin/java` was observed in the original PBS smoke), so TLC-backed
   prover smoke runs should go through PBS instead of the login shell.
 - Preserve source priority when discovering smoke inputs: generated
   `outputs/diamond_gen/*_work/*.tla` modules should run before broad FormaLLM
@@ -444,9 +445,9 @@ Stop and revise if:
   the full Diamond set and then package TLAPS; more GRPO is premature until
   `tlapm` can validate emitted proof modules.
 - Full Diamond inventory `160684` found 18 TLC-inductive skeleton candidates
-  out of 200 generated modules. TLAPS 1.5.0 is now installed user-locally on
-  Sophia under `/grand/EVITA/eric-spencer/tools/tlaps-1.5.0`; `tlapm --config`
-  sees Z3, Zenon, Isabelle, and LS4, and the bundled Euclid example checks.
+  out of 200 generated modules. TLAPS 1.5.0 was installed on the remote host
+  and exposed via `CHATTLA_TLAPM`; `tlapm --config` saw Z3, Zenon, Isabelle,
+  and LS4, and the bundled Euclid example checked.
 - TLAPS validation (`160685`) converts the milestone from "can we run TLAPS?"
   to "can we repair proof leaves?": 18 TLC-inductive candidates yielded
   17 partial proofs and 1 timeout/unproved case, with 123/170 obligations
@@ -477,10 +478,10 @@ Stop and revise if:
 
 ## 2026-06-26 Control-Plane Handoff
 
-Mac mini is now the overnight control plane. Codex CLI `0.139.0`, ChatGPT auth,
-websocket connectivity, and `rg` are working under
-`/Users/ericspencer/.local/bin`, and detached screen session `chattla-codex`
-is running `codex exec` from `/Users/ericspencer/GitHub/ChatTLA/ChatTLA`.
+The overnight control plane is relay-host agnostic. Configure it with
+`CHATTLA_RELAY_HOST`, `CHATTLA_RELAY_KEY`, `CHATTLA_RELAY_REPO`,
+`SOPHIA_HOST`, `SOPHIA_CTL`, and `CHATTLA_REMOTE_REPO`; a Mac mini, login node,
+or any SSH-reachable machine can fill the relay role.
 
 Current action:
 
@@ -605,41 +606,45 @@ IDs. It writes the same JSON report on preflight or `qsub` failure with
 Before any `qsub`, the submit script runs a Sophia-side guard:
 
 ```bash
-CHATTLA_TLAPM=/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm \
+CHATTLA_TLAPM=/path/to/tlapm \
   python3 scripts/preflight_tla_prover_remote.py --require-tools \
-    --tlapm /grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm
+    --tlapm "$CHATTLA_TLAPM"
 ```
 
 With `--submit-sft-preflight`, that guard also checks SFT Python imports and
-the offline `EricSpencer00/chattla-20b` base-model config before taking a GPU
-allocation.
+the configured `CHATTLA_BASE_MODEL` before taking a GPU allocation.
 
-If the Mac mini is offline, use the laptop-side wait wrapper instead of polling
+If the relay is offline, use the local wait wrapper instead of polling
 manually:
 
 ```bash
+CHATTLA_RELAY_HOST=user@relay.example \
 CHATTLA_MACMINI_WAIT_SLEEP=60 \
 scripts/wait_for_macmini_and_handoff_known18.sh --submit-sft-preflight
 ```
 
-The transport layer now also accepts neutral relay variables, while preserving
-the existing Mac mini defaults:
+The transport layer accepts neutral relay variables:
 
 ```bash
 CHATTLA_RELAY_HOST=user@relay.example \
 CHATTLA_RELAY_KEY=/path/to/key \
 CHATTLA_RELAY_REPO=/path/to/ChatTLA \
-CHATTLA_RELAY_LABEL="Polaris relay" \
+CHATTLA_RELAY_LABEL="remote relay" \
+SOPHIA_HOST=sophia \
+SOPHIA_CTL=/path/to/control-socket \
+CHATTLA_REMOTE_REPO=ChatTLA \
+CHATTLA_TLAPM=/path/to/tlapm \
+CHATTLA_PBS_ACCOUNT=<allocation> \
 scripts/wait_for_macmini_and_handoff_known18.sh --submit-sft-preflight
 ```
 
 The sync and collector scripts honor the same `CHATTLA_RELAY_*` variables.
 
-It probes Mac mini SSH with BatchMode auth, logs to
+It probes relay SSH with BatchMode auth, logs to
 `outputs/logs/wait_for_macmini_handoff.log`, and runs the handoff exactly once
 after the first successful probe. After the remote submit step, it attempts to
 mirror `outputs/manifests/tla_prover_remote_submission.json` back to the laptop
-through the Mac mini so job IDs or failure stage are visible locally. If that
+through the relay so job IDs or failure stage are visible locally. If that
 mirror step fails after a successful submit, the wrapper exits nonzero instead
 of silently treating the handoff as complete, and writes
 `outputs/manifests/tla_prover_remote_submission_mirror_failed.json`.
@@ -664,19 +669,20 @@ Probe available control planes from the laptop with:
 python3 scripts/probe_tla_prover_control_planes.py
 ```
 
-It writes `outputs/manifests/tla_prover_control_plane_probe.json` and checks the
-configured relay, direct Sophia, Polaris, and aisec lanes using BatchMode SSH.
+It writes `outputs/manifests/tla_prover_control_plane_probe.json` and checks
+only the configured `CHATTLA_RELAY_HOST`, `SOPHIA_HOST`,
+`CHATTLA_POLARIS_HOST`, `CHATTLA_AISEC_HOST`, or explicit `--candidate`
+entries using BatchMode SSH.
 
 For OS-owned waiting on the laptop, install the one-shot LaunchAgent:
 
 ```bash
-scripts/install_wait_handoff_launchagent.sh --mac-host ericspencer@REDACTED-IP
+scripts/install_wait_handoff_launchagent.sh --mac-host user@relay.example
 ```
 
-Current laptop status as of 2026-06-27: the LaunchAgent
-`com.chattla.wait-for-macmini-handoff` is installed, `RunAtLoad=true`,
-`KeepAlive=false`, and running against the Mac mini Tailscale address. It will
-wait until SSH succeeds, then execute the guarded handoff once.
+Use `--mac-host` for a one-off relay target, or set `CHATTLA_RELAY_HOST` /
+`CHATTLA_MAC_HOST` in the LaunchAgent environment. The LaunchAgent waits until
+SSH succeeds, then executes the guarded handoff once.
 
 Install the periodic local repair loop as well:
 

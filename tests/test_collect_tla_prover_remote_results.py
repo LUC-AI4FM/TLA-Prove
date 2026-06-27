@@ -19,7 +19,7 @@ def test_collect_remote_results_script_mentions_expected_artifacts() -> None:
     assert "autoprover_known18_corrected" in text
     assert "sft_preflight_*.log" in text
     assert "tla_prover_remote_preflight.log" in text
-    assert "codex-sophia-ctl" in text
+    assert "chattla-remote-ctl" in text
     assert "rsync" in text
     assert "qstat" in text
 
@@ -37,9 +37,20 @@ def test_collect_remote_results_dry_run_uses_job_ids_from_submission_report(tmp_
         encoding="utf-8",
     )
 
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_RELAY_HOST": "relay.example",
+            "CHATTLA_RELAY_KEY": "/tmp/relay_key",
+            "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
+            "SOPHIA_HOST": "remote-hpc",
+            "SOPHIA_CTL": "/tmp/remote-ctl",
+        }
+    )
     result = subprocess.run(
         [str(SCRIPT), "--dry-run", "--submission-report", str(report)],
         cwd=REPO,
+        env=env,
         check=True,
         text=True,
         capture_output=True,
@@ -99,6 +110,7 @@ def test_collect_remote_results_writes_error_report_on_transport_failure(tmp_pat
     env = os.environ.copy()
     env["PATH"] = f"{fake_bin}:{env['PATH']}"
     env["CHATTLA_LOCAL_REPO"] = str(tmp_path)
+    env["CHATTLA_RELAY_HOST"] = "relay.example"
 
     result = subprocess.run(
         ["bash", str(SCRIPT), "--submission-report", str(report)],

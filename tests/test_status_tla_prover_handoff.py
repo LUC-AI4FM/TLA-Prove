@@ -13,15 +13,15 @@ def test_status_reports_waiting_for_mini_without_submission(tmp_path: Path) -> N
     log_dir = tmp_path / "outputs/logs"
     log_dir.mkdir(parents=True)
     (log_dir / "wait_for_macmini_handoff.log").write_text(
-        "[2026-06-27T14:46:42Z] Mac mini not reachable attempt=1; retrying in 60s\n",
+        "[2026-06-27T14:46:42Z] relay not reachable attempt=1; retrying in 60s\n",
         encoding="utf-8",
     )
     launchctl_text = """
 state = running
 pid = 37655
-CHATTLA_MAC_HOST => ericspencer@REDACTED-IP
+CHATTLA_RELAY_HOST => user@relay.example
 """
-    tailscale_text = "REDACTED-IP erics-mac-mini EricSpencer00@ macOS active; relay \"ord\"; offline, last seen 1h ago"
+    tailscale_text = "100.64.0.10 relay-host user@ linux active; relay \"ord\"; offline, last seen 1h ago"
 
     doctor_launchctl_text = """
 state = not running
@@ -35,7 +35,7 @@ run interval = 300 seconds
         tailscale_text=tailscale_text,
     )
 
-    assert status["state"] == "waiting_for_macmini"
+    assert status["state"] == "waiting_for_relay"
     assert status["launchagent"]["state"] == "running"
     assert status["launchagent"]["pid"] == "37655"
     assert status["doctor_launchagent"]["state"] == "not running"

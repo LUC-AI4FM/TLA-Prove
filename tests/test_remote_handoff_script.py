@@ -35,14 +35,26 @@ def test_remote_handoff_script_mentions_required_artifacts_and_dry_run() -> None
     assert "ALL_FILES" in text
     assert "REMOTE_SUBMIT" in text
     assert "rsync" in text
-    assert "codex-sophia-ctl" in text
+    assert "chattla-remote-ctl" in text
     assert "--install-launchagents" in text
 
 
 def test_remote_handoff_dry_run_syncs_known18_modules_and_sft_dependencies() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_RELAY_HOST": "relay.example",
+            "CHATTLA_RELAY_KEY": "/tmp/relay_key",
+            "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
+            "SOPHIA_HOST": "remote-hpc",
+            "SOPHIA_CTL": "/tmp/remote-ctl",
+            "CHATTLA_TLAPM": "/opt/tlaps/bin/tlapm",
+        }
+    )
     result = subprocess.run(
         [str(SCRIPT), "--dry-run", "--submit-sft-preflight"],
         cwd=REPO,
+        env=env,
         check=True,
         text=True,
         capture_output=True,
@@ -94,9 +106,18 @@ def test_remote_handoff_dry_run_honors_relay_env_over_mac_aliases() -> None:
 
 
 def test_remote_handoff_install_launchagents_is_explicit_opt_in() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_RELAY_HOST": "relay.example",
+            "CHATTLA_RELAY_KEY": "/tmp/relay_key",
+            "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
+        }
+    )
     result = subprocess.run(
         [str(SCRIPT), "--dry-run", "--install-launchagents"],
         cwd=REPO,
+        env=env,
         check=True,
         text=True,
         capture_output=True,
@@ -172,11 +193,12 @@ printf '%s\n' "$@" > {tmp_path / "handoff_args"}
         {
             "PATH": f"{fake_bin}:{env['PATH']}",
             "CHATTLA_LOCAL_REPO": str(fake_repo),
-            "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
-            "CHATTLA_MACMINI_WAIT_SLEEP": "0",
-            "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "5",
-        }
-    )
+                "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
+                "CHATTLA_MACMINI_WAIT_SLEEP": "0",
+                "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "5",
+                "CHATTLA_RELAY_HOST": "relay.example",
+            }
+        )
 
     subprocess.run(
         ["bash", str(WAIT_SCRIPT), "--submit-sft-preflight"],
@@ -211,11 +233,12 @@ def test_wait_wrapper_gives_up_without_handoff(tmp_path: Path) -> None:
         {
             "PATH": f"{fake_bin}:{env['PATH']}",
             "CHATTLA_LOCAL_REPO": str(fake_repo),
-            "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
-            "CHATTLA_MACMINI_WAIT_SLEEP": "0",
-            "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "2",
-        }
-    )
+                "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
+                "CHATTLA_MACMINI_WAIT_SLEEP": "0",
+                "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "2",
+                "CHATTLA_RELAY_HOST": "relay.example",
+            }
+        )
 
     result = subprocess.run(
         ["bash", str(WAIT_SCRIPT)],
@@ -251,11 +274,12 @@ def test_wait_wrapper_returns_error_when_submission_report_mirror_fails(tmp_path
         {
             "PATH": f"{fake_bin}:{env['PATH']}",
             "CHATTLA_LOCAL_REPO": str(fake_repo),
-            "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
-            "CHATTLA_MACMINI_WAIT_SLEEP": "0",
-            "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "1",
-        }
-    )
+                "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
+                "CHATTLA_MACMINI_WAIT_SLEEP": "0",
+                "CHATTLA_MACMINI_WAIT_MAX_ATTEMPTS": "1",
+                "CHATTLA_RELAY_HOST": "relay.example",
+            }
+        )
 
     result = subprocess.run(
         ["bash", str(WAIT_SCRIPT)],
@@ -299,11 +323,12 @@ def test_wait_wrapper_mirror_only_does_not_resubmit(tmp_path: Path) -> None:
     env = os.environ.copy()
     env.update(
         {
-            "PATH": f"{fake_bin}:{env['PATH']}",
-            "CHATTLA_LOCAL_REPO": str(fake_repo),
-            "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
-        }
-    )
+                "PATH": f"{fake_bin}:{env['PATH']}",
+                "CHATTLA_LOCAL_REPO": str(fake_repo),
+                "CHATTLA_HANDOFF_LOG_DIR": str(tmp_path / "logs"),
+                "CHATTLA_RELAY_HOST": "relay.example",
+            }
+        )
 
     subprocess.run(
         ["bash", str(WAIT_SCRIPT), "--mirror-report-only"],

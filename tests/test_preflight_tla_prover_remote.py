@@ -107,7 +107,7 @@ def test_remote_preflight_checks_sft_tools_when_required(tmp_path: Path, monkeyp
 
     assert report["ok"] is False
     assert any("python not found" in error for error in report["errors"])
-    assert any("base model config not found" in error for error in report["errors"])
+    assert any("base model path not found" in error for error in report["errors"])
 
 
 def test_remote_preflight_uses_default_tlapm_when_env_is_unset(tmp_path: Path, monkeypatch) -> None:
@@ -127,5 +127,5 @@ def test_remote_preflight_uses_default_tlapm_when_env_is_unset(tmp_path: Path, m
     )
 
     assert report["ok"] is False
-    assert any("/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm" in error for error in report["errors"])
+    assert any("tlapm not found on PATH: tlapm" in error for error in report["errors"])
     assert not any("tlapm is not executable: ." in error for error in report["errors"])

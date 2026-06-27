@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarize the ChatTLA TLA prover Mac mini/Sophia handoff state."""
+"""Summarize the ChatTLA TLA prover relay/remote handoff state."""
 from __future__ import annotations
 
 import argparse
@@ -41,22 +41,23 @@ def _parse_launchctl(text: str | None) -> dict[str, Any]:
         return {"available": False}
     state = None
     pid = None
-    mac_host = None
+    relay_host = None
     run_interval = None
     for line in text.splitlines():
         if "state =" in line and state is None:
             state = line.split("state =", 1)[1].strip()
         if "pid =" in line and pid is None:
             pid = line.split("pid =", 1)[1].strip()
-        if "CHATTLA_MAC_HOST =>" in line:
-            mac_host = line.split("=>", 1)[1].strip()
+        if "CHATTLA_RELAY_HOST =>" in line or "CHATTLA_MAC_HOST =>" in line:
+            relay_host = line.split("=>", 1)[1].strip()
         if "run interval =" in line and run_interval is None:
             run_interval = line.split("run interval =", 1)[1].strip()
     return {
         "available": True,
         "state": state,
         "pid": pid,
-        "mac_host": mac_host,
+        "relay_host": relay_host,
+        "mac_host": relay_host,
         "run_interval": run_interval,
         "raw_tail": text.splitlines()[-12:],
     }
@@ -65,7 +66,14 @@ def _parse_launchctl(text: str | None) -> dict[str, Any]:
 def _parse_tailscale(text: str | None) -> dict[str, Any]:
     if not text:
         return {"available": False}
-    line = next((item for item in text.splitlines() if "mac-mini" in item.lower()), "")
+    line = next(
+        (
+            item
+            for item in text.splitlines()
+            if any(token in item.lower() for token in ("relay", "mac-mini", "macmini"))
+        ),
+        "",
+    )
     if not line:
         return {"available": True, "online": None, "raw": text.splitlines()[-12:]}
     return {
@@ -122,10 +130,10 @@ def _derive_state(
         reason = paused_data.get("reason", "handoff route paused")
         return "handoff_paused", f"Remote handoff is paused ({reason}); continue local work or configure another relay."
     if launchagent.get("state") == "running":
-        return "waiting_for_macmini", "Wait hook is active; leave LaunchAgent running until Mac mini SSH becomes reachable."
+        return "waiting_for_relay", "Wait hook is active; leave LaunchAgent running until relay SSH becomes reachable."
     if collection_data and collection_data.get("errors"):
         return "collection_error", "Inspect outputs/manifests/tla_prover_remote_results_collection.json."
-    return "not_started", "Install or kickstart the wait handoff LaunchAgent, or run the handoff manually once the Mac mini is reachable."
+    return "not_started", "Install or kickstart the wait handoff LaunchAgent, or run the handoff manually once the relay is reachable."
 
 
 def build_status(

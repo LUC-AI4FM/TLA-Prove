@@ -2,7 +2,10 @@
 set -u
 
 REPO="${CHATTLA_REPO:-$HOME/GitHub/ChatTLA/ChatTLA}"
-SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/codex-sophia-ctl}"
+SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/${CHATTLA_SOPHIA_CTL_NAME:-chattla-remote-ctl}}"
+SOPHIA_HOST="${SOPHIA_HOST:-sophia}"
+HF_PROVER_DATASET="${CHATTLA_HF_PROVER_DATASET:-EricSpencer00/chattla-tla-prover-108-108}"
+CHATTLA_BASE_MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
 cd "$REPO" || exit 1
 
 mkdir -p outputs/logs outputs/autopilot data/processed/tla_prover
@@ -47,7 +50,7 @@ while true; do
     if [ -f outputs/logs/current_sophia_full_dataset_smoke_job.txt ]; then
       job="$(cat outputs/logs/current_sophia_full_dataset_smoke_job.txt)"
       ssh -o BatchMode=yes -S "$SOPHIA_CTL" \
-        eric-spencer@sophia.alcf.anl.gov \
+        "$SOPHIA_HOST" \
         "cd ChatTLA && (qstat -f '$job' 2>/dev/null | egrep 'job_state|queue|exec_host|resources_used.walltime|Exit_status' || qstat -x -f '$job' 2>/dev/null | egrep 'job_state|Exit_status|resources_used.walltime|comment' || true) && ls -l outputs/autoprover/full_dataset_smoke_${job}* 2>/dev/null || true"
     fi
   else
@@ -73,12 +76,13 @@ def fetch_json(url: str) -> dict:
 
 
 try:
-    ds = fetch_json("https://huggingface.co/api/datasets/EricSpencer00/chattla-tla-prover-108-108")
+    dataset_id = os.environ.get("CHATTLA_HF_PROVER_DATASET", "EricSpencer00/chattla-tla-prover-108-108")
+    ds = fetch_json(f"https://huggingface.co/api/datasets/{dataset_id}")
     report["hf_dataset_sha"] = ds.get("sha")
     report["hf_dataset_files"] = sorted(s.get("rfilename") for s in ds.get("siblings", []))
     rows_url = (
         "https://datasets-server.huggingface.co/first-rows?"
-        "dataset=EricSpencer00/chattla-tla-prover-108-108&config=default&split=train"
+        f"dataset={dataset_id}&config=default&split=train"
     )
     first = fetch_json(rows_url)
     report["hf_dataset_viewer_rows"] = len(first.get("rows", []))
@@ -87,7 +91,8 @@ except Exception as exc:
     report["hf_dataset_error"] = repr(exc)
 
 try:
-    model = fetch_json("https://huggingface.co/api/models/EricSpencer00/chattla-20b")
+    model_id = os.environ.get("CHATTLA_BASE_MODEL", "EricSpencer00/chattla-20b")
+    model = fetch_json(f"https://huggingface.co/api/models/{model_id}")
     report["base_model_id"] = model.get("id")
     report["base_model_sha"] = model.get("sha")
     report["base_model_tags"] = model.get("tags", [])[:20]

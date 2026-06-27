@@ -16,6 +16,7 @@ def test_sft_preflight_uses_new_prover_corpus_and_safe_bounds() -> None:
     assert "--max-length 2048" in text
     assert "--per-device-batch-size 1" in text
     assert "--max-gpu-memory-mb 36000" in text
-    assert "models--EricSpencer00--chattla-20b" in text
+    assert "CHATTLA_BASE_MODEL" in text
+    assert "EricSpencer00/chattla-20b" in text
     assert "HF_HUB_OFFLINE=1" in text
     assert "startup/data/VRAM/TLAPS-eval preflight" in text

@@ -53,9 +53,12 @@ load_env() {
   fi
 }
 
-sync_to_aisec() {
+sync_to_artifact_store() {
   local path="$1"
-  local remote="${CHATTLA_AISEC_STORE:-REDACTED-HOST.cs.luc.edu:~/chattla-long-runs}"
+  local remote="${CHATTLA_LONG_RALPH_STORE:-${CHATTLA_AISEC_STORE:-}}"
+  if [[ -z "$remote" ]]; then
+    return 0
+  fi
   if [[ "$remote" == *:* ]]; then
     local remote_host="${remote%%:*}"
     if [[ "$(normalize_host "$remote_host")" == "$(normalize_host "$(hostname -s)")" ]]; then
@@ -87,13 +90,6 @@ run_pipeline() {
   esac
   local cloud_only="${CHATTLA_CLOUD_ONLY:-0}"
   local skip_grpo="${CHATTLA_SKIP_GRPO:-0}"
-
-  case "$host_short" in
-    REDACTED-HOST|REDACTED-HOST)
-      cloud_only=1
-      skip_grpo=1
-      ;;
-  esac
 
   if [[ "$cloud_only" == 1 ]]; then
     export CHATTLA_INITIAL_PROVIDER="${CHATTLA_INITIAL_PROVIDER:-teacher}"
@@ -169,7 +165,7 @@ run_pipeline() {
 
   ln -sfn "$run_abs" data/processed/long_ralph/latest
   cp "$run_dir/repair_pairs.jsonl" data/processed/ralph_repair_pairs_long_latest.jsonl
-  sync_to_aisec "$run_dir"
+  sync_to_artifact_store "$run_dir"
 
   if [[ "$skip_grpo" == 1 ]]; then
     echo "[$(ts)] Cloud-only mode enabled; skipping local GRPO retrain" | tee -a "$LOG"
@@ -208,9 +204,9 @@ run_pipeline() {
     --save-steps "${CHATTLA_SAVE_STEPS:-25}" \
     2>&1 | tee -a "$LOG"
 
-  echo "[$(ts)] Phase 4: sync checkpoints/logs to aisec store" | tee -a "$LOG"
-  sync_to_aisec "$run_dir"
-  sync_to_aisec "${CHATTLA_GRPO_OUT:-outputs/checkpoints_long_ralph_repair}"
+  echo "[$(ts)] Phase 4: sync checkpoints/logs to artifact store" | tee -a "$LOG"
+  sync_to_artifact_store "$run_dir"
+  sync_to_artifact_store "${CHATTLA_GRPO_OUT:-outputs/checkpoints_long_ralph_repair}"
   echo "[$(ts)] ===== Long Ralph Training Run Finished =====" | tee -a "$LOG"
 }
 

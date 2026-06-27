@@ -3,12 +3,13 @@ set -euo pipefail
 
 DRY_RUN=0
 LOCAL_REPO="${CHATTLA_LOCAL_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-RELAY_HOST="${CHATTLA_RELAY_HOST:-${CHATTLA_MAC_HOST:-ericspencer@erics-mac-mini.local}}"
-RELAY_KEY="${CHATTLA_RELAY_KEY:-${CHATTLA_MAC_KEY:-$HOME/.ssh/id_ed25519_mac_mini}}"
-RELAY_REPO="${CHATTLA_RELAY_REPO:-${CHATTLA_MAC_REPO:-/Users/ericspencer/GitHub/ChatTLA/ChatTLA}}"
-RELAY_LABEL="${CHATTLA_RELAY_LABEL:-Mac mini}"
-SOPHIA_CTL="${SOPHIA_CTL:-/Users/ericspencer/.ssh/codex-sophia-ctl}"
-SOPHIA_HOST="${SOPHIA_HOST:-eric-spencer@sophia.alcf.anl.gov}"
+RELAY_HOST="${CHATTLA_RELAY_HOST:-${CHATTLA_MAC_HOST:-}}"
+RELAY_KEY="${CHATTLA_RELAY_KEY:-${CHATTLA_MAC_KEY:-$HOME/.ssh/id_ed25519}}"
+RELAY_REPO="${CHATTLA_RELAY_REPO:-${CHATTLA_MAC_REPO:-$HOME/ChatTLA}}"
+RELAY_LABEL="${CHATTLA_RELAY_LABEL:-relay}"
+SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/${CHATTLA_SOPHIA_CTL_NAME:-chattla-remote-ctl}}"
+SOPHIA_HOST="${SOPHIA_HOST:-sophia}"
+REMOTE_REPO="${CHATTLA_REMOTE_REPO:-ChatTLA}"
 SUBMISSION_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_submission.json"
 COLLECTION_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_results_collection.json"
 
@@ -25,8 +26,8 @@ while [ "$#" -gt 0 ]; do
       cat <<'EOF'
 Usage: scripts/collect_tla_prover_remote_results.sh [--dry-run] [--submission-report PATH]
 
-Mirror the targeted evidence for the TLA prover remote handoff through the Mac
-mini Sophia control socket: submission report, qstat snapshot, preflight/qsub
+Mirror the targeted evidence for the TLA prover remote handoff through the
+configured relay control socket: submission report, qstat snapshot, preflight/qsub
 logs, known-18 smoke JSONL/summary/logs, and SFT preflight log when applicable.
 Missing job result files are recorded but not fatal while jobs may be queued.
 EOF
@@ -39,6 +40,11 @@ EOF
   esac
   shift
 done
+
+if [ -z "$RELAY_HOST" ]; then
+  echo "Set CHATTLA_RELAY_HOST or CHATTLA_MAC_HOST to the relay SSH target." >&2
+  exit 2
+fi
 
 SSH_MAC=(
   ssh
@@ -157,10 +163,10 @@ ERRORS="$(mktemp)"
 trap 'rm -f "$MIRRORED" "$MISSING" "$ERRORS"' EXIT
 
 if [ "$DRY_RUN" = "1" ]; then
-  run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' 'cd ChatTLA && mkdir -p outputs/manifests && { date -u; qstat -u eric-spencer || qstat -u \"\$USER\" || true; } > outputs/manifests/tla_prover_remote_qstat.txt'"
+  run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' 'cd '$REMOTE_REPO' && mkdir -p outputs/manifests && { date -u; qstat -u \"\$USER\" || qstat || true; } > outputs/manifests/tla_prover_remote_qstat.txt'"
 else
   set +e
-  "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' 'cd ChatTLA && mkdir -p outputs/manifests && { date -u; qstat -u eric-spencer || qstat -u \"\$USER\" || true; } > outputs/manifests/tla_prover_remote_qstat.txt'" >/dev/null 2>&1
+  "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' 'cd '$REMOTE_REPO' && mkdir -p outputs/manifests && { date -u; qstat -u \"\$USER\" || qstat || true; } > outputs/manifests/tla_prover_remote_qstat.txt'" >/dev/null 2>&1
   qstat_rc=$?
   set -e
   if [ "$qstat_rc" -ne 0 ]; then
@@ -173,11 +179,11 @@ while IFS= read -r rel_path; do
   mkdir -p "$(dirname "$LOCAL_REPO/$rel_path")"
   set +e
   if [ "$DRY_RUN" = "1" ]; then
-    run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && mkdir -p '$(dirname "$rel_path")' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:ChatTLA/$rel_path' '$RELAY_REPO/$rel_path'"
+    run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && mkdir -p '$(dirname "$rel_path")' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:$REMOTE_REPO/$rel_path' '$RELAY_REPO/$rel_path'"
     run "${RSYNC_MAC[@]}" "$RELAY_HOST:$RELAY_REPO/$rel_path" "$LOCAL_REPO/$rel_path"
     rc=0
   else
-    "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && mkdir -p '$(dirname "$rel_path")' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:ChatTLA/$rel_path' '$RELAY_REPO/$rel_path'" >/dev/null 2>&1
+    "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && mkdir -p '$(dirname "$rel_path")' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:$REMOTE_REPO/$rel_path' '$RELAY_REPO/$rel_path'" >/dev/null 2>&1
     rc1=$?
     "${RSYNC_MAC[@]}" "$RELAY_HOST:$RELAY_REPO/$rel_path" "$LOCAL_REPO/$rel_path" >/dev/null 2>&1
     rc2=$?
