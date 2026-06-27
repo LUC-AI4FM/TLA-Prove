@@ -341,6 +341,7 @@ def main(
     base_model: str | None = None,
     prover: bool = False,
     train_file: str | None = None,
+    eval_file: str | None = None,
     output_dir_override: str | None = None,
     experiment_name: str | None = None,
 ) -> None:
@@ -356,7 +357,10 @@ def main(
         train_path = Path(train_file)
     else:
         train_path = _PROVER_TRAIN_JSONL if prover else _TRAIN_JSONL
-    eval_path = _PROVER_EVAL_JSONL if prover else _EVAL_JSONL
+    if eval_file:
+        eval_path = Path(eval_file)
+    else:
+        eval_path = _PROVER_EVAL_JSONL if prover else _EVAL_JSONL
     if output_dir_override:
         output_dir = Path(output_dir_override)
     else:
@@ -657,6 +661,8 @@ if __name__ == "__main__":
     parser.add_argument("--train-file", default=None,
                         help="Path to a custom training JSONL (overrides the hardcoded default). "
                              "Used for Fork A validator-segregated corpora.")
+    parser.add_argument("--eval-file", default=None,
+                        help="Path to a custom evaluation JSONL (overrides eval.jsonl/prover_eval.jsonl).")
     parser.add_argument("--output-dir", default=None,
                         help="Override checkpoint output directory (default: outputs/checkpoints/)")
     parser.add_argument("--experiment-name", default=None,
@@ -685,6 +691,7 @@ if __name__ == "__main__":
         base_model=args.base_model,
         prover=args.prover,
         train_file=args.train_file,
+        eval_file=args.eval_file,
         output_dir_override=args.output_dir,
         experiment_name=args.experiment_name,
     )

@@ -1,0 +1,30 @@
+#!/bin/bash
+#PBS -N autoprover_known18_corrected
+#PBS -A EVITA
+#PBS -q by-gpu
+#PBS -l select=1:ncpus=32:ngpus=1
+#PBS -l walltime=01:00:00
+#PBS -o outputs/logs/autoprover_known18_corrected.log
+#PBS -e outputs/logs/autoprover_known18_corrected.err
+
+set -euo pipefail
+
+cd "$PBS_O_WORKDIR"
+mkdir -p outputs/logs outputs/autoprover
+
+JOBNUM="${PBS_JOBID%%.*}"
+OUT="outputs/autoprover/known18_corrected_smoke_${JOBNUM}.jsonl"
+SUMMARY="outputs/autoprover/known18_corrected_smoke_${JOBNUM}.summary.json"
+MODULE_LIST="data/processed/tla_prover/tlaps_candidate_modules_18.txt"
+
+export CHATTLA_TLAPM=/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm
+
+python3 -u scripts/autoprover_smoke.py \
+  --module-list "$MODULE_LIST" \
+  --limit 0 \
+  --tlc-timeout 60 \
+  --tlapm-timeout 240 \
+  --out "$OUT"
+
+python3 scripts/summarize_autoprover_smoke.py "$OUT" --out "$SUMMARY"
+cat "$SUMMARY"

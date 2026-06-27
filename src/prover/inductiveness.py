@@ -56,6 +56,7 @@ from pathlib import Path
 
 # Reuse the repo's jar discovery rather than reinventing it.
 from src.validators.sany_validator import _TLA_TOOLS_JAR
+from src.validators.tlc_validator import _extract_constant_names, _infer_constant_type
 
 _DEFAULT_JAR = _TLA_TOOLS_JAR
 _MODULE_RE = re.compile(r"-{4,}\s*MODULE\s+(\w+)", re.IGNORECASE)
@@ -122,7 +123,7 @@ def check_inductive(
         init_predicate = inv_name
         tla_text = module_src
 
-    cfg_text = _build_cfg(init_predicate, inv_name)
+    cfg_text = _build_cfg(init_predicate, inv_name, module_src)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
@@ -190,7 +191,7 @@ def check_inductive(
 # cfg generation
 # ---------------------------------------------------------------------------
 
-def _build_cfg(init_predicate: str, inv_name: str) -> str:
+def _build_cfg(init_predicate: str, inv_name: str, module_src: str = "") -> str:
     """Build the inductive-step .cfg: start from all Inv-states, step once, recheck.
 
     ``init_predicate`` is the (possibly synthesised, enumerable) operator used as
@@ -198,11 +199,14 @@ def _build_cfg(init_predicate: str, inv_name: str) -> str:
     This is the standard TLC encoding of the inductive step
     Inv /\\ [Next]_vars => Inv'.
     """
-    return (
-        f"INIT {init_predicate}\n"
-        f"NEXT Next\n"
-        f"INVARIANT {inv_name}\n"
-    )
+    lines = [
+        f"INIT {init_predicate}",
+        "NEXT Next",
+        f"INVARIANT {inv_name}",
+    ]
+    for name in _extract_constant_names(module_src):
+        lines.append(_infer_constant_type(name, module_src))
+    return "\n".join(lines) + "\n"
 
 
 def _defines_operator(module_src: str, name: str) -> bool:
