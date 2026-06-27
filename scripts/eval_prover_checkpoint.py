@@ -21,7 +21,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0,1")
+if os.environ.get("CHATTLA_CUDA_VISIBLE_DEVICES"):
+    os.environ.setdefault("CUDA_VISIBLE_DEVICES", os.environ["CHATTLA_CUDA_VISIBLE_DEVICES"])
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch  # noqa: E402

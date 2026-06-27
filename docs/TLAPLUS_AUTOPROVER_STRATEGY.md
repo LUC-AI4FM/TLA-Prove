@@ -334,7 +334,8 @@ Durable staged artifact: set `CHATTLA_ARTIFACT_ROOT` when running
 `$CHATTLA_ARTIFACT_ROOT/prover_final_108_108_repro_${JOBNUM}/`.
 
 Public Hugging Face dataset:
-`https://huggingface.co/datasets/EricSpencer00/chattla-tla-prover-108-108`.
+`https://huggingface.co/datasets/<HF_NAMESPACE>/chattla-tla-prover-108-108`.
+For local runs, set `CHATTLA_HF_NAMESPACE` (or `CHATTLA_HF_PROVER_DATASET`) for your namespace.
 Upload commit: `c44a97f83370400781e63697dcac6cd2e11920f9`.
 
 Key checksums:
@@ -493,7 +494,7 @@ Current action:
 
 Dataset state:
 
-- `EricSpencer00/chattla-tla-prover-108-108` viewer is fixed: root metadata JSON
+- `<HF_NAMESPACE>/chattla-tla-prover-108-108` viewer is fixed: root metadata JSON
   files moved under `metadata/`, `data/train.jsonl` is the declared split, and
   the dataset server now returns 18 stable rows.
 - `scripts/build_verified_tlaps_sft.py` builds the verified TLAPS SFT seed from
@@ -744,6 +745,7 @@ For a single current-state readout, run:
 
 ```bash
 python3 scripts/status_tla_prover_handoff.py --live
+python3 scripts/status_tla_prover_handoff.py --no-live --compact
 ```
 
 It summarizes LaunchAgent state, Mac mini Tailscale state, local submission /
@@ -754,11 +756,24 @@ For a next-action / repair decision, run:
 
 ```bash
 python3 scripts/doctor_tla_prover_handoff.py --dry-run --live
+python3 scripts/doctor_tla_prover_handoff.py --dry-run --no-live --compact
 ```
 
 It decides whether to leave the wait hook alone, reinstall/kickstart the wait
 LaunchAgent, run the result watcher, or stop for manual review of a failed
 remote submission.
+
+Before publishing PR updates, run:
+
+```bash
+python3 scripts/check_tla_prover_pr_ready.py
+```
+
+The readiness gate scans tracked PR files for private hosts, site-specific
+paths, fixed PBS accounts, hard-coded compute nodes, and then runs the focused
+prover handoff test suite. Keep machine names, queue/account choices, filesystem
+mounts, and GPU masks behind `CHATTLA_*`, `SOPHIA_*`, or PBS submit-time
+environment variables.
 
 SFT startup preflight is also staged:
 

@@ -1,9 +1,5 @@
 #!/bin/bash
 #PBS -N tla_full_smoke
-#PBS -q by-gpu
-#PBS -l select=1:ncpus=16
-#PBS -l walltime=12:00:00
-#PBS -l filesystems=home:grand
 #PBS -j oe
 #PBS -o outputs/logs/autoprover_full_dataset_smoke.log
 

@@ -11,7 +11,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.status_tla_prover_handoff import REPO, build_status
+from scripts.status_tla_prover_handoff import REPO, build_status, compact_status
 
 
 def decide_action(status: dict[str, Any]) -> dict[str, Any]:
@@ -78,11 +78,13 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--live", action="store_true", default=True)
     parser.add_argument("--no-live", action="store_false", dest="live")
+    parser.add_argument("--compact", action="store_true")
     args = parser.parse_args()
 
     status = build_status(args.repo, live=args.live)
     decision = decide_action(status)
-    payload = {"status": status, "decision": decision, "dry_run": args.dry_run}
+    payload_status = compact_status(status) if args.compact else status
+    payload = {"status": payload_status, "decision": decision, "dry_run": args.dry_run}
     print(json.dumps(payload, indent=2, sort_keys=True))
     if args.dry_run or not decision.get("command"):
         return 0

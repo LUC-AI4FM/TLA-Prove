@@ -59,6 +59,13 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["diagnose_sany_tlc_pass_corpus"] == (
         "python3 scripts/diagnose_sany_tlc_pass_corpus.py"
     )
+    assert manifest["remote_next_steps"]["handoff_status_compact"] == (
+        "python3 scripts/status_tla_prover_handoff.py --no-live --compact"
+    )
+    assert manifest["remote_next_steps"]["handoff_doctor_compact"] == (
+        "python3 scripts/doctor_tla_prover_handoff.py --dry-run --no-live --compact"
+    )
+    assert manifest["remote_next_steps"]["pr_ready_check"] == "python3 scripts/check_tla_prover_pr_ready.py"
     assert manifest["remote_next_steps"]["build_tla_prover_eval_corpus"] == (
         "python3 scripts/build_tla_prover_eval_corpus.py"
     )

@@ -13,9 +13,11 @@ def test_remote_submit_script_runs_preflight_and_writes_report() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
 
     assert "preflight_tla_prover_remote.py" in text
-    assert "qsub_submit scripts/qsub_autoprover_known18_corrected_smoke.pbs" in text
-    assert "qsub_submit scripts/qsub_sophia_tla_prover_sft_preflight.pbs" in text
+    assert 'qsub_submit "$PBS_SELECT_KNOWN18" "$PBS_WALLTIME_KNOWN18" scripts/qsub_autoprover_known18_corrected_smoke.pbs' in text
+    assert 'qsub_submit "$PBS_SELECT_SFT" "$PBS_WALLTIME_SFT" scripts/qsub_sophia_tla_prover_sft_preflight.pbs' in text
     assert "CHATTLA_PBS_ACCOUNT" in text
+    assert "CHATTLA_PBS_QUEUE" in text
+    assert "CHATTLA_PBS_FILESYSTEMS" in text
     assert "outputs/manifests/tla_prover_remote_submission.json" in text
     assert "--submit-sft-preflight" in text
     assert "CHATTLA_TLAPM" in text

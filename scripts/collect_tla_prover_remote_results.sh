@@ -8,7 +8,7 @@ RELAY_KEY="${CHATTLA_RELAY_KEY:-${CHATTLA_MAC_KEY:-$HOME/.ssh/id_ed25519}}"
 RELAY_REPO="${CHATTLA_RELAY_REPO:-${CHATTLA_MAC_REPO:-$HOME/ChatTLA}}"
 RELAY_LABEL="${CHATTLA_RELAY_LABEL:-relay}"
 SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/${CHATTLA_SOPHIA_CTL_NAME:-chattla-remote-ctl}}"
-SOPHIA_HOST="${SOPHIA_HOST:-sophia}"
+REMOTE_HOST="${CHATTLA_REMOTE_HOST:-${SOPHIA_HOST:-}}"
 REMOTE_REPO="${CHATTLA_REMOTE_REPO:-ChatTLA}"
 SUBMISSION_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_submission.json"
 COLLECTION_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_results_collection.json"
@@ -43,6 +43,10 @@ done
 
 if [ -z "$RELAY_HOST" ]; then
   echo "Set CHATTLA_RELAY_HOST or CHATTLA_MAC_HOST to the relay SSH target." >&2
+  exit 2
+fi
+if [ -z "$REMOTE_HOST" ]; then
+  echo "Set CHATTLA_REMOTE_HOST or SOPHIA_HOST to the remote SSH target." >&2
   exit 2
 fi
 
@@ -163,10 +167,10 @@ ERRORS="$(mktemp)"
 trap 'rm -f "$MIRRORED" "$MISSING" "$ERRORS"' EXIT
 
 if [ "$DRY_RUN" = "1" ]; then
-  run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' 'cd '$REMOTE_REPO' && mkdir -p outputs/manifests && { date -u; qstat -u \"\$USER\" || qstat || true; } > outputs/manifests/tla_prover_remote_qstat.txt'"
+  run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$REMOTE_HOST' 'cd '$REMOTE_REPO' && mkdir -p outputs/manifests && { date -u; qstat -u \"\$USER\" || qstat || true; } > outputs/manifests/tla_prover_remote_qstat.txt'"
 else
   set +e
-  "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' 'cd '$REMOTE_REPO' && mkdir -p outputs/manifests && { date -u; qstat -u \"\$USER\" || qstat || true; } > outputs/manifests/tla_prover_remote_qstat.txt'" >/dev/null 2>&1
+  "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$REMOTE_HOST' 'cd '$REMOTE_REPO' && mkdir -p outputs/manifests && { date -u; qstat -u \"\$USER\" || qstat || true; } > outputs/manifests/tla_prover_remote_qstat.txt'" >/dev/null 2>&1
   qstat_rc=$?
   set -e
   if [ "$qstat_rc" -ne 0 ]; then
@@ -179,11 +183,11 @@ while IFS= read -r rel_path; do
   mkdir -p "$(dirname "$LOCAL_REPO/$rel_path")"
   set +e
   if [ "$DRY_RUN" = "1" ]; then
-    run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && mkdir -p '$(dirname "$rel_path")' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:$REMOTE_REPO/$rel_path' '$RELAY_REPO/$rel_path'"
+    run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && mkdir -p '$(dirname "$rel_path")' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$REMOTE_HOST:$REMOTE_REPO/$rel_path' '$RELAY_REPO/$rel_path'"
     run "${RSYNC_MAC[@]}" "$RELAY_HOST:$RELAY_REPO/$rel_path" "$LOCAL_REPO/$rel_path"
     rc=0
   else
-    "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && mkdir -p '$(dirname "$rel_path")' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:$REMOTE_REPO/$rel_path' '$RELAY_REPO/$rel_path'" >/dev/null 2>&1
+    "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && mkdir -p '$(dirname "$rel_path")' && rsync -az -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$REMOTE_HOST:$REMOTE_REPO/$rel_path' '$RELAY_REPO/$rel_path'" >/dev/null 2>&1
     rc1=$?
     "${RSYNC_MAC[@]}" "$RELAY_HOST:$RELAY_REPO/$rel_path" "$LOCAL_REPO/$rel_path" >/dev/null 2>&1
     rc2=$?

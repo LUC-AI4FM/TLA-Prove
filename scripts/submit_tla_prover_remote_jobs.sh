@@ -37,6 +37,12 @@ REPORT="outputs/manifests/tla_prover_remote_submission.json"
 PREFLIGHT="${CHATTLA_REMOTE_PREFLIGHT:-scripts/preflight_tla_prover_remote.py}"
 TLAPM="${CHATTLA_TLAPM:-tlapm}"
 PBS_ACCOUNT="${CHATTLA_PBS_ACCOUNT:-}"
+PBS_QUEUE="${CHATTLA_PBS_QUEUE:-}"
+PBS_FILESYSTEMS="${CHATTLA_PBS_FILESYSTEMS:-}"
+PBS_SELECT_KNOWN18="${CHATTLA_PBS_SELECT_KNOWN18:-${CHATTLA_PBS_SELECT:-}}"
+PBS_WALLTIME_KNOWN18="${CHATTLA_PBS_WALLTIME_KNOWN18:-${CHATTLA_PBS_WALLTIME:-}}"
+PBS_SELECT_SFT="${CHATTLA_PBS_SELECT_SFT:-${CHATTLA_PBS_SELECT:-}}"
+PBS_WALLTIME_SFT="${CHATTLA_PBS_WALLTIME_SFT:-${CHATTLA_PBS_WALLTIME:-}}"
 HOSTNAME_VALUE="$(hostname 2>/dev/null || echo unknown)"
 KNOWN18_JOB_ID=""
 SFT_PREFLIGHT_JOB_ID=""
@@ -110,17 +116,31 @@ export CHATTLA_TLAPM="$TLAPM"
 run_stage preflight outputs/logs/tla_prover_remote_preflight.log "$PREFLIGHT" "${PREFLIGHT_ARGS[@]}"
 
 qsub_submit() {
+  local select_spec="$1"
+  local walltime="$2"
+  shift 2
   if [ -n "$PBS_ACCOUNT" ]; then
-    qsub -A "$PBS_ACCOUNT" "$@"
-  else
-    qsub "$@"
+    set -- -A "$PBS_ACCOUNT" "$@"
   fi
+  if [ -n "$PBS_QUEUE" ]; then
+    set -- -q "$PBS_QUEUE" "$@"
+  fi
+  if [ -n "$select_spec" ]; then
+    set -- -l "select=$select_spec" "$@"
+  fi
+  if [ -n "$walltime" ]; then
+    set -- -l "walltime=$walltime" "$@"
+  fi
+  if [ -n "$PBS_FILESYSTEMS" ]; then
+    set -- -l "filesystems=$PBS_FILESYSTEMS" "$@"
+  fi
+  qsub "$@"
 }
 
-run_stage known18_qsub outputs/logs/tla_prover_known18_qsub.log qsub_submit scripts/qsub_autoprover_known18_corrected_smoke.pbs
+run_stage known18_qsub outputs/logs/tla_prover_known18_qsub.log qsub_submit "$PBS_SELECT_KNOWN18" "$PBS_WALLTIME_KNOWN18" scripts/qsub_autoprover_known18_corrected_smoke.pbs
 KNOWN18_JOB_ID="$(cat outputs/logs/tla_prover_known18_qsub.log)"
 if [ "$SUBMIT_SFT_PREFLIGHT" = "1" ]; then
-  run_stage sft_preflight_qsub outputs/logs/tla_prover_sft_preflight_qsub.log qsub_submit scripts/qsub_sophia_tla_prover_sft_preflight.pbs
+  run_stage sft_preflight_qsub outputs/logs/tla_prover_sft_preflight_qsub.log qsub_submit "$PBS_SELECT_SFT" "$PBS_WALLTIME_SFT" scripts/qsub_sophia_tla_prover_sft_preflight.pbs
   SFT_PREFLIGHT_JOB_ID="$(cat outputs/logs/tla_prover_sft_preflight_qsub.log)"
 fi
 

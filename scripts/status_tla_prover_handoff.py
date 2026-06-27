@@ -194,13 +194,45 @@ def build_status(
     }
 
 
+def _report_presence(report: dict[str, Any]) -> str:
+    if not report.get("exists"):
+        return "missing"
+    data = report.get("data")
+    if isinstance(data, dict) and data.get("_error"):
+        return "invalid"
+    return "present"
+
+
+def compact_status(status: dict[str, Any]) -> dict[str, Any]:
+    reports = status.get("reports") or {}
+    decision_data = (reports.get("decision") or {}).get("data") or {}
+    submission_data = (reports.get("submission") or {}).get("data") or {}
+    collection_data = (reports.get("collection") or {}).get("data") or {}
+    watch_data = (reports.get("watch") or {}).get("data") or {}
+    return {
+        "state": status.get("state"),
+        "next_action": status.get("next_action"),
+        "repo": status.get("repo"),
+        "job_ids": status.get("job_ids") or {},
+        "reports": {name: _report_presence(report) for name, report in reports.items()},
+        "submission_stage": submission_data.get("stage"),
+        "collection_missing": len(collection_data.get("missing") or []),
+        "collection_errors": len(collection_data.get("errors") or []),
+        "watch_status": watch_data.get("status"),
+        "verdict": decision_data.get("verdict"),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, default=REPO)
     parser.add_argument("--live", action="store_true", default=True)
     parser.add_argument("--no-live", action="store_false", dest="live")
+    parser.add_argument("--compact", action="store_true")
     args = parser.parse_args()
-    print(json.dumps(build_status(args.repo, live=args.live), indent=2, sort_keys=True))
+    status = build_status(args.repo, live=args.live)
+    payload = compact_status(status) if args.compact else status
+    print(json.dumps(payload, indent=2, sort_keys=True))
     return 0
 
 

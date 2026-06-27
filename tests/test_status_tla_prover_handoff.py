@@ -2,7 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from scripts.status_tla_prover_handoff import build_status
+from scripts.status_tla_prover_handoff import build_status, compact_status
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -21,7 +21,7 @@ state = running
 pid = 37655
 CHATTLA_RELAY_HOST => user@relay.example
 """
-    tailscale_text = "100.64.0.10 relay-host user@ linux active; relay \"ord\"; offline, last seen 1h ago"
+    tailscale_text = "203.0.113.10 relay-host user@ linux active; relay \"ord\"; offline, last seen 1h ago"
 
     doctor_launchctl_text = """
 state = not running
@@ -72,6 +72,23 @@ def test_status_reports_complete_when_watch_complete(tmp_path: Path) -> None:
     assert status["job_ids"]["sft_preflight_job_id"] == "170002.sophia-pbs-01"
     assert status["reports"]["decision"]["data"]["verdict"] == "advance"
     assert "Run the full 610-row" in status["next_action"]
+
+
+def test_compact_status_keeps_only_agent_ready_fields(tmp_path: Path) -> None:
+    manifest_dir = tmp_path / "outputs/manifests"
+    manifest_dir.mkdir(parents=True)
+    (manifest_dir / "tla_prover_remote_submission.json").write_text(
+        json.dumps({"ok": True, "known18_job_id": "170001.sophia-pbs-01"}),
+        encoding="utf-8",
+    )
+
+    compact = compact_status(build_status(tmp_path, launchctl_text="state = exited\n"))
+
+    assert compact["state"] == "submitted_waiting_for_results"
+    assert compact["job_ids"]["known18_job_id"] == "170001.sophia-pbs-01"
+    assert compact["reports"]["submission"] == "present"
+    assert "launchagent" not in compact
+    assert "raw_tail" not in json.dumps(compact)
 
 
 def test_status_reports_partial_submit_when_known18_was_launched(tmp_path: Path) -> None:
@@ -138,3 +155,17 @@ def test_status_cli_outputs_json() -> None:
     assert "state" in payload
     assert "reports" in payload
     assert "next_action" in payload
+
+
+def test_status_cli_compact_outputs_small_json() -> None:
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "--repo", str(REPO), "--no-live", "--compact"],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    payload = json.loads(result.stdout)
+    assert "state" in payload
+    assert "reports" in payload
+    assert "launchagent" not in payload
