@@ -28,6 +28,7 @@ Notes on this tlapm install (1.5.0)
 from __future__ import annotations
 
 import re
+import os
 import subprocess
 import tempfile
 import time
@@ -37,7 +38,10 @@ from typing import Optional
 
 # Resolve tlapm relative to repo root so this works in any working directory.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_DEFAULT_TLAPM = _REPO_ROOT / "src" / "shared" / "tlaps" / "bin" / "tlapm"
+_DEFAULT_TLAPM = Path(
+    os.getenv("CHATTLA_TLAPM")
+    or (_REPO_ROOT / "src" / "shared" / "tlaps" / "bin" / "tlapm")
+)
 
 # Default per-spec timeout. Proofs are heavier than TLC runs but most small
 # benchmarks finish in well under a minute.

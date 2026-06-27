@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DRY_RUN=0
+SUBMIT_SFT_PREFLIGHT=0
+INSTALL_LAUNCHAGENTS=0
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    --submit-sft-preflight|--submit-all)
+      SUBMIT_SFT_PREFLIGHT=1
+      ;;
+    --install-launchagents)
+      INSTALL_LAUNCHAGENTS=1
+      ;;
+    -h|--help)
+      cat <<'EOF'
+Usage: scripts/sync_macmini_and_submit_known18.sh [--dry-run] [--submit-sft-preflight]
+
+Sync TLA prover handoff artifacts to the Mac mini, sync them through the
+mini's Sophia control socket, and submit the corrected known-18 TLAPS smoke.
+
+Options:
+  --dry-run                 Print commands without running them.
+  --submit-sft-preflight    Also submit the bounded 3-step SFT startup preflight.
+  --submit-all              Alias for --submit-sft-preflight.
+  --install-launchagents    Also install persistent Mac mini LaunchAgents after sync.
+EOF
+      exit 0
+      ;;
+    *)
+      echo "unknown option: $1" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+LOCAL_REPO="${CHATTLA_LOCAL_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+RELAY_HOST="${CHATTLA_RELAY_HOST:-${CHATTLA_MAC_HOST:-ericspencer@erics-mac-mini.local}}"
+RELAY_KEY="${CHATTLA_RELAY_KEY:-${CHATTLA_MAC_KEY:-$HOME/.ssh/id_ed25519_mac_mini}}"
+RELAY_REPO="${CHATTLA_RELAY_REPO:-${CHATTLA_MAC_REPO:-/Users/ericspencer/GitHub/ChatTLA/ChatTLA}}"
+RELAY_LABEL="${CHATTLA_RELAY_LABEL:-Mac mini}"
+SOPHIA_CTL="${SOPHIA_CTL:-/Users/ericspencer/.ssh/codex-sophia-ctl}"
+SOPHIA_HOST="${SOPHIA_HOST:-eric-spencer@sophia.alcf.anl.gov}"
+
+SSH_MAC=(
+  ssh
+  -o ConnectTimeout=15
+  -o BatchMode=yes
+  -o PubkeyAuthentication=yes
+  -o PasswordAuthentication=no
+  -o IdentitiesOnly=yes
+  -i "$RELAY_KEY"
+)
+
+RSYNC_MAC=(
+  rsync -az
+  -e "ssh -o ConnectTimeout=15 -o BatchMode=yes -o PubkeyAuthentication=yes -o PasswordAuthentication=no -o IdentitiesOnly=yes -i $RELAY_KEY"
+)
+
+FILES=(
+  src/
+  scripts/autoprover_smoke.py
+  scripts/summarize_autoprover_smoke.py
+  scripts/qsub_autoprover_known18_corrected_smoke.pbs
+  scripts/qsub_sophia_tla_prover_sft_preflight.pbs
+  scripts/install_handoff_doctor_launchagent.sh
+  scripts/macmini_codex_goal_supervisor.sh
+  scripts/macmini_tla_prover_autopilot.sh
+  scripts/install_macmini_launchagents.sh
+  scripts/build_tla_prover_eval_corpus.py
+  scripts/build_sany_tlc_eval_corpus.py
+  scripts/build_tla_prover_manifest.py
+  scripts/collect_tla_prover_remote_results.sh
+  scripts/doctor_tla_prover_handoff.py
+  scripts/evaluate_tla_prover_remote_results.py
+  scripts/diagnose_sany_tlc_pass_corpus.py
+  scripts/preflight_tla_prover_corpora.py
+  scripts/preflight_tla_prover_remote.py
+  scripts/probe_tla_prover_control_planes.py
+  scripts/status_tla_prover_handoff.py
+  scripts/submit_tla_prover_remote_jobs.sh
+  scripts/sync_macmini_and_submit_known18.sh
+  scripts/wait_for_macmini_and_handoff_known18.sh
+  scripts/watch_tla_prover_remote_results.sh
+  data/processed/tla_prover/tlaps_candidate_modules_18.txt
+  data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl
+  data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json
+  data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl
+  data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json
+  data/processed/prover_eval.jsonl
+  data/processed/prover_eval.summary.json
+  data/processed/sany_tlc_pass_sft_v1.jsonl
+  data/processed/sany_tlc_pass_sft_v1.summary.json
+  data/processed/sany_tlc_pass_eval_v1.jsonl
+  data/processed/sany_tlc_pass_eval_v1.summary.json
+  outputs/manifests/sany_tlc_pass_corpus_diagnostic.json
+  outputs/manifests/tla_prover_corpus_preflight.json
+  outputs/manifests/tla_prover_artifacts_v1.json
+)
+
+SFT_PREFLIGHT_FILES=(
+  configs/
+)
+
+run() {
+  if [ "$DRY_RUN" = "1" ]; then
+    printf '+'
+    printf ' %q' "$@"
+    printf '\n'
+  else
+    "$@"
+  fi
+}
+
+cd "$LOCAL_REPO"
+python3 scripts/build_tla_prover_eval_corpus.py >/dev/null
+python3 scripts/build_sany_tlc_eval_corpus.py >/dev/null
+python3 scripts/diagnose_sany_tlc_pass_corpus.py >/dev/null
+python3 scripts/preflight_tla_prover_corpora.py >/dev/null
+python3 scripts/build_tla_prover_manifest.py >/dev/null
+
+ALL_FILES=("${FILES[@]}")
+while IFS= read -r module_path; do
+  [ -z "$module_path" ] && continue
+  ALL_FILES+=("$module_path")
+done < data/processed/tla_prover/tlaps_candidate_modules_18.txt
+
+if [ "$SUBMIT_SFT_PREFLIGHT" = "1" ]; then
+  ALL_FILES+=("${SFT_PREFLIGHT_FILES[@]}")
+fi
+
+run "${SSH_MAC[@]}" "$RELAY_HOST" "mkdir -p '$RELAY_REPO/__sync_stage__'"
+for file in "${ALL_FILES[@]}"; do
+  run "${RSYNC_MAC[@]}" --relative "$file" "$RELAY_HOST:$RELAY_REPO/"
+done
+
+if [ "$INSTALL_LAUNCHAGENTS" = "1" ]; then
+  INSTALL_MACMINI_CMD="CHATTLA_REPO='$RELAY_REPO' scripts/install_macmini_launchagents.sh"
+else
+  INSTALL_MACMINI_CMD="scripts/install_macmini_launchagents.sh --dry-run"
+fi
+run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && chmod +x scripts/macmini_codex_goal_supervisor.sh scripts/macmini_tla_prover_autopilot.sh scripts/install_macmini_launchagents.sh scripts/install_handoff_doctor_launchagent.sh scripts/sync_macmini_and_submit_known18.sh scripts/wait_for_macmini_and_handoff_known18.sh scripts/watch_tla_prover_remote_results.sh scripts/submit_tla_prover_remote_jobs.sh scripts/preflight_tla_prover_remote.py scripts/preflight_tla_prover_corpora.py scripts/build_tla_prover_eval_corpus.py scripts/build_sany_tlc_eval_corpus.py scripts/diagnose_sany_tlc_pass_corpus.py scripts/collect_tla_prover_remote_results.sh scripts/evaluate_tla_prover_remote_results.py scripts/status_tla_prover_handoff.py scripts/doctor_tla_prover_handoff.py 2>/dev/null || true && $INSTALL_MACMINI_CMD"
+
+run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' 'cd ChatTLA && mkdir -p scripts data/processed/tla_prover outputs/manifests outputs/logs outputs/autoprover'"
+for file in "${ALL_FILES[@]}"; do
+  run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && rsync -az --relative '$file' -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$SOPHIA_HOST:ChatTLA/'"
+done
+
+REMOTE_SUBMIT="cd ChatTLA && CHATTLA_TLAPM=/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm scripts/submit_tla_prover_remote_jobs.sh"
+if [ "$SUBMIT_SFT_PREFLIGHT" = "1" ]; then
+  REMOTE_SUBMIT="$REMOTE_SUBMIT --submit-sft-preflight"
+fi
+run "${SSH_MAC[@]}" "$RELAY_HOST" "ssh -o BatchMode=yes -S '$SOPHIA_CTL' '$SOPHIA_HOST' '$REMOTE_SUBMIT'"
