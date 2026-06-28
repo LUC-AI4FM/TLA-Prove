@@ -552,6 +552,45 @@ TypeOK == /\ mem \in Seq(1..MaxIssue)
     assert row["status"] == "skeleton_emitted"
 
 
+def test_run_one_accepts_typeok_alias_to_helper_invariant(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "AliasTypeOK.tla"
+    module_path.write_text(
+        r"""---- MODULE AliasTypeOK ----
+EXTENDS Naturals
+CONSTANT C
+VARIABLES active, rejected
+vars == << active, rejected >>
+Init == /\ active = 0
+        /\ rejected = 0
+Next == /\ active' = active
+        /\ rejected' = rejected
+Spec == Init /\ [][Next]_vars
+CapacityInv == active \in 0..C /\ rejected \in 0..C
+TypeOK == CapacityInv
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module AliasTypeOK"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
 def test_run_one_multiline_variables_block_still_checks_missing_direct_domain(
     monkeypatch, tmp_path: Path
 ) -> None:

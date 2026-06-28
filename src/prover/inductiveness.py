@@ -223,7 +223,7 @@ def _operator_body(module_src: str, name: str) -> str:
     if not match:
         return ""
     start = match.end()
-    next_def = re.search(r"^\s*[A-Za-z_]\w*(?:\([^)]*\))?\s*==", module_src[start:], re.MULTILINE)
+    next_def = re.search(r"^[ \t]*[A-Za-z_]\w*(?:\([^)]*\))?[ \t]*==", module_src[start:], re.MULTILINE)
     end_match = _MODULE_END_RE.search(module_src[start:])
     candidates = [len(module_src)]
     if next_def:
@@ -271,21 +271,19 @@ def _declared_variables(module_src: str) -> list[str]:
 
 
 def _split_top_level_conjuncts(body: str) -> list[str]:
+    filtered = "\n".join(
+        line for line in body.splitlines() if line.strip() and not line.strip().startswith("\\*")
+    ).strip()
+    if not filtered:
+        return []
     clauses: list[str] = []
-    current: list[str] = []
-    for raw_line in body.splitlines():
-        if not raw_line.strip():
+    for part in _split_top_level(filtered, "/\\"):
+        stripped = part.strip()
+        if not stripped:
             continue
-        if raw_line.lstrip().startswith("/\\"):
-            if current:
-                clauses.append("\n".join(current))
-            current = [raw_line]
-        elif current:
-            current.append(raw_line)
-        elif raw_line.strip():
-            current = [raw_line]
-    if current:
-        clauses.append("\n".join(current))
+        if not stripped.startswith("/\\"):
+            stripped = f"/\\ {stripped}"
+        clauses.append(stripped)
     return clauses
 
 
@@ -443,6 +441,32 @@ def _helper_conjunct_name(clause: str) -> str | None:
     return match.group(1) if match else None
 
 
+def _expand_helper_conjuncts(
+    module_src: str,
+    clauses: list[str],
+    seen_helpers: set[str] | None = None,
+) -> list[str]:
+    if seen_helpers is None:
+        seen_helpers = set()
+    expanded: list[str] = []
+    for clause in clauses:
+        stripped = clause.strip()
+        helper = _helper_conjunct_name(stripped)
+        if helper and helper not in seen_helpers:
+            body = _operator_body(module_src, helper)
+            if body:
+                expanded.extend(
+                    _expand_helper_conjuncts(
+                        module_src,
+                        _split_top_level_conjuncts(body),
+                        seen_helpers | {helper},
+                    )
+                )
+                continue
+        expanded.append(stripped)
+    return expanded
+
+
 def _seq_len_upper_bound(
     module_src: str,
     clauses: list[str],
@@ -562,7 +586,7 @@ def _enumerable_type_bound_expr(module_src: str) -> str | None:
     typeok = _operator_body(module_src, _TYPE_BOUND_NAME)
     if not typeok:
         return None
-    clauses = _split_top_level_conjuncts(typeok)
+    clauses = _expand_helper_conjuncts(module_src, _split_top_level_conjuncts(typeok))
     seq_len_bounds = _seq_len_upper_bounds(module_src, clauses)
     seen_direct_domains: set[str] = set()
     rewritten: list[str] = []
@@ -579,6 +603,9 @@ def _enumerable_type_bound_expr(module_src: str) -> str | None:
                 break
     if any(variable not in seen_direct_domains for variable in declared):
         return None
+    direct_clauses = [clause for clause in rewritten if _is_direct_variable_domain_clause(clause, declared)]
+    other_clauses = [clause for clause in rewritten if not _is_direct_variable_domain_clause(clause, declared)]
+    rewritten = direct_clauses + other_clauses
     return "\n".join(rewritten)
 
 
@@ -597,6 +624,13 @@ def _rewrite_enumerable_clause(variable: str, clause: str, seq_len_upper_bound: 
             f"(UNION {{ [1..n -> ({rhs})] : n \\in 0..{seq_len_upper_bound} }})"
         )
     return clause
+
+
+def _is_direct_variable_domain_clause(clause: str, declared: list[str]) -> bool:
+    for variable in declared:
+        if re.search(rf"^\s*/\\\s*{re.escape(variable)}\s*(\\in|=|\\subseteq)\s*(.+)$", clause, re.DOTALL):
+            return True
+    return False
 
 
 def _inject_ind_init(module_src: str, init_expr: str) -> str:
