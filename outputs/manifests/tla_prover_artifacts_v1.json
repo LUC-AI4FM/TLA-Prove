@@ -1,12 +1,84 @@
 {
   "artifacts": {
     "ai4fm_public_dataset_surface": {
-      "bytes": 1439,
+      "bytes": 1412,
       "exists": true,
       "kind": "public_ai4fm_dataset_surface_report",
       "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
       "rows": null,
-      "sha256": "08db686287df82869c504e8844fd30010b2018d29a492e6074dc9483c52ed54e"
+      "sha256": "c58c29f5f19e6789ed79ca41dcaba4c3e7ff65f304ab4e3ac7ff462d25f7eed2"
+    },
+    "ai4fm_public_discovery_manifest_v1": {
+      "bytes": 7034,
+      "exists": true,
+      "kind": "public_ai4fm_repo_discovery_manifest",
+      "path": "data/processed/ai4fm_public_discovery_manifest_v1.jsonl",
+      "rows": 18,
+      "sha256": "09cc07e9ff2f748931a1c6a8bc184a15367047f6ae0489816e78ba8e9edf0e6e",
+      "summary": {
+        "configured_org_inputs": 7,
+        "configured_user_inputs": 9,
+        "dvc_surface": {
+          "parse_input": {
+            "nfiles": 227,
+            "path": "data/raw",
+            "size": 618486
+          },
+          "parse_output": {
+            "nfiles": 3979,
+            "path": "data/parsed",
+            "size": 22773073
+          },
+          "pull": {
+            "nfiles": 2628,
+            "path": "data/raw",
+            "size": 12034995
+          }
+        },
+        "generated_at": "2026-06-28T22:01:56.671351+00:00",
+        "notes": [
+          "This manifest reflects the pipeline's public seed repo list plus live repository search queries.",
+          "Configured org/user seed lists are preserved for auditability, but the pipeline's checked-in loader currently ignores them.",
+          "The larger DVC-backed raw and parsed corpora are not reproduced here; this artifact captures the public discovery layer only."
+        ],
+        "operational_seed_mode": "repos_only",
+        "pipeline_git_head": "59bd533",
+        "pipeline_repo": "LUC-AI4FM-tla-dataset-pipeline",
+        "query_results_by_query": {
+          "\"EXTENDS\" \"VARIABLES\" extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "\"\\\\* PlusCal\" extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "TLAPS extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "extension:cfg tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "extension:tla": {
+            "repository_count": 7,
+            "returned": 7
+          }
+        },
+        "search_limit": 100,
+        "search_queries": 5,
+        "seed_repo_inputs": 11,
+        "source_schema": "data_contracts/schemas/source_record.schema.json",
+        "unique_repo_records": 18,
+        "zero_result_queries": [
+          "extension:cfg tla",
+          "\"\\\\* PlusCal\" extension:tla",
+          "\"EXTENDS\" \"VARIABLES\" extension:tla",
+          "TLAPS extension:tla"
+        ]
+      },
+      "summary_path": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json"
     },
     "chattla_tla_prover_sft_v1": {
       "bytes": 5056374,
@@ -16,14 +88,14 @@
       "rows": 1125,
       "sha256": "2aac0c9ed5d3d0b20c580fb74687f63e28c1d916290c64d4924f85525ef24ef0",
       "summary": {
-        "base": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/diamond_sft_v3.jsonl",
+        "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "generated_at": "2026-06-27T14:10:07.242606+00:00",
         "jsonl_sha256": "2aac0c9ed5d3d0b20c580fb74687f63e28c1d916290c64d4924f85525ef24ef0",
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "out": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
         "seed": 20260627,
         "total_rows": 1125,
-        "verified_tlaps": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
+        "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
       },
@@ -49,12 +121,12 @@
           "Voting"
         ],
         "families_seen": 71,
-        "generated_at": "2026-06-28T21:39:25.270695+00:00",
+        "generated_at": "2026-06-28T22:01:26.491011+00:00",
         "jsonl_sha256": "7d2f18a3c5a267b8fb94af26ec4c94c980201ce5b27ab46e40428a8379026769",
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/formalllm_eval_v1.jsonl",
+        "out": "data/processed/formalllm_eval_v1.jsonl",
         "rows": 205,
         "skipped_missing_files": [],
-        "source_root": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/FormaLLM/data",
+        "source_root": "data/FormaLLM/data",
         "unique_modules": 191
       },
       "summary_path": "data/processed/formalllm_eval_v1.summary.json"
@@ -75,7 +147,7 @@
       "rows": 18,
       "sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
       "summary": {
-        "generated_at": "2026-06-28T19:15:14.279969+00:00",
+        "generated_at": "2026-06-28T22:03:40.132176+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
         "kept_rows": 18,
@@ -101,10 +173,10 @@
         ],
         "obligations_proved": 299,
         "obligations_total": 299,
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/prover_eval.jsonl",
+        "out": "data/processed/prover_eval.jsonl",
         "skipped_invalid": 0,
         "skipped_unverified": 0,
-        "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+        "source": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
         "source_rows": 18
       },
       "summary_path": "data/processed/prover_eval.summary.json"
@@ -115,7 +187,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "5af3bc7294ac67e4b041204d92a4c1dba7d02a6366f1dcd19bca921bbd7673b0"
+      "sha256": "6184e1d89bda04949baa6d7f533998d0bd40403e2cf1c32f01fc9b6da0952823"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -125,7 +197,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-28T19:15:14.342830+00:00",
+        "generated_at": "2026-06-28T22:03:40.194167+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -160,9 +232,9 @@
           "EmailVerification",
           "FencingToken"
         ],
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/sany_tlc_pass_eval_v1.jsonl",
+        "out": "data/processed/sany_tlc_pass_eval_v1.jsonl",
         "skipped_not_verified_pass": 0,
-        "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/diamond_eval_holdout.jsonl",
+        "source": "data/processed/diamond_eval_holdout.jsonl",
         "source_rows": 30
       },
       "summary_path": "data/processed/sany_tlc_pass_eval_v1.summary.json"
@@ -176,7 +248,7 @@
       "sha256": "c72006c0ac5933cfdaee82c15b456dd58f18d8af70cd6f3c82950f7abe14af51",
       "summary": {
         "generated_at": "2026-06-27T15:46:52.001460+00:00",
-        "holdout": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/diamond_eval_holdout.jsonl",
+        "holdout": "data/processed/diamond_eval_holdout.jsonl",
         "holdout_modules": 30,
         "jsonl_sha256": "c72006c0ac5933cfdaee82c15b456dd58f18d8af70cd6f3c82950f7abe14af51",
         "kept_rows": 170,
@@ -352,10 +424,10 @@
           "WriteBuffer",
           "WriteThroughCache"
         ],
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/sany_tlc_pass_sft_v1.jsonl",
+        "out": "data/processed/sany_tlc_pass_sft_v1.jsonl",
         "skipped_holdout": 30,
         "skipped_not_verified_pass": 0,
-        "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/diamond_gen/diamond_generated.jsonl",
+        "source": "outputs/diamond_gen/diamond_generated.jsonl",
         "source_rows": 200
       },
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
@@ -366,7 +438,7 @@
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "d0e21ec7744c47866ecca3e9c51f442c2c49bd9a574542858512a8a61da32897"
+      "sha256": "e59d3ab77339487d51f354c78e31eb03e5998e6b24f0dccd2d1872282d7104dd"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 104115,
@@ -398,7 +470,7 @@
           "VotingMajority",
           "WitnessReplication"
         ],
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+        "out": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
         "proof_archive_sha256": "20ca68ea4caf304b42d5b45fbaeadefc55eb0a17fd1fd9991db27ed741a5d46c",
         "raw_proved": 299,
         "raw_total": 299,
@@ -408,9 +480,10 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-28T21:48:47.454341+00:00",
+  "generated_at": "2026-06-28T22:03:40.382469+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
+    "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
     "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
     "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
     "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
@@ -446,6 +519,6 @@
     "wait_for_macmini_then_handoff": "scripts/wait_for_macmini_and_handoff_known18.sh --submit-sft-preflight",
     "watch_remote_results": "scripts/watch_tla_prover_remote_results.sh"
   },
-  "repo": "/Users/eric/GitHub/ChatTLA/ChatTLA",
+  "repo": ".",
   "schema": "chattla_tla_prover_artifacts_v1"
 }

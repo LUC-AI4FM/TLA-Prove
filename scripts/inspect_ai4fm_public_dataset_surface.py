@@ -55,7 +55,7 @@ def inspect_formalllm(formalllm_root: Path) -> dict[str, Any]:
     all_comment_files = sorted(formalllm_root.glob("*//txt/*_comments*.txt"))
     repo_root = formalllm_root.parent
     return {
-        "root": str(formalllm_root),
+        "root": str(formalllm_root.relative_to(REPO)) if formalllm_root.is_relative_to(REPO) else formalllm_root.name,
         "git_head": _git_head(repo_root),
         "families": families,
         "canonical_entries": len(entries),
@@ -144,9 +144,9 @@ def inspect_pipeline(pipeline_repo: Path) -> dict[str, Any]:
     dvc_lock = pipeline_repo / "dvc.lock"
     parsed = _parse_dvc_lock(dvc_lock) if dvc_lock.exists() else {}
     return {
-        "repo": str(pipeline_repo),
+        "repo": pipeline_repo.name,
         "git_head": _git_head(pipeline_repo),
-        "dvc_lock": str(dvc_lock),
+        "dvc_lock": f"{pipeline_repo.name}/dvc.lock" if dvc_lock.exists() else "dvc.lock",
         "dvc_lock_present": dvc_lock.exists(),
         "pull": parsed.get("pull"),
         "parse_input": parsed.get("parse_input"),
@@ -165,8 +165,8 @@ def build_report(*, formalllm_root: Path, pipeline_repo: Path) -> dict[str, Any]
             "formalllm_role": "canonical prompt/spec supervised corpus",
             "pipeline_role": "broader public extraction/parsing discovery surface",
             "recommended_next_step": (
-                "Use formalllm_eval_v1 for direct supervised/eval work and treat "
-                "tla-dataset-pipeline as the next large-source mining lane."
+                "Use formalllm_eval_v1 for direct supervised/eval work, and build "
+                "ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
             ),
         },
         "public_sources": {

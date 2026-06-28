@@ -16,6 +16,11 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"formalllm": {"canonical_entries": 205}, "pipeline": {"pull": {"nfiles": 2628}}}),
         encoding="utf-8",
     )
+    _write_jsonl(repo / "data/processed/ai4fm_public_discovery_manifest_v1.jsonl", [{"repo": "a/b"}])
+    (repo / "data/processed/ai4fm_public_discovery_manifest_v1.summary.json").write_text(
+        json.dumps({"unique_repo_records": 1}),
+        encoding="utf-8",
+    )
     _write_jsonl(repo / "data/processed/formalllm_eval_v1.jsonl", [{"messages": []}, {"messages": []}, {"messages": []}])
     _write_jsonl(repo / "data/processed/sany_tlc_pass_sft_v1.jsonl", [{"a": 1}, {"a": 2}])
     _write_jsonl(repo / "data/processed/prover_eval.jsonl", [{"messages": []}])
@@ -42,6 +47,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["formalllm_eval_v1"]["kind"] == "full_formalllm_prompt_eval_dataset"
     assert manifest["artifacts"]["ai4fm_public_dataset_surface"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_dataset_surface"]["kind"] == "public_ai4fm_dataset_surface_report"
+    assert manifest["artifacts"]["ai4fm_public_discovery_manifest_v1"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_discovery_manifest_v1"]["rows"] == 1
+    assert manifest["artifacts"]["ai4fm_public_discovery_manifest_v1"]["kind"] == "public_ai4fm_repo_discovery_manifest"
     assert manifest["artifacts"]["prover_eval_v1"]["rows"] == 1
     assert manifest["artifacts"]["prover_eval_v1"]["kind"] == "verified_tlaps_prover_eval_dataset"
     assert manifest["artifacts"]["sany_tlc_pass_eval_v1"]["rows"] == 2
@@ -80,6 +88,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["inspect_ai4fm_public_dataset_surface"] == (
         "python3 scripts/inspect_ai4fm_public_dataset_surface.py"
+    )
+    assert manifest["remote_next_steps"]["build_ai4fm_public_discovery_manifest"] == (
+        "python3 scripts/build_ai4fm_public_discovery_manifest.py"
     )
     assert manifest["remote_next_steps"]["build_sany_tlc_eval_corpus"] == (
         "python3 scripts/build_sany_tlc_eval_corpus.py"

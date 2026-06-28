@@ -13,6 +13,11 @@ REPO = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_artifacts_v1.json"
 
 ARTIFACTS = {
+    "ai4fm_public_discovery_manifest_v1": {
+        "path": "data/processed/ai4fm_public_discovery_manifest_v1.jsonl",
+        "summary": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
+        "kind": "public_ai4fm_repo_discovery_manifest",
+    },
     "tlaps_verified_autoprover_traces_v1": {
         "path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
         "summary": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
@@ -85,6 +90,19 @@ def _read_summary(path: Path) -> dict[str, Any] | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _sanitize_summary(value: Any, repo: Path) -> Any:
+    if isinstance(value, dict):
+        return {key: _sanitize_summary(item, repo) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_summary(item, repo) for item in value]
+    if isinstance(value, str) and value.startswith(str(repo)):
+        try:
+            return str(Path(value).resolve().relative_to(repo.resolve()))
+        except ValueError:
+            return value
+    return value
+
+
 def _artifact(repo: Path, spec: dict[str, str]) -> dict[str, Any]:
     path = repo / spec["path"]
     summary_path = repo / spec["summary"] if "summary" in spec else None
@@ -98,7 +116,7 @@ def _artifact(repo: Path, spec: dict[str, str]) -> dict[str, Any]:
     }
     if summary_path is not None:
         item["summary_path"] = str(summary_path.relative_to(repo))
-        item["summary"] = _read_summary(summary_path)
+        item["summary"] = _sanitize_summary(_read_summary(summary_path), repo)
     return item
 
 
@@ -106,7 +124,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
     return {
         "schema": "chattla_tla_prover_artifacts_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "repo": str(repo),
+        "repo": ".",
         "artifacts": {name: _artifact(repo, spec) for name, spec in ARTIFACTS.items()},
         "remote_next_steps": {
             "known18_pbs": "scripts/qsub_autoprover_known18_corrected_smoke.pbs",
@@ -127,6 +145,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "probe_control_planes": "python3 scripts/probe_tla_prover_control_planes.py",
             "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
             "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
+            "build_ai4fm_public_discovery_manifest": (
+                "python3 scripts/build_ai4fm_public_discovery_manifest.py"
+            ),
             "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
             "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
             "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",

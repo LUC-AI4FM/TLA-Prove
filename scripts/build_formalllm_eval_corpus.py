@@ -170,11 +170,15 @@ def write_outputs(rows: list[dict[str, Any]], summary: dict[str, Any], out: Path
     out.write_text("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n", encoding="utf-8")
     final_summary = dict(summary)
     final_summary["generated_at"] = datetime.now(timezone.utc).isoformat()
-    final_summary["out"] = str(out)
+    final_summary["out"] = str(out.relative_to(REPO)) if out.is_relative_to(REPO) else str(out)
+    if final_summary.get("source_root") == str(DEFAULT_SOURCE_ROOT):
+        final_summary["source_root"] = str(DEFAULT_SOURCE_ROOT.relative_to(REPO))
     final_summary["jsonl_sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
     summary_path = out.with_suffix(".summary.json")
     summary_path.write_text(json.dumps(final_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    final_summary["summary"] = str(summary_path)
+    final_summary["summary"] = (
+        str(summary_path.relative_to(REPO)) if summary_path.is_relative_to(REPO) else str(summary_path)
+    )
     return final_summary
 
 
