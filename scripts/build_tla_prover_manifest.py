@@ -43,6 +43,11 @@ ARTIFACTS = {
         "summary": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
         "kind": "normalized_public_ai4fm_tlaprove_import",
     },
+    "ai4fm_public_seed_file_manifest_v1": {
+        "path": "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
+        "summary": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
+        "kind": "public_ai4fm_seed_repo_file_manifest",
+    },
     "sany_tlc_pass_sft_v1": {
         "path": "data/processed/sany_tlc_pass_sft_v1.jsonl",
         "summary": "data/processed/sany_tlc_pass_sft_v1.summary.json",
@@ -159,6 +164,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             ),
             "build_ai4fm_public_tlaprove_import": (
                 "python3 scripts/build_ai4fm_public_tlaprove_import.py"
+            ),
+            "build_ai4fm_public_seed_file_manifest": (
+                "python3 scripts/build_ai4fm_public_seed_file_manifest.py"
             ),
             "build_ai4fm_public_discovery_manifest": (
                 "python3 scripts/build_ai4fm_public_discovery_manifest.py"
