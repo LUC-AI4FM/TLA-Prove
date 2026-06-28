@@ -45,7 +45,7 @@ Next == \/ Signup \/ VerifyEmail \/ CompleteProfile \/ AcceptTerms \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Each phase implies all prior steps completed.
-SafetyInvariant == ((phase = "terms_accepted") => (ever_signup /\ ever_email /\ ever_profile /\ ever_terms)) /\ ((phase = "profile_done") => (ever_signup /\ ever_email /\ ever_profile)) /\ ((phase = "email_verified") => (ever_signup /\ ever_email))
+SafetyInvariant == ((phase = "signed_up") => ever_signup) /\ ((phase = "terms_accepted") => (ever_signup /\ ever_email /\ ever_profile /\ ever_terms)) /\ ((phase = "profile_done") => (ever_signup /\ ever_email /\ ever_profile)) /\ ((phase = "email_verified") => (ever_signup /\ ever_email))
 
 TypeOK == /\ phase \in Phases
           /\ ever_signup \in BOOLEAN

@@ -70,5 +70,7 @@ TypeOK ==
     /\ pc \in [{"a","b"} -> {"ncs","wait","cs"}]
     /\ req_a \in BOOLEAN
     /\ req_b \in BOOLEAN
+    /\ (pc["a"] \in {"wait", "cs"}) => req_a
+    /\ (pc["b"] \in {"wait", "cs"}) => req_b
     /\ \A p, q \in {"a","b"} : (p # q /\ pc[p] = "cs") => pc[q] # "cs"
 ====

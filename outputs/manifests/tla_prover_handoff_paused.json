@@ -1,0 +1,5 @@
+{
+  "generated_at": "2026-06-27T15:17:11.360976+00:00",
+  "reason": "Mac mini dead for now; continue local control-plane and artifact work from this laptop.",
+  "resume_command": "rm outputs/manifests/tla_prover_handoff_paused.json && scripts/install_wait_handoff_launchagent.sh --mac-host ericspencer@100.117.97.102"
+}

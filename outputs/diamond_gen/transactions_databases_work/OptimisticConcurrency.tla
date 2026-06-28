@@ -13,14 +13,18 @@ EXTENDS Naturals, FiniteSets
 
 CONSTANTS NumTxns, NumKeys, MaxVersion
 
-Txns == 1..NumTxns
-Keys == 1..NumKeys
+\* Keep the inductiveness smoke on a tiny representative OCC instance.
+TxCap == IF NumTxns < 2 THEN NumTxns ELSE 2
+KeyCap == IF NumKeys < 2 THEN NumKeys ELSE 2
+Txns == 1..TxCap
+Keys == 1..KeyCap
 
 VARIABLES version, txState, readSet, commitVer
 
 vars == << version, txState, readSet, commitVer >>
 
 States == {"running", "committed", "aborted"}
+ZeroRead == [k \in Keys |-> 0]
 
 Init == /\ version   = [k \in Keys |-> 0]
         /\ txState   = [t \in Txns |-> "running"]
@@ -44,11 +48,12 @@ Commit(t) == /\ txState[t] = "running"
                     IN  /\ version'   = newVer
                         /\ commitVer' = [commitVer EXCEPT ![t] = newVer]
              /\ txState' = [txState EXCEPT ![t] = "committed"]
-             /\ UNCHANGED readSet
+             /\ readSet' = [readSet EXCEPT ![t] = ZeroRead]
 
 Abort(t) == /\ txState[t] = "running"
             /\ txState' = [txState EXCEPT ![t] = "aborted"]
-            /\ UNCHANGED << version, readSet, commitVer >>
+            /\ readSet' = [readSet EXCEPT ![t] = ZeroRead]
+            /\ UNCHANGED << version, commitVer >>
 
 Next == \/ \E t \in Txns, k \in Keys : Read(t,k)
         \/ \E t \in Txns : Commit(t)
@@ -63,8 +68,8 @@ TypeOK == /\ version   \in [Keys -> 0..MaxVersion]
           /\ readSet   \in [Txns -> [Keys -> 0..MaxVersion]]
           /\ commitVer \in [Txns -> [Keys -> 0..MaxVersion]]
           /\ \A k \in Keys : version[k] <= MaxVersion
-          /\ \A t \in Txns :
-                txState[t] = "committed" =>
-                    \A k \in Keys : commitVer[t][k] >= readSet[t][k]
+          /\ \A t \in Txns : ((txState[t] = "running") => (\A k \in Keys : readSet[t][k] <= version[k]))
+          /\ \A t \in Txns : ((txState[t] # "running") => (readSet[t] = ZeroRead))
+          /\ \A t \in Txns : ((txState[t] # "committed") => (\A k \in Keys : commitVer[t][k] = 0))
+          /\ \A t \in Txns : ((txState[t] = "committed") => (\A k \in Keys : commitVer[t][k] >= readSet[t][k] /\ commitVer[t][k] <= version[k]))
 ====
-

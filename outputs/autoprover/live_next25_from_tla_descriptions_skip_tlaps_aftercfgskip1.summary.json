@@ -1,0 +1,34 @@
+{
+  "rows": 25,
+  "statuses": {
+    "skeleton_emitted": 1,
+    "skipped": 23,
+    "tlc_error": 1
+  },
+  "skip_reasons": {
+    "sany_parse_or_semantic_invalid": 9,
+    "missing_init_next_spec_typeok_vars": 7,
+    "assume_requires_function_constant_cfg": 6,
+    "typeok_missing_variable_domain_pc": 1
+  },
+  "source_prefixes": {
+    "('outputs', 'materialized_tla')": 25
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {
+    "tlc_error_no_conclusive_result": 1
+  },
+  "tlc_error_samples": {
+    "tlc_error_no_conclusive_result": [
+      {
+        "module": "BufferedRandomAccessFile",
+        "module_path": "outputs/materialized_tla/tla_descriptions/BufferedRandomAccessFile.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      }
+    ]
+  },
+  "tlaps_by_status": {}
+}

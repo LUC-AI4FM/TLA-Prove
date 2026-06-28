@@ -82,5 +82,6 @@ TypeOK ==
     /\ lock      \in Procs \cup {NoHolder}
     /\ spinCount \in [Procs -> 0..MaxSpin]
     /\ (lock # NoHolder) => mode[lock] = "holding"
+    /\ \A i \in Procs : (mode[i] = "holding") => (lock = i)
     /\ Mutex
 ====

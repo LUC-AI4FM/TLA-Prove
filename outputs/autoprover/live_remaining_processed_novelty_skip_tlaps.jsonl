@@ -1,0 +1,5 @@
+{"module_path": "outputs/materialized_tla/gold_benchmark/KeyValueStore.tla", "module": "KeyValueStore", "target": "Spec => []TypeOK", "status": "skipped", "reason": "assume_requires_function_constant_cfg"}
+{"module_path": "outputs/materialized_tla/silver/ClockSynchronisation.tla", "module": "ClockSynchronisation", "target": "Spec => []TypeOK", "status": "skipped", "reason": "typeok_uses_unbounded_seq"}
+{"module_path": "outputs/materialized_tla/no_tier/TransitiveClosure.tla", "module": "TransitiveClosure", "target": "Spec => []TypeOK", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"}
+{"module_path": "outputs/materialized_tla/no_tier/Stones.tla", "module": "Stones", "target": "Spec => []TypeOK", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"}
+{"module_path": "outputs/materialized_tla/no_tier/CarTalkPuzzle.tla", "module": "CarTalkPuzzle", "target": "Spec => []TypeOK", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"}

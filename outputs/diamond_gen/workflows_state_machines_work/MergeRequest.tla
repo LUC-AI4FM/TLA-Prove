@@ -47,7 +47,7 @@ Spec == Init /\ [][Next]_vars
 
 \* Merged implies the required number of approvals were collected and the
 \* MR was promoted out of draft.
-SafetyInvariant == ((status = "merged") => (approver_count >= RequiredApprovals /\ ever_ready)) /\ ((status = "approved") => approver_count >= RequiredApprovals) /\ (approver_count <= NumReviewers)
+SafetyInvariant == ((status \in {"ready","approved","merged"}) => ever_ready) /\ ((status = "merged") => (approver_count >= RequiredApprovals /\ ever_ready)) /\ ((status = "approved") => approver_count >= RequiredApprovals) /\ (approver_count <= NumReviewers)
 
 TypeOK == /\ status \in States
           /\ approver_count \in 0..NumReviewers

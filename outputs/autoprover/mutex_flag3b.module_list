@@ -1,0 +1,3 @@
+outputs/diamond_gen/mutual_exclusion_work/BurnsMutex.tla
+outputs/diamond_gen/mutual_exclusion_work/DijkstraMutex.tla
+outputs/diamond_gen/mutual_exclusion_work/TournamentMutex.tla

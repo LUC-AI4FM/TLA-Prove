@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-06-26T16:58:40.564134+00:00",
+  "command": "scripts/reproduce_final_tlaps_prover.py",
+  "base_proof_dir": "outputs/autoprover/tlaps_mixed_targeted_t1_160785.sophia-pbs-01.lab.alcf.anl.gov/proofs",
+  "atomic_proof": "outputs/autoprover/tlaps_final_source_preserving_repairs_161630/AtomicRegister_source_preserving_choose.tla",
+  "idempotency_proof": "outputs/autoprover/tlaps_final_source_preserving_repairs_161630/IdempotencyKey_firstcall10.tla",
+  "out_dir": "outputs/autoprover/tlaps_reproduced_final_160816",
+  "tlapm": "/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm",
+  "threads": 1,
+  "timeout": 900,
+  "package": "outputs/autoprover/tlaps_reproduced_final_160816.tar.gz",
+  "package_sha256": "20ca68ea4caf304b42d5b45fbaeadefc55eb0a17fd1fd9991db27ed741a5d46c",
+  "package_bytes": 73366
+}

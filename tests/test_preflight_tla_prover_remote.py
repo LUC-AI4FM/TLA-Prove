@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from scripts.preflight_tla_prover_remote import run_preflight
@@ -129,3 +131,43 @@ def test_remote_preflight_uses_default_tlapm_when_env_is_unset(tmp_path: Path, m
     assert report["ok"] is False
     assert any("tlapm not found on PATH: tlapm" in error for error in report["errors"])
     assert not any("tlapm is not executable: ." in error for error in report["errors"])
+
+
+def test_remote_preflight_reports_import_probe_timeout(tmp_path: Path, monkeypatch) -> None:
+    repo = _minimal_repo(tmp_path)
+    for rel in [
+        "configs/accelerate_fsdp.yaml",
+        "data/processed/prover_eval.jsonl",
+        "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
+        "src/training/train.py",
+        "src/training/tlc_eval_callback.py",
+    ]:
+        _write(repo / rel)
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    java = fake_bin / "java"
+    java.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+    java.chmod(0o755)
+    tlapm = fake_bin / "tlapm"
+    tlapm.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+    tlapm.chmod(0o755)
+    monkeypatch.setenv("PATH", str(fake_bin))
+    monkeypatch.setenv("CHATTLA_PYTHON", sys.executable)
+    monkeypatch.setenv("CHATTLA_PYTHON_IMPORT_TIMEOUT", "7")
+
+    def _boom(*args, **kwargs):
+        raise subprocess.TimeoutExpired(cmd=kwargs.get("args", args[0]), timeout=kwargs["timeout"])
+
+    monkeypatch.setattr("scripts.preflight_tla_prover_remote.subprocess.run", _boom)
+
+    report = run_preflight(
+        repo=repo,
+        module_list=repo / "data/processed/tla_prover/tlaps_candidate_modules_18.txt",
+        sft_preflight=True,
+        require_tools=True,
+        tlapm=tlapm,
+    )
+
+    assert report["ok"] is False
+    assert any("python import probe timed out after 7s" in error for error in report["errors"])

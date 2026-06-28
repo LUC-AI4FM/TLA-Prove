@@ -52,7 +52,7 @@ Next == \/ StartAuto \/ AutoPass \/ AutoReject \/ HumanApprove \/ HumanReject \/
 Spec == Init /\ [][Next]_vars
 
 \* Published iff content was approved (which required passing both reviews).
-SafetyInvariant == (published => (ever_auto_passed /\ ever_human_passed)) /\ ((status = "published") => published) /\ ((status = "approved") => (ever_auto_passed /\ ever_human_passed))
+SafetyInvariant == ((status = "human_review") => ever_auto_passed) /\ (published => (ever_auto_passed /\ ever_human_passed)) /\ ((status = "published") => published) /\ ((status = "approved") => (ever_auto_passed /\ ever_human_passed))
 
 TypeOK == /\ status \in States
           /\ ever_auto_passed \in BOOLEAN

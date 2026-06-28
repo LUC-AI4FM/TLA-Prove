@@ -1,0 +1,37 @@
+{
+  "rows": 25,
+  "statuses": {
+    "skeleton_emitted": 14,
+    "skipped": 10,
+    "tlc_error": 1
+  },
+  "skip_reasons": {
+    "missing_typeok_body": 4,
+    "typeok_missing_variable_domain_state": 1,
+    "typeok_missing_variable_domain_level": 1,
+    "typeok_missing_variable_domain_holds": 1,
+    "typeok_missing_variable_domain_ticks": 1,
+    "typeok_missing_variable_domain_waiting": 1,
+    "typeok_uses_unbounded_seq": 1
+  },
+  "source_prefixes": {
+    "('outputs', 'diamond_gen')": 25
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {
+    "tlc_error_other": 1
+  },
+  "tlc_error_samples": {
+    "tlc_error_other": [
+      {
+        "module": "OptimisticConcurrency",
+        "module_path": "outputs/diamond_gen/transactions_databases_work/OptimisticConcurrency.tla",
+        "tlc_error": "TLC timed out after 45s (INIT-as-predicate state space too large to enumerate)."
+      }
+    ]
+  },
+  "tlaps_by_status": {}
+}

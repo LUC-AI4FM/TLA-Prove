@@ -171,13 +171,16 @@ def iter_action_examples(corpus_path: str | Path) -> Iterator[ActionExample]:
             if m.get("role") == "assistant" and m.get("channel") == "final":
                 spec = m.get("content", "")
         if not spec:
+            spec = rec.get("spec", "")
+            nl = rec.get("topic_desc", "") or rec.get("description", "")
+        if not spec:
             continue
         cleaned, _ = normalize_spec(spec)
         harness = build_harness(cleaned)
         if harness is None:
             continue
         yield ActionExample(
-            prompt_id=rec.get("_prompt_id", "?"),
+            prompt_id=rec.get("_prompt_id") or rec.get("module") or "?",
             harness=harness,
             nl_description=nl,
         )

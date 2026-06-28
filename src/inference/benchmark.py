@@ -35,7 +35,30 @@ import time
 from pathlib import Path
 from typing import Optional
 
-import mlflow
+try:
+    import mlflow
+except ImportError:
+    class _NoopRun:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    class _NoopMlflow:
+        @staticmethod
+        def set_experiment(_name: str) -> None:
+            pass
+
+        @staticmethod
+        def start_run(*_args, **_kwargs):
+            return _NoopRun()
+
+        @staticmethod
+        def log_metrics(_metrics: dict) -> None:
+            pass
+
+    mlflow = _NoopMlflow()
 
 _REPO_ROOT     = Path(__file__).resolve().parents[2]
 _BENCH_JSON    = _REPO_ROOT / "data" / "benchmarks" / "benchmark_suite.json"
@@ -248,62 +271,65 @@ def run(
     mlflow.set_experiment("ChatTLA-Benchmark")
     output_csv.parent.mkdir(parents=True, exist_ok=True)
 
-    rows = []
-    with mlflow.start_run(run_name="benchmark"):
-        for model_tag in models:
-            sany_passes = 0
-            tlc_passes  = 0
-            print(f"\n[benchmark] Model: {model_tag}")
-
-            for problem in problems:
-                att_label = f" (best of {attempts})" if attempts > 1 else ""
-                print(f"  [{problem['id']}] {problem['name']}{att_label}...", end="", flush=True)
-                try:
-                    row = run_benchmark_problem(
-                        problem, model_tag, use_self_correct,
-                        attempts=attempts, use_plan=use_plan,
-                    )
-                    rows.append(row)
-                    sany_passes += row["sany_pass"]
-                    tlc_passes  += row["tlc_pass"]
-                    status = (
-                        f"tier={row['tlc_tier']} pc={row['partial_credit']:.2f} "
-                        f"struct={row['structural_score']:.2f} t={row['runtime_s']}s"
-                    )
-                    if row.get("plan_used"):
-                        status += " plan✓"
-                    print(f" {status}")
-                except Exception as exc:
-                    print(f" ERROR: {exc}")
-                    rows.append({k: None for k in _CSV_FIELDS} | {
-                        "model": model_tag,
-                        "benchmark_id": problem["id"],
-                        "name": problem["name"],
-                    })
-
-            n = len(problems)
-            model_rows = [r for r in rows if r.get("model") == model_tag]
-            pc_mean = (
-                sum((r.get("partial_credit") or 0.0) for r in model_rows) / max(1, len(model_rows))
-            )
-            depth1_pass = sum(int(r.get("tlc_depth1_ok") or 0) for r in model_rows)
-            mlflow.log_metrics({
-                f"{model_tag}/sany_pass_rate":     sany_passes / n,
-                f"{model_tag}/tlc_pass_rate":      tlc_passes  / n,
-                f"{model_tag}/depth1_pass_rate":   depth1_pass / n,
-                f"{model_tag}/partial_credit_mean": pc_mean,
-            })
-            print(
-                f"\n[benchmark] {model_tag}: sany={sany_passes}/{n}  "
-                f"tlc={tlc_passes}/{n}  depth1={depth1_pass}/{n}  "
-                f"partial_credit={pc_mean:.3f}"
-            )
-
-    # Write CSV
     with output_csv.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=_CSV_FIELDS, extrasaction="ignore")
         writer.writeheader()
-        writer.writerows(rows)
+
+        rows = []
+        with mlflow.start_run(run_name="benchmark"):
+            for model_tag in models:
+                sany_passes = 0
+                tlc_passes  = 0
+                print(f"\n[benchmark] Model: {model_tag}")
+
+                for problem in problems:
+                    att_label = f" (best of {attempts})" if attempts > 1 else ""
+                    print(f"  [{problem['id']}] {problem['name']}{att_label}...", end="", flush=True)
+                    try:
+                        row = run_benchmark_problem(
+                            problem, model_tag, use_self_correct,
+                            attempts=attempts, use_plan=use_plan,
+                        )
+                        rows.append(row)
+                        writer.writerow(row)
+                        f.flush()
+                        sany_passes += row["sany_pass"]
+                        tlc_passes  += row["tlc_pass"]
+                        status = (
+                            f"tier={row['tlc_tier']} pc={row['partial_credit']:.2f} "
+                            f"struct={row['structural_score']:.2f} t={row['runtime_s']}s"
+                        )
+                        if row.get("plan_used"):
+                            status += " plan✓"
+                        print(f" {status}")
+                    except Exception as exc:
+                        print(f" ERROR: {exc}")
+                        row = {k: None for k in _CSV_FIELDS} | {
+                            "model": model_tag,
+                            "benchmark_id": problem["id"],
+                            "name": problem["name"],
+                        }
+                        rows.append(row)
+                        writer.writerow(row)
+                        f.flush()
+
+                n = len(problems)
+                model_rows = [r for r in rows if r.get("model") == model_tag]
+                pc_mean = (
+                    sum((r.get("partial_credit") or 0.0) for r in model_rows) / max(1, len(model_rows))
+                )
+                depth1_pass = sum(int(r.get("tlc_depth1_ok") or 0) for r in model_rows)
+                mlflow.log_metrics({
+                    f"{model_tag}/sany_pass_rate":     sany_passes / n,
+                    f"{model_tag}/tlc_pass_rate":      tlc_passes  / n,
+                    f"{model_tag}/depth1_pass_rate":   depth1_pass / n,
+                    f"{model_tag}/partial_credit_mean": pc_mean,
+                })
+                print(
+                    f"\n[benchmark] {model_tag}: sany={sany_passes}/{n}  "
+                    f"tlc={tlc_passes}/{n}  depth1={depth1_pass}/{n}  "
+                    f"partial_credit={pc_mean:.3f}"
+                )
 
     print(f"\n[benchmark] Results written to {output_csv}")
 

@@ -92,8 +92,10 @@ paths = [
     "outputs/logs/tla_prover_remote_preflight.log",
     "outputs/logs/tla_prover_known18_qsub.log",
     "outputs/logs/tla_prover_sft_preflight_qsub.log",
+    "outputs/logs/tla_prover_final_proof_verify_qsub.log",
     "outputs/logs/autoprover_known18_corrected.log",
     "outputs/logs/autoprover_known18_corrected.err",
+    "outputs/logs/autoprover_full_dataset_smoke.log",
 ]
 if report_path.exists():
     report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -112,6 +114,27 @@ if report_path.exists():
     if sft:
         # Operator-search literal: sft_preflight_*.log
         paths.append(f"outputs/logs/sft_preflight_{sft.split('.', 1)[0]}.log")
+    final_verify = report.get("final_proof_verify_job_id")
+    if final_verify:
+        job = final_verify.split(".", 1)[0]
+        paths.extend(
+            [
+                f"outputs/logs/tlaps_verify_published_{final_verify}.log",
+                f"outputs/autoprover/tlaps_verify_published_{job}/summary.json",
+                f"outputs/autoprover/tlaps_verify_published_{job}/manifest.json",
+            ]
+        )
+    full_smoke = report.get("full_dataset_smoke_job_id")
+    if full_smoke:
+        job = full_smoke.split(".", 1)[0]
+        paths.extend(
+            [
+                "outputs/manifests/tla_prover_full_dataset_progress.json",
+                f"outputs/autoprover/full_dataset_smoke_{job}.jsonl",
+                f"outputs/autoprover/full_dataset_smoke_{job}.summary.json",
+                f"outputs/logs/autoprover_full_dataset_smoke_{full_smoke}.log",
+            ]
+        )
 for path in dict.fromkeys(paths):
     print(path)
 PY
@@ -139,6 +162,8 @@ if submission_report.exists():
         job_ids = {
             "known18_job_id": report.get("known18_job_id"),
             "sft_preflight_job_id": report.get("sft_preflight_job_id"),
+            "final_proof_verify_job_id": report.get("final_proof_verify_job_id"),
+            "full_dataset_smoke_job_id": report.get("full_dataset_smoke_job_id"),
         }
     except json.JSONDecodeError as exc:
         errors.append(f"invalid submission report: {exc}")

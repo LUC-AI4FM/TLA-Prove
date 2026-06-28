@@ -1,0 +1,12 @@
+{
+  "base": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/diamond_sft_v3.jsonl",
+  "base_rows": 1053,
+  "generated_at": "2026-06-27T14:10:07.242606+00:00",
+  "jsonl_sha256": "2aac0c9ed5d3d0b20c580fb74687f63e28c1d916290c64d4924f85525ef24ef0",
+  "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+  "seed": 20260627,
+  "total_rows": 1125,
+  "verified_tlaps": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
+  "verified_tlaps_rows": 18,
+  "verified_tlaps_weight": 4
+}

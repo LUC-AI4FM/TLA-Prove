@@ -1,0 +1,70 @@
+model,benchmark_id,name,domain,difficulty,sany_pass,tlc_pass,structural_score,tlc_tier,runtime_s,generated_spec,init_present,next_present,init_level_ok,next_level_ok,invariants_declared,tlc_depth1_ok,partial_credit,expected_invariant_overlap,plan_used
+chattla:20b-fc128best,BM007,Read-Write Lock,storage,2,0,0,0.667,bronze,7.82,"---- MODULE ReadWriteLock ----
+
+EXTENDS Naturals, Sequences
+
+CONSTANT MAX_READERS   (* maximum number of simultaneous readers *)
+
+VARIABLE readerCount,, writerActive, writersWaiting
+          writersWaiting,
+          writerActive,
+
+(* auxiliary constants *)
+CONSTURING := {1 .. MAX_READERS}
+
+ASSUME MaxReadersBounded:
+    MAX_READERS >= 1
+
+TypeInvariant ==
+    /\ readerCount \in 0..MAX_READERS
+    /\ writersWaiting \geq 0
+    /\ writerActive \in BOOLEAN
+
+Init ==
+    /\ readerCount = 0
+    /\ writersWaiting = 0
+    /\ writerActive = FALSE
+
+ReadRequest ==
+    /\ readerCount < MAX_READERS
+    /\ writerActive = FALSE
+    /\ readerCount' = readerCount + 1
+    /\ Unchanged <<writersWaiting>>
+
+ReadRelease ==
+    /\ readerCount > 0
+    /\ readerCount' = readerCount - 1
+    /\ Unchanged <<writerActive, writersWaiting>>
+
+WriterRequest ==
+    /\ UNCHANGED readerCount
+    /\ writerActive = FALSE
+    /\ writersWaiting' = writersWaiting + 1
+    /\ Unchanged <<readerCount>>
+
+WriterStart ==
+    /\ writerActive = FALSE
+    /\ writersWaiting > 0
+    /\ readerCount = 0
+    /\ writerActive' = TRUE
+    /\ writersWaiting' = writersWaiting - 1
+
+WriteComplete ==
+    /\ writerActive = TRUE
+    /\ writerActive' = FALSE
+    /\ Unchanged <<readerCount, writersWaiting>>
+
+(* Termination disjunct to avoid deadlock *)
+Terminate == 
+    /\ UNCHANGED <<readerCount, writersWaiting, writerActive>> 
+
+Next ==
+    \/ ReadRequest
+    \/ ReadRelease
+    \/ WriterRequest
+    \/ WriterStart
+    \/ WriteComplete
+    \/ Terminate
+
+Spec == Init /\\ [][ Next ]_<<readerCount,writersWaiting,writerActive>>
+====",0,0,0,0,0,0,0.0,0,0

@@ -37,7 +37,7 @@ Next == \/ Capture \/ PartialRefund \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Refunds bounded by original amount; refunds only after capture.
-SafetyInvariant == (refunded_total <= Original) /\ ((refunded_total > 0) => ever_captured) /\ ((status \in {"partially_refunded", "fully_refunded"}) => ever_captured)
+SafetyInvariant == ((status = "captured") => ever_captured) /\ (refunded_total <= Original) /\ ((refunded_total > 0) => ever_captured) /\ ((status \in {"partially_refunded", "fully_refunded"}) => ever_captured)
 
 TypeOK == /\ status \in States
           /\ refunded_total \in 0..Original

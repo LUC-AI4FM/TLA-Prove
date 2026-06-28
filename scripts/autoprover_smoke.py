@@ -18,6 +18,7 @@ import re
 import shutil
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -25,11 +26,14 @@ sys.path.insert(0, str(REPO))
 
 from src.prover.inductiveness import check_inductive  # noqa: E402
 from src.prover.skeleton import SafetySkeletonSpec, safety_proof_skeleton  # noqa: E402
-from src.validators.tlaps_validator import validate_string  # noqa: E402
+from src.validators.sany_validator import validate_string as validate_sany_string  # noqa: E402
+from src.validators.tlaps_validator import validate_string as validate_tlaps_string  # noqa: E402
 
 _MODULE_RE = re.compile(r"-{4,}\s*MODULE\s+(\w+)", re.IGNORECASE)
 _END_RE = re.compile(r"^={4,}\s*$", re.MULTILINE)
 _EXTENDS_RE = re.compile(r"^(\s*EXTENDS\s+)(.+?)\s*$", re.MULTILINE)
+_TLAPS_TUPLE_BINDER_RE = re.compile(r"^\s*[A-Za-z_]\w*\s*\[\s*<<", re.MULTILINE)
+_MAX_INIT_STATE_SPACE = 50_000_000
 
 
 def _defines(src: str, name: str) -> bool:
@@ -45,6 +49,7 @@ def _default_globs() -> list[str]:
     return [
         str(REPO / "outputs" / "diamond_gen" / "*_work" / "*.tla"),
         str(REPO / "data" / "FormaLLM" / "data" / "*" / "tla" / "*.tla"),
+        str(REPO / "outputs" / "materialized_tla" / "tla_descriptions" / "*.tla"),
     ]
 
 
@@ -101,18 +106,272 @@ def _operator_body(src: str, name: str) -> str:
     return src[start:min(candidates)]
 
 
+def _declared_variables(src: str) -> list[str]:
+    lines = src.splitlines()
+    start = None
+    payload = ""
+    for idx, line in enumerate(lines):
+        match = re.match(r"^\s*VARIABLES?\b(.*)$", line)
+        if match:
+            start = idx
+            payload = match.group(1)
+            break
+    if start is None:
+        return []
+    chunks = [payload]
+    for line in lines[start + 1 :]:
+        stripped = line.strip()
+        if not stripped:
+            break
+        if re.match(r"^\s*[A-Za-z_]\w*(?:\([^)]*\))?\s*==", line):
+            break
+        if re.match(r"^\s*(?:----|====)", line):
+            break
+        chunks.append(line)
+        if "," not in line:
+            break
+    text = "\n".join(chunks)
+    text = re.sub(r"\\\*.*", "", text)
+    text = re.sub(r"^\s*VARIABLES?\b", "", text, count=1)
+    if not text.strip():
+        return []
+    names: list[str] = []
+    for part in text.split(","):
+        ident = part.strip()
+        if ident and re.match(r"^[A-Za-z_]\w*$", ident):
+            names.append(ident)
+    return names
+
+
+def _simple_definitions(src: str) -> dict[str, str]:
+    defs: dict[str, str] = {}
+    for line in src.splitlines():
+        match = re.match(r"^\s*([A-Za-z_]\w*)\s*==\s*(.+?)\s*$", line)
+        if not match:
+            continue
+        defs[match.group(1)] = re.sub(r"\s*\\\*.*$", "", match.group(2)).strip()
+    return defs
+
+
+def _split_top_level(expr: str, token: str) -> list[str]:
+    parts: list[str] = []
+    current: list[str] = []
+    depth_paren = 0
+    depth_brace = 0
+    depth_bracket = 0
+    i = 0
+    while i < len(expr):
+        if expr.startswith(token, i) and depth_paren == depth_brace == depth_bracket == 0:
+            parts.append("".join(current).strip())
+            current = []
+            i += len(token)
+            continue
+        ch = expr[i]
+        if ch == "(":
+            depth_paren += 1
+        elif ch == ")":
+            depth_paren = max(0, depth_paren - 1)
+        elif ch == "{":
+            depth_brace += 1
+        elif ch == "}":
+            depth_brace = max(0, depth_brace - 1)
+        elif ch == "[":
+            depth_bracket += 1
+        elif ch == "]":
+            depth_bracket = max(0, depth_bracket - 1)
+        current.append(ch)
+        i += 1
+    parts.append("".join(current).strip())
+    return [part for part in parts if part]
+
+
+def _strip_wrapping_parens(expr: str) -> str:
+    expr = expr.strip()
+    while expr.startswith("(") and expr.endswith(")"):
+        depth = 0
+        balanced = True
+        for idx, ch in enumerate(expr):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0 and idx != len(expr) - 1:
+                    balanced = False
+                    break
+        if not balanced or depth != 0:
+            break
+        expr = expr[1:-1].strip()
+    return expr
+
+
+def _int_value(expr: str, defs: dict[str, str], seen: set[str] | None = None) -> int | None:
+    expr = _strip_wrapping_parens(expr)
+    if re.fullmatch(r"\d+", expr):
+        return int(expr)
+    if seen is None:
+        seen = set()
+    if re.fullmatch(r"[A-Za-z_]\w*", expr):
+        if expr in seen or expr not in defs:
+            return None
+        return _int_value(defs[expr], defs, seen | {expr})
+    parts = _split_top_level(expr, "+")
+    if len(parts) > 1:
+        values = [_int_value(part, defs, seen) for part in parts]
+        if any(value is None for value in values):
+            return None
+        return sum(value for value in values if value is not None)
+    parts = _split_top_level(expr, "-")
+    if len(parts) > 1:
+        head = _int_value(parts[0], defs, seen)
+        tail = [_int_value(part, defs, seen) for part in parts[1:]]
+        if head is None or any(value is None for value in tail):
+            return None
+        return head - sum(value for value in tail if value is not None)
+    return None
+
+
+def _set_cardinality(expr: str, defs: dict[str, str], seen: set[str] | None = None) -> int | None:
+    expr = _strip_wrapping_parens(expr)
+    if seen is None:
+        seen = set()
+    if expr in {"Nat", "Int"}:
+        return None
+    if expr == "BOOLEAN":
+        return 2
+    if re.fullmatch(r"[A-Za-z_]\w*", expr):
+        if expr in seen or expr not in defs:
+            return None
+        return _set_cardinality(defs[expr], defs, seen | {expr})
+    if expr.startswith("SUBSET "):
+        inner = _set_cardinality(expr[len("SUBSET ") :], defs, seen)
+        return None if inner is None else 2 ** inner
+    if expr.startswith("[") and expr.endswith("]") and "->" in expr:
+        inner = expr[1:-1]
+        parts = _split_top_level(inner, "->")
+        if len(parts) != 2:
+            return None
+        dom = _set_cardinality(parts[0], defs, seen)
+        rng = _set_cardinality(parts[1], defs, seen)
+        if dom is None or rng is None:
+            return None
+        return rng ** dom
+    product_parts = _split_top_level(expr, "\\X")
+    if len(product_parts) > 1:
+        total = 1
+        for part in product_parts:
+            size = _set_cardinality(part, defs, seen)
+            if size is None:
+                return None
+            total *= size
+        return total
+    union_parts = _split_top_level(expr, "\\cup")
+    if len(union_parts) > 1:
+        total = 0
+        for part in union_parts:
+            size = _set_cardinality(part, defs, seen)
+            if size is None:
+                return None
+            total += size
+        return total
+    range_match = re.fullmatch(r"(.+)\.\.(.+)", expr)
+    if range_match:
+        start = _int_value(range_match.group(1), defs, seen)
+        end = _int_value(range_match.group(2), defs, seen)
+        if start is None or end is None or end < start:
+            return None
+        return end - start + 1
+    if expr.startswith("{") and expr.endswith("}"):
+        inner = expr[1:-1].strip()
+        if not inner:
+            return 0
+        return len(_split_top_level(inner, ","))
+    return None
+
+
+def _split_top_level_conjuncts(body: str) -> list[str]:
+    clauses: list[str] = []
+    current: list[str] = []
+    for raw_line in body.splitlines():
+        if not raw_line.strip():
+            continue
+        if raw_line.lstrip().startswith("/\\"):
+            if current:
+                clauses.append("\n".join(current))
+            current = [raw_line]
+        elif current:
+            current.append(raw_line)
+        elif raw_line.strip():
+            current = [raw_line]
+    if current:
+        clauses.append("\n".join(current))
+    return clauses
+
+
+def _typeok_init_state_space_too_large(src: str) -> bool:
+    typeok = _operator_body(src, "TypeOK")
+    if not typeok:
+        return False
+    clauses = _split_top_level_conjuncts(typeok)
+    direct_domains: dict[str, tuple[str, str]] = {}
+    for clause in clauses:
+        stripped = clause.strip()
+        for variable in _declared_variables(src):
+            match = re.search(rf"^\s*/\\\s*{re.escape(variable)}\s*(\\in|=|\\subseteq)\s*(.+)$", stripped, re.DOTALL)
+            if match:
+                rhs = re.sub(r"\s*\\\*.*$", "", match.group(2), flags=re.MULTILINE)
+                direct_domains[variable] = (match.group(1), " ".join(line.strip() for line in rhs.splitlines() if line.strip()))
+                break
+    defs = _simple_definitions(src)
+    estimate = 1
+    for variable in _declared_variables(src):
+        if variable not in direct_domains:
+            return False
+        operator, domain = direct_domains[variable]
+        if operator == "=":
+            domain_size = 1
+        elif operator == "\\subseteq":
+            inner = _set_cardinality(domain, defs)
+            domain_size = None if inner is None else 2 ** inner
+        else:
+            domain_size = _set_cardinality(domain, defs)
+        if domain_size is None:
+            return False
+        estimate *= domain_size
+        if estimate > _MAX_INIT_STATE_SPACE:
+            return True
+    return False
+
+
 def _enumerability_issue(src: str) -> str | None:
     """Return a cheap reason TypeOK is unsuitable as TLC INIT, if obvious."""
     typeok = _operator_body(src, "TypeOK")
     if not typeok:
         return "missing_typeok_body"
-    if "\\subseteq" in typeok:
-        return "typeok_uses_subseteq"
-    if re.search(r"\bSUBSET\b", typeok):
-        return "typeok_uses_subset_domain"
-    helper_refs = re.findall(r"^\s*/\\\s*([A-Za-z_]\w*)\s*$", typeok, re.MULTILINE)
-    if helper_refs:
-        return "typeok_references_helper_" + helper_refs[0]
+    if re.search(r"^\s*ASSUME\b.*\\in\s*\[", src, re.MULTILINE | re.DOTALL):
+        return "assume_requires_function_constant_cfg"
+    if re.search(r"^\s*ASSUME\b.*\\subseteq\s*\(?\s*SUBSET\b", src, re.MULTILINE | re.DOTALL):
+        return "assume_requires_powerset_constant_cfg"
+    if re.search(r"\b(Array|ArrayOfAnyLength)\s*\(", typeok):
+        return "typeok_uses_sequence_backed_array_domain"
+    if re.search(r"\\in\s+Seq\s*\(", typeok):
+        return "typeok_uses_unbounded_seq"
+    if re.search(r"\\in\s*\[.*->\s*(Nat|Int)\b", typeok, re.DOTALL):
+        return "typeok_function_range_uses_infinite_builtin"
+    for variable in _declared_variables(src):
+        match = re.search(rf"(\b{re.escape(variable)}\b\s*(\\in|=|\\subseteq).*)", typeok)
+        if not match:
+            return f"typeok_missing_variable_domain_{variable}"
+        clause = match.group(1)
+        if re.search(rf"\b{re.escape(variable)}\b\s*\\in\s*(Nat|Int)\b", clause):
+            return f"typeok_infinite_builtin_domain_{variable}"
+    if _typeok_init_state_space_too_large(src):
+        return "typeok_init_state_space_too_large"
+    return None
+
+
+def _tlaps_parser_incompatibility(src: str) -> str | None:
+    if _TLAPS_TUPLE_BINDER_RE.search(src):
+        return "tlaps_tuple_binder_parse_incompatible"
     return None
 
 
@@ -159,6 +418,42 @@ def _tlapm_path() -> str | None:
     return str(bundled) if bundled.exists() else None
 
 
+def progress_summary(
+    rows: list[dict],
+    *,
+    job_id: str | None = None,
+    discovered_paths: list[Path] | None = None,
+) -> dict:
+    statuses = Counter(row.get("status", "unknown") for row in rows)
+    last_row = rows[-1] if rows else {}
+    next_module_path = None
+    if discovered_paths is not None and len(rows) < len(discovered_paths):
+        next_module_path = str(discovered_paths[len(rows)])
+    return {
+        "job_id": job_id,
+        "rows_so_far": len(rows),
+        "modules_seen": len({row.get("module") for row in rows if row.get("module")}),
+        "statuses": dict(sorted(statuses.items())),
+        "last_completed_module_path": last_row.get("module_path"),
+        "last_completed_status": last_row.get("status"),
+        "next_module_path": next_module_path,
+    }
+
+
+def write_progress_summary(
+    path: Path,
+    rows: list[dict],
+    *,
+    job_id: str | None = None,
+    discovered_paths: list[Path] | None = None,
+) -> None:
+    payload = progress_summary(rows, job_id=job_id, discovered_paths=discovered_paths)
+    payload["generated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    payload["source"] = "scripts/autoprover_smoke.py"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
 def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool) -> dict:
     started = time.time()
     rel = str(path.relative_to(REPO)) if path.is_relative_to(REPO) else str(path)
@@ -175,6 +470,15 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
         return row
     if not _is_candidate(src):
         row.update(status="skipped", reason="missing_init_next_spec_typeok_vars")
+        return row
+    sany = validate_sany_string(src, module_name=module)
+    if not sany.valid:
+        row["sany_errors"] = sany.errors[:5]
+        row.update(
+            status="skipped",
+            reason="sany_parse_or_semantic_invalid",
+            runtime_seconds=round(time.time() - started, 3),
+        )
         return row
     enum_issue = _enumerability_issue(src)
     if enum_issue:
@@ -209,13 +513,18 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
         row.update(status="skeleton_emitted", runtime_seconds=round(time.time() - started, 3))
         return row
 
+    tlaps_parse_issue = _tlaps_parser_incompatibility(src)
+    if tlaps_parse_issue:
+        row.update(status="skipped", reason=tlaps_parse_issue, runtime_seconds=round(time.time() - started, 3))
+        return row
+
     tlapm = _tlapm_path()
     if not tlapm:
         row.update(status="no_tlapm", runtime_seconds=round(time.time() - started, 3))
         return row
 
     try:
-        result = validate_string(
+        result = validate_tlaps_string(
             proof_module,
             module_name=module,
             tlapm=Path(tlapm),
@@ -257,6 +566,8 @@ def main() -> None:
         "--out",
         default=str(REPO / "outputs" / "autoprover" / "smoke.jsonl"),
     )
+    parser.add_argument("--progress-out", type=Path)
+    parser.add_argument("--progress-job-id")
     args = parser.parse_args()
 
     out_path = Path(args.out)
@@ -267,6 +578,7 @@ def main() -> None:
         paths = _discover(args.globs or _default_globs(), args.limit)
 
     summary: dict[str, int] = {"discovered": len(paths)}
+    progress_rows: list[dict] = []
     with out_path.open("w", encoding="utf-8") as out:
         for path in paths:
             row = run_one(
@@ -276,8 +588,16 @@ def main() -> None:
                 run_tlaps=not args.skip_tlaps,
             )
             summary[row["status"]] = summary.get(row["status"], 0) + 1
+            progress_rows.append(row)
             out.write(json.dumps(row) + "\n")
             out.flush()
+            if args.progress_out:
+                write_progress_summary(
+                    args.progress_out,
+                    progress_rows,
+                    job_id=args.progress_job_id,
+                    discovered_paths=paths,
+                )
             print(
                 f"[autoprover] {row['status']:>16} {row.get('module') or '?'} "
                 f"{row.get('module_path')}",

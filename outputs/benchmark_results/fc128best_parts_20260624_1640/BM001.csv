@@ -1,0 +1,71 @@
+model,benchmark_id,name,domain,difficulty,sany_pass,tlc_pass,structural_score,tlc_tier,runtime_s,generated_spec,init_present,next_present,init_level_ok,next_level_ok,invariants_declared,tlc_depth1_ok,partial_credit,expected_invariant_overlap,plan_used
+chattla:20b-fc128best,BM001,Mutual Exclusion,scheduling,2,0,0,1.0,bronze,11.54,"---- MODULE MutualExclusion ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANT N   (* number of processes *), ALLPROCS
+
+(* ------------------------------------------------------------------ *)
+\* Variables -----------------------------------------------------------
+
+VARIABLES procState      (* mapping from each process to its current state *), p, procState
+
+vars == <<procState>>
+
+(* ------------------------------------------------------------------ *)
+\* State definitions -----------------------------------------------
+
+Idle     == ""idle""
+Trying   == ""trying""
+Critical == ""critical""
+
+StatesSet == { Idle , Trying , Critical }
+
+AllProcs == DOMAIN [i \in 1 .. N |-> i]
+
+(* ------------------------------------------------------------------ *)
+\* Initial condition ----------------------------------------------
+
+Init ==
+    /\ procState = [p \in AllProcs |
+                    IF p <= N THEN Idle ELSE FALSE]          \* all start idle
+
+TypeOK ==
+    /\ procState : ALLPROCS -> StatesSet                \* domain and range constraints
+
+(* ------------------------------------------------------------------ *)
+\* Transition relation ---------------------------------------------
+
+Try(p) ==
+    /\ procState[p] = Idle
+    /\ UNCHANGED (procState EXCEPT ![q \mapsto 
+        CASE q=p => Trying,
+             TRUE => procState[q]])
+
+EnterCrit(p) ==
+    /\ procState[p] = Trying
+    /\ (\A r \in AllProcs: r # p ==> procState[r] /= Critical)
+    /\ UNCHAINSED(procState, [r \mid r#p][!=>?])           \* placeholder for unchanged except p
+
+ExitCrit(p) ==
+    /\ procState[p] = Critical
+    /\ UNCHANGED (procState EXCEPT ![p' \mapsto Idle])
+
+Next ==
+    \/  \E  p \in AllProcs:
+
+
+    \/  \A  p \in AllProcs:
+
+
+    \/  \A  p \in AllProcs:
+         EXITCRIT  :
+            ExitCrit(p)
+
+Terminating == UNCHANGED vars   (* allow termination *)
+
+Spec == Init /\
+       [][][ Next ]_vars \
+       /\ Terminating
+
+====",0,0,0,0,0,0,0.0,1,0

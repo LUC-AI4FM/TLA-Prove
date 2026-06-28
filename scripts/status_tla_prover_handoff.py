@@ -28,6 +28,19 @@ def _tail(path: Path, n: int = 12) -> list[str]:
     return lines[-n:]
 
 
+def _read_text(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _job_visible_in_qstat(job_id: str, qstat_text: str) -> bool:
+    if job_id in qstat_text:
+        return True
+    prefix = job_id.split(".", 1)[0]
+    return prefix in qstat_text
+
+
 def _run(cmd: list[str]) -> str:
     try:
         result = subprocess.run(cmd, text=True, capture_output=True, timeout=5)
@@ -88,6 +101,69 @@ def _report_state(path: Path) -> dict[str, Any]:
     return {"exists": data is not None, "path": str(path), "data": data}
 
 
+def _merged_report_state(primary: Path, supplement: Path) -> dict[str, Any]:
+    primary_state = _report_state(primary)
+    supplement_state = _report_state(supplement)
+    primary_data = primary_state.get("data")
+    supplement_data = supplement_state.get("data")
+    if isinstance(primary_data, dict) and primary_data.get("_error"):
+        return primary_state
+    if isinstance(supplement_data, dict) and supplement_data.get("_error"):
+        return primary_state if primary_state.get("exists") else supplement_state
+    if not isinstance(primary_data, dict):
+        return supplement_state if supplement_state.get("exists") else primary_state
+    if not isinstance(supplement_data, dict):
+        return primary_state
+    merged = dict(primary_data)
+    full_smoke_override_keys = {
+        "full_dataset_smoke_job_id",
+        "full_dataset_smoke_pbs",
+        "full_dataset_smoke_qsub_log",
+    }
+    for key, value in supplement_data.items():
+        if key in full_smoke_override_keys and value not in {None, ""}:
+            merged[key] = value
+        elif key not in merged or merged[key] in {None, ""}:
+            merged[key] = value
+    state = dict(primary_state)
+    state["data"] = merged
+    state["supplemental_path"] = str(supplement)
+    state["supplement_exists"] = supplement_state.get("exists", False)
+    return state
+
+
+def _derive_full_dataset_progress(
+    repo: Path,
+    *,
+    full_smoke_job_id: str | None,
+    manifest_data: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if manifest_data and (not full_smoke_job_id or manifest_data.get("job_id") in {None, full_smoke_job_id}):
+        return manifest_data
+    if not full_smoke_job_id:
+        return None
+    jobnum = full_smoke_job_id.split(".", 1)[0]
+    jsonl_path = repo / "outputs" / "autoprover" / f"full_dataset_smoke_{jobnum}.jsonl"
+    if not jsonl_path.exists():
+        return None
+    try:
+        from scripts.sync_tla_prover_full_dataset_progress import _load_rows
+        from scripts.autoprover_smoke import _discover, progress_summary
+    except Exception:
+        return None
+    rows = _load_rows(jsonl_path)
+    discovered_paths = _discover(
+        [
+            str(repo / "outputs" / "diamond_gen" / "*_work" / "*.tla"),
+            str(repo / "data" / "FormaLLM" / "data" / "*" / "tla" / "*.tla"),
+        ],
+        limit=0,
+    )
+    payload = progress_summary(rows, job_id=full_smoke_job_id, discovered_paths=discovered_paths)
+    payload["source"] = str(jsonl_path)
+    return payload
+
+
 def _derive_state(
     *,
     launchagent: dict[str, Any],
@@ -97,6 +173,9 @@ def _derive_state(
     decision: dict[str, Any],
     submission_mirror_failed: dict[str, Any],
     handoff_paused: dict[str, Any],
+    full_smoke_job_id: str | None,
+    qstat_text: str | None,
+    full_dataset_summary_exists: bool,
 ) -> tuple[str, str]:
     submission_data = submission.get("data")
     collection_data = collection.get("data")
@@ -104,12 +183,25 @@ def _derive_state(
     decision_data = decision.get("data")
     mirror_failed_data = submission_mirror_failed.get("data")
     paused_data = handoff_paused.get("data")
+    if (
+        full_smoke_job_id
+        and qstat_text
+        and _job_visible_in_qstat(full_smoke_job_id, qstat_text)
+        and not full_dataset_summary_exists
+    ):
+        return (
+            "full_smoke_running",
+            f"Direct Sophia full-dataset smoke job {full_smoke_job_id} is running; wait for outputs/autoprover/full_dataset_smoke_<job>.summary.json before deciding on SFT.",
+        )
 
     if watch_data and watch_data.get("status") == "complete":
         if decision_data and decision_data.get("next_action"):
             verdict = decision_data.get("verdict", "unknown")
             return "results_ready", f"Remote decision verdict={verdict}: {decision_data['next_action']}"
         return "results_ready", "Review known-18 summary and SFT preflight log before deciding the next training/prover step."
+    if decision_data and submission_data and decision_data.get("next_action"):
+        verdict = decision_data.get("verdict", "unknown")
+        return "results_ready", f"Remote decision verdict={verdict}: {decision_data['next_action']}"
     if watch_data and watch_data.get("status") in {"collecting", "timeout"}:
         return "collecting_results", "Run or wait for scripts/watch_tla_prover_remote_results.sh to mirror final job evidence."
     if submission_data:
@@ -152,7 +244,10 @@ def build_status(
     if live and tailscale_text is None:
         tailscale_text = _run(["tailscale", "status"])
 
-    submission = _report_state(repo / "outputs" / "manifests" / "tla_prover_remote_submission.json")
+    submission = _merged_report_state(
+        repo / "outputs" / "manifests" / "tla_prover_remote_submission.json",
+        repo / "outputs" / "manifests" / "tla_prover_remote_submission_full_smoke.json",
+    )
     collection = _report_state(repo / "outputs" / "manifests" / "tla_prover_remote_results_collection.json")
     watch = _report_state(repo / "outputs" / "manifests" / "tla_prover_remote_watch.json")
     decision = _report_state(repo / "outputs" / "manifests" / "tla_prover_remote_decision.json")
@@ -160,6 +255,25 @@ def build_status(
         repo / "outputs" / "manifests" / "tla_prover_remote_submission_mirror_failed.json"
     )
     handoff_paused = _report_state(repo / "outputs" / "manifests" / "tla_prover_handoff_paused.json")
+    full_smoke_job_id = None
+    full_smoke_job_path = repo / "outputs" / "logs" / "current_sophia_full_dataset_smoke_job.txt"
+    if submission.get("data") and (submission.get("data") or {}).get("full_dataset_smoke_job_id"):
+        full_smoke_job_id = (submission.get("data") or {}).get("full_dataset_smoke_job_id")
+    elif full_smoke_job_path.exists():
+        full_smoke_job_id = full_smoke_job_path.read_text(encoding="utf-8", errors="replace").strip() or None
+    full_dataset_progress_report = _report_state(repo / "outputs" / "manifests" / "tla_prover_full_dataset_progress.json")
+    full_dataset_progress_data = _derive_full_dataset_progress(
+        repo,
+        full_smoke_job_id=full_smoke_job_id,
+        manifest_data=full_dataset_progress_report.get("data"),
+    )
+    full_dataset_summary_exists = False
+    if full_smoke_job_id:
+        jobnum = full_smoke_job_id.split(".", 1)[0]
+        full_dataset_summary_exists = (
+            repo / "outputs" / "autoprover" / f"full_dataset_smoke_{jobnum}.summary.json"
+        ).exists()
+    qstat_text = _read_text(repo / "outputs" / "manifests" / "tla_prover_remote_qstat.txt")
     launchagent = _parse_launchctl(launchctl_text)
     state, next_action = _derive_state(
         launchagent=launchagent,
@@ -169,6 +283,9 @@ def build_status(
         decision=decision,
         submission_mirror_failed=submission_mirror_failed,
         handoff_paused=handoff_paused,
+        full_smoke_job_id=full_smoke_job_id,
+        qstat_text=qstat_text,
+        full_dataset_summary_exists=full_dataset_summary_exists,
     )
     submission_data = submission.get("data") or {}
     return {
@@ -181,15 +298,23 @@ def build_status(
         "job_ids": {
             "known18_job_id": submission_data.get("known18_job_id"),
             "sft_preflight_job_id": submission_data.get("sft_preflight_job_id"),
+            "final_proof_verify_job_id": submission_data.get("final_proof_verify_job_id"),
+            "full_dataset_smoke_job_id": full_smoke_job_id,
         },
         "reports": {
             "submission": submission,
             "collection": collection,
             "watch": watch,
             "decision": decision,
+            "full_dataset_progress": {
+                "exists": full_dataset_progress_data is not None,
+                "path": str(repo / "outputs" / "manifests" / "tla_prover_full_dataset_progress.json"),
+                "data": full_dataset_progress_data,
+            },
             "submission_mirror_failed": submission_mirror_failed,
             "handoff_paused": handoff_paused,
         },
+        "full_dataset_progress": full_dataset_progress_data,
         "wait_log_tail": _tail(repo / "outputs" / "logs" / "wait_for_macmini_handoff.log"),
     }
 
@@ -209,6 +334,7 @@ def compact_status(status: dict[str, Any]) -> dict[str, Any]:
     submission_data = (reports.get("submission") or {}).get("data") or {}
     collection_data = (reports.get("collection") or {}).get("data") or {}
     watch_data = (reports.get("watch") or {}).get("data") or {}
+    full_dataset_progress = status.get("full_dataset_progress") or {}
     return {
         "state": status.get("state"),
         "next_action": status.get("next_action"),
@@ -220,6 +346,11 @@ def compact_status(status: dict[str, Any]) -> dict[str, Any]:
         "collection_errors": len(collection_data.get("errors") or []),
         "watch_status": watch_data.get("status"),
         "verdict": decision_data.get("verdict"),
+        "proof_artifact_revalidated": decision_data.get("proof_artifact_revalidated"),
+        "artifact_verdict": decision_data.get("artifact_verdict"),
+        "full_dataset_rows_so_far": full_dataset_progress.get("rows_so_far"),
+        "full_dataset_modules_seen": full_dataset_progress.get("modules_seen"),
+        "full_dataset_next_module_path": full_dataset_progress.get("next_module_path"),
     }
 
 

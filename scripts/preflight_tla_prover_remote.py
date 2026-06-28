@@ -47,6 +47,10 @@ def _read_module_paths(module_list: Path) -> list[str]:
     return [line.strip() for line in module_list.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+def _python_import_timeout_s() -> int:
+    return int(os.environ.get("CHATTLA_PYTHON_IMPORT_TIMEOUT", "180"))
+
+
 def run_preflight(
     *,
     repo: Path = REPO,
@@ -118,25 +122,34 @@ def run_preflight(
             elif not os.access(py, os.X_OK):
                 errors.append(f"python is not executable: {py}")
             else:
-                probe = subprocess.run(
-                    [
-                        str(py),
-                        "-c",
-                        (
-                            "import torch, transformers, datasets, peft, trl, yaml, mlflow; "
-                            "import src.training.train"
-                        ),
-                    ],
-                    cwd=repo,
-                    text=True,
-                    capture_output=True,
-                    timeout=60,
-                )
-                if probe.returncode != 0:
-                    errors.append(
-                        "python import probe failed: "
-                        + (probe.stderr.strip() or probe.stdout.strip() or f"rc={probe.returncode}")
+                import_timeout_s = _python_import_timeout_s()
+                try:
+                    probe = subprocess.run(
+                        [
+                            str(py),
+                            "-c",
+                            (
+                                "import torch, transformers, datasets, peft, trl, yaml, mlflow; "
+                                "import src.training.train"
+                            ),
+                        ],
+                        cwd=repo,
+                        text=True,
+                        capture_output=True,
+                        timeout=import_timeout_s,
                     )
+                except subprocess.TimeoutExpired as exc:
+                    detail = ((exc.stderr or "").strip() or (exc.stdout or "").strip())
+                    message = f"python import probe timed out after {import_timeout_s}s"
+                    if detail:
+                        message += f": {detail}"
+                    errors.append(message)
+                else:
+                    if probe.returncode != 0:
+                        errors.append(
+                            "python import probe failed: "
+                            + (probe.stderr.strip() or probe.stdout.strip() or f"rc={probe.returncode}")
+                        )
             base_path = Path(base_model)
             if (base_path.is_absolute() or base_model.startswith(".")) and not base_path.exists():
                 errors.append(f"base model path not found: {base_path}")

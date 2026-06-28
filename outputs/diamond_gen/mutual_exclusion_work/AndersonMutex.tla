@@ -57,5 +57,13 @@ TypeOK ==
     /\ slots  \in [0..(Size-1) -> {"wait","go"}]
     /\ tail   \in 0..Size
     /\ mySlot \in [Procs -> 0..(Size-1)]
+    /\ \A i \in Procs : (pc[i] \in {"spin", "cs"}) => mySlot[i] < tail
+    /\ \A s, t \in 0..(Size-1) : (slots[s] = "go" /\ slots[t] = "go") => s = t
+    /\ \A i \in Procs : (pc[i] = "cs") => slots[mySlot[i]] = "go"
+    /\ \A i, j \in Procs :
+         (i # j /\ pc[i] = "spin" /\ pc[j] = "cs") => slots[mySlot[i]] = "wait"
+    /\ \A i, j \in Procs :
+         (i # j /\ pc[i] \in {"spin", "cs"} /\ pc[j] \in {"spin", "cs"}) =>
+            mySlot[i] # mySlot[j]
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

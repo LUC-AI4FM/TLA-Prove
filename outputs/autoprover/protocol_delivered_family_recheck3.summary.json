@@ -1,0 +1,34 @@
+{
+  "rows": 4,
+  "statuses": {
+    "not_inductive": 1,
+    "skeleton_emitted": 1,
+    "tlc_error": 2
+  },
+  "skip_reasons": {},
+  "source_prefixes": {
+    "('outputs', 'diamond_gen')": 4
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {
+    "tlc_error_missing_identifier:delivered": 2
+  },
+  "tlc_error_samples": {
+    "tlc_error_missing_identifier:delivered": [
+      {
+        "module": "AlternatingBit",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/AlternatingBit.tla",
+        "tlc_error": "Error: In evaluation, the identifier delivered is either undefined or not an operator.\nError: The error occurred when TLC was evaluating the nested"
+      },
+      {
+        "module": "StopAndWait",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/StopAndWait.tla",
+        "tlc_error": "Error: In evaluation, the identifier delivered is either undefined or not an operator.\nError: The error occurred when TLC was evaluating the nested"
+      }
+    ]
+  },
+  "tlaps_by_status": {}
+}

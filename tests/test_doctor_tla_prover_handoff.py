@@ -36,6 +36,15 @@ def test_doctor_decides_watch_when_submission_exists() -> None:
     assert "watch_tla_prover_remote_results.sh" in decision["command"]
 
 
+def test_doctor_noops_while_full_smoke_is_running() -> None:
+    status = {"state": "full_smoke_running", "launchagent": {"state": "exited"}}
+
+    decision = decide_action(status)
+
+    assert decision["action"] == "noop"
+    assert "running" in decision["reason"]
+
+
 def test_doctor_decides_watch_when_partial_submit_has_known18_job() -> None:
     status = {
         "state": "partial_submit_waiting_for_results",

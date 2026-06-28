@@ -1,0 +1,16 @@
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/ProducerConsumerQueue.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/ReadersWriters.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/Register.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/ResourceAlloc.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/RingLeader.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/Semaphore.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/SimpleAllocator.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/SimpleCounter.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/SingleBuffer.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/TaskNode.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/TicketDispenser.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/Toggle.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/TokenRing.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/TrafficLight.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/TwoPhaseCommit.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache/VendingMachine.tla

@@ -778,7 +778,7 @@ def _extract_constant_names(tla_content: str) -> list[str]:
     in_const_block = False
 
     for line in tla_content.splitlines():
-        stripped = line.strip()
+        stripped = re.split(r"\\\*", line, maxsplit=1)[0].strip()
         if stripped.startswith("\\*") or stripped.startswith("(*"):
             continue
 
@@ -802,7 +802,11 @@ def _extract_constant_names(tla_content: str) -> list[str]:
 
         if in_const_block:
             # Continuation line of a multiline CONSTANT block
-            if not stripped or re.match(r"^(VARIABLE|ASSUME|----)", stripped):
+            if not stripped:
+                continue
+            if stripped.startswith("(*"):
+                continue
+            if re.match(r"^(VARIABLE|VARIABLES|ASSUME|----)", stripped):
                 in_const_block = False
                 continue
             for part in stripped.split(","):
@@ -832,6 +836,18 @@ def _infer_constant_type(name: str, tla_content: str) -> str:
     if re.search(rf"\b\d+\s*\.\.\s*{re.escape(name)}\b", tla_content):
         return f"CONSTANT {name} = 3"
 
+    # Pattern: Name \in Nat/Int/... → numeric
+    if re.search(rf"\b{re.escape(name)}\s*\\in\s+(Nat|Int|Integers)\b", tla_content):
+        return f"CONSTANT {name} = 3"
+
+    # Pattern: Name \in SomeSet → singleton/model value drawn from another set
+    if re.search(rf"\b{re.escape(name)}\s*\\in\s+[A-Za-z_]\w*\b", tla_content):
+        return f"CONSTANT {name} = v1"
+
+    # Pattern: {Name} literal → singleton/model value
+    if re.search(rf"\{{\s*{re.escape(name)}\s*\}}", tla_content):
+        return f"CONSTANT {name} = v1"
+
     # Pattern: \\in Name (used as a set to iterate over) → model value set
     if re.search(rf"\\in\s+{re.escape(name)}\b", tla_content):
         # Check if it's used with Cardinality or as a function domain
@@ -842,7 +858,7 @@ def _infer_constant_type(name: str, tla_content: str) -> str:
     # Pattern: Name matches known set-of-actors names
     if re.match(r"^(Proc|Process|Node|Server|Client|Participant|"
                 r"Thread|Worker|Acceptor|Proposer|Learner|Replica|"
-                r"Philosopher|Fork)s?$", name):
+                r"Philosopher|Fork|Jug|Ingredient|Offer|Symbol)s?$", name):
         return f"CONSTANT {name} = {{v1, v2, v3}}"
 
     # Pattern: Name matches known coordinator/singleton

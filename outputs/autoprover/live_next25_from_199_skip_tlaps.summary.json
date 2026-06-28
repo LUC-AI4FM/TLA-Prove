@@ -1,0 +1,18 @@
+{
+  "rows": 2,
+  "statuses": {
+    "not_inductive": 1,
+    "skeleton_emitted": 1
+  },
+  "skip_reasons": {},
+  "source_prefixes": {
+    "('outputs', 'diamond_gen')": 2
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {},
+  "tlc_error_samples": {},
+  "tlaps_by_status": {}
+}

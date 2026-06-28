@@ -1,0 +1,106 @@
+#!/bin/bash
+# Evaluate intermediate checkpoints from the final-channel cap-128 phase.
+# This tells us whether an earlier save point should be promoted instead of
+# the final checkpoint-120, which tied TLC but regressed SANY/mean reward.
+# Set the project/account at submit time if your site requires one.
+#PBS -q single-node
+#PBS -l select=1:ngpus=4:ncpus=128:mem=480gb
+#PBS -l walltime=02:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N eval_fc128_ckpts
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+mkdir -p outputs/logs outputs/eval
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+exec > "outputs/logs/eval_action_holdout_fc128_ckpts_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export NUMEXPR_MAX_THREADS=128
+export NUMEXPR_NUM_THREADS=32
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export CHATTLA_ACTION_PROMPT_MODE=direct
+
+PY="${CHATTLA_PYTHON:-python3}"
+MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+BASELINE_ADAPTER=outputs/checkpoints_grpo_action_tok1200_g4_phase2_sophia/checkpoint-240
+PHASE_DIR=outputs/checkpoints_grpo_action_tok1200_g4_final_channel_cap128_phase1
+CORPUS=data/processed/diamond_eval_holdout.jsonl
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "MODEL=$MODEL"
+echo "BASELINE_ADAPTER=$BASELINE_ADAPTER"
+echo "PHASE_DIR=$PHASE_DIR"
+echo "CORPUS=$CORPUS"
+
+echo
+echo "===== GPUs ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+
+echo
+echo "===== Harness count ====="
+"$PY" - <<'PY'
+from src.rlvr_canary.tla_dataset import load_tla_action_prompts
+xs = load_tla_action_prompts("data/processed/diamond_eval_holdout.jsonl")
+print("data/processed/diamond_eval_holdout.jsonl", len(xs), xs[0].prompt_id if xs else None)
+PY
+
+for step in 20 40 60 80 100 120; do
+  CANDIDATE="${PHASE_DIR}/checkpoint-${step}"
+  OUT="outputs/eval/action_holdout_fc128_phase1_ckpt${step}_${PBS_JOBNUM}.json"
+  if [[ ! -d "$CANDIDATE" ]]; then
+    echo "skip missing $CANDIDATE"
+    continue
+  fi
+  echo
+  echo "===== Evaluating checkpoint-${step} ====="
+  "$PY" -u -m scripts.eval_canary_tla \
+    --model "$MODEL" \
+    --compare-adapter "$BASELINE_ADAPTER" \
+    --adapter "$CANDIDATE" \
+    --corpus "$CORPUS" \
+    --device auto \
+    --max-new-tokens 128 \
+    --force-final-channel \
+    --chat-template-reasoning-effort none \
+    --out "$OUT"
+done
+
+echo
+echo "===== Summary ====="
+"$PY" - <<'PY'
+import glob
+import json
+
+for path in sorted(glob.glob("outputs/eval/action_holdout_fc128_phase1_ckpt*_*.json")):
+    with open(path) as f:
+        data = json.load(f)
+    if len(data) < 2:
+        print(path, "missing comparison")
+        continue
+    base, cand = data[0], data[-1]
+    print(
+        path,
+        "candidate", cand["label"],
+        "tlc", cand["tlc_pass"], f"({cand['tlc_pass'] - base['tlc_pass']:+d})",
+        "sany", cand["sany_pass"], f"({cand['sany_pass'] - base['sany_pass']:+d})",
+        "mean_reward", round(cand["mean_reward"], 6),
+        f"({cand['mean_reward'] - base['mean_reward']:+.6f})",
+        "analysis", cand.get("analysis_start"),
+        "empty", cand.get("empty_extracted_next"),
+    )
+PY
+
+echo
+echo "===== checkpoint sweep done ====="
+date

@@ -18,6 +18,8 @@ def test_collect_remote_results_script_mentions_expected_artifacts() -> None:
     assert "known18_corrected_smoke_${KNOWN18_JOBNUM}" in text
     assert "autoprover_known18_corrected" in text
     assert "sft_preflight_*.log" in text
+    assert "tlaps_verify_published_" in text
+    assert "full_dataset_smoke_" in text
     assert "tla_prover_remote_preflight.log" in text
     assert "chattla-remote-ctl" in text
     assert "rsync" in text
@@ -31,6 +33,8 @@ def test_collect_remote_results_dry_run_uses_job_ids_from_submission_report(tmp_
             {
                 "known18_job_id": "170001.sophia-pbs-01",
                 "sft_preflight_job_id": "170002.sophia-pbs-01",
+                "final_proof_verify_job_id": "170003.sophia-pbs-01",
+                "full_dataset_smoke_job_id": "170004.sophia-pbs-01",
                 "submit_sft_preflight": True,
             }
         ),
@@ -61,6 +65,14 @@ def test_collect_remote_results_dry_run_uses_job_ids_from_submission_report(tmp_
     assert "outputs/autoprover/known18_corrected_smoke_170001.jsonl" in normalized
     assert "outputs/autoprover/known18_corrected_smoke_170001.summary.json" in normalized
     assert "outputs/logs/sft_preflight_170002.log" in normalized
+    assert "outputs/logs/tlaps_verify_published_170003.sophia-pbs-01.log" in normalized
+    assert "outputs/autoprover/tlaps_verify_published_170003/summary.json" in normalized
+    assert "outputs/autoprover/tlaps_verify_published_170003/manifest.json" in normalized
+    assert "outputs/autoprover/full_dataset_smoke_170004.jsonl" in normalized
+    assert "outputs/autoprover/full_dataset_smoke_170004.summary.json" in normalized
+    assert "outputs/manifests/tla_prover_full_dataset_progress.json" in normalized
+    assert "outputs/logs/autoprover_full_dataset_smoke_170004.sophia-pbs-01.log" in normalized
+    assert "outputs/logs/autoprover_full_dataset_smoke.log" in normalized
     assert "outputs/" in normalized
 
 

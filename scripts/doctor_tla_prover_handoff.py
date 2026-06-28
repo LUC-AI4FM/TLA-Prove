@@ -42,6 +42,12 @@ def decide_action(status: dict[str, Any]) -> dict[str, Any]:
             "reason": "remote submission exists but final decision evidence is not mirrored",
             "command": "scripts/watch_tla_prover_remote_results.sh",
         }
+    if state == "full_smoke_running":
+        return {
+            "action": "noop",
+            "reason": "full-dataset smoke is still running",
+            "command": None,
+        }
     if state == "submission_mirror_failed":
         return {
             "action": "retry_submission_report_mirror",

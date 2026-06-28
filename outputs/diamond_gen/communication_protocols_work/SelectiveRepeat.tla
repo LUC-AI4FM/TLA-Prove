@@ -79,6 +79,9 @@ Next ==
 
 Spec == Init /\ [][Next]_vars
 
+DeliveredPrefixes ==
+    {<<>>} \cup { [i \in 1 .. n |-> i - 1] : n \in 1 .. MaxSeq }
+
 TypeOK ==
     /\ base \in 0 .. MaxSeq
     /\ next \in 0 .. MaxSeq
@@ -86,6 +89,7 @@ TypeOK ==
     /\ acked \in [0 .. (MaxSeq - 1) -> BOOLEAN]
     /\ buffer \in [0 .. (MaxSeq - 1) -> BOOLEAN]
     /\ channel \subseteq 0 .. (MaxSeq - 1)
+    /\ delivered \in DeliveredPrefixes
     /\ Len(delivered) \in 0 .. MaxSeq
     /\ base <= next
     /\ next - base <= W

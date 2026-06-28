@@ -112,13 +112,15 @@ def check_inductive(
     module_name = mod_match.group(1)
 
     # Decide on an enumerable INIT predicate. If the module defines a TypeOK
-    # type bound (and it is not the candidate itself), conjoin it with the
-    # candidate via a synthesised helper operator so TLC can enumerate the
-    # starting states. Otherwise use the candidate directly.
-    has_type_bound = _defines_operator(module_src, _TYPE_BOUND_NAME)
-    if has_type_bound and inv_name != _TYPE_BOUND_NAME:
+    # type bound, synthesize a helper from its direct variable-domain clauses
+    # so TLC can enumerate states even when TypeOK also references helper
+    # predicates. When checking a non-TypeOK invariant, conjoin that invariant
+    # with the enumerable type bound in the helper.
+    enum_type_bound = _enumerable_type_bound_expr(module_src)
+    if enum_type_bound is not None:
         init_predicate = _IND_INIT_OP
-        tla_text = _inject_ind_init(module_src, inv_name)
+        helper_expr = enum_type_bound if inv_name == _TYPE_BOUND_NAME else f"({enum_type_bound}) /\\ {inv_name}"
+        tla_text = _inject_ind_init(module_src, helper_expr)
     else:
         init_predicate = inv_name
         tla_text = module_src
@@ -135,6 +137,7 @@ def check_inductive(
         cmd = [
             "java", "-cp", str(_DEFAULT_JAR),
             "tlc2.TLC",
+            "-depth", "1",
             "-config", str(cfg_path),
             str(tla_path),
         ]
@@ -202,6 +205,7 @@ def _build_cfg(init_predicate: str, inv_name: str, module_src: str = "") -> str:
     lines = [
         f"INIT {init_predicate}",
         "NEXT Next",
+        "CHECK_DEADLOCK FALSE",
         f"INVARIANT {inv_name}",
     ]
     for name in _extract_constant_names(module_src):
@@ -214,13 +218,119 @@ def _defines_operator(module_src: str, name: str) -> bool:
     return bool(re.search(rf"^\s*{re.escape(name)}\s*==", module_src, re.MULTILINE))
 
 
-def _inject_ind_init(module_src: str, inv_name: str) -> str:
-    """Append ``<INIT_OP> == TypeOK /\\ <inv_name>`` just before the module's ====.
+def _operator_body(module_src: str, name: str) -> str:
+    match = re.search(rf"^\s*{re.escape(name)}\s*==", module_src, re.MULTILINE)
+    if not match:
+        return ""
+    start = match.end()
+    next_def = re.search(r"^\s*[A-Za-z_]\w*(?:\([^)]*\))?\s*==", module_src[start:], re.MULTILINE)
+    end_match = _MODULE_END_RE.search(module_src[start:])
+    candidates = [len(module_src)]
+    if next_def:
+        candidates.append(start + next_def.start())
+    if end_match:
+        candidates.append(start + end_match.start())
+    return module_src[start:min(candidates)]
 
-    The helper makes INIT enumerable (TypeOK pins the finite domain) while still
-    restricting the start states to those satisfying the candidate invariant.
+
+def _declared_variables(module_src: str) -> list[str]:
+    lines = module_src.splitlines()
+    start = None
+    payload = ""
+    for idx, line in enumerate(lines):
+        match = re.match(r"^\s*VARIABLES?\b(.*)$", line)
+        if match:
+            start = idx
+            payload = match.group(1)
+            break
+    if start is None:
+        return []
+    chunks = [payload]
+    for line in lines[start + 1 :]:
+        stripped = line.strip()
+        if not stripped:
+            break
+        if re.match(r"^\s*[A-Za-z_]\w*(?:\([^)]*\))?\s*==", line):
+            break
+        if re.match(r"^\s*(?:----|====)", line):
+            break
+        chunks.append(line)
+        if "," not in line:
+            break
+    text = "\n".join(chunks)
+    text = re.sub(r"\\\*.*", "", text)
+    text = re.sub(r"^\s*VARIABLES?\b", "", text, count=1)
+    if not text.strip():
+        return []
+    names: list[str] = []
+    for part in text.split(","):
+        ident = part.strip()
+        if ident and re.match(r"^[A-Za-z_]\w*$", ident):
+            names.append(ident)
+    return names
+
+
+def _split_top_level_conjuncts(body: str) -> list[str]:
+    clauses: list[str] = []
+    current: list[str] = []
+    for raw_line in body.splitlines():
+        if not raw_line.strip():
+            continue
+        if raw_line.lstrip().startswith("/\\"):
+            if current:
+                clauses.append("\n".join(current))
+            current = [raw_line]
+        elif current:
+            current.append(raw_line)
+        elif raw_line.strip():
+            current = [raw_line]
+    if current:
+        clauses.append("\n".join(current))
+    return clauses
+
+
+def _enumerable_type_bound_expr(module_src: str) -> str | None:
+    if not _defines_operator(module_src, _TYPE_BOUND_NAME):
+        return None
+    typeok = _operator_body(module_src, _TYPE_BOUND_NAME)
+    if not typeok:
+        return None
+    clauses = _split_top_level_conjuncts(typeok)
+    seen_direct_domains: set[str] = set()
+    rewritten: list[str] = []
+    declared = _declared_variables(module_src)
+    for clause in clauses:
+        stripped = clause.strip()
+        rewritten.append(stripped)
+        for variable in declared:
+            if re.search(rf"\b{re.escape(variable)}\b\s*(\\in|=|\\subseteq)", stripped):
+                seen_direct_domains.add(variable)
+                rewritten[-1] = _rewrite_enumerable_clause(variable, stripped)
+                break
+    if any(variable not in seen_direct_domains for variable in declared):
+        return None
+    return "\n".join(rewritten)
+
+
+def _rewrite_enumerable_clause(variable: str, clause: str) -> str:
+    subseteq = re.search(rf"^\s*/\\\s*{re.escape(variable)}\s*\\subseteq\s*(.+)$", clause, re.MULTILINE)
+    if subseteq:
+        rhs = " ".join(part.strip() for part in subseteq.group(1).splitlines() if part.strip())
+        return f"/\\ {variable} \\in (SUBSET ({rhs}))"
+    return clause
+
+
+def _inject_ind_init(module_src: str, init_expr: str) -> str:
+    """Append ``<INIT_OP> == <init_expr>`` just before the module's ====.
+
+    The helper makes INIT enumerable while still restricting the start states
+    to the intended candidate-invariant region.
     """
-    helper = f"{_IND_INIT_OP} == {_TYPE_BOUND_NAME} /\\ {inv_name}\n"
+    lines = [line.rstrip() for line in init_expr.splitlines() if line.strip()]
+    if not lines:
+        helper = f"{_IND_INIT_OP} == {init_expr}\n"
+    else:
+        helper = f"{_IND_INIT_OP} ==\n" + "".join(f"    {line}\n" for line in lines)
     m = _MODULE_END_RE.search(module_src)
     if not m:
         # No closing ==== found; append helper then a terminator.

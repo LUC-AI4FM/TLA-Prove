@@ -15,11 +15,15 @@ def test_remote_submit_script_runs_preflight_and_writes_report() -> None:
     assert "preflight_tla_prover_remote.py" in text
     assert 'qsub_submit "$PBS_SELECT_KNOWN18" "$PBS_WALLTIME_KNOWN18" scripts/qsub_autoprover_known18_corrected_smoke.pbs' in text
     assert 'qsub_submit "$PBS_SELECT_SFT" "$PBS_WALLTIME_SFT" scripts/qsub_sophia_tla_prover_sft_preflight.pbs' in text
+    assert 'qsub_submit "$PBS_SELECT_FINAL_VERIFY" "$PBS_WALLTIME_FINAL_VERIFY" scripts/qsub_verify_published_tlaps_proof_artifact.pbs' in text
+    assert 'qsub_submit "$PBS_SELECT_FULL_SMOKE" "$PBS_WALLTIME_FULL_SMOKE" scripts/qsub_autoprover_full_dataset_smoke.pbs' in text
     assert "CHATTLA_PBS_ACCOUNT" in text
     assert "CHATTLA_PBS_QUEUE" in text
     assert "CHATTLA_PBS_FILESYSTEMS" in text
     assert "outputs/manifests/tla_prover_remote_submission.json" in text
     assert "--submit-sft-preflight" in text
+    assert "--submit-final-proof-verify" in text
+    assert "--submit-full-dataset-smoke" in text
     assert "CHATTLA_TLAPM" in text
 
 
@@ -35,8 +39,12 @@ count=$((count + 1))
 echo "$count" > {qsub_count}
 if [ "$count" = "1" ]; then
   echo "170001.sophia-pbs-01"
-else
+elif [ "$count" = "2" ]; then
   echo "170002.sophia-pbs-01"
+elif [ "$count" = "3" ]; then
+  echo "170003.sophia-pbs-01"
+else
+  echo "170004.sophia-pbs-01"
 fi
 """,
         encoding="utf-8",
@@ -55,7 +63,15 @@ fi
     (tmp_path / "tlapm").chmod(0o755)
 
     subprocess.run(
-        ["bash", str(SCRIPT), "--repo", str(tmp_path), "--submit-sft-preflight"],
+        [
+            "bash",
+            str(SCRIPT),
+            "--repo",
+            str(tmp_path),
+            "--submit-sft-preflight",
+            "--submit-final-proof-verify",
+            "--submit-full-dataset-smoke",
+        ],
         cwd=REPO,
         env=env,
         check=True,
@@ -70,9 +86,13 @@ fi
     assert report["tlapm"] == str(tmp_path / "tlapm")
     assert report["known18_job_id"] == "170001.sophia-pbs-01"
     assert report["sft_preflight_job_id"] == "170002.sophia-pbs-01"
+    assert report["final_proof_verify_job_id"] == "170003.sophia-pbs-01"
+    assert report["full_dataset_smoke_job_id"] == "170004.sophia-pbs-01"
     assert report["known18_qsub_log"] == "outputs/logs/tla_prover_known18_qsub.log"
     assert report["sft_preflight_qsub_log"] == "outputs/logs/tla_prover_sft_preflight_qsub.log"
-    assert qsub_count.read_text(encoding="utf-8").strip() == "2"
+    assert report["final_proof_verify_qsub_log"] == "outputs/logs/tla_prover_final_proof_verify_qsub.log"
+    assert report["full_dataset_smoke_qsub_log"] == "outputs/logs/tla_prover_full_dataset_smoke_qsub.log"
+    assert qsub_count.read_text(encoding="utf-8").strip() == "4"
 
 
 def test_remote_submit_script_writes_failure_report_on_preflight_error(tmp_path: Path) -> None:
@@ -105,6 +125,7 @@ def test_remote_submit_script_writes_failure_report_on_preflight_error(tmp_path:
     assert report["exit_code"] == 17
     assert report["known18_job_id"] is None
     assert report["sft_preflight_job_id"] is None
+    assert report["final_proof_verify_job_id"] is None
 
 
 def test_remote_submit_script_writes_failure_report_on_qsub_error(tmp_path: Path) -> None:
@@ -135,6 +156,7 @@ def test_remote_submit_script_writes_failure_report_on_qsub_error(tmp_path: Path
     assert report["exit_code"] == 42
     assert "queue unavailable" in report["error"]
     assert report["known18_job_id"] is None
+    assert report["final_proof_verify_job_id"] is None
 
 
 def test_remote_submit_script_preserves_known18_id_on_sft_qsub_error(tmp_path: Path) -> None:
@@ -179,6 +201,62 @@ exit 43
     assert report["known18_job_id"] == "170001.sophia-pbs-01"
     assert report["sft_preflight_job_id"] is None
     assert "sft queue unavailable" in report["error"]
+
+
+def test_remote_submit_script_preserves_prior_ids_on_final_verify_qsub_error(tmp_path: Path) -> None:
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    qsub_count = tmp_path / "qsub_count"
+    qsub = fake_bin / "qsub"
+    qsub.write_text(
+        f"""#!/usr/bin/env bash
+count=$(cat {qsub_count} 2>/dev/null || echo 0)
+count=$((count + 1))
+echo "$count" > {qsub_count}
+if [ "$count" = "1" ]; then
+  echo "170001.sophia-pbs-01"
+  exit 0
+fi
+if [ "$count" = "2" ]; then
+  echo "170002.sophia-pbs-01"
+  exit 0
+fi
+echo "final verify queue unavailable" >&2
+exit 44
+""",
+        encoding="utf-8",
+    )
+    qsub.chmod(0o755)
+    fake_preflight = tmp_path / "preflight.py"
+    fake_preflight.write_text("#!/usr/bin/env python3\nprint('{\"ok\": true}')\n", encoding="utf-8")
+    fake_preflight.chmod(0o755)
+    env = os.environ.copy()
+    env["PATH"] = f"{fake_bin}:{env['PATH']}"
+    env["CHATTLA_REMOTE_PREFLIGHT"] = str(fake_preflight)
+
+    result = subprocess.run(
+        [
+            "bash",
+            str(SCRIPT),
+            "--repo",
+            str(tmp_path),
+            "--submit-sft-preflight",
+            "--submit-final-proof-verify",
+        ],
+        cwd=REPO,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode == 44
+    report = json.loads((tmp_path / "outputs/manifests/tla_prover_remote_submission.json").read_text())
+    assert report["ok"] is False
+    assert report["stage"] == "final_proof_verify_qsub"
+    assert report["known18_job_id"] == "170001.sophia-pbs-01"
+    assert report["sft_preflight_job_id"] == "170002.sophia-pbs-01"
+    assert report["final_proof_verify_job_id"] is None
+    assert "final verify queue unavailable" in report["error"]
 
 
 def test_handoff_invokes_remote_submit_script_instead_of_inline_qsub() -> None:

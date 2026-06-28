@@ -16,6 +16,7 @@ VARIABLES nextToken, held, lastAccepted, accepted
 vars == << nextToken, held, lastAccepted, accepted >>
 
 NONE == 0
+Tokens == 1..MaxToken
 
 Init == /\ nextToken    = 1
         /\ held         = [c \in Clients |-> NONE]
@@ -52,7 +53,7 @@ Max(S) == IF S = {} THEN 0 ELSE CHOOSE x \in S : \A y \in S : y <= x
 TypeOK == /\ nextToken    \in 1..(MaxToken + 1)
           /\ held         \in [Clients -> 0..MaxToken]
           /\ lastAccepted \in 0..MaxToken
-          /\ accepted     \subseteq 1..MaxToken
+          /\ accepted     \subseteq Tokens
           /\ lastAccepted = Max(accepted)
           /\ \A t \in accepted : t <= lastAccepted
 ====

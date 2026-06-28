@@ -1,0 +1,38 @@
+#!/bin/bash
+#PBS -N tlaps_verify_pub
+#PBS -j oe
+#PBS -o outputs/logs/tlaps_verify_published_pbs.log
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+mkdir -p outputs/logs outputs/autoprover
+JOBNUM="${PBS_JOBID%%.*}"
+JOBLOG="outputs/logs/tlaps_verify_published_${PBS_JOBID}.log"
+exec > >(tee "$JOBLOG") 2>&1
+OUT="outputs/autoprover/tlaps_verify_published_${JOBNUM}"
+ARTIFACT_ROOT="${CHATTLA_ARTIFACT_ROOT:-$PWD/outputs/staged_artifacts}"
+DEST="$ARTIFACT_ROOT/prover_final_108_108_published_verify_${JOBNUM}"
+TLAPM="${CHATTLA_TLAPM:-tlapm}"
+
+python3 scripts/verify_published_tlaps_proof_artifact.py \
+  --tlapm "$TLAPM" \
+  --out-dir "$OUT" \
+  --threads 1 \
+  --timeout 900 \
+  --expected-modules 18
+
+mkdir -p "$DEST"
+cp "$OUT/summary.json" "$DEST/"
+cp "$OUT/manifest.json" "$DEST/"
+cp scripts/verify_published_tlaps_proof_artifact.py "$DEST/"
+cp scripts/qsub_verify_published_tlaps_proof_artifact.pbs "$DEST/"
+(
+  cd "$DEST"
+  sha256sum \
+    manifest.json \
+    qsub_verify_published_tlaps_proof_artifact.pbs \
+    summary.json \
+    verify_published_tlaps_proof_artifact.py > SHA256SUMS
+)
+echo "STAGED $DEST"
+cat "$OUT/summary.json"

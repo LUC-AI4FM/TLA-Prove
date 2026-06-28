@@ -1,0 +1,3 @@
+{"module_path": "outputs/diamond_gen/concurrency_primitives_work/Channel.tla", "module": "Channel", "target": "Spec => []TypeOK", "status": "skipped", "reason": "typeok_uses_unbounded_seq"}
+{"module_path": "outputs/diamond_gen/data_structures_work/BoundedQueue.tla", "module": "BoundedQueue", "target": "Spec => []TypeOK", "status": "skipped", "reason": "typeok_uses_unbounded_seq"}
+{"module_path": "outputs/diamond_gen/transactions_databases_work/WriteAheadLog.tla", "module": "WriteAheadLog", "target": "Spec => []TypeOK", "status": "skipped", "reason": "typeok_uses_unbounded_seq"}
