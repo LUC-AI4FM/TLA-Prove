@@ -1,0 +1,153 @@
+{
+  "aggregate": {
+    "largest_public_jsonl": {
+      "path": "data/processed/diamond_sft_v3.jsonl",
+      "rows": 1053
+    },
+    "total_public_jsonl_rows": 2350
+  },
+  "corpora": {
+    "diamond_eval_holdout": {
+      "bytes": 79917,
+      "download_url": "https://raw.githubusercontent.com/LUC-AI4FM/TLA-Prove/main/data/processed/diamond_eval_holdout.jsonl",
+      "html_url": "https://github.com/LUC-AI4FM/TLA-Prove/blob/main/data/processed/diamond_eval_holdout.jsonl",
+      "path": "data/processed/diamond_eval_holdout.jsonl",
+      "rows": 30,
+      "sha": "f38d8f9a2bbc1db0f1f9e68115dc524dfbe0cf48"
+    },
+    "diamond_gen_topics": {
+      "batches": 10,
+      "doc": "200 distinct TLA+ specification topics for parallel diamond generation. Each batch is assigned to one Opus 4.6 subagent. Topics are chosen to cover the breadth of tlaplus/examples \u2014 protocols, concurrency, data structures, classic CS \u2014 with enough variety that agents do not collide. Module names are SUGGESTED; agents can rename for clarity but must keep them unique within their batch.",
+      "download_url": "https://raw.githubusercontent.com/LUC-AI4FM/TLA-Prove/main/data/diamond_gen_topics.json",
+      "topics_total": 200
+    },
+    "diamond_sft_v3": {
+      "bytes": 4781486,
+      "download_url": "https://raw.githubusercontent.com/LUC-AI4FM/TLA-Prove/main/data/processed/diamond_sft_v3.jsonl",
+      "html_url": "https://github.com/LUC-AI4FM/TLA-Prove/blob/main/data/processed/diamond_sft_v3.jsonl",
+      "path": "data/processed/diamond_sft_v3.jsonl",
+      "rows": 1053,
+      "sha": "92560c32daed31de32b17ccbdbc040e907a0e857",
+      "summary": {
+        "base_dropped_for_holdout": 0,
+        "base_kept": 713,
+        "holdout_modules_excluded": [
+          "AdaptiveMutex",
+          "AdmissionControl",
+          "AlternatingBit",
+          "AndersonMutex",
+          "AravindMutex",
+          "ArenaAllocator",
+          "Arp",
+          "AtomicCommit",
+          "AtomicRegister",
+          "BackpressureChannel",
+          "Bankers",
+          "BinaryHeap",
+          "BinarySemaphore",
+          "BlocksWorld",
+          "BloomCounter",
+          "BloomFilter",
+          "BuddyAllocator",
+          "BullyElection",
+          "ByzantineQuorum",
+          "ChainReplication",
+          "Channel",
+          "ChessKingMoves",
+          "ColoredHats",
+          "ContentModeration",
+          "CopyingGc",
+          "CountDownLatch",
+          "DistributedLock",
+          "DocumentApproval",
+          "EmailVerification",
+          "FencingToken"
+        ],
+        "missing_cot": [],
+        "new_unique": 170,
+        "out": "data/processed/diamond_sft_v3.jsonl",
+        "oversample": 2,
+        "total_records": 1053
+      }
+    },
+    "frs_tla_ralph_gen": {
+      "dev": {
+        "bytes": 152346,
+        "download_url": "https://raw.githubusercontent.com/LUC-AI4FM/TLA-Prove/main/data/frs_tla_ralph_gen/dev.jsonl",
+        "html_url": "https://github.com/LUC-AI4FM/TLA-Prove/blob/main/data/frs_tla_ralph_gen/dev.jsonl",
+        "path": "data/frs_tla_ralph_gen/dev.jsonl",
+        "rows": 50,
+        "sha": "988bca5d97ba6619856e6f5c1c30e795b63b9c17"
+      },
+      "readme_summary": {
+        "carried_over_rows": 168,
+        "dev_rows": 50,
+        "new_rows": 476,
+        "train_rows": 500
+      },
+      "readme_url": "https://raw.githubusercontent.com/LUC-AI4FM/TLA-Prove/main/data/frs_tla_ralph_gen/README.md",
+      "train": {
+        "bytes": 1723511,
+        "download_url": "https://raw.githubusercontent.com/LUC-AI4FM/TLA-Prove/main/data/frs_tla_ralph_gen/train.jsonl",
+        "html_url": "https://github.com/LUC-AI4FM/TLA-Prove/blob/main/data/frs_tla_ralph_gen/train.jsonl",
+        "path": "data/frs_tla_ralph_gen/train.jsonl",
+        "rows": 500,
+        "sha": "21f43ba37edc7d43d99cd21158b56442f5e9c24f"
+      }
+    },
+    "processed_eval": {
+      "bytes": 31017,
+      "download_url": "https://raw.githubusercontent.com/LUC-AI4FM/TLA-Prove/main/data/processed/eval.jsonl",
+      "html_url": "https://github.com/LUC-AI4FM/TLA-Prove/blob/main/data/processed/eval.jsonl",
+      "path": "data/processed/eval.jsonl",
+      "rows": 4,
+      "sha": "529ede9d6b78d1046fe62e1d53053437db645d32"
+    },
+    "processed_train": {
+      "bytes": 3301469,
+      "download_url": "https://raw.githubusercontent.com/LUC-AI4FM/TLA-Prove/main/data/processed/train.jsonl",
+      "html_url": "https://github.com/LUC-AI4FM/TLA-Prove/blob/main/data/processed/train.jsonl",
+      "path": "data/processed/train.jsonl",
+      "rows": 713,
+      "sha": "9d4c0bdf3d2ffd3b02ea633992a8868c56b0db14"
+    }
+  },
+  "generated_at": "2026-06-28T22:16:07.766999+00:00",
+  "notes": [
+    "These corpora are committed directly in the public TLA-Prove repository, unlike the larger DVC-backed crawl in tla-dataset-pipeline.",
+    "Row totals here are raw public JSONL counts and may include overlap or oversampling across corpora."
+  ],
+  "public_sources": {
+    "processed_dir": "https://github.com/LUC-AI4FM/TLA-Prove/tree/main/data/processed",
+    "ralph_dir": "https://github.com/LUC-AI4FM/TLA-Prove/tree/main/data/frs_tla_ralph_gen",
+    "repo": "https://github.com/LUC-AI4FM/TLA-Prove"
+  },
+  "recommended_ingest_order": [
+    {
+      "path": "data/processed/diamond_sft_v3.jsonl",
+      "reason": "largest public SFT corpus; summary reports 713 base rows plus 170 new unique rows, oversampled to 1053 total"
+    },
+    {
+      "path": "data/frs_tla_ralph_gen/train.jsonl",
+      "reason": "public Ralph-generated expansion with 500 train rows and a matching 50-row dev split"
+    },
+    {
+      "path": "data/processed/train.jsonl",
+      "reason": "base public processed train corpus with 713 rows"
+    },
+    {
+      "path": "data/processed/diamond_eval_holdout.jsonl",
+      "reason": "30-row public holdout useful for evaluation alignment"
+    },
+    {
+      "path": "data/diamond_gen_topics.json",
+      "reason": "200-topic prompt expansion metadata spanning 10 batches"
+    }
+  ],
+  "repo": {
+    "default_branch": "main",
+    "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+    "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+    "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+  }
+}

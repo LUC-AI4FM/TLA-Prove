@@ -1,12 +1,12 @@
 {
   "artifacts": {
     "ai4fm_public_dataset_surface": {
-      "bytes": 1412,
+      "bytes": 1485,
       "exists": true,
       "kind": "public_ai4fm_dataset_surface_report",
       "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
       "rows": null,
-      "sha256": "c58c29f5f19e6789ed79ca41dcaba4c3e7ff65f304ab4e3ac7ff462d25f7eed2"
+      "sha256": "d4814e5c236047914380e9be6f07d25c40da971e4679119f572ab4a9d71bc164"
     },
     "ai4fm_public_discovery_manifest_v1": {
       "bytes": 7034,
@@ -80,6 +80,14 @@
       },
       "summary_path": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json"
     },
+    "ai4fm_public_tlaprove_corpora": {
+      "bytes": 6198,
+      "exists": true,
+      "kind": "public_ai4fm_tlaprove_corpora_report",
+      "path": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+      "rows": null,
+      "sha256": "d8727a3fc5adc6995ee595918135e455898774d4fe8ccbc22f004a690cfb1554"
+    },
     "chattla_tla_prover_sft_v1": {
       "bytes": 5056374,
       "exists": true,
@@ -147,7 +155,7 @@
       "rows": 18,
       "sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
       "summary": {
-        "generated_at": "2026-06-28T22:03:40.132176+00:00",
+        "generated_at": "2026-06-28T22:16:29.675027+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
         "kept_rows": 18,
@@ -187,7 +195,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "6184e1d89bda04949baa6d7f533998d0bd40403e2cf1c32f01fc9b6da0952823"
+      "sha256": "1ec0fb4cd4b1faa2fcbc525711f45d0bf5ac7dc65abe3b2dcd48889e1a8e1645"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -197,7 +205,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-28T22:03:40.194167+00:00",
+        "generated_at": "2026-06-28T22:16:29.736686+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -438,7 +446,7 @@
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "e59d3ab77339487d51f354c78e31eb03e5998e6b24f0dccd2d1872282d7104dd"
+      "sha256": "76a13bfab04c332cf0fb6797dbfbf1d8532cdf9bf353482ab0d0fc9418d55664"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 104115,
@@ -480,7 +488,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-28T22:03:40.382469+00:00",
+  "generated_at": "2026-06-28T22:16:29.925717+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -498,6 +506,7 @@
     "handoff_status": "python3 scripts/status_tla_prover_handoff.py --live",
     "handoff_status_compact": "python3 scripts/status_tla_prover_handoff.py --no-live --compact",
     "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
+    "inspect_ai4fm_public_tlaprove_corpora": "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py",
     "install_laptop_handoff_doctor_launchagent": "scripts/install_handoff_doctor_launchagent.sh --interval 300",
     "install_laptop_wait_handoff_launchagent": "CHATTLA_RELAY_HOST=<user@relay-host> scripts/install_wait_handoff_launchagent.sh",
     "known18_launch": "cd ~/ChatTLA && qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs",

@@ -19,6 +19,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "data/processed/formalllm_eval_v1.summary.json",
     "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
     "outputs/manifests/ai4fm_public_dataset_surface.json",
+    "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",
 )
 
@@ -37,6 +38,7 @@ PY_COMPILE_FILES = [
     "scripts/build_ai4fm_public_discovery_manifest.py",
     "scripts/check_tla_prover_pr_ready.py",
     "scripts/inspect_ai4fm_public_dataset_surface.py",
+    "scripts/inspect_ai4fm_public_tlaprove_corpora.py",
     "scripts/preflight_tla_prover_remote.py",
     "scripts/probe_tla_prover_control_planes.py",
     "scripts/status_tla_prover_handoff.py",
@@ -46,6 +48,7 @@ PY_COMPILE_FILES = [
 PYTEST_FILES = [
     "tests/test_build_ai4fm_public_discovery_manifest.py",
     "tests/test_check_tla_prover_pr_ready.py",
+    "tests/test_inspect_ai4fm_public_tlaprove_corpora.py",
     "tests/test_remote_handoff_script.py",
     "tests/test_collect_tla_prover_remote_results.py",
     "tests/test_preflight_tla_prover_remote.py",

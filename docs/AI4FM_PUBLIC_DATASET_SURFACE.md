@@ -6,6 +6,7 @@ without private infrastructure.
 ## Current public sources
 
 - `FormaLLM`: <https://github.com/LUC-AI4FM/FormaLLM>
+- `TLA-Prove`: <https://github.com/LUC-AI4FM/TLA-Prove>
 - `tla-dataset-pipeline`: <https://github.com/LUC-AI4FM/tla-dataset-pipeline>
 - `tla-dataset-pipeline` DVC metadata:
   <https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock>
@@ -27,6 +28,23 @@ These values come from the local inspection report at
   - DVC `pull` surface: `data/raw`, `2628` files
   - DVC `parse` input snapshot: `data/raw`, `227` files
   - DVC `parse` output surface: `data/parsed`, `3979` files
+
+## Public TLA-Prove corpora
+
+ChatTLA now also tracks the stable public corpora already committed in
+`LUC-AI4FM/TLA-Prove`:
+
+- report artifact: `outputs/manifests/ai4fm_public_tlaprove_corpora.json`
+- repo head at inspection time: `d1b5142422cfab2ce9a2eba9522d6221776378d6`
+- public JSONL rows across the tracked corpora: `2350`
+- largest single corpus: `data/processed/diamond_sft_v3.jsonl` with `1053` rows
+- base processed train corpus: `data/processed/train.jsonl` with `713` rows
+- Ralph-generated expansion: `500` train rows and `50` dev rows
+- prompt/topic expansion metadata: `200` topics across `10` batches
+
+This is the best public AI4FM surface ChatTLA can ingest today without DVC or
+private infrastructure because the JSONL corpora are committed directly in the
+repository, not only referenced through workflow state.
 
 ## Public discovery manifest
 
@@ -51,16 +69,20 @@ public discovery recipe from the larger DVC-backed raw/parsed corpus.
 ## How ChatTLA should use them
 
 - Treat `FormaLLM` as the canonical public prompt/spec supervision layer.
+- Treat `ai4fm_public_tlaprove_corpora` as the stable public JSONL expansion
+  layer available right now.
 - Treat `ai4fm_public_discovery_manifest_v1` as the public repo-level discovery
   lane we can ingest directly today.
 - Treat `tla-dataset-pipeline` DVC counts as the broader public parsing lane.
 - Do not collapse these into one dataset category: the 205-entry `FormaLLM`
-  benchmark is curated, the discovery manifest is a public GitHub repo roster,
-  and the DVC surface is a larger extraction and transformation inventory.
+  benchmark is curated, `TLA-Prove` is a public corpus stack, the discovery
+  manifest is a public GitHub repo roster, and the DVC surface is a larger
+  extraction and transformation inventory.
 
 ## Rebuild
 
 ```bash
+python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
 python3 scripts/inspect_ai4fm_public_dataset_surface.py
 python3 scripts/build_ai4fm_public_discovery_manifest.py
 ```
