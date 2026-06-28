@@ -311,6 +311,37 @@ def _normalize_expr(expr: str) -> str:
     return " ".join(line.strip() for line in expr.splitlines() if line.strip())
 
 
+def _normalize_noncomment_expr(expr: str) -> str:
+    return " ".join(
+        line.strip()
+        for line in expr.splitlines()
+        if line.strip() and not line.strip().startswith("\\*")
+    )
+
+
+def _seq_domain_expr(typeok: str, variable: str) -> str | None:
+    match = re.search(
+        rf"^\s*/\\\s*{re.escape(variable)}\s*\\in\s*Seq\s*\(([^\\n]+)\)\s*$",
+        typeok,
+        re.MULTILINE,
+    )
+    if not match:
+        return None
+    return _normalize_expr(re.sub(r"\s*\\\*.*$", "", match.group(1), flags=re.MULTILINE))
+
+
+def _domain_cardinality_bound_expr(domain: str, defs: dict[str, str]) -> str | None:
+    normalized = _normalize_expr(domain)
+    range_match = re.fullmatch(r"(.+)\.\.(.+)", normalized)
+    if range_match:
+        start_expr = _strip_wrapping_parens(range_match.group(1))
+        end_expr = _strip_wrapping_parens(range_match.group(2))
+        if start_expr == "1":
+            return end_expr
+    domain_size = _set_cardinality(normalized, defs)
+    return None if domain_size is None else str(domain_size)
+
+
 def _helper_conjunct_name(clause: str) -> str | None:
     match = re.match(r"^\s*(?:/\\\s*)?([A-Za-z_]\w*)\s*$", clause)
     return match.group(1) if match else None
@@ -349,13 +380,93 @@ def _seq_len_upper_bound(
     return None
 
 
-def _has_unbounded_seq_domain(src: str, typeok: str, variable: str, clauses: list[str]) -> bool:
+def _is_strictly_increasing_sequence(
+    src: str,
+    clauses: list[str],
+    variable: str,
+    seen_helpers: set[str] | None = None,
+) -> bool:
+    if seen_helpers is None:
+        seen_helpers = set()
+    pattern = (
+        rf"^\s*(?:/\\\s*)?\\A\s+([A-Za-z_]\w*)\s+\\in\s+1\.\.\(Len\(\s*{re.escape(variable)}\s*\)\s*-\s*1\)\s*:\s*"
+        rf"{re.escape(variable)}\[\1\]\s*<\s*{re.escape(variable)}\[\1\+1\]\s*$"
+    )
+    for clause in clauses:
+        stripped = _normalize_noncomment_expr(clause)
+        if re.match(pattern, stripped):
+            return True
+        helper = _helper_conjunct_name(stripped)
+        if helper and helper not in seen_helpers:
+            body = _operator_body(src, helper)
+            if body and _is_strictly_increasing_sequence(
+                src,
+                _split_top_level_conjuncts(body),
+                variable,
+                seen_helpers | {helper},
+            ):
+                return True
+    return False
+
+
+def _length_sum_relation(clause: str) -> tuple[str, str, str] | None:
+    patterns = (
+        r"^\s*(?:/\\\s*)?Len\(\s*([A-Za-z_]\w*)\s*\)\s*\+\s*Len\(\s*([A-Za-z_]\w*)\s*\)\s*=\s*Len\(\s*([A-Za-z_]\w*)\s*\)\s*$",
+        r"^\s*(?:/\\\s*)?Len\(\s*([A-Za-z_]\w*)\s*\)\s*=\s*Len\(\s*([A-Za-z_]\w*)\s*\)\s*\+\s*Len\(\s*([A-Za-z_]\w*)\s*\)\s*$",
+    )
+    for pattern in patterns:
+        match = re.match(pattern, clause)
+        if match:
+            groups = match.groups()
+            return (groups[0], groups[1], groups[2]) if "+" in clause.split("=", 1)[0] else (groups[1], groups[2], groups[0])
+    return None
+
+
+def _seq_len_upper_bounds(src: str, clauses: list[str]) -> dict[str, str]:
+    variables = _declared_variables(src)
+    typeok = _operator_body(src, "TypeOK")
+    defs = _simple_definitions(src)
+    bounds = {
+        variable: bound
+        for variable in variables
+        if (bound := _seq_len_upper_bound(src, clauses, variable)) is not None
+    }
+    changed = True
+    while changed:
+        changed = False
+        for clause in clauses:
+            relation = _length_sum_relation(clause.strip())
+            if relation is None:
+                continue
+            left, right, total = relation
+            total_bound = bounds.get(total)
+            if total_bound is None:
+                continue
+            for variable in (left, right):
+                if variable not in bounds:
+                    bounds[variable] = total_bound
+                    changed = True
+        for variable in variables:
+            if variable in bounds:
+                continue
+            domain = _seq_domain_expr(typeok, variable)
+            if not domain or not _is_strictly_increasing_sequence(src, clauses, variable):
+                continue
+            domain_bound = _domain_cardinality_bound_expr(domain, defs)
+            if domain_bound is None:
+                continue
+            bounds[variable] = domain_bound
+            changed = True
+    return bounds
+
+
+def _has_unbounded_seq_domain(typeok: str, variable: str, seq_len_bounds: dict[str, str]) -> bool:
     match = re.search(
         rf"^\s*/\\\s*{re.escape(variable)}\s*\\in\s*Seq\s*\((.+)\)\s*$",
         typeok,
         re.MULTILINE | re.DOTALL,
     )
-    return bool(match) and _seq_len_upper_bound(src, clauses, variable) is None
+    return bool(match) and variable not in seq_len_bounds
 
 
 def _typeok_init_state_space_too_large(src: str) -> bool:
@@ -405,8 +516,9 @@ def _enumerability_issue(src: str) -> str | None:
     if re.search(r"\b(Array|ArrayOfAnyLength)\s*\(", typeok):
         return "typeok_uses_sequence_backed_array_domain"
     clauses = _split_top_level_conjuncts(typeok)
+    seq_len_bounds = _seq_len_upper_bounds(src, clauses)
     for variable in _declared_variables(src):
-        if _has_unbounded_seq_domain(src, typeok, variable, clauses):
+        if _has_unbounded_seq_domain(typeok, variable, seq_len_bounds):
             return "typeok_uses_unbounded_seq"
     if re.search(r"\\in\s*\[.*->\s*(Nat|Int)\b", typeok, re.DOTALL):
         return "typeok_function_range_uses_infinite_builtin"

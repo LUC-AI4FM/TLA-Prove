@@ -66,3 +66,52 @@ TypeOK == /\ resident \in Seq(Vals)
 
     assert expr is not None
     assert r"/\ resident \in (UNION { [1..n -> (Vals)] : n \in 0..K })" in expr
+
+
+def test_enumerable_type_bound_expr_uses_length_relation_to_bound_sibling_sequences() -> None:
+    module_src = r"""---- MODULE QueuedLike ----
+EXTENDS Naturals, Sequences
+CONSTANTS MaxQueue
+VARIABLES enq, queue, committed
+vars == << enq, queue, committed >>
+Init == /\ enq = << >>
+        /\ queue = << >>
+        /\ committed = << >>
+Next == /\ enq' = enq
+        /\ queue' = queue
+        /\ committed' = committed
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ enq \in Seq(1..MaxQueue)
+          /\ queue \in Seq(1..MaxQueue)
+          /\ committed \in Seq(1..MaxQueue)
+          /\ Len(enq) <= MaxQueue
+          /\ Len(committed) + Len(queue) = Len(enq)
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ queue \in (UNION { [1..n -> (1..MaxQueue)] : n \in 0..MaxQueue })" in expr
+    assert r"/\ committed \in (UNION { [1..n -> (1..MaxQueue)] : n \in 0..MaxQueue })" in expr
+
+
+def test_enumerable_type_bound_expr_bounds_strictly_increasing_finite_domain_sequence() -> None:
+    module_src = r"""---- MODULE IncreasingSeq ----
+EXTENDS Naturals, Sequences
+CONSTANTS MaxIssue
+VARIABLE mem
+vars == << mem >>
+Init == mem = << >>
+Next == /\ mem' = mem
+Spec == Init /\ [][Next]_vars
+MemInOrder == \A i \in 1..(Len(mem) - 1) : mem[i] < mem[i+1]
+TypeOK == /\ mem \in Seq(1..MaxIssue)
+          /\ MemInOrder
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ mem \in (UNION { [1..n -> (1..MaxIssue)] : n \in 0..MaxIssue })" in expr
