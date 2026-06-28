@@ -79,4 +79,5 @@ def test_build_report_includes_sany_tlc_diagnostic(tmp_path: Path) -> None:
 def test_default_paths_include_prover_eval_gate() -> None:
     assert any(path.name == "prover_eval.jsonl" for path in DEFAULT_PATHS)
     assert any(path.name == "formalllm_eval_v1.jsonl" for path in DEFAULT_PATHS)
+    assert any(path.name == "ai4fm_public_tlaprove_import_v1.jsonl" for path in DEFAULT_PATHS)
     assert any(path.name == "sany_tlc_pass_eval_v1.jsonl" for path in DEFAULT_PATHS)

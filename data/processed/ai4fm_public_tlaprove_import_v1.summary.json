@@ -1,0 +1,71 @@
+{
+  "duplicate_rows_collapsed": 1345,
+  "generated_at": "2026-06-28T22:31:47.829566+00:00",
+  "jsonl_sha256": "7cd42c185b48460392815f34942a6fd41f6f60b2c1c04214a1b90297059398ca",
+  "kept_rows": 1005,
+  "out": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
+  "per_corpus": {
+    "diamond_eval_holdout": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 30,
+      "kind": "holdout",
+      "path": "data/processed/diamond_eval_holdout.jsonl",
+      "raw_rows": 30,
+      "split": "eval",
+      "unique_canonical_finals": 30
+    },
+    "diamond_sft_v3": {
+      "duplicate_rows_collapsed": 883,
+      "kept_rows": 170,
+      "kind": "messages",
+      "path": "data/processed/diamond_sft_v3.jsonl",
+      "raw_rows": 1053,
+      "split": "train",
+      "unique_canonical_finals": 455
+    },
+    "processed_eval": {
+      "duplicate_rows_collapsed": 3,
+      "kept_rows": 1,
+      "kind": "messages",
+      "path": "data/processed/eval.jsonl",
+      "raw_rows": 4,
+      "split": "eval",
+      "unique_canonical_finals": 2
+    },
+    "processed_train": {
+      "duplicate_rows_collapsed": 428,
+      "kept_rows": 285,
+      "kind": "messages",
+      "path": "data/processed/train.jsonl",
+      "raw_rows": 713,
+      "split": "train",
+      "unique_canonical_finals": 285
+    },
+    "ralph_dev": {
+      "duplicate_rows_collapsed": 2,
+      "kept_rows": 48,
+      "kind": "ralph",
+      "path": "data/frs_tla_ralph_gen/dev.jsonl",
+      "raw_rows": 50,
+      "split": "eval",
+      "unique_canonical_finals": 50
+    },
+    "ralph_train": {
+      "duplicate_rows_collapsed": 29,
+      "kept_rows": 471,
+      "kind": "ralph",
+      "path": "data/frs_tla_ralph_gen/train.jsonl",
+      "raw_rows": 500,
+      "split": "train",
+      "unique_canonical_finals": 499
+    }
+  },
+  "raw_rows": 2350,
+  "repo": {
+    "default_branch": "main",
+    "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+    "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+    "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+  },
+  "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+}

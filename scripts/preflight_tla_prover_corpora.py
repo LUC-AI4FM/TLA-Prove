@@ -17,6 +17,7 @@ DEFAULT_PATHS = [
     REPO / "data" / "processed" / "tla_prover" / "chattla_tla_prover_sft_v1.jsonl",
     REPO / "data" / "processed" / "prover_eval.jsonl",
     REPO / "data" / "processed" / "formalllm_eval_v1.jsonl",
+    REPO / "data" / "processed" / "ai4fm_public_tlaprove_import_v1.jsonl",
     REPO / "data" / "processed" / "sany_tlc_pass_sft_v1.jsonl",
     REPO / "data" / "processed" / "sany_tlc_pass_eval_v1.jsonl",
 ]
