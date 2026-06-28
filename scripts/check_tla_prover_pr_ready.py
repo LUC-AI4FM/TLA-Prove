@@ -17,6 +17,7 @@ DEFAULT_EXCLUDE_FILES = {"memory.md", "docs/formallm.md"}
 DEFAULT_UNTRACKED_SCAN_PREFIXES = ("scripts/",)
 TRACKED_SHARED_ARTIFACTS = (
     "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
+    "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
     "data/processed/formalllm_eval_v1.summary.json",
     "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
     "outputs/manifests/ai4fm_public_dataset_surface.json",
@@ -36,6 +37,7 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 PY_COMPILE_FILES = [
+    "scripts/build_ai4fm_public_seed_file_manifest.py",
     "scripts/build_ai4fm_public_tlaprove_import.py",
     "scripts/build_ai4fm_public_discovery_manifest.py",
     "scripts/check_tla_prover_pr_ready.py",
@@ -48,6 +50,7 @@ PY_COMPILE_FILES = [
 ]
 
 PYTEST_FILES = [
+    "tests/test_build_ai4fm_public_seed_file_manifest.py",
     "tests/test_build_ai4fm_public_tlaprove_import.py",
     "tests/test_build_ai4fm_public_discovery_manifest.py",
     "tests/test_check_tla_prover_pr_ready.py",

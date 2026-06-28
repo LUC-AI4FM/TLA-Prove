@@ -84,6 +84,28 @@ checked-in loader currently ignores them and only uses `repos`. The summary
 also captures the current repository-search hit counts so we can distinguish the
 public discovery recipe from the larger DVC-backed raw/parsed corpus.
 
+## Public seed repo file manifest
+
+ChatTLA now also materializes the committed public seed-repo lane as:
+
+- `data/processed/ai4fm_public_seed_file_manifest_v1.jsonl`
+- `data/processed/ai4fm_public_seed_file_manifest_v1.summary.json`
+
+Current live summary:
+
+- `11` committed public seed repos
+- `3140` tracked `.tla`, `.cfg`, and `.tlaps` files across those repos
+- `2110` `.tla` files
+- `1030` `.cfg` files
+- largest seed repo surfaces:
+  - `tlaplus/tlaplus`: `1660` tracked files
+  - `tlaplus/Examples`: `634` tracked files
+  - `apalache-mc/apalache`: `608` tracked files
+
+This is the clearest currently committed GitHub lane above the 205-entry
+`FormaLLM` layer: even before the broader DVC-backed crawl, the seed repos
+already expose a multi-thousand-file public formal-spec surface.
+
 ## How ChatTLA should use them
 
 - Treat `FormaLLM` as the canonical public prompt/spec supervision layer.
@@ -91,6 +113,8 @@ public discovery recipe from the larger DVC-backed raw/parsed corpus.
   layer available right now.
 - Treat `ai4fm_public_tlaprove_import_v1` as the normalized ChatTLA-format
   import built from that public corpus stack.
+- Treat `ai4fm_public_seed_file_manifest_v1` as the public GitHub file-level
+  expansion lane already committed in the pipeline seed repos.
 - Treat `ai4fm_public_discovery_manifest_v1` as the public repo-level discovery
   lane we can ingest directly today.
 - Treat `tla-dataset-pipeline` DVC counts as the broader public parsing lane.
@@ -104,6 +128,7 @@ public discovery recipe from the larger DVC-backed raw/parsed corpus.
 ```bash
 python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
 python3 scripts/build_ai4fm_public_tlaprove_import.py
+python3 scripts/build_ai4fm_public_seed_file_manifest.py
 python3 scripts/inspect_ai4fm_public_dataset_surface.py
 python3 scripts/build_ai4fm_public_discovery_manifest.py
 python3 scripts/build_tla_prover_manifest.py
