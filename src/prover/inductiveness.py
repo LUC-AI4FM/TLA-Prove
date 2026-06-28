@@ -289,6 +289,48 @@ def _split_top_level_conjuncts(body: str) -> list[str]:
     return clauses
 
 
+def _normalize_expr(expr: str) -> str:
+    return " ".join(line.strip() for line in expr.splitlines() if line.strip())
+
+
+def _helper_conjunct_name(clause: str) -> str | None:
+    match = re.match(r"^\s*(?:/\\\s*)?([A-Za-z_]\w*)\s*$", clause)
+    return match.group(1) if match else None
+
+
+def _seq_len_upper_bound(
+    module_src: str,
+    clauses: list[str],
+    variable: str,
+    seen_helpers: set[str] | None = None,
+) -> str | None:
+    if seen_helpers is None:
+        seen_helpers = set()
+    patterns = (
+        rf"^\s*(?:/\\\s*)?Len\(\s*{re.escape(variable)}\s*\)\s*<=\s*(.+)$",
+        rf"^\s*(?:/\\\s*)?Len\(\s*{re.escape(variable)}\s*\)\s*\\in\s*0\s*\.\.\s*(.+)$",
+    )
+    for clause in clauses:
+        stripped = clause.strip()
+        for pattern in patterns:
+            match = re.match(pattern, stripped, re.DOTALL)
+            if match:
+                return _normalize_expr(re.sub(r"\s*\\\*.*$", "", match.group(1), flags=re.MULTILINE))
+        helper = _helper_conjunct_name(stripped)
+        if helper and helper not in seen_helpers:
+            body = _operator_body(module_src, helper)
+            if body:
+                bound = _seq_len_upper_bound(
+                    module_src,
+                    _split_top_level_conjuncts(body),
+                    variable,
+                    seen_helpers | {helper},
+                )
+                if bound is not None:
+                    return bound
+    return None
+
+
 def _enumerable_type_bound_expr(module_src: str) -> str | None:
     if not _defines_operator(module_src, _TYPE_BOUND_NAME):
         return None
@@ -296,6 +338,10 @@ def _enumerable_type_bound_expr(module_src: str) -> str | None:
     if not typeok:
         return None
     clauses = _split_top_level_conjuncts(typeok)
+    seq_len_bounds = {
+        variable: _seq_len_upper_bound(module_src, clauses, variable)
+        for variable in _declared_variables(module_src)
+    }
     seen_direct_domains: set[str] = set()
     rewritten: list[str] = []
     declared = _declared_variables(module_src)
@@ -305,18 +351,29 @@ def _enumerable_type_bound_expr(module_src: str) -> str | None:
         for variable in declared:
             if re.search(rf"\b{re.escape(variable)}\b\s*(\\in|=|\\subseteq)", stripped):
                 seen_direct_domains.add(variable)
-                rewritten[-1] = _rewrite_enumerable_clause(variable, stripped)
+                rewritten[-1] = _rewrite_enumerable_clause(variable, stripped, seq_len_bounds.get(variable))
+                if rewritten[-1] is None:
+                    return None
                 break
     if any(variable not in seen_direct_domains for variable in declared):
         return None
     return "\n".join(rewritten)
 
 
-def _rewrite_enumerable_clause(variable: str, clause: str) -> str:
+def _rewrite_enumerable_clause(variable: str, clause: str, seq_len_upper_bound: str | None) -> str | None:
     subseteq = re.search(rf"^\s*/\\\s*{re.escape(variable)}\s*\\subseteq\s*(.+)$", clause, re.MULTILINE)
     if subseteq:
         rhs = " ".join(part.strip() for part in subseteq.group(1).splitlines() if part.strip())
         return f"/\\ {variable} \\in (SUBSET ({rhs}))"
+    seq = re.search(rf"^\s*/\\\s*{re.escape(variable)}\s*\\in\s*Seq\s*\((.+)\)\s*$", clause, re.MULTILINE | re.DOTALL)
+    if seq:
+        if seq_len_upper_bound is None:
+            return None
+        rhs = _normalize_expr(re.sub(r"\s*\\\*.*$", "", seq.group(1), flags=re.MULTILINE))
+        return (
+            f"/\\ {variable} \\in "
+            f"(UNION {{ [1..n -> ({rhs})] : n \\in 0..{seq_len_upper_bound} }})"
+        )
     return clause
 
 

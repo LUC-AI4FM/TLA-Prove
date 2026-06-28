@@ -177,7 +177,7 @@ TypeOK == x \\in
     assert row["sany_errors"] == ["*** Errors: parse failure"]
 
 
-def test_run_one_skips_seq_based_typeok_that_tlc_cannot_enumerate(monkeypatch, tmp_path: Path) -> None:
+def test_run_one_accepts_seq_based_typeok_with_finite_len_guard(monkeypatch, tmp_path: Path) -> None:
     module_path = tmp_path / "SeqBounded.tla"
     module_path.write_text(
         r"""---- MODULE SeqBounded ----
@@ -188,9 +188,9 @@ vars == <<q>>
 Init == q = <<>>
 Next == /\ Len(q) < MaxQueue
         /\ q' = Append(q, Len(q) + 1)
-Spec == Init /\\ [][Next]_vars
-TypeOK == /\\ q \\in Seq(1..MaxQueue)
-          /\\ Len(q) <= MaxQueue
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ q \in Seq(1..MaxQueue)
+          /\ Len(q) <= MaxQueue
 ====
 """,
         encoding="utf-8",
@@ -201,17 +201,18 @@ TypeOK == /\\ q \\in Seq(1..MaxQueue)
         errors = []
         raw_output = "Semantic processing of module SeqBounded"
 
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
     monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
-
-    def fail_check_inductive(*_args, **_kwargs):
-        raise AssertionError("check_inductive should not run for known non-enumerable Seq(TypeOK) shapes")
-
-    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
 
     row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
 
-    assert row["status"] == "skipped"
-    assert row["reason"] == "typeok_uses_unbounded_seq"
+    assert row["status"] == "skeleton_emitted"
 
 
 def test_run_one_skips_typeok_missing_direct_domain_for_variable(monkeypatch, tmp_path: Path) -> None:
@@ -371,6 +372,87 @@ TypeOK == /\ holder \in (Procs \cup {NoHolder})
         valid = True
         errors = []
         raw_output = "Semantic processing of module HelperConjunct"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_seq_domain_when_helper_conjunct_carries_len_bound(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "HelperBoundedSeq.tla"
+    module_path.write_text(
+        r"""---- MODULE HelperBoundedSeq ----
+EXTENDS Naturals, Sequences
+CONSTANTS K, Vals
+VARIABLE queue
+vars == << queue >>
+Init == queue = << >>
+Next == /\ queue' = queue
+Spec == Init /\ [][Next]_vars
+Bounded == /\ Len(queue) \in 0..K
+           /\ \A i \in 1..Len(queue) : queue[i] \in Vals
+TypeOK == /\ queue \in Seq(Vals)
+          /\ Bounded
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module HelperBoundedSeq"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_seq_domain_when_helper_body_starts_without_conjunct_prefix(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "InlineHelperBoundedSeq.tla"
+    module_path.write_text(
+        r"""---- MODULE InlineHelperBoundedSeq ----
+EXTENDS Naturals, Sequences
+CONSTANTS K, Vals
+VARIABLE resident
+vars == << resident >>
+Init == resident = << >>
+Next == /\ resident' = resident
+Spec == Init /\ [][Next]_vars
+Bounded == Len(resident) \in 0..K
+TypeOK == /\ resident \in Seq(Vals)
+          /\ Bounded
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module InlineHelperBoundedSeq"
 
     class Inductive:
         inductive = True
