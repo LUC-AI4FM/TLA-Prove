@@ -23,7 +23,7 @@ MacBook checkout.
 | Public HF corpus dataset readback | `chattla-tla-prover-corpora-v1` latest refresh commit `c76ae1fe6da126a4fb6b0b6a70cf00706e4cd6b7` reports `ok=true`, `checked=30`, `gold=30`, `diamond=29`, `failures=0`, and eval checksum `6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d`. | The local ChainReplication repair is now reflected on the public Hub. |
 | Local handoff status | `python3 scripts/status_tla_prover_handoff.py --no-live --compact` still reports `handoff_paused` because the Mac mini relay is dead. | The current blocker is the transport path, not the prover artifacts. |
 | Local repo vs. Sophia repo | Local branch `codex/tla-prover-artifacts-and-gates` is at `bb8884abdbef78697b51c67eff49df9e69594eb8`; the Sophia checkout is on `claude/goofy-fermat-0e60f7` at `66304dad84b715366c2fc48e0daa323b2b378bc7`, and that remote commit is an ancestor of local HEAD. | Sophia has a usable checkout, but it is stale and missing the latest handoff/corpus state. |
-| Direct Sophia login | One-shot SSH login from the MacBook reached `sophia-login-01` as `eric-spencer` and landed in `/home/eric-spencer`. | Direct access exists now; the relay is no longer the only viable lane. |
+| Direct Sophia login | One-shot SSH login from the MacBook reached `sophia-login-01` as `<user>` and landed in `/home/<user>`. | Direct access exists now; the relay is no longer the only viable lane. |
 | [scripts/sync_macmini_and_submit_known18.sh](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/sync_macmini_and_submit_known18.sh:1) | Current sync path requires `CHATTLA_RELAY_HOST` and a relay-side `SOPHIA_CTL` control socket. | Existing automation does not match the now-available direct login lane. |
 | [scripts/submit_tla_prover_remote_jobs.sh](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/submit_tla_prover_remote_jobs.sh:1) | Once a Sophia checkout is synced, remote preflight and `qsub` submission already exist as a self-contained step. | We do not need new submit logic; only a direct sync/launch path. |
 
@@ -166,7 +166,7 @@ The remaining work is operational polish, not proof correctness:
 - Launch config matched the earlier successful direct lane:
   `EVITA`, `by-gpu`, `select=1:ngpus=1:ncpus=32:mem=120gb`,
   `walltime=03:00:00`, `filesystems=home_fs:grand_fs`,
-  `CHATTLA_TLAPM=/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm`.
+  `CHATTLA_TLAPM=/grand/<ACCOUNT>/<user>/tools/tlaps-1.5.0/bin/tlapm`.
 - Early runtime evidence:
   - `job_state = R`
   - `exec_host = a Sophia GPU node/1*32`
@@ -356,7 +356,7 @@ That rerun is now in flight on Sophia.
   - queue `by-gpu`
   - `exec_host = a Sophia GPU node/2*32`
   - submit used both `#PBS -V` and explicit
-    `-v CHATTLA_TLAPM=/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm`
+    `-v CHATTLA_TLAPM=/grand/<ACCOUNT>/<user>/tools/tlaps-1.5.0/bin/tlapm`
 - Early live evidence from `outputs/autoprover/full_dataset_smoke_161021.jsonl`:
   - later readback: `41` rows after about `00:10:00` walltime
   - statuses `{skipped: 30, tlaps_partial: 6, tlc_error: 4, not_inductive: 1}`
@@ -643,7 +643,7 @@ Current mirrored progress for `161023.sophia-pbs-01.lab.alcf.anl.gov`:
   - `not_inductive = 5`
   - `tlc_error = 10`
 - current derived `next_module_path`:
-  `/home/eric-spencer/ChatTLA/outputs/diamond_gen/memory_caches_work/TricolorGc.tla`
+  `/home/<user>/ChatTLA/outputs/diamond_gen/memory_caches_work/TricolorGc.tla`
 
 Interpretation:
 
@@ -735,7 +735,7 @@ Initial clean-rerun progress snapshot from Sophia:
   - `tlaps_partial = 9`
 - `last_completed_module_path = outputs/diamond_gen/communication_protocols_work/TcpHandshake.tla`
 - `last_completed_status = tlaps_partial`
-- `next_module_path = /home/eric-spencer/ChatTLA/outputs/diamond_gen/communication_protocols_work/TokenRing.tla`
+- `next_module_path = /home/<user>/ChatTLA/outputs/diamond_gen/communication_protocols_work/TokenRing.tla`
 
 Interpretation:
 
@@ -814,7 +814,7 @@ Current remote snapshot materialized from Sophia:
   - `tlaps_partial = 26`
 - `last_completed_module_path = outputs/diamond_gen/concurrency_primitives_work/WaitGroup.tla`
 - `last_completed_status = tlaps_partial`
-- `next_module_path = /home/eric-spencer/ChatTLA/outputs/diamond_gen/concurrency_primitives_work/WorkStealing.tla`
+- `next_module_path = /home/<user>/ChatTLA/outputs/diamond_gen/concurrency_primitives_work/WorkStealing.tla`
 
 Interpretation:
 
@@ -883,7 +883,7 @@ Current snapshot:
   - `tlaps_partial = 27`
 - `last_completed_module_path = outputs/diamond_gen/concurrency_primitives_work/WorkStealing.tla`
 - `last_completed_status = tlaps_partial`
-- `next_module_path = /home/eric-spencer/ChatTLA/outputs/diamond_gen/consensus_election_work/AtomicCommit.tla`
+- `next_module_path = /home/<user>/ChatTLA/outputs/diamond_gen/consensus_election_work/AtomicCommit.tla`
 
 Interpretation:
 
@@ -962,7 +962,7 @@ Current snapshot:
   - `tlaps_partial = 35`
 - `last_completed_module_path = outputs/diamond_gen/consensus_election_work/FastPaxos.tla`
 - `last_completed_status = tlaps_partial`
-- `next_module_path = /home/eric-spencer/ChatTLA/outputs/diamond_gen/consensus_election_work/FloodingConsensus.tla`
+- `next_module_path = /home/<user>/ChatTLA/outputs/diamond_gen/consensus_election_work/FloodingConsensus.tla`
 
 Interpretation:
 
@@ -1049,7 +1049,7 @@ Current snapshot:
   - `tlaps_partial = 43`
 - `last_completed_module_path = outputs/diamond_gen/consensus_election_work/ViewChange.tla`
 - `last_completed_status = tlaps_partial`
-- `next_module_path = /home/eric-spencer/ChatTLA/outputs/diamond_gen/consensus_election_work/VirtualSynchrony.tla`
+- `next_module_path = /home/<user>/ChatTLA/outputs/diamond_gen/consensus_election_work/VirtualSynchrony.tla`
 
 Interpretation:
 
@@ -1114,7 +1114,7 @@ Current snapshot:
   - `tlaps_partial = 52`
 - `last_completed_module_path = outputs/diamond_gen/data_structures_work/Multiset.tla`
 - `last_completed_status = tlaps_partial`
-- `next_module_path = /home/eric-spencer/ChatTLA/outputs/diamond_gen/data_structures_work/PriorityQueue.tla`
+- `next_module_path = /home/<user>/ChatTLA/outputs/diamond_gen/data_structures_work/PriorityQueue.tla`
 
 Interpretation:
 
@@ -1161,7 +1161,7 @@ Current snapshot:
   - `tlaps_partial = 58`
 - `last_completed_module_path = outputs/diamond_gen/memory_caches_work/ArenaAllocator.tla`
 - `last_completed_status = skipped`
-- `next_module_path = /home/eric-spencer/ChatTLA/outputs/diamond_gen/memory_caches_work/BuddyAllocator.tla`
+- `next_module_path = /home/<user>/ChatTLA/outputs/diamond_gen/memory_caches_work/BuddyAllocator.tla`
 
 Interpretation:
 

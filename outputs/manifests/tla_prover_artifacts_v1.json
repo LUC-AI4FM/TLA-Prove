@@ -1,5 +1,13 @@
 {
   "artifacts": {
+    "ai4fm_public_dataset_surface": {
+      "bytes": 1439,
+      "exists": true,
+      "kind": "public_ai4fm_dataset_surface_report",
+      "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
+      "rows": null,
+      "sha256": "08db686287df82869c504e8844fd30010b2018d29a492e6074dc9483c52ed54e"
+    },
     "chattla_tla_prover_sft_v1": {
       "bytes": 5056374,
       "exists": true,
@@ -353,12 +361,12 @@
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_preflight": {
-      "bytes": 5327,
+      "bytes": 5487,
       "exists": true,
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "9b4b6d9d2f13b4b55a149e56a22ba2acba889e949194a8c09125f0cbd291fb94"
+      "sha256": "d0e21ec7744c47866ecca3e9c51f442c2c49bd9a574542858512a8a61da32897"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 104115,
@@ -400,7 +408,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-28T21:39:48.577652+00:00",
+  "generated_at": "2026-06-28T21:48:47.454341+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
@@ -416,6 +424,7 @@
     "handoff_doctor_compact": "python3 scripts/doctor_tla_prover_handoff.py --dry-run --no-live --compact",
     "handoff_status": "python3 scripts/status_tla_prover_handoff.py --live",
     "handoff_status_compact": "python3 scripts/status_tla_prover_handoff.py --no-live --compact",
+    "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
     "install_laptop_handoff_doctor_launchagent": "scripts/install_handoff_doctor_launchagent.sh --interval 300",
     "install_laptop_wait_handoff_launchagent": "CHATTLA_RELAY_HOST=<user@relay-host> scripts/install_wait_handoff_launchagent.sh",
     "known18_launch": "cd ~/ChatTLA && qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs",

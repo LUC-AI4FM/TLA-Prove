@@ -1067,6 +1067,37 @@ Concise significant autoprover findings:
       and
       `python3 scripts/check_tla_prover_pr_ready.py --scan-only --include-untracked-scripts`
       -> `ok: true`
+  - 2026-06-28 broader AI4FM public dataset surface:
+    - new inspection utility:
+      `scripts/inspect_ai4fm_public_dataset_surface.py`
+      with report:
+      `outputs/manifests/ai4fm_public_dataset_surface.json`
+    - current inspected public counts:
+      - `FormaLLM` submodule head `e74c2ed`
+      - `205` canonical metadata entries across `71` families
+      - `191` unique model names
+      - `410` `.tla` files under `data/*/tla/*.tla`
+      - `187` cleaned comment prompt files
+      - `tla-dataset-pipeline` clone head `59bd533`
+      - DVC `pull` surface: `data/raw` with `2628` files
+      - DVC `parse` input snapshot: `data/raw` with `227` files
+      - DVC `parse` output surface: `data/parsed` with `3979` files
+    - practical interpretation:
+      `FormaLLM` remains the canonical public prompt/spec supervision layer,
+      while `tla-dataset-pipeline` is the larger public extraction/parsing lane
+      for future corpus mining rather than a drop-in eval split
+    - repo wiring:
+      `outputs/manifests/tla_prover_artifacts_v1.json` now includes
+      `ai4fm_public_dataset_surface` as a first-class artifact, and
+      `README.md` plus `docs/AI4FM_PUBLIC_DATASET_SURFACE.md` now describe the
+      current public corpus hierarchy
+    - public sanitation follow-up:
+      `docs/GRPO_ACTION_NEXT_RUN_STRATEGY.md` and
+      `docs/TLA_PROVER_2026_06_27_NEXT_MOVE_STRATEGY.md` were normalized from
+      site-specific usernames and `/grand`/`/home` paths to placeholder forms,
+      restoring
+      `python3 scripts/check_tla_prover_pr_ready.py --scan-only --include-untracked-scripts`
+      to `ok: true`
   - 2026-06-28 operator note:
     - do not make further Sophia auth attempts from this shell/session for now
     - repeated failed attempts caused a lockout
