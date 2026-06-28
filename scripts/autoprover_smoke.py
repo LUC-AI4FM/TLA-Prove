@@ -307,6 +307,57 @@ def _split_top_level_conjuncts(body: str) -> list[str]:
     return clauses
 
 
+def _normalize_expr(expr: str) -> str:
+    return " ".join(line.strip() for line in expr.splitlines() if line.strip())
+
+
+def _helper_conjunct_name(clause: str) -> str | None:
+    match = re.match(r"^\s*(?:/\\\s*)?([A-Za-z_]\w*)\s*$", clause)
+    return match.group(1) if match else None
+
+
+def _seq_len_upper_bound(
+    src: str,
+    clauses: list[str],
+    variable: str,
+    seen_helpers: set[str] | None = None,
+) -> str | None:
+    if seen_helpers is None:
+        seen_helpers = set()
+    patterns = (
+        rf"^\s*(?:/\\\s*)?Len\(\s*{re.escape(variable)}\s*\)\s*<=\s*(.+)$",
+        rf"^\s*(?:/\\\s*)?Len\(\s*{re.escape(variable)}\s*\)\s*\\in\s*0\s*\.\.\s*(.+)$",
+    )
+    for clause in clauses:
+        stripped = clause.strip()
+        for pattern in patterns:
+            match = re.match(pattern, stripped, re.DOTALL)
+            if match:
+                return _normalize_expr(re.sub(r"\s*\\\*.*$", "", match.group(1), flags=re.MULTILINE))
+        helper = _helper_conjunct_name(stripped)
+        if helper and helper not in seen_helpers:
+            body = _operator_body(src, helper)
+            if body:
+                bound = _seq_len_upper_bound(
+                    src,
+                    _split_top_level_conjuncts(body),
+                    variable,
+                    seen_helpers | {helper},
+                )
+                if bound is not None:
+                    return bound
+    return None
+
+
+def _has_unbounded_seq_domain(src: str, typeok: str, variable: str, clauses: list[str]) -> bool:
+    match = re.search(
+        rf"^\s*/\\\s*{re.escape(variable)}\s*\\in\s*Seq\s*\((.+)\)\s*$",
+        typeok,
+        re.MULTILINE | re.DOTALL,
+    )
+    return bool(match) and _seq_len_upper_bound(src, clauses, variable) is None
+
+
 def _typeok_init_state_space_too_large(src: str) -> bool:
     typeok = _operator_body(src, "TypeOK")
     if not typeok:
@@ -353,8 +404,10 @@ def _enumerability_issue(src: str) -> str | None:
         return "assume_requires_powerset_constant_cfg"
     if re.search(r"\b(Array|ArrayOfAnyLength)\s*\(", typeok):
         return "typeok_uses_sequence_backed_array_domain"
-    if re.search(r"\\in\s+Seq\s*\(", typeok):
-        return "typeok_uses_unbounded_seq"
+    clauses = _split_top_level_conjuncts(typeok)
+    for variable in _declared_variables(src):
+        if _has_unbounded_seq_domain(src, typeok, variable, clauses):
+            return "typeok_uses_unbounded_seq"
     if re.search(r"\\in\s*\[.*->\s*(Nat|Int)\b", typeok, re.DOTALL):
         return "typeok_function_range_uses_infinite_builtin"
     for variable in _declared_variables(src):
