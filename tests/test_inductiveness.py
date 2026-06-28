@@ -162,3 +162,84 @@ TypeOK == credits \in 0..K /\ CreditInv
     lines = [line.strip() for line in expr.splitlines() if line.strip()]
     assert lines[:2] == [r"/\ credits \in 0..K", r"/\ inflight \in 0..K"]
     assert lines[2] == r"/\ credits + inflight = K"
+
+
+def test_enumerable_type_bound_expr_rewrites_pointwise_function_domain_invariant() -> None:
+    module_src = r"""---- MODULE PointwiseFunction ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME N \in 1..3
+Tasks == 0..(N-1)
+Q == 2
+VARIABLES used, clock
+vars == << used, clock >>
+Init == /\ used = [t \in Tasks |-> 0]
+        /\ clock = 0
+Next == /\ used' = used
+        /\ clock' = clock
+QuotaInv == \A t \in Tasks : used[t] \in 0..Q
+TypeOK == /\ clock \in 0..3
+          /\ QuotaInv
+Spec == Init /\ [][Next]_vars
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ used \in [Tasks -> 0..Q]" in expr
+    assert r"/\ clock \in 0..3" in expr
+
+
+def test_enumerable_type_bound_expr_rewrites_multiple_pointwise_domains_in_one_quantifier() -> None:
+    module_src = r"""---- MODULE PointwiseFunctionConjuncts ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME N \in 1..3
+Tasks == 0..(N-1)
+Levels == 0..2
+VARIABLES level, used, running
+vars == << level, used, running >>
+Init == /\ level = [t \in Tasks |-> 0]
+        /\ used = [t \in Tasks |-> 0]
+        /\ running = N
+Next == /\ level' = level
+        /\ used' = used
+        /\ running' = running
+LevelInv == \A t \in Tasks : level[t] \in Levels /\ used[t] \in 0..1
+TypeOK == /\ running \in Tasks \cup {N}
+          /\ LevelInv
+Spec == Init /\ [][Next]_vars
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ level \in [Tasks -> Levels]" in expr
+    assert r"/\ used \in [Tasks -> 0..1]" in expr
+
+
+def test_enumerable_type_bound_expr_keeps_multiline_top_level_conjuncts_after_quantifier() -> None:
+    module_src = r"""---- MODULE QuantifiedThenPlain ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME N \in 1..3
+Tasks == 0..(N-1)
+VARIABLES used, alarm
+vars == << used, alarm >>
+Init == /\ used = [t \in Tasks |-> 0]
+        /\ alarm = FALSE
+Next == /\ used' = used
+        /\ alarm' = alarm
+TypeOK == /\ \A t \in Tasks : used[t] \in 0..1
+          /\ alarm \in BOOLEAN
+Spec == Init /\ [][Next]_vars
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ used \in [Tasks -> 0..1]" in expr
+    assert r"/\ alarm \in BOOLEAN" in expr

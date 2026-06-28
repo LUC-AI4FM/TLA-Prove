@@ -271,19 +271,33 @@ def _declared_variables(module_src: str) -> list[str]:
 
 
 def _split_top_level_conjuncts(body: str) -> list[str]:
-    filtered = "\n".join(
+    filtered_lines = [
         line for line in body.splitlines() if line.strip() and not line.strip().startswith("\\*")
-    ).strip()
-    if not filtered:
+    ]
+    if not filtered_lines:
         return []
+    chunks: list[str] = []
+    current: list[str] = []
+    previous = ""
+    for line in filtered_lines:
+        stripped = line.strip()
+        if current and stripped.startswith("/\\") and not previous.rstrip().endswith(":"):
+            chunks.append("\n".join(current).strip())
+            current = [line]
+        else:
+            current.append(line)
+        previous = stripped
+    if current:
+        chunks.append("\n".join(current).strip())
     clauses: list[str] = []
-    for part in _split_top_level(filtered, "/\\"):
-        stripped = part.strip()
-        if not stripped:
-            continue
-        if not stripped.startswith("/\\"):
-            stripped = f"/\\ {stripped}"
-        clauses.append(stripped)
+    for chunk in chunks:
+        for part in _split_top_level(chunk, "/\\"):
+            stripped = part.strip()
+            if not stripped:
+                continue
+            if not stripped.startswith("/\\"):
+                stripped = f"/\\ {stripped}"
+            clauses.append(stripped)
     return clauses
 
 
@@ -305,13 +319,26 @@ def _split_top_level(expr: str, token: str) -> list[str]:
     depth_paren = 0
     depth_brace = 0
     depth_bracket = 0
+    quantifier_depths: list[tuple[int, int, int]] = []
+    pending_quantifier = False
     i = 0
     while i < len(expr):
-        if expr.startswith(token, i) and depth_paren == depth_brace == depth_bracket == 0:
+        if (
+            expr.startswith(token, i)
+            and depth_paren == depth_brace == depth_bracket == 0
+            and not quantifier_depths
+        ):
             parts.append("".join(current).strip())
             current = []
             i += len(token)
             continue
+        if expr.startswith("\\A", i) or expr.startswith("\\E", i):
+            prev = expr[i - 1] if i > 0 else ""
+            next_ch = expr[i + 2] if i + 2 < len(expr) else ""
+            if (not prev or not (prev.isalnum() or prev == "_")) and (
+                not next_ch or not (next_ch.isalnum() or next_ch == "_")
+            ):
+                pending_quantifier = True
         ch = expr[i]
         if ch == "(":
             depth_paren += 1
@@ -325,7 +352,20 @@ def _split_top_level(expr: str, token: str) -> list[str]:
             depth_bracket += 1
         elif ch == "]":
             depth_bracket = max(0, depth_bracket - 1)
+        elif ch == ":" and pending_quantifier:
+            quantifier_depths.append((depth_paren, depth_brace, depth_bracket))
+            pending_quantifier = False
         current.append(ch)
+        while quantifier_depths:
+            quant_paren, quant_brace, quant_bracket = quantifier_depths[-1]
+            if (
+                depth_paren < quant_paren
+                or depth_brace < quant_brace
+                or depth_bracket < quant_bracket
+            ):
+                quantifier_depths.pop()
+                continue
+            break
         i += 1
     parts.append("".join(current).strip())
     return [part for part in parts if part]
@@ -467,6 +507,46 @@ def _expand_helper_conjuncts(
     return expanded
 
 
+def _pointwise_function_domain_clauses(clause: str, variables: list[str]) -> list[str]:
+    normalized = clause.strip()
+    match = re.match(
+        rf"^\s*/\\\s*\\A\s+([A-Za-z_]\w*)\s+\\in\s+(.+?)\s*:\s*(.+)$",
+        normalized,
+        re.DOTALL,
+    )
+    if not match:
+        return []
+    domain = _normalize_expr(match.group(2))
+    body = match.group(3)
+    conjuncts = [part.strip() for part in _split_top_level(body, "/\\") if part.strip()]
+    results: list[str] = []
+    binder = match.group(1)
+    for variable in variables:
+        for conjunct in conjuncts:
+            body_match = re.match(
+                rf"^{re.escape(variable)}\[{binder}\]\s*\\in\s*(.+)$",
+                conjunct,
+                re.DOTALL,
+            )
+            if body_match:
+                rng = _normalize_expr(body_match.group(1))
+                results.append(f"/\\ {variable} \\in [{domain} -> {rng}]")
+                break
+    return results
+
+
+def _augment_with_pointwise_function_domains(module_src: str, clauses: list[str]) -> list[str]:
+    declared = _declared_variables(module_src)
+    augmented = list(clauses)
+    seen = set(augmented)
+    for clause in clauses:
+        for rewritten in _pointwise_function_domain_clauses(clause, declared):
+            if rewritten not in seen:
+                augmented.append(rewritten)
+                seen.add(rewritten)
+    return augmented
+
+
 def _seq_len_upper_bound(
     module_src: str,
     clauses: list[str],
@@ -586,21 +666,26 @@ def _enumerable_type_bound_expr(module_src: str) -> str | None:
     typeok = _operator_body(module_src, _TYPE_BOUND_NAME)
     if not typeok:
         return None
-    clauses = _expand_helper_conjuncts(module_src, _split_top_level_conjuncts(typeok))
+    clauses = _augment_with_pointwise_function_domains(
+        module_src, _expand_helper_conjuncts(module_src, _split_top_level_conjuncts(typeok))
+    )
     seq_len_bounds = _seq_len_upper_bounds(module_src, clauses)
     seen_direct_domains: set[str] = set()
     rewritten: list[str] = []
     declared = _declared_variables(module_src)
     for clause in clauses:
         stripped = clause.strip()
-        rewritten.append(stripped)
+        rewritten_clause = stripped
         for variable in declared:
             if re.search(rf"\b{re.escape(variable)}\b\s*(\\in|=|\\subseteq)", stripped):
                 seen_direct_domains.add(variable)
-                rewritten[-1] = _rewrite_enumerable_clause(variable, stripped, seq_len_bounds.get(variable))
-                if rewritten[-1] is None:
+                rewritten_clause = _rewrite_enumerable_clause(
+                    variable, stripped, seq_len_bounds.get(variable)
+                )
+                if rewritten_clause is None:
                     return None
                 break
+        rewritten.append(rewritten_clause)
     if any(variable not in seen_direct_domains for variable in declared):
         return None
     direct_clauses = [clause for clause in rewritten if _is_direct_variable_domain_clause(clause, declared)]

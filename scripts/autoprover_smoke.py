@@ -159,13 +159,26 @@ def _split_top_level(expr: str, token: str) -> list[str]:
     depth_paren = 0
     depth_brace = 0
     depth_bracket = 0
+    quantifier_depths: list[tuple[int, int, int]] = []
+    pending_quantifier = False
     i = 0
     while i < len(expr):
-        if expr.startswith(token, i) and depth_paren == depth_brace == depth_bracket == 0:
+        if (
+            expr.startswith(token, i)
+            and depth_paren == depth_brace == depth_bracket == 0
+            and not quantifier_depths
+        ):
             parts.append("".join(current).strip())
             current = []
             i += len(token)
             continue
+        if expr.startswith("\\A", i) or expr.startswith("\\E", i):
+            prev = expr[i - 1] if i > 0 else ""
+            next_ch = expr[i + 2] if i + 2 < len(expr) else ""
+            if (not prev or not (prev.isalnum() or prev == "_")) and (
+                not next_ch or not (next_ch.isalnum() or next_ch == "_")
+            ):
+                pending_quantifier = True
         ch = expr[i]
         if ch == "(":
             depth_paren += 1
@@ -179,7 +192,20 @@ def _split_top_level(expr: str, token: str) -> list[str]:
             depth_bracket += 1
         elif ch == "]":
             depth_bracket = max(0, depth_bracket - 1)
+        elif ch == ":" and pending_quantifier:
+            quantifier_depths.append((depth_paren, depth_brace, depth_bracket))
+            pending_quantifier = False
         current.append(ch)
+        while quantifier_depths:
+            quant_paren, quant_brace, quant_bracket = quantifier_depths[-1]
+            if (
+                depth_paren < quant_paren
+                or depth_brace < quant_brace
+                or depth_bracket < quant_bracket
+            ):
+                quantifier_depths.pop()
+                continue
+            break
         i += 1
     parts.append("".join(current).strip())
     return [part for part in parts if part]
@@ -289,19 +315,33 @@ def _set_cardinality(expr: str, defs: dict[str, str], seen: set[str] | None = No
 
 
 def _split_top_level_conjuncts(body: str) -> list[str]:
-    filtered = "\n".join(
+    filtered_lines = [
         line for line in body.splitlines() if line.strip() and not line.strip().startswith("\\*")
-    ).strip()
-    if not filtered:
+    ]
+    if not filtered_lines:
         return []
+    chunks: list[str] = []
+    current: list[str] = []
+    previous = ""
+    for line in filtered_lines:
+        stripped = line.strip()
+        if current and stripped.startswith("/\\") and not previous.rstrip().endswith(":"):
+            chunks.append("\n".join(current).strip())
+            current = [line]
+        else:
+            current.append(line)
+        previous = stripped
+    if current:
+        chunks.append("\n".join(current).strip())
     clauses: list[str] = []
-    for part in _split_top_level(filtered, "/\\"):
-        stripped = part.strip()
-        if not stripped:
-            continue
-        if not stripped.startswith("/\\"):
-            stripped = f"/\\ {stripped}"
-        clauses.append(stripped)
+    for chunk in chunks:
+        for part in _split_top_level(chunk, "/\\"):
+            stripped = part.strip()
+            if not stripped:
+                continue
+            if not stripped.startswith("/\\"):
+                stripped = f"/\\ {stripped}"
+            clauses.append(stripped)
     return clauses
 
 
@@ -367,6 +407,44 @@ def _expand_helper_conjuncts(src: str, clauses: list[str], seen_helpers: set[str
     return expanded
 
 
+def _pointwise_function_domain_clauses(clause: str, variables: list[str]) -> list[str]:
+    normalized = clause.strip()
+    match = re.match(
+        rf"^\s*/\\\s*\\A\s+([A-Za-z_]\w*)\s+\\in\s+(.+?)\s*:\s*(.+)$",
+        normalized,
+        re.DOTALL,
+    )
+    if not match:
+        return []
+    domain = _normalize_expr(match.group(2))
+    body = match.group(3)
+    conjuncts = [part.strip() for part in _split_top_level(body, "/\\") if part.strip()]
+    results: list[str] = []
+    binder = match.group(1)
+    for variable in variables:
+        for conjunct in conjuncts:
+            body_match = re.match(
+                rf"^{re.escape(variable)}\[{binder}\]\s*\\in\s*(.+)$",
+                conjunct,
+                re.DOTALL,
+            )
+            if body_match:
+                rng = _normalize_expr(body_match.group(1))
+                results.append(f"/\\ {variable} \\in [{domain} -> {rng}]")
+                break
+    return results
+
+
+def _augment_with_pointwise_function_domains(src: str, clauses: list[str]) -> list[str]:
+    declared = _declared_variables(src)
+    augmented = list(clauses)
+    seen = set(augmented)
+    for clause in clauses:
+        for rewritten in _pointwise_function_domain_clauses(clause, declared):
+            if rewritten not in seen:
+                augmented.append(rewritten)
+                seen.add(rewritten)
+    return augmented
 def _seq_len_upper_bound(
     src: str,
     clauses: list[str],
@@ -496,7 +574,9 @@ def _typeok_init_state_space_too_large(src: str) -> bool:
     typeok = _operator_body(src, "TypeOK")
     if not typeok:
         return False
-    clauses = _expand_helper_conjuncts(src, _split_top_level_conjuncts(typeok))
+    clauses = _augment_with_pointwise_function_domains(
+        src, _expand_helper_conjuncts(src, _split_top_level_conjuncts(typeok))
+    )
     direct_domains: dict[str, tuple[str, str]] = {}
     for clause in clauses:
         stripped = clause.strip()
@@ -538,7 +618,9 @@ def _enumerability_issue(src: str) -> str | None:
         return "assume_requires_powerset_constant_cfg"
     if re.search(r"\b(Array|ArrayOfAnyLength)\s*\(", typeok):
         return "typeok_uses_sequence_backed_array_domain"
-    clauses = _expand_helper_conjuncts(src, _split_top_level_conjuncts(typeok))
+    clauses = _augment_with_pointwise_function_domains(
+        src, _expand_helper_conjuncts(src, _split_top_level_conjuncts(typeok))
+    )
     expanded_text = "\n".join(clauses)
     seq_len_bounds = _seq_len_upper_bounds(src, clauses)
     for variable in _declared_variables(src):
