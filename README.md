@@ -45,20 +45,23 @@ Evaluated on a 30-spec held-out suite with up to 3 self-correction attempts via 
 
 ## Public Datasets
 
-ChatTLA currently uses two public AI4FM-aligned corpus layers:
+ChatTLA currently uses three public AI4FM-aligned corpus layers:
 
 | Layer | Current public surface | Local artifact |
 |------|-------------------------|----------------|
 | `FormaLLM` | 205 canonical prompt/spec entries across 71 families | `data/processed/formalllm_eval_v1.jsonl` |
+| `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories | `data/processed/ai4fm_public_discovery_manifest_v1.jsonl` |
 | `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface | `outputs/manifests/ai4fm_public_dataset_surface.json` |
 
-Rebuild the public dataset surface report with:
+Rebuild the public AI4FM artifacts with:
 
 ```bash
 python3 scripts/inspect_ai4fm_public_dataset_surface.py
+python3 scripts/build_ai4fm_public_discovery_manifest.py
 ```
 
-This writes a machine-readable report with the exact current public counts and source links.
+The discovery manifest needs a local checkout of `LUC-AI4FM/tla-dataset-pipeline`; override it with `--pipeline-repo <path>` if your checkout is not at `/tmp/LUC-AI4FM-tla-dataset-pipeline`.
+The dataset surface report records the broader DVC-backed counts, while the discovery manifest records what the public seed/search recipe actually materializes today.
 
 ---
 

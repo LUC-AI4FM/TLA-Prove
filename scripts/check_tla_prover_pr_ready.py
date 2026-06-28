@@ -15,6 +15,12 @@ DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_pr_ready.json"
 DEFAULT_EXCLUDE_PREFIXES = ("data/", "outputs/")
 DEFAULT_EXCLUDE_FILES = {"memory.md", "docs/formallm.md"}
 DEFAULT_UNTRACKED_SCAN_PREFIXES = ("scripts/",)
+TRACKED_SHARED_ARTIFACTS = (
+    "data/processed/formalllm_eval_v1.summary.json",
+    "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
+    "outputs/manifests/ai4fm_public_dataset_surface.json",
+    "outputs/manifests/tla_prover_artifacts_v1.json",
+)
 
 SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("private_tailscale_or_lan_ip", re.compile(r"\b100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}\b")),
@@ -28,6 +34,7 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 PY_COMPILE_FILES = [
+    "scripts/build_ai4fm_public_discovery_manifest.py",
     "scripts/check_tla_prover_pr_ready.py",
     "scripts/inspect_ai4fm_public_dataset_surface.py",
     "scripts/preflight_tla_prover_remote.py",
@@ -37,6 +44,7 @@ PY_COMPILE_FILES = [
 ]
 
 PYTEST_FILES = [
+    "tests/test_build_ai4fm_public_discovery_manifest.py",
     "tests/test_check_tla_prover_pr_ready.py",
     "tests/test_remote_handoff_script.py",
     "tests/test_collect_tla_prover_remote_results.py",
@@ -67,6 +75,12 @@ def tracked_files(repo: Path = REPO) -> list[Path]:
         if raw.startswith(DEFAULT_EXCLUDE_PREFIXES):
             continue
         paths.append(repo / raw)
+    seen = {path.resolve() for path in paths}
+    for rel in TRACKED_SHARED_ARTIFACTS:
+        path = repo / rel
+        if path.exists() and path.resolve() not in seen:
+            paths.append(path)
+            seen.add(path.resolve())
     return paths
 
 

@@ -6,18 +6,18 @@
     "comment_files": 374,
     "families": 71,
     "git_head": "e74c2ed",
-    "root": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/FormaLLM/data",
+    "root": "data/FormaLLM/data",
     "tla_files": 410,
     "unique_models": 191
   },
-  "generated_at": "2026-06-28T21:48:47.453193+00:00",
+  "generated_at": "2026-06-28T22:03:03.389648+00:00",
   "integration_recommendation": {
     "formalllm_role": "canonical prompt/spec supervised corpus",
     "pipeline_role": "broader public extraction/parsing discovery surface",
-    "recommended_next_step": "Use formalllm_eval_v1 for direct supervised/eval work and treat tla-dataset-pipeline as the next large-source mining lane."
+    "recommended_next_step": "Use formalllm_eval_v1 for direct supervised/eval work, and build ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
   },
   "pipeline": {
-    "dvc_lock": "/tmp/LUC-AI4FM-tla-dataset-pipeline/dvc.lock",
+    "dvc_lock": "LUC-AI4FM-tla-dataset-pipeline/dvc.lock",
     "dvc_lock_present": true,
     "git_head": "59bd533",
     "parse_input": {
@@ -35,7 +35,7 @@
       "path": "data/raw",
       "size": 12034995
     },
-    "repo": "/tmp/LUC-AI4FM-tla-dataset-pipeline"
+    "repo": "LUC-AI4FM-tla-dataset-pipeline"
   },
   "public_sources": {
     "formalllm_repo": "https://github.com/LUC-AI4FM/FormaLLM",

@@ -1,0 +1,63 @@
+{
+  "configured_org_inputs": 7,
+  "configured_user_inputs": 9,
+  "dvc_surface": {
+    "parse_input": {
+      "nfiles": 227,
+      "path": "data/raw",
+      "size": 618486
+    },
+    "parse_output": {
+      "nfiles": 3979,
+      "path": "data/parsed",
+      "size": 22773073
+    },
+    "pull": {
+      "nfiles": 2628,
+      "path": "data/raw",
+      "size": 12034995
+    }
+  },
+  "generated_at": "2026-06-28T22:01:56.671351+00:00",
+  "notes": [
+    "This manifest reflects the pipeline's public seed repo list plus live repository search queries.",
+    "Configured org/user seed lists are preserved for auditability, but the pipeline's checked-in loader currently ignores them.",
+    "The larger DVC-backed raw and parsed corpora are not reproduced here; this artifact captures the public discovery layer only."
+  ],
+  "operational_seed_mode": "repos_only",
+  "pipeline_git_head": "59bd533",
+  "pipeline_repo": "LUC-AI4FM-tla-dataset-pipeline",
+  "query_results_by_query": {
+    "\"EXTENDS\" \"VARIABLES\" extension:tla": {
+      "repository_count": 0,
+      "returned": 0
+    },
+    "\"\\\\* PlusCal\" extension:tla": {
+      "repository_count": 0,
+      "returned": 0
+    },
+    "TLAPS extension:tla": {
+      "repository_count": 0,
+      "returned": 0
+    },
+    "extension:cfg tla": {
+      "repository_count": 0,
+      "returned": 0
+    },
+    "extension:tla": {
+      "repository_count": 7,
+      "returned": 7
+    }
+  },
+  "search_limit": 100,
+  "search_queries": 5,
+  "seed_repo_inputs": 11,
+  "source_schema": "data_contracts/schemas/source_record.schema.json",
+  "unique_repo_records": 18,
+  "zero_result_queries": [
+    "extension:cfg tla",
+    "\"\\\\* PlusCal\" extension:tla",
+    "\"EXTENDS\" \"VARIABLES\" extension:tla",
+    "TLAPS extension:tla"
+  ]
+}
