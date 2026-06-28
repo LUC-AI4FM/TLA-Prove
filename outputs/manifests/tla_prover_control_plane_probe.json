@@ -1,0 +1,7 @@
+{
+  "best_candidate": null,
+  "candidates": [],
+  "error": "No candidates configured. Set CHATTLA_RELAY_HOST, SOPHIA_HOST, CHATTLA_POLARIS_HOST, CHATTLA_AISEC_HOST, or pass --candidate.",
+  "generated_at": "2026-06-27T21:13:08.819173+00:00",
+  "ok": false
+}

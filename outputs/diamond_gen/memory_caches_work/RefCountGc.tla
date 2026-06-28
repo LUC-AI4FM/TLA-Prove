@@ -58,10 +58,12 @@ Spec == Init /\ [][Next]_vars
 \* (1) The root object is never freed.
 \* (2) A freed object has refcount zero.
 RootNeverFreed == ~freed[Root]
+RootHasPositiveRc == rc[Root] > 0
 FreedHasZeroRc == \A o \in Objects : freed[o] => rc[o] = 0
 
 TypeOK == /\ rc    \in [Objects -> 0..MaxRefs]
           /\ freed \in [Objects -> BOOLEAN]
           /\ RootNeverFreed
+          /\ RootHasPositiveRc
           /\ FreedHasZeroRc
 ====

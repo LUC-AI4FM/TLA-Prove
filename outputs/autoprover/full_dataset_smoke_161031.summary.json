@@ -1,0 +1,16 @@
+{
+  "job": "161031",
+  "out": "outputs/autoprover/full_dataset_smoke_161031.jsonl",
+  "rows": 610,
+  "statuses": {
+    "not_inductive": 21,
+    "skipped": 498,
+    "tlaps_partial": 79,
+    "tlc_error": 12
+  },
+  "modules_seen": 383,
+  "tlaps_proved": 0,
+  "tlaps_partial": 79,
+  "tlaps_unproved": 0,
+  "tlaps_parse_error": 0
+}

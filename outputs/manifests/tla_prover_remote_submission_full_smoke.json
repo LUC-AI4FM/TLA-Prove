@@ -1,0 +1,13 @@
+{
+  "error": null,
+  "exit_code": 0,
+  "full_dataset_smoke_job_id": "161023.sophia-pbs-01.lab.alcf.anl.gov",
+  "full_dataset_smoke_pbs": "scripts/qsub_autoprover_full_dataset_smoke.pbs",
+  "full_dataset_smoke_qsub_log": "outputs/logs/tla_prover_full_dataset_smoke_qsub.log",
+  "generated_at": "2026-06-28T01:50:24.120109+00:00",
+  "hostname": "sophia-login-02",
+  "ok": true,
+  "repo": "/home/eric-spencer/ChatTLA",
+  "stage": "submitted",
+  "tlapm": "/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm"
+}

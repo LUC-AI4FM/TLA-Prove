@@ -14,6 +14,7 @@ REPO = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_pr_ready.json"
 DEFAULT_EXCLUDE_PREFIXES = ("data/", "outputs/")
 DEFAULT_EXCLUDE_FILES = {"memory.md", "docs/formallm.md"}
+DEFAULT_UNTRACKED_SCAN_PREFIXES = ("scripts/",)
 
 SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("private_tailscale_or_lan_ip", re.compile(r"\b100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}\b")),
@@ -67,6 +68,31 @@ def tracked_files(repo: Path = REPO) -> list[Path]:
     return paths
 
 
+def readiness_files(repo: Path = REPO, *, include_untracked_scripts: bool = False) -> list[Path]:
+    paths = tracked_files(repo)
+    if not include_untracked_scripts:
+        return paths
+    result = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", *DEFAULT_UNTRACKED_SCAN_PREFIXES],
+        cwd=repo,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    seen = {path.resolve() for path in paths}
+    for raw in result.stdout.splitlines():
+        if raw in DEFAULT_EXCLUDE_FILES:
+            continue
+        if raw.startswith(DEFAULT_EXCLUDE_PREFIXES):
+            continue
+        path = repo / raw
+        resolved = path.resolve()
+        if resolved not in seen:
+            paths.append(path)
+            seen.add(resolved)
+    return paths
+
+
 def scan_files(paths: list[Path]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     for path in paths:
@@ -116,8 +142,13 @@ def run_commands(commands: list[list[str]], *, repo: Path = REPO) -> list[dict[s
     return results
 
 
-def build_report(*, repo: Path = REPO, run_tests: bool = True) -> dict[str, Any]:
-    findings = scan_files(tracked_files(repo))
+def build_report(
+    *,
+    repo: Path = REPO,
+    run_tests: bool = True,
+    include_untracked_scripts: bool = False,
+) -> dict[str, Any]:
+    findings = scan_files(readiness_files(repo, include_untracked_scripts=include_untracked_scripts))
     command_results = run_commands(build_commands(), repo=repo) if run_tests else []
     commands_ok = all(item["returncode"] == 0 for item in command_results)
     return {
@@ -127,6 +158,7 @@ def build_report(*, repo: Path = REPO, run_tests: bool = True) -> dict[str, Any]
         "scan": {
             "ok": not findings,
             "findings": findings,
+            "include_untracked_scripts": include_untracked_scripts,
             "patterns": [name for name, _ in SENSITIVE_PATTERNS],
         },
         "commands": command_results,
@@ -139,9 +171,18 @@ def main() -> int:
     parser.add_argument("--repo", type=Path, default=REPO)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--scan-only", action="store_true")
+    parser.add_argument(
+        "--include-untracked-scripts",
+        action="store_true",
+        help="Also scan untracked files under scripts/ for private/site-specific values.",
+    )
     args = parser.parse_args()
 
-    report = build_report(repo=args.repo, run_tests=not args.scan_only)
+    report = build_report(
+        repo=args.repo,
+        run_tests=not args.scan_only,
+        include_untracked_scripts=args.include_untracked_scripts,
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, sort_keys=True))

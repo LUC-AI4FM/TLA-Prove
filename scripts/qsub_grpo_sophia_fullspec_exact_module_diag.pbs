@@ -1,0 +1,92 @@
+#!/bin/bash
+# Bounded full-spec GRPO retry after phase-1 160343 regressed verifier quality.
+# Uses exact target module names in prompt/reward, lower LR, higher KL, and
+# dense sample logging.
+# Set the project/account at submit time if your site requires one.
+#PBS -q by-gpu
+#PBS -l select=1:ngpus=4:ncpus=128:mem=480gb
+#PBS -l walltime=03:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N grpo_fullspec_exact
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+ARTIFACT_ROOT="${CHATTLA_ARTIFACT_ROOT:-$PBS_O_WORKDIR/outputs/artifacts/fullspec/${PBS_JOBNUM}}"
+LOG_DIR="$ARTIFACT_ROOT/logs"
+OUT="$ARTIFACT_ROOT/checkpoints_grpo_fullspec_phase1_${PBS_JOBNUM}"
+SAMPLES="$LOG_DIR/grpo_fullspec_exact_${PBS_JOBNUM}_samples.jsonl"
+mkdir -p "$LOG_DIR"
+exec > "$LOG_DIR/grpo_fullspec_exact_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export NUMEXPR_MAX_THREADS=128
+export NUMEXPR_NUM_THREADS=32
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export CHATTLA_REWARD_WORKERS=4
+export CHATTLA_REWARD_TLC_TIMEOUT=20
+
+PY="${CHATTLA_PYTHON:-python3}"
+MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "PBS_O_WORKDIR=$PBS_O_WORKDIR"
+echo "MODEL=$MODEL"
+echo "ARTIFACT_ROOT=$ARTIFACT_ROOT"
+echo "OUT=$OUT"
+echo "SAMPLES=$SAMPLES"
+echo "CONTRACT=exact_module"
+
+echo
+echo "===== GPUs ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+
+echo
+echo "===== Python stack ====="
+"$PY" - <<'PY'
+import torch
+import transformers
+import trl
+import peft
+print("torch", torch.__version__, "cuda_available", torch.cuda.is_available(), "n_gpu", torch.cuda.device_count())
+print("transformers", transformers.__version__)
+print("trl", trl.__version__)
+print("peft", peft.__version__)
+PY
+
+echo
+echo "===== Python syntax check ====="
+"$PY" -m py_compile scripts/train_rl_fullspec.py src/rlvr_canary/fullspec_dataset.py src/rlvr_canary/fullspec_reward.py
+
+echo
+echo "===== Full-spec GRPO exact-module diagnostic ====="
+"$PY" -u -m scripts.train_rl_fullspec \
+  --model "$MODEL" \
+  --output-dir "$OUT" \
+  --max-steps 30 \
+  --num-generations 4 \
+  --max-completion-length 1024 \
+  --save-steps 10 \
+  --learning-rate 7.5e-7 \
+  --beta 0.08 \
+  --temperature 0.35 \
+  --chat-template-reasoning-effort none \
+  --sample-log-path "$SAMPLES" \
+  --sample-log-every 1 \
+  --sample-log-limit 8
+
+echo
+echo "===== full-spec exact-module diagnostic done ====="
+date
+echo "OUT=$OUT"
+echo "samples=$SAMPLES"

@@ -73,6 +73,10 @@ TypeOK ==
     /\ pc     \in [Procs -> {"ncs","wait","cs"}]
     /\ role   \in [Procs -> {"reader","writer"}]
     /\ number \in [Procs -> 0..MaxNum]
+    /\ \A i \in Procs : (pc[i] \in {"wait", "cs"}) => number[i] # 0
+    /\ \A i, j \in Procs :
+         (i # j /\ pc[i] = "cs" /\ role[i] = "writer" /\ pc[j] = "wait") =>
+            LessEq(number[i], i, number[j], j)
     /\ \A i, j \in Procs :
          (i # j /\ pc[i] = "cs" /\ pc[j] = "cs") =>
             (role[i] = "reader" /\ role[j] = "reader")

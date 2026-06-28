@@ -50,7 +50,7 @@ Next == \/ Issue \/ UseToken \/ Expire \/ Tick \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* A successful reset consumed an unexpired, previously issued token.
-SafetyInvariant == ((status = "reset_done") => (ever_issued /\ token_used)) /\ (token_used => ever_issued) /\ ((status = "expired") => ever_issued)
+SafetyInvariant == ((status = "token_issued") => ever_issued) /\ ((status = "reset_done") => (ever_issued /\ token_used)) /\ (token_used => ever_issued) /\ ((status = "expired") => ever_issued)
 
 TypeOK == /\ status \in States
           /\ issued_at \in 0..MaxTime

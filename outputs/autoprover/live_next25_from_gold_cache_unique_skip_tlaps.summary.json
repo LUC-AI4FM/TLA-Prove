@@ -1,0 +1,44 @@
+{
+  "rows": 25,
+  "statuses": {
+    "skeleton_emitted": 5,
+    "skipped": 17,
+    "tlc_error": 3
+  },
+  "skip_reasons": {
+    "missing_init_next_spec_typeok_vars": 13,
+    "typeok_uses_unbounded_seq": 2,
+    "typeok_infinite_builtin_domain_counter": 1,
+    "typeok_infinite_builtin_domain_time": 1
+  },
+  "source_prefixes": {
+    "('outputs', 'materialized_tla')": 25
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {
+    "tlc_error_no_conclusive_result": 3
+  },
+  "tlc_error_samples": {
+    "tlc_error_no_conclusive_result": [
+      {
+        "module": "BoundedRetransmissionProtocol",
+        "module_path": "outputs/materialized_tla/gold_cache/BoundedRetransmissionProtocol.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      },
+      {
+        "module": "Elevator",
+        "module_path": "outputs/materialized_tla/gold_cache/Elevator.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      },
+      {
+        "module": "LamportsBakeryAlgorithm",
+        "module_path": "outputs/materialized_tla/gold_cache/LamportsBakeryAlgorithm.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      }
+    ]
+  },
+  "tlaps_by_status": {}
+}

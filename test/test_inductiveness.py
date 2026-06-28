@@ -13,7 +13,13 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-from src.prover.inductiveness import check_inductive, InductivenessResult  # noqa: E402
+from src.prover.inductiveness import (  # noqa: E402
+    InductivenessResult,
+    _build_cfg,
+    _inject_ind_init,
+    _rewrite_enumerable_clause,
+    check_inductive,
+)
 
 
 # A tiny bounded module: x cycles 0->1->2->3->0 via a mod-4 increment.
@@ -50,6 +56,24 @@ this is not valid TLA+ @@@ ???
 ================================
 """
 
+_HELPER_TYPEOK = """\
+---- MODULE HelperTypeOK ----
+EXTENDS Naturals, FiniteSets
+Procs == {"p1", "p2"}
+NoHolder == "none"
+VARIABLES holder, waiters
+vars == << holder, waiters >>
+Init == /\\ holder = NoHolder
+        /\\ waiters = {}
+Next == UNCHANGED vars
+MutexSafe == /\\ (holder = NoHolder) \\/ (holder \\in Procs)
+             /\\ holder \\notin waiters
+TypeOK == /\\ holder \\in (Procs \\cup {NoHolder})
+          /\\ waiters \\subseteq Procs
+          /\\ MutexSafe
+================================
+"""
+
 
 def test_typeok_is_inductive():
     """Case A: TypeOK (x in 0..3) is preserved by the mod-4 increment."""
@@ -77,3 +101,33 @@ def test_parse_error_reports_error():
     assert result.inductive is False
     assert result.error is not None
     assert result.error.strip() != ""
+
+
+def test_inductiveness_cfg_disables_deadlock_checking():
+    cfg = _build_cfg("TypeOK", "TypeOK", _BOUNDED_COUNTER)
+
+    assert "CHECK_DEADLOCK FALSE" in cfg
+
+
+def test_typeok_with_helper_conjunct_is_still_enumerable():
+    result = check_inductive(_HELPER_TYPEOK, "TypeOK")
+
+    assert isinstance(result, InductivenessResult)
+    assert result.error is None, f"unexpected tooling error: {result.error}"
+    assert result.inductive is True
+
+
+def test_injected_ind_init_preserves_continuation_indentation():
+    proof_module = _inject_ind_init(
+        _BOUNDED_COUNTER,
+        "/\\ holder \\in 0..2\n         /\\ \\A s, t \\in 0..2 :\n              (s = t) => TRUE",
+    )
+
+    assert "IndInit_ChatTLA ==\n" in proof_module
+    assert "             (s = t) => TRUE" in proof_module
+
+
+def test_subseteq_clause_rewrite_parenthesizes_interval_rhs():
+    clause = _rewrite_enumerable_clause("req", "/\\ req \\subseteq 1..N")
+
+    assert clause == "/\\ req \\in (SUBSET (1..N))"

@@ -1,0 +1,66 @@
+model,benchmark_id,name,domain,difficulty,sany_pass,tlc_pass,structural_score,tlc_tier,runtime_s,generated_spec,init_present,next_present,init_level_ok,next_level_ok,invariants_declared,tlc_depth1_ok,partial_credit,expected_invariant_overlap,plan_used
+chattla:20b-fc128best,BM003,Dining Philosophers,scheduling,2,0,0,1.0,bronze,14.67,"---- MODULE DiningPhilosophers ----
+
+EXTENDS Naturals, FiniteSets, Integers
+
+CONSTANTS NumPHILOS
+VARIABLES 
+    philState ,     \\ State per philosopher: {Thinking,Hungry,Eating}, forkOwner, neighbor
+    forkOwner      \\ Owner per fork: -1 means free, otherwise index of owning philosopher
+
+(* ------------------------------------------------------------------ *)
+\* Define constants for readability
+THINKING == 0
+HUNGRY   == 1
+EATING   == 2
+
+LEFT(i)  == IF i = 0 THEN NumPHILOS-1 ELSE i-1          (* left neighbor's fork index *)
+RIGHT(i) == (i + 1) % NumPHILOS                        (* right neighbor's fork index *)
+
+vars == <<philState,forkOwner>>
+
+(* ------------------------------------------------------------------ *)
+TypeOK ==
+    \A p \in 0..NumPHILOS-1 :
+        philState[p] \in { THINKING, HUNGRY, EATING } /\
+    \A f \in 0..NumPHILOS-1 : forkOwner[f] \in (-1 .. NumPHILOS-1)
+
+Init ==
+    /\ philState' = [p \in 0..NumPHILOS-1 |-> THINKING]
+    /\ forkOwner' = [f \in 0..NumPHILOS-1 |-> -1]
+
+Next ==
+    \/ (\A p \in 0..NumPHILOS-1:
+            /* Philosopher starts thinking */
+           (philState[p]=THINKING)
+         -> 
+             /\ philState'[p] = THINKING
+             /\ UNCHANGED <<forkOwner>> )
+
+    \/ (\A p \in 0..NumPHILOS-1:
+            /* Philosopher becomes hungry and tries to pick up forks if both are free */
+          (philState[p]=HUNGRY)
+       /\ forkOwner[LEFT(p)]=-1
+       /\ forkOwner[RIGHT(p)]=-1
+      ->
+              /\ philState'[p]   = EATING
+              /\ forkOwner'[ LEFT(p)]   = p
+              /\ forkOwner'[ RIGHT(p)]  = p
+              /\ UNCHANGED <<(FORALL q != p: philState[q])>>
+        )
+
+    \/ (\A p \in 0..NumPHILOS-1:
+            /* Philosopher finishes eating, puts down forks */
+          (philState[p]=EATING)
+     ->
+               /\ philState'[p]   = THINKING
+               /\ forkOwner' [LEFT(p)]   = -1
+               /\ forkOwner' [RIGHT(p)]  = -1
+               /\ UNCHANGED <<(FORALL q != p : philState[q])>>
+
+           ) 
+
+(* ------------------------------------------------------------------ *)
+Spec == Init /\ []Next
+
+====",0,0,0,0,0,0,0.0,1,0

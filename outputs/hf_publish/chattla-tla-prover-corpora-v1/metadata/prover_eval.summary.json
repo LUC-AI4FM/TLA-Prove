@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-06-27T15:55:09.560446+00:00",
+  "invalid_modules": [],
+  "jsonl_sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
+  "kept_rows": 18,
+  "modules": [
+    "AtomicCommit",
+    "AtomicRegister",
+    "ByzantineQuorum",
+    "CircuitBreaker",
+    "DistributedLock",
+    "EventCount",
+    "HeartbeatFailureDetector",
+    "IdempotencyKey",
+    "LeaderLease",
+    "ResourceLease",
+    "RetryWithBackoff",
+    "RoundRobinScheduler",
+    "SleepingBarber",
+    "SzymanskiMutex",
+    "TokenRing",
+    "TwoPhaseLockingDeadlock",
+    "VotingMajority",
+    "WitnessReplication"
+  ],
+  "obligations_proved": 299,
+  "obligations_total": 299,
+  "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/prover_eval.jsonl",
+  "skipped_invalid": 0,
+  "skipped_unverified": 0,
+  "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+  "source_rows": 18
+}

@@ -69,6 +69,12 @@ TypeOK ==
     /\ pc       \in [Procs -> {"ncs","choose","wait","cs"}]
     /\ choosing \in [Procs -> BOOLEAN]
     /\ number   \in [Procs -> 0..MaxNum]
+    /\ \A i \in Procs : (pc[i] = "choose") => choosing[i]
+    /\ \A i \in Procs :
+         (pc[i] \in {"wait", "cs"}) => (~choosing[i] /\ number[i] # 0)
+    /\ \A i, j \in Procs :
+         (i # j /\ pc[i] \in {"wait", "cs"} /\ pc[j] = "cs") =>
+            LessEq(number[j], j, number[i], i)
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 
 \* Bound numbers so TLC explores a finite state space.

@@ -52,6 +52,7 @@ TicketSafe == /\ Cardinality(Holders) <= 1
               /\ \A p, q \in Procs :
                     (p # q /\ ticket[p] # 0 /\ ticket[q] # 0)
                        => ticket[p] # ticket[q]
+              /\ \A p \in Procs : (ticket[p] # 0) => (ticket[p] <= next_ticket)
 
 TypeOK == /\ next_ticket \in 0..MaxTicket
           /\ now_serving \in 0..MaxTicket

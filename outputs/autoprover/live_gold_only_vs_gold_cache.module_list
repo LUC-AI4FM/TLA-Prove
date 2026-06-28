@@ -1,0 +1,6 @@
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold/CircularBuffer.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold/DistLock.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold/PetersonsAlgorithm.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold/PrimaryBackup.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold/RaftLeaderElection.tla
+/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold/SimpleCommit.tla

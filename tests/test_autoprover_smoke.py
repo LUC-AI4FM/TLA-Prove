@@ -10,7 +10,7 @@ vars == <<x>>
 Init == x = 0
 Next == x' = x + 1
 Spec == Init /\\ [][Next]_vars
-TypeOK == x \\in Nat
+TypeOK == x \\in 0..3
 ====
 """
 
@@ -47,6 +47,12 @@ def test_discover_module_list_treats_repo_relative_paths_as_repo_relative(tmp_pa
     assert paths == [(smoke.REPO / "scripts" / "autoprover_smoke.py").resolve()]
 
 
+def test_default_globs_include_materialized_tla_fallback() -> None:
+    globs = smoke._default_globs()
+
+    assert str(smoke.REPO / "outputs" / "materialized_tla" / "tla_descriptions" / "*.tla") in globs
+
+
 def test_run_one_validates_temp_file_with_matching_module_name(monkeypatch, tmp_path: Path) -> None:
     module_path = tmp_path / "Mini.tla"
     module_path.write_text(MINI_MODULE, encoding="utf-8")
@@ -65,8 +71,14 @@ def test_run_one_validates_temp_file_with_matching_module_name(monkeypatch, tmp_
         errors = []
         raw_output = "[INFO]: All 1 obligation proved."
 
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module Mini"
+
     seen: dict[str, str] = {}
 
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
     monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
     monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
     monkeypatch.setattr(smoke, "_tlapm_path", lambda: "/bin/true")
@@ -76,9 +88,617 @@ def test_run_one_validates_temp_file_with_matching_module_name(monkeypatch, tmp_
         seen["header"] = content.splitlines()[0]
         return Tlaps()
 
-    monkeypatch.setattr(smoke, "validate_string", fake_validate_string)
+    monkeypatch.setattr(smoke, "validate_tlaps_string", fake_validate_string)
 
     row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=True)
 
     assert row["status"] == "tlaps_proved"
     assert seen == {"module_name": "Mini", "header": "---- MODULE Mini ----"}
+
+
+def test_run_one_skips_known_tlaps_tuple_binder_parse_incompatibility(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "TupleBinder.tla"
+    module_path.write_text(
+        """---- MODULE TupleBinder ----
+EXTENDS Naturals
+VARIABLE grid
+vars == grid
+TypeOK == grid \\in [1..3 -> BOOLEAN]
+sc[<<x, y>> \\in (0 .. 3) \\X (0 .. 3)] == 0
+Init == grid \\in [1..3 -> BOOLEAN]
+Next == grid' = grid
+Spec == Init /\\ [][Next]_vars
+====
+""",
+        encoding="utf-8",
+    )
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module TupleBinder"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "_tlapm_path", lambda: "/bin/true")
+
+    called = {"validate": False}
+
+    def fail_validate(*_args, **_kwargs):
+        called["validate"] = True
+        raise AssertionError("validate_string should not be called for known parser-incompatible syntax")
+
+    monkeypatch.setattr(smoke, "validate_tlaps_string", fail_validate)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=True)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "tlaps_tuple_binder_parse_incompatible"
+    assert called["validate"] is False
+
+
+def test_run_one_skips_sany_invalid_candidate_before_tlc(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "BrokenSyntax.tla"
+    module_path.write_text(
+        """---- MODULE BrokenSyntax ----
+EXTENDS Naturals
+VARIABLE x
+vars == <<x>>
+Init == x = 0
+Next == x' = x + 1
+Spec == Init /\\ [][Next]_vars
+TypeOK == x \\in
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = False
+        errors = ["*** Errors: parse failure"]
+        raw_output = "*** Errors: parse failure"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult(), raising=False)
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run after SANY rejection")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=True)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "sany_parse_or_semantic_invalid"
+    assert row["sany_errors"] == ["*** Errors: parse failure"]
+
+
+def test_run_one_skips_seq_based_typeok_that_tlc_cannot_enumerate(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "SeqBounded.tla"
+    module_path.write_text(
+        r"""---- MODULE SeqBounded ----
+EXTENDS Naturals, Sequences
+CONSTANTS MaxQueue
+VARIABLES q
+vars == <<q>>
+Init == q = <<>>
+Next == /\ Len(q) < MaxQueue
+        /\ q' = Append(q, Len(q) + 1)
+Spec == Init /\\ [][Next]_vars
+TypeOK == /\\ q \\in Seq(1..MaxQueue)
+          /\\ Len(q) <= MaxQueue
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module SeqBounded"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run for known non-enumerable Seq(TypeOK) shapes")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "typeok_uses_unbounded_seq"
+
+
+def test_run_one_skips_typeok_missing_direct_domain_for_variable(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "MissingDomain.tla"
+    module_path.write_text(
+        r"""---- MODULE MissingDomain ----
+EXTENDS Naturals, Sequences
+VARIABLES seq, broadcast, delivered
+vars == << seq, broadcast, delivered >>
+Init == /\ seq = 0
+        /\ broadcast = << >>
+        /\ delivered = 0
+Next == /\ seq < 3
+        /\ seq' = seq + 1
+        /\ broadcast' = Append(broadcast, seq + 1)
+        /\ delivered' = delivered
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ seq \in 0..3
+          /\ Len(broadcast) = seq
+          /\ \A i \in 1..Len(broadcast) : broadcast[i] = i
+          /\ delivered \in 0..3
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module MissingDomain"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run when a TypeOK variable lacks a direct domain")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=True)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "typeok_missing_variable_domain_broadcast"
+
+
+def test_run_one_accepts_finite_subseteq_variable_domains(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "FiniteSubset.tla"
+    module_path.write_text(
+        r"""---- MODULE FiniteSubset ----
+EXTENDS Naturals, FiniteSets
+Vals == 0..2
+VARIABLES idx, inflight, acks
+vars == << idx, inflight, acks >>
+Init == /\ idx = 0
+        /\ inflight = {}
+        /\ acks = {}
+Next == /\ idx < 2
+        /\ idx' = idx + 1
+        /\ inflight' = inflight \cup {idx}
+        /\ acks' = acks
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ idx \in 0..2
+          /\ inflight \subseteq Vals
+          /\ acks \subseteq {0, 1}
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module FiniteSubset"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_subset_constructor_in_direct_variable_domain(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "SubsetRange.tla"
+    module_path.write_text(
+        r"""---- MODULE SubsetRange ----
+EXTENDS Naturals, FiniteSets
+Nodes == 1..3
+Vals == {"v0", "v1"}
+VARIABLES sigs, round
+vars == << sigs, round >>
+Init == /\ sigs = [v \in Vals |-> {}]
+        /\ round = 0
+Next == /\ round < 2
+        /\ sigs' = [sigs EXCEPT !["v0"] = @ \cup {1}]
+        /\ round' = round + 1
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ sigs \in [Vals -> SUBSET Nodes]
+          /\ round \in 0..2
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module SubsetRange"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_helper_conjunct_when_variables_have_direct_domains(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "HelperConjunct.tla"
+    module_path.write_text(
+        r"""---- MODULE HelperConjunct ----
+EXTENDS Naturals, FiniteSets
+Procs == {"p1", "p2"}
+NoHolder == "none"
+VARIABLES holder, waiters
+vars == << holder, waiters >>
+Init == /\ holder = NoHolder
+        /\ waiters = {}
+Next == /\ holder = NoHolder
+        /\ holder' = "p1"
+        /\ waiters' = waiters
+Spec == Init /\ [][Next]_vars
+MutexSafe == /\ (holder = NoHolder) \/ (holder \in Procs)
+             /\ holder \notin waiters
+TypeOK == /\ holder \in (Procs \cup {NoHolder})
+          /\ waiters \subseteq Procs
+          /\ MutexSafe
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module HelperConjunct"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_multiline_variables_block_still_checks_missing_direct_domain(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "MultiVars.tla"
+    module_path.write_text(
+        r"""---- MODULE MultiVars ----
+EXTENDS Naturals, Sequences, FiniteSets
+Vals == 0..2
+VARIABLES
+    sBit,
+    delivered,
+    msgChan
+vars == << sBit, delivered, msgChan >>
+Init == /\ sBit = 0
+        /\ delivered = << >>
+        /\ msgChan = {}
+Next == /\ sBit' = sBit
+        /\ delivered' = delivered
+        /\ msgChan' = msgChan
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ sBit \in {0, 1}
+          /\ msgChan \subseteq ({0,1} \X Vals)
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module MultiVars"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run when multiline VARIABLES still leave a direct domain missing")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "typeok_missing_variable_domain_delivered"
+
+
+def test_run_one_skips_infinite_builtin_direct_domain(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "InfiniteNat.tla"
+    module_path.write_text(
+        r"""---- MODULE InfiniteNat ----
+EXTENDS Naturals
+VARIABLES head, tail
+vars == << head, tail >>
+Init == /\ head = 0
+        /\ tail = 0
+Next == /\ head' = head
+        /\ tail' = tail
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ head \in Nat
+          /\ tail \in Nat
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module InfiniteNat"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run for obviously infinite Nat direct domains")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "typeok_infinite_builtin_domain_head"
+
+
+def test_run_one_skips_function_domain_with_infinite_builtin_range(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "InfiniteFunctionRange.tla"
+    module_path.write_text(
+        r"""---- MODULE InfiniteFunctionRange ----
+EXTENDS Naturals
+Procs == {"p1", "p2"}
+VARIABLES num, flag
+vars == << num, flag >>
+Init == /\ num = [i \in Procs |-> 0]
+        /\ flag = [i \in Procs |-> FALSE]
+Next == /\ num' = num
+        /\ flag' = flag
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ num \in [Procs -> Nat]
+          /\ flag \in [Procs -> BOOLEAN]
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module InfiniteFunctionRange"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run for function ranges over infinite builtins")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "typeok_function_range_uses_infinite_builtin"
+
+
+def test_run_one_skips_finite_but_astronomical_typeok_state_space(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "HugeFinite.tla"
+    module_path.write_text(
+        r"""---- MODULE HugeFinite ----
+EXTENDS Naturals, FiniteSets
+Procs == {0, 1}
+MaxMsgs == 2
+VARIABLES vc, channel, sentCount
+vars == << vc, channel, sentCount >>
+Init == /\ vc = [p \in Procs |-> [q \in Procs |-> 0]]
+        /\ channel = {}
+        /\ sentCount = [p \in Procs |-> 0]
+Next == /\ vc' = vc
+        /\ channel' = channel
+        /\ sentCount' = sentCount
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ vc \in [Procs -> [Procs -> 0..MaxMsgs]]
+          /\ sentCount \in [Procs -> 0..MaxMsgs]
+          /\ channel \subseteq (Procs \X [Procs -> 0..MaxMsgs])
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module HugeFinite"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run for obviously enormous but finite INIT state spaces")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "typeok_init_state_space_too_large"
+
+
+def test_run_one_allows_moderate_finite_typeok_state_space(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "ModerateFinite.tla"
+    module_path.write_text(
+        r"""---- MODULE ModerateFinite ----
+EXTENDS Naturals, FiniteSets
+Nodes == {1, 2, 3}
+Values == {1, 2, 3}
+MaxRound == 2
+VARIABLES known, alive, round, decision
+vars == << known, alive, round, decision >>
+Init == /\ known = [n \in Nodes |-> {n}]
+        /\ alive = [n \in Nodes |-> TRUE]
+        /\ round = 0
+        /\ decision = [n \in Nodes |-> 0]
+Next == /\ known' = known
+        /\ alive' = alive
+        /\ round' = round
+        /\ decision' = decision
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ known \in [Nodes -> SUBSET Values]
+          /\ alive \in [Nodes -> BOOLEAN]
+          /\ round \in 0..MaxRound
+          /\ decision \in [Nodes -> 0..3]
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module ModerateFinite"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_skips_modules_requiring_structured_constant_cfg(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "FunctionConstant.tla"
+    module_path.write_text(
+        r"""---- MODULE FunctionConstant ----
+EXTENDS Naturals
+CONSTANT Node, Capacity
+ASSUME Capacity \in [Node -> Nat]
+VARIABLE x
+vars == <<x>>
+Init == x = 0
+Next == UNCHANGED x
+Spec == Init /\ [][Next]_vars
+TypeOK == x \in 0..1
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module FunctionConstant"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run for structured-constant cfg cases")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=True)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "assume_requires_function_constant_cfg"
+
+
+def test_run_one_skips_sequence_backed_array_domains(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "ArrayBacked.tla"
+    module_path.write_text(
+        r"""---- MODULE ArrayBacked ----
+EXTENDS Naturals
+CONSTANTS BuffSz, SymbolOrArbitrary
+VARIABLE file_content
+vars == <<file_content>>
+ArrayOfAnyLength(T) == [length : Nat, elems : Seq(T)]
+Init == file_content = [length |-> 0, elems |-> <<>>]
+Next == UNCHANGED file_content
+Spec == Init /\ [][Next]_vars
+TypeOK == file_content \in ArrayOfAnyLength(SymbolOrArbitrary)
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module ArrayBacked"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run for sequence-backed array domains")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=True)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "typeok_uses_sequence_backed_array_domain"
+
+
+def test_progress_summary_counts_rows_modules_and_statuses() -> None:
+    rows = [
+        {"module": "A", "status": "skipped"},
+        {"module": "B", "status": "tlaps_partial"},
+        {"module": "C", "status": "tlc_error"},
+        {"module": "B", "status": "tlaps_partial"},
+    ]
+
+    summary = smoke.progress_summary(rows, job_id="170004.sophia-pbs-01")
+
+    assert summary["job_id"] == "170004.sophia-pbs-01"
+    assert summary["rows_so_far"] == 4
+    assert summary["modules_seen"] == 3
+    assert summary["statuses"] == {
+        "skipped": 1,
+        "tlaps_partial": 2,
+        "tlc_error": 1,
+    }
+
+
+def test_progress_summary_carries_last_and_next_module_paths() -> None:
+    rows = [
+        {"module": "A", "module_path": "/tmp/A.tla", "status": "skipped"},
+        {"module": "B", "module_path": "/tmp/B.tla", "status": "tlaps_partial"},
+    ]
+
+    summary = smoke.progress_summary(
+        rows,
+        job_id="170004.sophia-pbs-01",
+        discovered_paths=[Path("/tmp/A.tla"), Path("/tmp/B.tla"), Path("/tmp/C.tla")],
+    )
+
+    assert summary["last_completed_module_path"] == "/tmp/B.tla"
+    assert summary["last_completed_status"] == "tlaps_partial"
+    assert summary["next_module_path"] == "/tmp/C.tla"

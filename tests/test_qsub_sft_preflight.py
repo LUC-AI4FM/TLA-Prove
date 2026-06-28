@@ -19,4 +19,6 @@ def test_sft_preflight_uses_new_prover_corpus_and_safe_bounds() -> None:
     assert "CHATTLA_BASE_MODEL" in text
     assert "EricSpencer00/chattla-20b" in text
     assert "HF_HUB_OFFLINE=1" in text
+    assert "MLFLOW_TRACKING_URI" in text
+    assert "MLFLOW_ALLOW_FILE_STORE" in text
     assert "startup/data/VRAM/TLAPS-eval preflight" in text

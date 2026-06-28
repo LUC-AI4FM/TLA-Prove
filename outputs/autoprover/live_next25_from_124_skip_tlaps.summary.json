@@ -1,0 +1,48 @@
+{
+  "rows": 25,
+  "statuses": {
+    "skeleton_emitted": 10,
+    "skipped": 13,
+    "tlc_error": 2
+  },
+  "skip_reasons": {
+    "typeok_uses_unbounded_seq": 2,
+    "typeok_init_state_space_too_large": 2,
+    "missing_typeok_body": 2,
+    "typeok_infinite_builtin_domain_moves": 1,
+    "typeok_infinite_builtin_domain_big": 1,
+    "typeok_missing_variable_domain_inflight": 1,
+    "typeok_missing_variable_domain_alloc": 1,
+    "typeok_missing_variable_domain_used": 1,
+    "typeok_missing_variable_domain_dl": 1,
+    "typeok_missing_variable_domain_waitsFor": 1
+  },
+  "source_prefixes": {
+    "('outputs', 'diamond_gen')": 25
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {
+    "tlc_error_no_conclusive_result": 1,
+    "tlc_error_missing_identifier:table": 1
+  },
+  "tlc_error_samples": {
+    "tlc_error_no_conclusive_result": [
+      {
+        "module": "TowersOfHanoi",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/TowersOfHanoi.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      }
+    ],
+    "tlc_error_missing_identifier:table": [
+      {
+        "module": "CigaretteSmokers",
+        "module_path": "outputs/diamond_gen/scheduling_resources_work/CigaretteSmokers.tla",
+        "tlc_error": "Error: In evaluation, the identifier table is either undefined or not an operator.\nError: The error occurred when TLC was evaluating the nested"
+      }
+    ]
+  },
+  "tlaps_by_status": {}
+}

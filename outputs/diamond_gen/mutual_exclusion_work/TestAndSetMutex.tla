@@ -51,5 +51,6 @@ Spec == Init /\ [][Next]_vars
 TypeOK ==
     /\ pc   \in [Procs -> {"ncs","tas","cs"}]
     /\ lock \in BOOLEAN
+    /\ (\E i \in Procs : pc[i] = "cs") => lock
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

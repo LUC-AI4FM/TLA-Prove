@@ -155,6 +155,8 @@ def publish(
     version_override: int | None = None,
     require_fresh_full_benchmark_hours: float | None = None,
     upload_merged_model: bool = False,
+    gguf_dir: Path | str | None = None,
+    merged_model_dir: Path | str | None = None,
 ) -> int | None:
     """
     Upload artifacts. Returns new version number on success, None on skip/failure.
@@ -165,7 +167,9 @@ def publish(
         print("[publish_hf] ERROR: pip install huggingface_hub", file=sys.stderr)
         return None
 
-    gguf_local = _GGUF_DIR / f"chattla-20b-{quant}.gguf"
+    local_gguf_dir = Path(gguf_dir or os.environ.get("CHATTLA_GGUF_DIR") or _GGUF_DIR)
+    local_merged_model_dir = Path(merged_model_dir or os.environ.get("CHATTLA_MERGED_MODEL_DIR") or _MERGED_MODEL_DIR)
+    gguf_local = local_gguf_dir / f"chattla-20b-{quant}.gguf"
     if not gguf_local.is_file():
         print(f"[publish_hf] ERROR: GGUF not found: {gguf_local}", file=sys.stderr)
         return None
@@ -261,12 +265,12 @@ def publish(
     elif not skip_readme:
         print("[publish_hf] WARN: outputs/hf_readme/README.md missing — skip README")
 
-    if upload_merged_model and _MERGED_MODEL_DIR.is_dir():
-        cfg = _MERGED_MODEL_DIR / "config.json"
+    if upload_merged_model and local_merged_model_dir.is_dir():
+        cfg = local_merged_model_dir / "config.json"
         if cfg.is_file():
             print("[publish_hf] Uploading merged BF16 folder (~tens of GB) → merged_bf16/ …")
             api.upload_folder(
-                folder_path=str(_MERGED_MODEL_DIR),
+                folder_path=str(local_merged_model_dir),
                 path_in_repo="merged_bf16",
                 repo_id=repo_id,
                 repo_type="model",
@@ -277,7 +281,7 @@ def publish(
         else:
             print("[publish_hf] WARN: merged_model/ missing config.json — skip merged upload")
     elif upload_merged_model:
-        print("[publish_hf] WARN: outputs/merged_model not found — skip merged upload")
+        print(f"[publish_hf] WARN: merged model not found at {local_merged_model_dir} — skip merged upload")
 
     state["last_published_version"] = new_ver
     state["last_repo"] = repo_id
@@ -310,6 +314,10 @@ def main() -> int:
         action="store_true",
         help="Also upload outputs/merged_model/ to merged_bf16/ (~40GB+; slow)",
     )
+    parser.add_argument("--gguf-dir", default=None,
+                        help="Directory containing chattla-20b-{quant}.gguf (default: outputs/gguf or CHATTLA_GGUF_DIR)")
+    parser.add_argument("--merged-model-dir", default=None,
+                        help="Merged model directory for optional merged upload (default: outputs/merged_model or CHATTLA_MERGED_MODEL_DIR)")
     args = parser.parse_args()
 
     # Optional: load .env from repo root
@@ -335,6 +343,8 @@ def main() -> int:
         version_override=args.version,
         require_fresh_full_benchmark_hours=req_h,
         upload_merged_model=args.upload_merged_model,
+        gguf_dir=Path(args.gguf_dir) if args.gguf_dir else None,
+        merged_model_dir=Path(args.merged_model_dir) if args.merged_model_dir else None,
     )
     if args.dry_run:
         return 0

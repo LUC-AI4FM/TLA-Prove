@@ -1,0 +1,2 @@
+{"module_path": "outputs/materialized_tla/diamond/EmailInbox.tla", "module": "EmailInbox", "target": "Spec => []TypeOK", "status": "skeleton_emitted", "tlc_inductive": true, "tlc_error": null, "cti_preview": "", "skeleton_chars": 250, "proof_module_chars": 1026, "runtime_seconds": 0.469}
+{"module_path": "outputs/materialized_tla/diamond/SimpleChain.tla", "module": "SimpleChain", "target": "Spec => []TypeOK", "status": "skeleton_emitted", "tlc_inductive": true, "tlc_error": null, "cti_preview": "", "skeleton_chars": 250, "proof_module_chars": 992, "runtime_seconds": 0.471}

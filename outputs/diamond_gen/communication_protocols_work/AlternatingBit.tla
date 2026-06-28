@@ -93,12 +93,21 @@ InOrderPrefix ==
     /\ Len(delivered) \in 0 .. MaxSeq
     /\ \A i \in 1 .. Len(delivered) : delivered[i] = i - 1
     /\ Len(delivered) <= sIndex + 1
+    /\ sIndex <= Len(delivered)
+
+DeliveredPrefixes ==
+    {<<>>} \cup { [i \in 1 .. n |-> i - 1] : n \in 1 .. MaxSeq }
 
 TypeOK ==
     /\ sBit \in {0, 1}
+    /\ delivered \in DeliveredPrefixes
     /\ rBit \in {0, 1}
     /\ sIndex \in 0 .. MaxSeq
+    /\ sBit = sIndex % 2
+    /\ rBit = Len(delivered) % 2
     /\ msgChan \subseteq ({0,1} \X Vals)
+    /\ msgChan \subseteq (IF sIndex < MaxSeq THEN {<<sBit, sIndex>>} ELSE {})
     /\ ackChan \subseteq {0, 1}
+    /\ ackChan \subseteq (IF Len(delivered) = sIndex + 1 THEN {sBit} ELSE {})
     /\ InOrderPrefix
 ====

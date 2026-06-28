@@ -1,0 +1,18 @@
+{
+  "error": "    \"manifest artifact missing: chattla_tla_prover_sft_v1\",\n    \"manifest artifact missing checksum: chattla_tla_prover_sft_v1\",\n    \"manifest artifact missing: prover_eval_v1\",\n    \"manifest artifact missing checksum: prover_eval_v1\",\n    \"manifest artifact missing: sany_tlc_pass_sft_v1\",\n    \"manifest artifact missing checksum: sany_tlc_pass_sft_v1\",\n    \"manifest artifact missing: tlaps_verified_autoprover_traces_v1\",\n    \"manifest artifact missing checksum: tlaps_verified_autoprover_traces_v1\",\n    \"corpus preflight report is not ok\",\n    \"java is not on PATH\",\n    \"python import probe failed: Traceback (most recent call last):\\n  File \\\"<string>\\\", line 1, in <module>\\nModuleNotFoundError: No module named 'torch'\"\n  ],\n  \"module_count\": 18,\n  \"module_list\": \"/home/eric-spencer/ChatTLA/data/processed/tla_prover/tlaps_candidate_modules_18.txt\",\n  \"ok\": false,\n  \"repo\": \"/home/eric-spencer/ChatTLA\",\n  \"require_tools\": true,\n  \"sft_preflight\": true,\n  \"warnings\": []\n}",
+  "exit_code": 1,
+  "generated_at": "2026-06-27T22:25:13.812404+00:00",
+  "hostname": "sophia-login-02",
+  "known18_job_id": null,
+  "known18_pbs": "scripts/qsub_autoprover_known18_corrected_smoke.pbs",
+  "known18_qsub_log": "outputs/logs/tla_prover_known18_qsub.log",
+  "ok": false,
+  "preflight_log": "outputs/logs/tla_prover_remote_preflight.log",
+  "repo": "/home/eric-spencer/ChatTLA",
+  "sft_preflight_job_id": null,
+  "sft_preflight_pbs": "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
+  "sft_preflight_qsub_log": "outputs/logs/tla_prover_sft_preflight_qsub.log",
+  "stage": "preflight",
+  "submit_sft_preflight": true,
+  "tlapm": "/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm"
+}

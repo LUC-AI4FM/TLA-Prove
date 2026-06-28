@@ -71,14 +71,19 @@ TypeOK ==
     /\ cState \in States
     /\ sState \in States
     /\ channel \subseteq Msgs
+    /\ channel \in {{}, {"SYN"}, {"SYNACK"}, {"ACK"}}
     \* Client invariant: never in listen state.
     /\ cState # "listen"
-    \* Server invariant: never in syn_sent state.
-    /\ sState # "syn_sent"
+    \* Server invariant: never in syn_sent or closed states.
+    /\ sState \in {"listen", "syn_recv", "established"}
+    /\ (cState = "closed") => (sState = "listen" /\ channel = {})
     \* Server can only reach syn_recv after the client opened.
     /\ (sState = "syn_recv") => (cState \in {"syn_sent", "established"})
     \* Server established implies client established.
     /\ (sState = "established") => (cState = "established")
     \* Client established implies server already saw the SYN.
     /\ (cState = "established") => (sState \in {"syn_recv", "established"})
+    /\ (channel = {"SYN"}) => (cState = "syn_sent" /\ sState = "listen")
+    /\ (channel = {"SYNACK"}) => (cState = "syn_sent" /\ sState = "syn_recv")
+    /\ (channel = {"ACK"}) => (cState = "established" /\ sState = "syn_recv")
 ====

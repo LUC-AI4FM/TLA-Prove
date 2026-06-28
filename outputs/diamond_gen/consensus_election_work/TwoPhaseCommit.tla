@@ -75,6 +75,10 @@ TypeOK ==
     /\ pVote     \in [Participants -> {"none", "yes", "no"}]
     /\ cState    \in {"init", "decided"}
     /\ cDecision \in {"none", "commit", "abort"}
+    /\ (cState = "init") => (cDecision = "none")
+    /\ (cState = "decided") => (cDecision \in Decisions)
+    /\ \A p \in Participants :
+         (pState[p] \in Decisions) => (cState = "decided" /\ cDecision = pState[p])
 
 \* Strong safety: uniform agreement — no two participants disagree, and any
 \* participant decision matches the coordinator's decision.

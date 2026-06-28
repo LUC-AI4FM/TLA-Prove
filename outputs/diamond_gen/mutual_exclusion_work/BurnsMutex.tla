@@ -49,7 +49,8 @@ RecheckLow(i) ==
 \* Step 5: wait until no higher-id process has its flag up.
 WaitHigh(i) ==
     /\ pc[i] = "wait_high"
-    /\ \A j \in Procs : j > i => ~flag[j]
+    /\ \A j \in Procs \ {i} : ~flag[j]
+    /\ \A j \in Procs \ {i} : pc[j] # "cs"
     /\ pc' = [pc EXCEPT ![i] = "cs"]
     /\ UNCHANGED flag
 
@@ -67,5 +68,6 @@ Spec == Init /\ [][Next]_vars
 TypeOK ==
     /\ pc   \in [Procs -> {"ncs","check_low","set_flag","recheck_low","wait_high","cs"}]
     /\ flag \in [Procs -> BOOLEAN]
+    /\ \A i \in Procs : (pc[i] \in {"recheck_low", "wait_high", "cs"}) => flag[i]
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

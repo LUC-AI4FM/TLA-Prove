@@ -544,12 +544,10 @@ New trainable artifacts:
 - `data/processed/sany_tlc_pass_eval_v1.jsonl` contains the 30-module held-out
   SANY/TLC-pass eval split from `data/processed/diamond_eval_holdout.jsonl`,
   with the same deterministic config/constant policy, checksum
-  `34b518f86c7d140e3a5290c91970c924094260d2b3f2bd589d13ff673c388456`.
+  `6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d`.
 - `scripts/evaluate_sany_tlc_eval_corpus.py` is the standalone held-out replay
-  gate. The latest full replay checked all 30 rows: 29 reached TLC gold, 28
-  reached the stricter Diamond gate, and the only remaining TLC failure was
-  `ChainReplication` deadlocking under its inline config. Treat that as the
-  next SANY/TLC data fix before training a pass-rate model.
+  gate. The latest full replay checked all 30 rows: 30 reached TLC gold and
+  29 reached the stricter Diamond gate.
 
 `src.training.train` now accepts `--eval-file`, so future SANY/TLC passer runs
 can evaluate against `data/processed/sany_tlc_pass_eval_v1.jsonl` instead of

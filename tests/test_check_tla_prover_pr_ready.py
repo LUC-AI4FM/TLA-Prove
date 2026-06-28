@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from scripts.check_tla_prover_pr_ready import build_commands, scan_files
+import subprocess
+
+from scripts.check_tla_prover_pr_ready import build_commands, readiness_files, scan_files
 
 
 def test_scan_files_flags_private_hosts_and_paths(tmp_path: Path) -> None:
@@ -34,3 +36,28 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_remote_handoff_script.py" in joined
     assert "tests/test_preflight_tla_prover_remote.py" in joined
     assert "tests/test_build_tla_prover_manifest.py" in joined
+
+
+def test_readiness_files_can_include_untracked_scripts_but_not_outputs(tmp_path: Path) -> None:
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+    tracked = tmp_path / "scripts" / "tracked.py"
+    untracked_script = tmp_path / "scripts" / "scratch.pbs"
+    untracked_output = tmp_path / "outputs" / "manifests" / "scratch.json"
+    tracked.parent.mkdir(parents=True)
+    tracked.write_text("print('tracked')\n", encoding="utf-8")
+    untracked_script.write_text("#PBS -A EVITA\n", encoding="utf-8")
+    untracked_output.parent.mkdir(parents=True)
+    untracked_output.write_text("{}\n", encoding="utf-8")
+    subprocess.run(["git", "add", "scripts/tracked.py"], cwd=tmp_path, check=True)
+
+    default_paths = {path.relative_to(tmp_path).as_posix() for path in readiness_files(tmp_path)}
+    strict_paths = {
+        path.relative_to(tmp_path).as_posix()
+        for path in readiness_files(tmp_path, include_untracked_scripts=True)
+    }
+
+    assert "scripts/tracked.py" in default_paths
+    assert "scripts/scratch.pbs" not in default_paths
+    assert "scripts/tracked.py" in strict_paths
+    assert "scripts/scratch.pbs" in strict_paths
+    assert "outputs/manifests/scratch.json" not in strict_paths

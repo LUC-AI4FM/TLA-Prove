@@ -1,0 +1,20 @@
+{
+  "rows": 6,
+  "statuses": {
+    "skeleton_emitted": 1,
+    "skipped": 5
+  },
+  "skip_reasons": {
+    "missing_init_next_spec_typeok_vars": 5
+  },
+  "source_prefixes": {
+    "('outputs', 'materialized_tla')": 6
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {},
+  "tlc_error_samples": {},
+  "tlaps_by_status": {}
+}

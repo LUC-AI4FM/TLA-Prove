@@ -1,0 +1,15 @@
+{
+  "job_id": "161023.sophia-pbs-01.lab.alcf.anl.gov",
+  "rows_so_far": 97,
+  "modules_seen": 97,
+  "statuses": {
+    "not_inductive": 5,
+    "skipped": 25,
+    "tlaps_partial": 57,
+    "tlc_error": 10
+  },
+  "last_completed_module_path": "outputs/diamond_gen/memory_caches_work/TlbShootdown.tla",
+  "last_completed_status": "tlc_error",
+  "next_module_path": "/home/eric-spencer/ChatTLA/outputs/diamond_gen/memory_caches_work/TricolorGc.tla",
+  "source": "outputs/autoprover/full_dataset_smoke_161023.jsonl"
+}

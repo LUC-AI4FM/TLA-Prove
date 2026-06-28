@@ -11,6 +11,7 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
 
 def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     repo = tmp_path
+    _write_jsonl(repo / "data/processed/formalllm_eval_v1.jsonl", [{"messages": []}, {"messages": []}, {"messages": []}])
     _write_jsonl(repo / "data/processed/sany_tlc_pass_sft_v1.jsonl", [{"a": 1}, {"a": 2}])
     _write_jsonl(repo / "data/processed/prover_eval.jsonl", [{"messages": []}])
     _write_jsonl(repo / "data/processed/sany_tlc_pass_eval_v1.jsonl", [{"messages": []}, {"messages": []}])
@@ -33,6 +34,8 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
 
     assert manifest["schema"] == "chattla_tla_prover_artifacts_v1"
     assert manifest["artifacts"]["sany_tlc_pass_sft_v1"]["rows"] == 2
+    assert manifest["artifacts"]["formalllm_eval_v1"]["rows"] == 3
+    assert manifest["artifacts"]["formalllm_eval_v1"]["kind"] == "full_formalllm_prompt_eval_dataset"
     assert manifest["artifacts"]["prover_eval_v1"]["rows"] == 1
     assert manifest["artifacts"]["prover_eval_v1"]["kind"] == "verified_tlaps_prover_eval_dataset"
     assert manifest["artifacts"]["sany_tlc_pass_eval_v1"]["rows"] == 2

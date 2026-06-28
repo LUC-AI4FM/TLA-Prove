@@ -73,6 +73,11 @@ DoneImpliesFromEmpty ==
 \* in both spaces at once.
 SpacesDisjoint == fromSpace \cap toSpace = {}
 
+\* Before copying completes, every rooted object must still reside in
+\* from-space so StartGc snapshots are valid and Copy can move them.
+PreCopyRootsInFromSpace ==
+    phase \in {"mutate", "copy"} => rooted \subseteq fromSpace
+
 TypeOK == /\ fromSpace \subseteq Objects
           /\ toSpace   \subseteq Objects
           /\ rooted    \subseteq Objects
@@ -80,4 +85,5 @@ TypeOK == /\ fromSpace \subseteq Objects
           /\ DoneImpliesCopied
           /\ DoneImpliesFromEmpty
           /\ SpacesDisjoint
+          /\ PreCopyRootsInFromSpace
 ====

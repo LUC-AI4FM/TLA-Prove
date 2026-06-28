@@ -1,0 +1,219 @@
+{
+  "generated_at": "2026-06-26T16:58:40.396949+00:00",
+  "modules": 18,
+  "exit_0": 18,
+  "exit_nonzero": 0,
+  "raw_proved": 299,
+  "raw_total": 299,
+  "all_modules_exit_0": true,
+  "all_modules_proved": true,
+  "no_asterisk": true,
+  "results": [
+    {
+      "module": "AtomicCommit",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/AtomicCommit.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.634,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/AtomicCommit.log"
+    },
+    {
+      "module": "AtomicRegister",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/AtomicRegister.tla",
+      "exit_code": 0,
+      "runtime_seconds": 22.182,
+      "proved": 85,
+      "total": 85,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/AtomicRegister.log"
+    },
+    {
+      "module": "ByzantineQuorum",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/ByzantineQuorum.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.533,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/ByzantineQuorum.log"
+    },
+    {
+      "module": "CircuitBreaker",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/CircuitBreaker.tla",
+      "exit_code": 0,
+      "runtime_seconds": 16.129,
+      "proved": 22,
+      "total": 22,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/CircuitBreaker.log"
+    },
+    {
+      "module": "DistributedLock",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/DistributedLock.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.544,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/DistributedLock.log"
+    },
+    {
+      "module": "EventCount",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/EventCount.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.537,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/EventCount.log"
+    },
+    {
+      "module": "HeartbeatFailureDetector",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/HeartbeatFailureDetector.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.719,
+      "proved": 18,
+      "total": 18,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/HeartbeatFailureDetector.log"
+    },
+    {
+      "module": "IdempotencyKey",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/IdempotencyKey.tla",
+      "exit_code": 0,
+      "runtime_seconds": 12.085,
+      "proved": 90,
+      "total": 90,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/IdempotencyKey.log"
+    },
+    {
+      "module": "LeaderLease",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/LeaderLease.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.54,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/LeaderLease.log"
+    },
+    {
+      "module": "ResourceLease",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/ResourceLease.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.545,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/ResourceLease.log"
+    },
+    {
+      "module": "RetryWithBackoff",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/RetryWithBackoff.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.505,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/RetryWithBackoff.log"
+    },
+    {
+      "module": "RoundRobinScheduler",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/RoundRobinScheduler.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.5,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/RoundRobinScheduler.log"
+    },
+    {
+      "module": "SleepingBarber",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/SleepingBarber.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.502,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/SleepingBarber.log"
+    },
+    {
+      "module": "SzymanskiMutex",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/SzymanskiMutex.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.535,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/SzymanskiMutex.log"
+    },
+    {
+      "module": "TokenRing",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/TokenRing.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.518,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/TokenRing.log"
+    },
+    {
+      "module": "TwoPhaseLockingDeadlock",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/TwoPhaseLockingDeadlock.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.573,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/TwoPhaseLockingDeadlock.log"
+    },
+    {
+      "module": "VotingMajority",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/VotingMajority.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.538,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/VotingMajority.log"
+    },
+    {
+      "module": "WitnessReplication",
+      "path": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_reproduced_final_160816/proofs/WitnessReplication.tla",
+      "exit_code": 0,
+      "runtime_seconds": 0.537,
+      "proved": 6,
+      "total": 6,
+      "failed": 0,
+      "timed_out": false,
+      "raw_log": "outputs/autoprover/tlaps_reproduced_final_160816/raw/WitnessReplication.log"
+    }
+  ],
+  "tlapm": "/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm",
+  "threads": 1,
+  "timeout": 900,
+  "base_proof_dir": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_mixed_targeted_t1_160785.sophia-pbs-01.lab.alcf.anl.gov/proofs",
+  "replacements": {
+    "AtomicRegister.tla": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_final_source_preserving_repairs_161630/AtomicRegister_source_preserving_choose.tla",
+    "IdempotencyKey.tla": "/home/eric-spencer/ChatTLA/outputs/autoprover/tlaps_final_source_preserving_repairs_161630/IdempotencyKey_firstcall10.tla"
+  }
+}

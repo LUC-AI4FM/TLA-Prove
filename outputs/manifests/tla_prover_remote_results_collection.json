@@ -1,0 +1,31 @@
+{
+  "collection_report": "/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/manifests/tla_prover_remote_results_collection.json",
+  "errors": [],
+  "generated_at": "2026-06-28T21:28:32.973670+00:00",
+  "job_ids": {
+    "final_proof_verify_job_id": null,
+    "full_dataset_smoke_job_id": "161023.sophia-pbs-01.lab.alcf.anl.gov",
+    "known18_job_id": null,
+    "sft_preflight_job_id": null
+  },
+  "mirrored": [
+    "outputs/manifests/tla_prover_remote_submission.json",
+    "outputs/manifests/tla_prover_remote_submission_full_smoke.json",
+    "outputs/logs/tla_prover_remote_preflight.log",
+    "outputs/logs/autoprover_known18_corrected.log",
+    "outputs/logs/autoprover_known18_corrected.err",
+    "outputs/logs/autoprover_full_dataset_smoke.log",
+    "outputs/manifests/tla_prover_full_dataset_progress.json",
+    "outputs/autoprover/full_dataset_smoke_161031.jsonl",
+    "outputs/autoprover/full_dataset_smoke_161031.summary.json",
+    "outputs/logs/autoprover_full_dataset_smoke_161031.sophia-pbs-01.lab.alcf.anl.gov.log"
+  ],
+  "missing": [
+    "outputs/manifests/tla_prover_remote_qstat.txt",
+    "outputs/logs/tla_prover_known18_qsub.log",
+    "outputs/logs/tla_prover_sft_preflight_qsub.log",
+    "outputs/logs/tla_prover_final_proof_verify_qsub.log"
+  ],
+  "ok": true,
+  "submission_report": "outputs/manifests/tla_prover_remote_submission_full_smoke.json"
+}
