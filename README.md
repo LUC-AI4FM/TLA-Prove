@@ -45,12 +45,13 @@ Evaluated on a 30-spec held-out suite with up to 3 self-correction attempts via 
 
 ## Public Datasets
 
-ChatTLA currently uses four public AI4FM-aligned corpus layers:
+ChatTLA currently uses five public AI4FM-aligned corpus layers:
 
 | Layer | Current public surface | Local artifact |
 |------|-------------------------|----------------|
 | `FormaLLM` | 205 canonical prompt/spec entries across 71 families | `data/processed/formalllm_eval_v1.jsonl` |
 | `TLA-Prove public corpora` | 2,350 JSONL rows across committed public corpora; largest single corpus is `diamond_sft_v3.jsonl` with 1,053 rows | `outputs/manifests/ai4fm_public_tlaprove_corpora.json` |
+| `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the committed public corpora | `data/processed/ai4fm_public_tlaprove_import_v1.jsonl` |
 | `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories | `data/processed/ai4fm_public_discovery_manifest_v1.jsonl` |
 | `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface | `outputs/manifests/ai4fm_public_dataset_surface.json` |
 
@@ -58,13 +59,17 @@ Rebuild the public AI4FM artifacts with:
 
 ```bash
 python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
+python3 scripts/build_ai4fm_public_tlaprove_import.py
 python3 scripts/inspect_ai4fm_public_dataset_surface.py
 python3 scripts/build_ai4fm_public_discovery_manifest.py
+python3 scripts/build_tla_prover_manifest.py
+python3 scripts/preflight_tla_prover_corpora.py
+python3 scripts/check_tla_prover_pr_ready.py --include-untracked-scripts
 ```
 
-The `TLA-Prove` report captures the stable public JSONL corpora already committed in GitHub.
+The `TLA-Prove` report captures the stable public JSONL corpora already committed in GitHub, and the normalized import turns that public surface into a deduplicated ChatTLA-format corpus.
 The discovery manifest needs a local checkout of `LUC-AI4FM/tla-dataset-pipeline`; override it with `--pipeline-repo <path>` if your checkout is not at `/tmp/LUC-AI4FM-tla-dataset-pipeline`.
-The dataset surface report records the broader DVC-backed counts, while the discovery manifest records what the public seed/search recipe currently materializes.
+The dataset surface report records the broader DVC-backed counts, while the discovery manifest records what the public seed/search recipe currently materializes. The manifest build, corpus preflight, and PR-ready check are the compact local gates for the checked-in public artifact surface.
 
 ---
 

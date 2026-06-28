@@ -46,6 +46,24 @@ This is the best public AI4FM surface ChatTLA can ingest today without DVC or
 private infrastructure because the JSONL corpora are committed directly in the
 repository, not only referenced through workflow state.
 
+ChatTLA now materializes that public corpus stack as:
+
+- `data/processed/ai4fm_public_tlaprove_import_v1.jsonl`
+- `data/processed/ai4fm_public_tlaprove_import_v1.summary.json`
+
+Current live import summary:
+
+- `2350` raw public rows across the committed corpora
+- `1005` kept ChatTLA-format rows after normalization and exact final-spec dedupe
+- `1345` duplicate rows collapsed
+- kept rows by corpus:
+  - `285` from `data/processed/train.jsonl`
+  - `170` from `data/processed/diamond_sft_v3.jsonl`
+  - `30` from `data/processed/diamond_eval_holdout.jsonl`
+  - `471` from `data/frs_tla_ralph_gen/train.jsonl`
+  - `48` from `data/frs_tla_ralph_gen/dev.jsonl`
+  - `1` from `data/processed/eval.jsonl`
+
 ## Public discovery manifest
 
 ChatTLA now also materializes the checked-in public discovery recipe as:
@@ -71,6 +89,8 @@ public discovery recipe from the larger DVC-backed raw/parsed corpus.
 - Treat `FormaLLM` as the canonical public prompt/spec supervision layer.
 - Treat `ai4fm_public_tlaprove_corpora` as the stable public JSONL expansion
   layer available right now.
+- Treat `ai4fm_public_tlaprove_import_v1` as the normalized ChatTLA-format
+  import built from that public corpus stack.
 - Treat `ai4fm_public_discovery_manifest_v1` as the public repo-level discovery
   lane we can ingest directly today.
 - Treat `tla-dataset-pipeline` DVC counts as the broader public parsing lane.
@@ -83,8 +103,12 @@ public discovery recipe from the larger DVC-backed raw/parsed corpus.
 
 ```bash
 python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
+python3 scripts/build_ai4fm_public_tlaprove_import.py
 python3 scripts/inspect_ai4fm_public_dataset_surface.py
 python3 scripts/build_ai4fm_public_discovery_manifest.py
+python3 scripts/build_tla_prover_manifest.py
+python3 scripts/preflight_tla_prover_corpora.py
+python3 scripts/check_tla_prover_pr_ready.py --include-untracked-scripts
 ```
 
 The discovery manifest builder expects a local checkout of

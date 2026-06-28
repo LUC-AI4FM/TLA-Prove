@@ -38,6 +38,11 @@ ARTIFACTS = {
         "summary": "data/processed/formalllm_eval_v1.summary.json",
         "kind": "full_formalllm_prompt_eval_dataset",
     },
+    "ai4fm_public_tlaprove_import_v1": {
+        "path": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
+        "summary": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
+        "kind": "normalized_public_ai4fm_tlaprove_import",
+    },
     "sany_tlc_pass_sft_v1": {
         "path": "data/processed/sany_tlc_pass_sft_v1.jsonl",
         "summary": "data/processed/sany_tlc_pass_sft_v1.summary.json",
@@ -151,6 +156,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
             "inspect_ai4fm_public_tlaprove_corpora": (
                 "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py"
+            ),
+            "build_ai4fm_public_tlaprove_import": (
+                "python3 scripts/build_ai4fm_public_tlaprove_import.py"
             ),
             "build_ai4fm_public_discovery_manifest": (
                 "python3 scripts/build_ai4fm_public_discovery_manifest.py"
