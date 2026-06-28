@@ -47,6 +47,10 @@ ARTIFACTS = {
         "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
         "kind": "sany_tlc_pass_corpus_quality_gate",
     },
+    "ai4fm_public_dataset_surface": {
+        "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
+        "kind": "public_ai4fm_dataset_surface_report",
+    },
     "known18_module_list": {
         "path": "data/processed/tla_prover/tlaps_candidate_modules_18.txt",
         "kind": "remote_smoke_input",
@@ -123,6 +127,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "probe_control_planes": "python3 scripts/probe_tla_prover_control_planes.py",
             "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
             "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
+            "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
             "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
             "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",
             "handoff_status": "python3 scripts/status_tla_prover_handoff.py --live",

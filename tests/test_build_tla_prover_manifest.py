@@ -11,6 +11,11 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
 
 def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     repo = tmp_path
+    (repo / "outputs/manifests").mkdir(parents=True, exist_ok=True)
+    (repo / "outputs/manifests/ai4fm_public_dataset_surface.json").write_text(
+        json.dumps({"formalllm": {"canonical_entries": 205}, "pipeline": {"pull": {"nfiles": 2628}}}),
+        encoding="utf-8",
+    )
     _write_jsonl(repo / "data/processed/formalllm_eval_v1.jsonl", [{"messages": []}, {"messages": []}, {"messages": []}])
     _write_jsonl(repo / "data/processed/sany_tlc_pass_sft_v1.jsonl", [{"a": 1}, {"a": 2}])
     _write_jsonl(repo / "data/processed/prover_eval.jsonl", [{"messages": []}])
@@ -19,7 +24,6 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"kept_rows": 2}),
         encoding="utf-8",
     )
-    (repo / "outputs/manifests").mkdir(parents=True, exist_ok=True)
     (repo / "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json").write_text(
         json.dumps({"ok": True, "rows": 2}),
         encoding="utf-8",
@@ -36,6 +40,8 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["sany_tlc_pass_sft_v1"]["rows"] == 2
     assert manifest["artifacts"]["formalllm_eval_v1"]["rows"] == 3
     assert manifest["artifacts"]["formalllm_eval_v1"]["kind"] == "full_formalllm_prompt_eval_dataset"
+    assert manifest["artifacts"]["ai4fm_public_dataset_surface"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_dataset_surface"]["kind"] == "public_ai4fm_dataset_surface_report"
     assert manifest["artifacts"]["prover_eval_v1"]["rows"] == 1
     assert manifest["artifacts"]["prover_eval_v1"]["kind"] == "verified_tlaps_prover_eval_dataset"
     assert manifest["artifacts"]["sany_tlc_pass_eval_v1"]["rows"] == 2
@@ -71,6 +77,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["pr_ready_check"] == "python3 scripts/check_tla_prover_pr_ready.py"
     assert manifest["remote_next_steps"]["build_tla_prover_eval_corpus"] == (
         "python3 scripts/build_tla_prover_eval_corpus.py"
+    )
+    assert manifest["remote_next_steps"]["inspect_ai4fm_public_dataset_surface"] == (
+        "python3 scripts/inspect_ai4fm_public_dataset_surface.py"
     )
     assert manifest["remote_next_steps"]["build_sany_tlc_eval_corpus"] == (
         "python3 scripts/build_sany_tlc_eval_corpus.py"

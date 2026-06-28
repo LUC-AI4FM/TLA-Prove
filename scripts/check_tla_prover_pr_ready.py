@@ -29,6 +29,7 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 
 PY_COMPILE_FILES = [
     "scripts/check_tla_prover_pr_ready.py",
+    "scripts/inspect_ai4fm_public_dataset_surface.py",
     "scripts/preflight_tla_prover_remote.py",
     "scripts/probe_tla_prover_control_planes.py",
     "scripts/status_tla_prover_handoff.py",
@@ -46,6 +47,7 @@ PYTEST_FILES = [
     "tests/test_submit_tla_prover_remote_jobs.py",
     "tests/test_qsub_sft_preflight.py",
     "tests/test_build_tla_prover_manifest.py",
+    "tests/test_inspect_ai4fm_public_dataset_surface.py",
     "tests/test_doctor_tla_prover_handoff.py",
 ]
 

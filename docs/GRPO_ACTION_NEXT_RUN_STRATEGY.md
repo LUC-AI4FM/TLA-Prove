@@ -406,14 +406,14 @@ The corrected full-spec lane is alive, but the last visible job (`160391`) was
 not a clean signal run.
 
 - `qstat -xf 160391` shows `job_state = F`, `Exit_status = 271`, and the PBS
-  comment says the job was terminated by `eric-spencer@sophia-login-02`.
+  comment says the job was terminated by `<user>@sophia-login-02`.
 - The runtime log lives under the old home-tree path:
-  `/home/eric-spencer/ChatTLA/outputs/logs/grpo_fullspec_diag_160391.log`.
+  `/home/<user>/ChatTLA/outputs/logs/grpo_fullspec_diag_160391.log`.
 - The log shows the old wrapper layout:
   `OUT=outputs/checkpoints_grpo_fullspec_diag_160391` and
   `SAMPLES=outputs/logs/grpo_fullspec_diag_160391_samples.jsonl`.
 - There is no explicit `No space left on device` line in the visible logs.
-- Home quota on Sophia is not the bottleneck: `df -h /home/eric-spencer`
+- Home quota on Sophia is not the bottleneck: `df -h /home/<user>`
   reports roughly `160T` free and `quota -s` reports no limited resources.
 - The grand filesystem is much fuller but still usable:
   `/lus/grand` shows roughly `15T` free and about `91%` used.
@@ -423,7 +423,7 @@ Interpretation:
 - This looks more like a stale-wrapper / cleanup incident than a genuine disk
   exhaustion failure from the current corrected lane.
 - The real fix is still the one we already made: keep the run and samples under
-  `/grand/EVITA/eric-spencer/chattla_artifacts/fullspec/${PBS_JOBNUM}` and
+  `/grand/<ACCOUNT>/<user>/chattla_artifacts/fullspec/${PBS_JOBNUM}` and
   leave the home-tree outputs out of the training path.
 - To make future postmortems sharper, the PBS wrapper should print `df -h` for
   both home and grand before training starts.
@@ -454,7 +454,7 @@ Submitted a clean replacement job after the stale-wrapper postmortem:
 - Job: `160396.sophia-pbs-01.lab.alcf.anl.gov`
 - Host: `a Sophia GPU node`
 - Artifact root:
-  `/grand/EVITA/eric-spencer/chattla_artifacts/fullspec/160396`
+  `/grand/<ACCOUNT>/<user>/chattla_artifacts/fullspec/160396`
 - Log snapshot at start:
   home `/home` about `34%` used, grand `/lus/grand` about `91%` used
 - The job is now loading weights with the corrected grand-backed wrapper.
@@ -593,7 +593,7 @@ Follow-up submission:
   run and resubmitted with explicit `qsub -v` exports;
 - warm-start job: `160408.sophia-pbs-01.lab.alcf.anl.gov`;
 - adapter checkpoint:
-  `/grand/EVITA/eric-spencer/chattla_artifacts/fullspec/160404/checkpoints_grpo_fullspec_diag_160404`;
+  `/grand/<ACCOUNT>/<user>/chattla_artifacts/fullspec/160404/checkpoints_grpo_fullspec_diag_160404`;
 - target shape: 30 steps, lower temperature, same direct-start contract.
 
 Early warm-start signal:
@@ -1300,12 +1300,12 @@ Checkpoint sweep partial result:
   - added `--gguf-dir` and `--merged-model-dir` support to
     `src/training/publish_hf.py`;
   - changed the artifact preflight to write heavy artifacts under
-    `/grand/EVITA/eric-spencer/chattla_artifacts/fc128_best`;
-  - verified that `/grand/EVITA/eric-spencer/chattla_artifacts` is writable;
+    `/grand/<ACCOUNT>/<user>/chattla_artifacts/fc128_best`;
+  - verified that `/grand/<ACCOUNT>/<user>/chattla_artifacts` is writable;
   - remote-compiled the patched files and submitted retry job
     `160291.sophia-pbs-01.lab.alcf.anl.gov`.
 - Retry `160291` successfully merged and saved the selected adapter as sharded
-  safetensors under `/grand/EVITA/eric-spencer/chattla_artifacts/fc128_best`,
+  safetensors under `/grand/<ACCOUNT>/<user>/chattla_artifacts/fc128_best`,
   but GGUF conversion failed because the saved tensors retained PEFT wrapper
   names such as `base_model.model.model.embed_tokens.weight`.
 - Fourth corrective action:
@@ -1327,10 +1327,10 @@ Checkpoint sweep partial result:
 - Retry `160299` completed successfully:
   - PBS `Exit_status = 0`;
   - merged BF16 artifacts:
-    `/grand/EVITA/eric-spencer/chattla_artifacts/fc128_best/merged_model`;
+    `/grand/<ACCOUNT>/<user>/chattla_artifacts/fc128_best/merged_model`;
   - saved index has normal converter names (`prefixed=0`, `model.*=410`);
   - GGUF:
-    `/grand/EVITA/eric-spencer/chattla_artifacts/fc128_best/gguf/chattla-20b-Q8_0.gguf`;
+    `/grand/<ACCOUNT>/<user>/chattla_artifacts/fc128_best/gguf/chattla-20b-Q8_0.gguf`;
   - GGUF size: about `22.3GB`;
   - publisher dry-run selected version `v20` but correctly warned that real
     publish would abort because the newest full benchmark was
@@ -2105,7 +2105,7 @@ Current publish blockers:
 - The current best RL artifact is still a LoRA adapter, not a
   merged/deployable model.
 - Remote dry-run on Sophia reaches the real artifact blocker:
-  `GGUF not found: /home/eric-spencer/ChatTLA/outputs/gguf/chattla-20b-Q8_0.gguf`
+  `GGUF not found: /home/<user>/ChatTLA/outputs/gguf/chattla-20b-Q8_0.gguf`
 - A fresh full benchmark is still required before publishing a new public model.
 
 Publish path once a checkpoint is selected:
@@ -2113,7 +2113,7 @@ Publish path once a checkpoint is selected:
 ```bash
 python -m src.training.merge_lora \
   --checkpoint outputs/checkpoints_grpo_action_tok1200_g4_phase2_sophia/checkpoint-240 \
-  --base-model /grand/EVITA/eric-spencer/hf-cache/hub/models--EricSpencer00--chattla-20b/snapshots/c1a3e8b5c6916ce4a0ed830e996662ca28e0a262 \
+  --base-model /grand/<ACCOUNT>/<user>/hf-cache/hub/models--EricSpencer00--chattla-20b/snapshots/c1a3e8b5c6916ce4a0ed830e996662ca28e0a262 \
   --output outputs/merged_model
 
 python -m src.inference.convert_to_gguf \
@@ -2238,7 +2238,7 @@ the run vulnerable to a root kill even though the training loop itself was
 still healthy.
 
 The wrappers now move full-spec logs and checkpoints to
-`/grand/EVITA/eric-spencer/chattla_artifacts/fullspec/${PBS_JOBNUM}` instead of
+`/grand/<ACCOUNT>/<user>/chattla_artifacts/fullspec/${PBS_JOBNUM}` instead of
 the repo tree. Keep the eval JSONs in `outputs/eval` for now; they are small,
 and the killer was the checkpoint/log path.
 

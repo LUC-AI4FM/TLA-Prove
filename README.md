@@ -43,13 +43,32 @@ Evaluated on a 30-spec held-out suite with up to 3 self-correction attempts via 
 
 ---
 
+## Public Datasets
+
+ChatTLA currently uses two public AI4FM-aligned corpus layers:
+
+| Layer | Current public surface | Local artifact |
+|------|-------------------------|----------------|
+| `FormaLLM` | 205 canonical prompt/spec entries across 71 families | `data/processed/formalllm_eval_v1.jsonl` |
+| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface | `outputs/manifests/ai4fm_public_dataset_surface.json` |
+
+Rebuild the public dataset surface report with:
+
+```bash
+python3 scripts/inspect_ai4fm_public_dataset_surface.py
+```
+
+This writes a machine-readable report with the exact current public counts and source links.
+
+---
+
 ## Project Structure
 
 ```
 ChatTLA/
 ├── data/
 │   ├── FormaLLM/        ← git submodule: seed specs (MIT)
-│   ├── processed/       ← train.jsonl + eval.jsonl (harmony-formatted)
+│   ├── processed/       ← train/eval corpora, including formalllm_eval_v1.jsonl
 │   └── benchmarks/
 │       └── benchmark_suite.json  ← 30 hand-crafted eval problems
 ├── src/
@@ -212,3 +231,4 @@ Copy `.env.example` to `.env` and fill in values. Never commit `.env`.
 Apache 2.0. See [LICENSE](LICENSE).
 
 Seed data from [FormaLLM](https://github.com/LUC-FMitF/FormaLLM) (MIT).
+Broader public TLA+ extraction/parsing metadata comes from [LUC-AI4FM/tla-dataset-pipeline](https://github.com/LUC-AI4FM/tla-dataset-pipeline).
