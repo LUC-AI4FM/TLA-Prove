@@ -468,6 +468,90 @@ TypeOK == /\ resident \in Seq(Vals)
     assert row["status"] == "skeleton_emitted"
 
 
+def test_run_one_accepts_seq_domain_when_length_relation_bounds_sibling_sequences(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "QueuedLike.tla"
+    module_path.write_text(
+        r"""---- MODULE QueuedLike ----
+EXTENDS Naturals, Sequences
+CONSTANTS MaxQueue
+VARIABLES enq, queue, committed
+vars == << enq, queue, committed >>
+Init == /\ enq = << >>
+        /\ queue = << >>
+        /\ committed = << >>
+Next == /\ enq' = enq
+        /\ queue' = queue
+        /\ committed' = committed
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ enq \in Seq(1..MaxQueue)
+          /\ queue \in Seq(1..MaxQueue)
+          /\ committed \in Seq(1..MaxQueue)
+          /\ Len(enq) <= MaxQueue
+          /\ Len(committed) + Len(queue) = Len(enq)
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module QueuedLike"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_strictly_increasing_finite_domain_sequence(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "IncreasingSeq.tla"
+    module_path.write_text(
+        r"""---- MODULE IncreasingSeq ----
+EXTENDS Naturals, Sequences
+CONSTANTS MaxIssue
+VARIABLE mem
+vars == << mem >>
+Init == mem = << >>
+Next == /\ mem' = mem
+Spec == Init /\ [][Next]_vars
+MemInOrder == \A i \in 1..(Len(mem) - 1) : mem[i] < mem[i+1]
+TypeOK == /\ mem \in Seq(1..MaxIssue)
+          /\ MemInOrder
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module IncreasingSeq"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
 def test_run_one_multiline_variables_block_still_checks_missing_direct_domain(
     monkeypatch, tmp_path: Path
 ) -> None:

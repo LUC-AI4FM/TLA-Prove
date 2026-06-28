@@ -293,6 +293,151 @@ def _normalize_expr(expr: str) -> str:
     return " ".join(line.strip() for line in expr.splitlines() if line.strip())
 
 
+def _normalize_noncomment_expr(expr: str) -> str:
+    return " ".join(
+        line.strip()
+        for line in expr.splitlines()
+        if line.strip() and not line.strip().startswith("\\*")
+    )
+
+
+def _split_top_level(expr: str, token: str) -> list[str]:
+    parts: list[str] = []
+    current: list[str] = []
+    depth_paren = 0
+    depth_brace = 0
+    depth_bracket = 0
+    i = 0
+    while i < len(expr):
+        if expr.startswith(token, i) and depth_paren == depth_brace == depth_bracket == 0:
+            parts.append("".join(current).strip())
+            current = []
+            i += len(token)
+            continue
+        ch = expr[i]
+        if ch == "(":
+            depth_paren += 1
+        elif ch == ")":
+            depth_paren = max(0, depth_paren - 1)
+        elif ch == "{":
+            depth_brace += 1
+        elif ch == "}":
+            depth_brace = max(0, depth_brace - 1)
+        elif ch == "[":
+            depth_bracket += 1
+        elif ch == "]":
+            depth_bracket = max(0, depth_bracket - 1)
+        current.append(ch)
+        i += 1
+    parts.append("".join(current).strip())
+    return [part for part in parts if part]
+
+
+def _strip_wrapping_parens(expr: str) -> str:
+    expr = expr.strip()
+    while expr.startswith("(") and expr.endswith(")"):
+        depth = 0
+        balanced = True
+        for idx, ch in enumerate(expr):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0 and idx != len(expr) - 1:
+                    balanced = False
+                    break
+        if not balanced or depth != 0:
+            break
+        expr = expr[1:-1].strip()
+    return expr
+
+
+def _simple_definitions(module_src: str) -> dict[str, str]:
+    defs: dict[str, str] = {}
+    for line in module_src.splitlines():
+        match = re.match(r"^\s*([A-Za-z_]\w*)\s*==\s*(.+?)\s*$", line)
+        if not match:
+            continue
+        defs[match.group(1)] = re.sub(r"\s*\\\*.*$", "", match.group(2)).strip()
+    return defs
+
+
+def _int_value(expr: str, defs: dict[str, str], seen: set[str] | None = None) -> int | None:
+    expr = _strip_wrapping_parens(expr)
+    if re.fullmatch(r"\d+", expr):
+        return int(expr)
+    if seen is None:
+        seen = set()
+    if re.fullmatch(r"[A-Za-z_]\w*", expr):
+        if expr in seen or expr not in defs:
+            return None
+        return _int_value(defs[expr], defs, seen | {expr})
+    parts = _split_top_level(expr, "+")
+    if len(parts) > 1:
+        values = [_int_value(part, defs, seen) for part in parts]
+        if any(value is None for value in values):
+            return None
+        return sum(value for value in values if value is not None)
+    parts = _split_top_level(expr, "-")
+    if len(parts) > 1:
+        head = _int_value(parts[0], defs, seen)
+        tail = [_int_value(part, defs, seen) for part in parts[1:]]
+        if head is None or any(value is None for value in tail):
+            return None
+        return head - sum(value for value in tail if value is not None)
+    return None
+
+
+def _set_cardinality(expr: str, defs: dict[str, str], seen: set[str] | None = None) -> int | None:
+    expr = _strip_wrapping_parens(expr)
+    if seen is None:
+        seen = set()
+    if expr in {"Nat", "Int"}:
+        return None
+    if expr == "BOOLEAN":
+        return 2
+    if re.fullmatch(r"[A-Za-z_]\w*", expr):
+        if expr in seen or expr not in defs:
+            return None
+        return _set_cardinality(defs[expr], defs, seen | {expr})
+    range_match = re.fullmatch(r"(.+)\.\.(.+)", expr)
+    if range_match:
+        start = _int_value(range_match.group(1), defs, seen)
+        end = _int_value(range_match.group(2), defs, seen)
+        if start is None or end is None or end < start:
+            return None
+        return end - start + 1
+    if expr.startswith("{") and expr.endswith("}"):
+        inner = expr[1:-1].strip()
+        if not inner:
+            return 0
+        return len(_split_top_level(inner, ","))
+    return None
+
+
+def _seq_domain_expr(typeok: str, variable: str) -> str | None:
+    match = re.search(
+        rf"^\s*/\\\s*{re.escape(variable)}\s*\\in\s*Seq\s*\(([^\\n]+)\)\s*$",
+        typeok,
+        re.MULTILINE,
+    )
+    if not match:
+        return None
+    return _normalize_expr(re.sub(r"\s*\\\*.*$", "", match.group(1), flags=re.MULTILINE))
+
+
+def _domain_cardinality_bound_expr(domain: str, defs: dict[str, str]) -> str | None:
+    normalized = _normalize_expr(domain)
+    range_match = re.fullmatch(r"(.+)\.\.(.+)", normalized)
+    if range_match:
+        start_expr = _strip_wrapping_parens(range_match.group(1))
+        end_expr = _strip_wrapping_parens(range_match.group(2))
+        if start_expr == "1":
+            return end_expr
+    domain_size = _set_cardinality(normalized, defs)
+    return None if domain_size is None else str(domain_size)
+
+
 def _helper_conjunct_name(clause: str) -> str | None:
     match = re.match(r"^\s*(?:/\\\s*)?([A-Za-z_]\w*)\s*$", clause)
     return match.group(1) if match else None
@@ -331,6 +476,86 @@ def _seq_len_upper_bound(
     return None
 
 
+def _is_strictly_increasing_sequence(
+    module_src: str,
+    clauses: list[str],
+    variable: str,
+    seen_helpers: set[str] | None = None,
+) -> bool:
+    if seen_helpers is None:
+        seen_helpers = set()
+    pattern = (
+        rf"^\s*(?:/\\\s*)?\\A\s+([A-Za-z_]\w*)\s+\\in\s+1\.\.\(Len\(\s*{re.escape(variable)}\s*\)\s*-\s*1\)\s*:\s*"
+        rf"{re.escape(variable)}\[\1\]\s*<\s*{re.escape(variable)}\[\1\+1\]\s*$"
+    )
+    for clause in clauses:
+        stripped = _normalize_noncomment_expr(clause)
+        if re.match(pattern, stripped):
+            return True
+        helper = _helper_conjunct_name(stripped)
+        if helper and helper not in seen_helpers:
+            body = _operator_body(module_src, helper)
+            if body and _is_strictly_increasing_sequence(
+                module_src,
+                _split_top_level_conjuncts(body),
+                variable,
+                seen_helpers | {helper},
+            ):
+                return True
+    return False
+
+
+def _length_sum_relation(clause: str) -> tuple[str, str, str] | None:
+    patterns = (
+        r"^\s*(?:/\\\s*)?Len\(\s*([A-Za-z_]\w*)\s*\)\s*\+\s*Len\(\s*([A-Za-z_]\w*)\s*\)\s*=\s*Len\(\s*([A-Za-z_]\w*)\s*\)\s*$",
+        r"^\s*(?:/\\\s*)?Len\(\s*([A-Za-z_]\w*)\s*\)\s*=\s*Len\(\s*([A-Za-z_]\w*)\s*\)\s*\+\s*Len\(\s*([A-Za-z_]\w*)\s*\)\s*$",
+    )
+    for pattern in patterns:
+        match = re.match(pattern, clause)
+        if match:
+            groups = match.groups()
+            return (groups[0], groups[1], groups[2]) if "+" in clause.split("=", 1)[0] else (groups[1], groups[2], groups[0])
+    return None
+
+
+def _seq_len_upper_bounds(module_src: str, clauses: list[str]) -> dict[str, str]:
+    variables = _declared_variables(module_src)
+    typeok = _operator_body(module_src, _TYPE_BOUND_NAME)
+    defs = _simple_definitions(module_src)
+    bounds = {
+        variable: bound
+        for variable in variables
+        if (bound := _seq_len_upper_bound(module_src, clauses, variable)) is not None
+    }
+    changed = True
+    while changed:
+        changed = False
+        for clause in clauses:
+            relation = _length_sum_relation(clause.strip())
+            if relation is None:
+                continue
+            left, right, total = relation
+            total_bound = bounds.get(total)
+            if total_bound is None:
+                continue
+            for variable in (left, right):
+                if variable not in bounds:
+                    bounds[variable] = total_bound
+                    changed = True
+        for variable in variables:
+            if variable in bounds:
+                continue
+            domain = _seq_domain_expr(typeok, variable)
+            if not domain or not _is_strictly_increasing_sequence(module_src, clauses, variable):
+                continue
+            domain_bound = _domain_cardinality_bound_expr(domain, defs)
+            if domain_bound is None:
+                continue
+            bounds[variable] = domain_bound
+            changed = True
+    return bounds
+
+
 def _enumerable_type_bound_expr(module_src: str) -> str | None:
     if not _defines_operator(module_src, _TYPE_BOUND_NAME):
         return None
@@ -338,10 +563,7 @@ def _enumerable_type_bound_expr(module_src: str) -> str | None:
     if not typeok:
         return None
     clauses = _split_top_level_conjuncts(typeok)
-    seq_len_bounds = {
-        variable: _seq_len_upper_bound(module_src, clauses, variable)
-        for variable in _declared_variables(module_src)
-    }
+    seq_len_bounds = _seq_len_upper_bounds(module_src, clauses)
     seen_direct_domains: set[str] = set()
     rewritten: list[str] = []
     declared = _declared_variables(module_src)
