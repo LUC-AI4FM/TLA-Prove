@@ -165,8 +165,9 @@ def build_report(*, formalllm_root: Path, pipeline_repo: Path) -> dict[str, Any]
             "formalllm_role": "canonical prompt/spec supervised corpus",
             "pipeline_role": "broader public extraction/parsing discovery surface",
             "recommended_next_step": (
-                "Use formalllm_eval_v1 for direct supervised/eval work, and build "
-                "ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
+                "Use formalllm_eval_v1 for direct supervised/eval work, "
+                "inspect ai4fm_public_tlaprove_corpora for stable public JSONL expansion, "
+                "and treat ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
             ),
         },
         "public_sources": {

@@ -10,11 +10,11 @@
     "tla_files": 410,
     "unique_models": 191
   },
-  "generated_at": "2026-06-28T22:03:03.389648+00:00",
+  "generated_at": "2026-06-28T22:15:41.307093+00:00",
   "integration_recommendation": {
     "formalllm_role": "canonical prompt/spec supervised corpus",
     "pipeline_role": "broader public extraction/parsing discovery surface",
-    "recommended_next_step": "Use formalllm_eval_v1 for direct supervised/eval work, and build ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
+    "recommended_next_step": "Use formalllm_eval_v1 for direct supervised/eval work, inspect ai4fm_public_tlaprove_corpora for stable public JSONL expansion, and treat ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
   },
   "pipeline": {
     "dvc_lock": "LUC-AI4FM-tla-dataset-pipeline/dvc.lock",
