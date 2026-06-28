@@ -96,7 +96,7 @@ def _operator_body(src: str, name: str) -> str:
     if not match:
         return ""
     start = match.end()
-    next_def = re.search(r"^\s*[A-Za-z_]\w*(?:\([^)]*\))?\s*==", src[start:], re.MULTILINE)
+    next_def = re.search(r"^[ \t]*[A-Za-z_]\w*(?:\([^)]*\))?[ \t]*==", src[start:], re.MULTILINE)
     end_match = _END_RE.search(src[start:])
     candidates = [len(src)]
     if next_def:
@@ -289,21 +289,19 @@ def _set_cardinality(expr: str, defs: dict[str, str], seen: set[str] | None = No
 
 
 def _split_top_level_conjuncts(body: str) -> list[str]:
+    filtered = "\n".join(
+        line for line in body.splitlines() if line.strip() and not line.strip().startswith("\\*")
+    ).strip()
+    if not filtered:
+        return []
     clauses: list[str] = []
-    current: list[str] = []
-    for raw_line in body.splitlines():
-        if not raw_line.strip():
+    for part in _split_top_level(filtered, "/\\"):
+        stripped = part.strip()
+        if not stripped:
             continue
-        if raw_line.lstrip().startswith("/\\"):
-            if current:
-                clauses.append("\n".join(current))
-            current = [raw_line]
-        elif current:
-            current.append(raw_line)
-        elif raw_line.strip():
-            current = [raw_line]
-    if current:
-        clauses.append("\n".join(current))
+        if not stripped.startswith("/\\"):
+            stripped = f"/\\ {stripped}"
+        clauses.append(stripped)
     return clauses
 
 
@@ -345,6 +343,28 @@ def _domain_cardinality_bound_expr(domain: str, defs: dict[str, str]) -> str | N
 def _helper_conjunct_name(clause: str) -> str | None:
     match = re.match(r"^\s*(?:/\\\s*)?([A-Za-z_]\w*)\s*$", clause)
     return match.group(1) if match else None
+
+
+def _expand_helper_conjuncts(src: str, clauses: list[str], seen_helpers: set[str] | None = None) -> list[str]:
+    if seen_helpers is None:
+        seen_helpers = set()
+    expanded: list[str] = []
+    for clause in clauses:
+        stripped = clause.strip()
+        helper = _helper_conjunct_name(stripped)
+        if helper and helper not in seen_helpers:
+            body = _operator_body(src, helper)
+            if body:
+                expanded.extend(
+                    _expand_helper_conjuncts(
+                        src,
+                        _split_top_level_conjuncts(body),
+                        seen_helpers | {helper},
+                    )
+                )
+                continue
+        expanded.append(stripped)
+    return expanded
 
 
 def _seq_len_upper_bound(
@@ -460,20 +480,23 @@ def _seq_len_upper_bounds(src: str, clauses: list[str]) -> dict[str, str]:
     return bounds
 
 
-def _has_unbounded_seq_domain(typeok: str, variable: str, seq_len_bounds: dict[str, str]) -> bool:
-    match = re.search(
-        rf"^\s*/\\\s*{re.escape(variable)}\s*\\in\s*Seq\s*\((.+)\)\s*$",
-        typeok,
-        re.MULTILINE | re.DOTALL,
-    )
-    return bool(match) and variable not in seq_len_bounds
+def _has_unbounded_seq_domain(clauses: list[str], variable: str, seq_len_bounds: dict[str, str]) -> bool:
+    for clause in clauses:
+        match = re.search(
+            rf"^\s*/\\\s*{re.escape(variable)}\s*\\in\s*Seq\s*\((.+)\)\s*$",
+            clause,
+            re.MULTILINE | re.DOTALL,
+        )
+        if match:
+            return variable not in seq_len_bounds
+    return False
 
 
 def _typeok_init_state_space_too_large(src: str) -> bool:
     typeok = _operator_body(src, "TypeOK")
     if not typeok:
         return False
-    clauses = _split_top_level_conjuncts(typeok)
+    clauses = _expand_helper_conjuncts(src, _split_top_level_conjuncts(typeok))
     direct_domains: dict[str, tuple[str, str]] = {}
     for clause in clauses:
         stripped = clause.strip()
@@ -515,18 +538,24 @@ def _enumerability_issue(src: str) -> str | None:
         return "assume_requires_powerset_constant_cfg"
     if re.search(r"\b(Array|ArrayOfAnyLength)\s*\(", typeok):
         return "typeok_uses_sequence_backed_array_domain"
-    clauses = _split_top_level_conjuncts(typeok)
+    clauses = _expand_helper_conjuncts(src, _split_top_level_conjuncts(typeok))
+    expanded_text = "\n".join(clauses)
     seq_len_bounds = _seq_len_upper_bounds(src, clauses)
     for variable in _declared_variables(src):
-        if _has_unbounded_seq_domain(typeok, variable, seq_len_bounds):
+        if _has_unbounded_seq_domain(clauses, variable, seq_len_bounds):
             return "typeok_uses_unbounded_seq"
-    if re.search(r"\\in\s*\[.*->\s*(Nat|Int)\b", typeok, re.DOTALL):
+    if re.search(r"\\in\s*\[.*->\s*(Nat|Int)\b", expanded_text, re.DOTALL):
         return "typeok_function_range_uses_infinite_builtin"
     for variable in _declared_variables(src):
-        match = re.search(rf"(\b{re.escape(variable)}\b\s*(\\in|=|\\subseteq).*)", typeok)
+        match = None
+        for clause in clauses:
+            clause_match = re.search(rf"^\s*/\\\s*{re.escape(variable)}\s*(\\in|=|\\subseteq)\s*(.+)$", clause, re.DOTALL)
+            if clause_match:
+                match = clause_match
+                break
         if not match:
             return f"typeok_missing_variable_domain_{variable}"
-        clause = match.group(1)
+        clause = match.group(0)
         if re.search(rf"\b{re.escape(variable)}\b\s*\\in\s*(Nat|Int)\b", clause):
             return f"typeok_infinite_builtin_domain_{variable}"
     if _typeok_init_state_space_too_large(src):

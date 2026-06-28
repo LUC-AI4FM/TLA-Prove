@@ -115,3 +115,50 @@ TypeOK == /\ mem \in Seq(1..MaxIssue)
 
     assert expr is not None
     assert r"/\ mem \in (UNION { [1..n -> (1..MaxIssue)] : n \in 0..MaxIssue })" in expr
+
+
+def test_enumerable_type_bound_expr_expands_typeok_alias_to_helper_invariant() -> None:
+    module_src = r"""---- MODULE AliasTypeOK ----
+EXTENDS Naturals
+CONSTANT C
+VARIABLES active, rejected
+vars == << active, rejected >>
+Init == /\ active = 0
+        /\ rejected = 0
+Next == /\ active' = active
+        /\ rejected' = rejected
+Spec == Init /\ [][Next]_vars
+CapacityInv == active \in 0..C /\ rejected \in 0..C
+TypeOK == CapacityInv
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ active \in 0..C" in expr
+    assert r"/\ rejected \in 0..C" in expr
+
+
+def test_enumerable_type_bound_expr_orders_direct_domains_before_relational_clauses() -> None:
+    module_src = r"""---- MODULE OrderedInit ----
+EXTENDS Naturals
+CONSTANT K
+VARIABLES credits, inflight
+vars == << credits, inflight >>
+Init == /\ credits = K
+        /\ inflight = 0
+Next == /\ credits' = credits
+        /\ inflight' = inflight
+Spec == Init /\ [][Next]_vars
+CreditInv == credits + inflight = K /\ inflight \in 0..K
+TypeOK == credits \in 0..K /\ CreditInv
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    lines = [line.strip() for line in expr.splitlines() if line.strip()]
+    assert lines[:2] == [r"/\ credits \in 0..K", r"/\ inflight \in 0..K"]
+    assert lines[2] == r"/\ credits + inflight = K"
