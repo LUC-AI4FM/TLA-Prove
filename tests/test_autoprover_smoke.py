@@ -591,6 +591,137 @@ TypeOK == CapacityInv
     assert row["status"] == "skeleton_emitted"
 
 
+def test_run_one_accepts_pointwise_function_domain_invariant(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "PointwiseFunction.tla"
+    module_path.write_text(
+        r"""---- MODULE PointwiseFunction ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME N \in 1..3
+Tasks == 0..(N-1)
+Q == 2
+VARIABLES used, clock
+vars == << used, clock >>
+Init == /\ used = [t \in Tasks |-> 0]
+        /\ clock = 0
+Next == /\ used' = used
+        /\ clock' = clock
+QuotaInv == \A t \in Tasks : used[t] \in 0..Q
+TypeOK == /\ clock \in 0..3
+          /\ QuotaInv
+Spec == Init /\ [][Next]_vars
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module PointwiseFunction"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_multi_conjunct_pointwise_function_domain(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "PointwiseFunctionConjuncts.tla"
+    module_path.write_text(
+        r"""---- MODULE PointwiseFunctionConjuncts ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME N \in 1..3
+Tasks == 0..(N-1)
+Levels == 0..2
+VARIABLES level, used, running
+vars == << level, used, running >>
+Init == /\ level = [t \in Tasks |-> 0]
+        /\ used = [t \in Tasks |-> 0]
+        /\ running = N
+Next == /\ level' = level
+        /\ used' = used
+        /\ running' = running
+LevelInv == \A t \in Tasks : level[t] \in Levels /\ used[t] \in 0..1
+TypeOK == /\ running \in Tasks \cup {N}
+          /\ LevelInv
+Spec == Init /\ [][Next]_vars
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module PointwiseFunctionConjuncts"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_multiline_typeok_after_leading_quantified_clause(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "QuantifiedThenPlain.tla"
+    module_path.write_text(
+        r"""---- MODULE QuantifiedThenPlain ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME N \in 1..3
+Tasks == 0..(N-1)
+VARIABLES used, alarm
+vars == << used, alarm >>
+Init == /\ used = [t \in Tasks |-> 0]
+        /\ alarm = FALSE
+Next == /\ used' = used
+        /\ alarm' = alarm
+TypeOK == /\ \A t \in Tasks : used[t] \in 0..1
+          /\ alarm \in BOOLEAN
+Spec == Init /\ [][Next]_vars
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module QuantifiedThenPlain"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
 def test_run_one_multiline_variables_block_still_checks_missing_direct_domain(
     monkeypatch, tmp_path: Path
 ) -> None:
