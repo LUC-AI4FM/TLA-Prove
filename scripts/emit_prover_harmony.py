@@ -2,13 +2,13 @@
 emit_prover_harmony.py — Convert verified prover chunks into harmony-format
 JSONL train/eval splits ready for SFTTrainer.
 
-Input:  data/processed/prover_chunks_verified.jsonl
-Output: data/processed/prover_train.jsonl
-        data/processed/prover_eval.jsonl
+Input:  data/processed/tla_prover/prover_chunks_verified.jsonl
+Output: data/processed/tla_prover/prover_chunks_train.jsonl
+        data/processed/tla_prover/prover_chunks_eval.jsonl
 
 Format matches the existing spec-gen dataset (developer/user/assistant with
-channel field), so train.py can consume it via the same code path with only
-a path change.
+channel field), but these legacy chunk outputs are kept separate from the
+current live prover corpora so they cannot overwrite active artifacts.
 
 Split: 90/10 train/eval, deterministic by seed=42, stratified by source file
 so the eval set isn't dominated by CRDT_proof.tla (15 chunks).
@@ -22,9 +22,9 @@ from collections import defaultdict
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-IN = REPO / "data" / "processed" / "prover_chunks_verified.jsonl"
-OUT_TRAIN = REPO / "data" / "processed" / "prover_train.jsonl"
-OUT_EVAL = REPO / "data" / "processed" / "prover_eval.jsonl"
+IN = REPO / "data" / "processed" / "tla_prover" / "prover_chunks_verified.jsonl"
+OUT_TRAIN = REPO / "data" / "processed" / "tla_prover" / "prover_chunks_train.jsonl"
+OUT_EVAL = REPO / "data" / "processed" / "tla_prover" / "prover_chunks_eval.jsonl"
 
 DEVELOPER_PROMPT = """You are ChatTLA-Prover, an expert at writing TLAPS proofs for TLA+ theorems.
 You will be given a TLA+ module containing definitions, an Init/Next/Spec, and a THEOREM (or LEMMA) statement at the end.
@@ -83,6 +83,7 @@ def main() -> None:
     print(f"[emit] split: {len(train_chunks)} train / {len(eval_chunks)} eval")
 
     def write(path: Path, chunks: list[dict]) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w") as f:
             for ch in chunks:
                 row = {

@@ -71,6 +71,7 @@ PYTEST_FILES = [
     "tests/test_build_ai4fm_public_tlaprove_import.py",
     "tests/test_build_ai4fm_public_discovery_manifest.py",
     "tests/test_check_tla_prover_pr_ready.py",
+    "tests/test_legacy_prover_chunk_pipeline_paths.py",
     "tests/test_inspect_ai4fm_public_tlaprove_corpora.py",
     "tests/test_materialize_processed_tla_corpus.py",
     "tests/test_remote_handoff_script.py",
