@@ -36,6 +36,7 @@ def _comma(value: int) -> str:
 
 def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
     return {
+        "ai4fm_org_surface.json": "outputs/manifests/ai4fm_org_surface.json",
         "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
         "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
@@ -43,6 +44,8 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "ai4fm_public_seed_tla_modules_v1.summary.json": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
         "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+        "ai4fm_public_tlaprove_import_all_public_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json",
+        "ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json",
         "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
         "ai4fm_public_tlaprove_import_raw_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
         "chattla_tla_prover_sft_public_expanded_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
@@ -85,6 +88,12 @@ def _find_public_dataset_layer_count_mismatch(readme_text: str) -> tuple[int, in
 def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     formalllm = _read_json(repo / "data/processed/formalllm_eval_v1.summary.json")
     tlaprove = _read_json(repo / "outputs/manifests/ai4fm_public_tlaprove_corpora.json")
+    tlaprove_import_all_public = _read_json(
+        repo / "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json"
+    )
+    tlaprove_import_all_public_raw = _read_json(
+        repo / "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json"
+    )
     tlaprove_import = _read_json(repo / "data/processed/ai4fm_public_tlaprove_import_v1.summary.json")
     tlaprove_import_raw = _read_json(repo / "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json")
     seed_files = _read_json(repo / "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json")
@@ -94,6 +103,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     expanded_sft = _read_json(
         repo / "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json"
     )
+    org_surface = _read_json(repo / "outputs/manifests/ai4fm_org_surface.json")
     seed_license_surface = _read_json(repo / "outputs/manifests/ai4fm_public_seed_license_surface.json")
     dataset_surface = _read_json(repo / "outputs/manifests/ai4fm_public_dataset_surface.json")
 
@@ -105,9 +115,13 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     largest_rows = int(largest["rows"])
     normalized_rows = int(tlaprove_import["kept_rows"])
     raw_import_rows = int(tlaprove_import_raw["kept_rows"])
+    all_public_normalized_rows = int(tlaprove_import_all_public["kept_rows"])
+    all_public_raw_rows = int(tlaprove_import_all_public_raw["kept_rows"])
     all_public_rows = int(tlaprove["aggregate"].get("all_public_jsonl_rows", raw_rows))
     all_public_files = int(tlaprove["aggregate"].get("all_public_jsonl_files", 0))
     tracked_public_files = int(tlaprove["aggregate"].get("tracked_public_jsonl_files", 0))
+    org_public_repo_count = int(org_surface["public_repo_count"])
+    org_corpus_relevant_repo_count = int(org_surface["summary"]["corpus_relevant_repo_count"])
     seed_repo_inputs = int(seed_files["seed_repo_inputs"])
     seed_totals = seed_files.get("totals", {})
     tracked_seed_files = int(seed_totals.get("all", seed_files.get("kept_rows", 0)))
@@ -213,9 +227,22 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             f"- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
             f"  layer (`{formalllm_rows}` rows).",
             (
+                f"- `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot "
+                f"(`{org_public_repo_count}` repos,\n"
+                f"  `{org_corpus_relevant_repo_count}` corpus-relevant)."
+            ),
+            (
                 f"- `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus\n"
                 f"  report (`{raw_rows}` tracked training/eval rows within a `{all_public_rows}`-row committed public\n"
                 "  JSONL surface)."
+            ),
+            (
+                f"- `metadata/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json`: raw\n"
+                f"  full-public import summary (`{all_public_raw_rows}` undeduped rows)."
+            ),
+            (
+                f"- `metadata/ai4fm_public_tlaprove_import_all_public_v1.summary.json`: normalized\n"
+                f"  full-public import layer (`{all_public_normalized_rows}` rows)."
             ),
             (
                 f"- `metadata/ai4fm_public_tlaprove_import_raw_v1.summary.json`: raw tracked-corpora\n"

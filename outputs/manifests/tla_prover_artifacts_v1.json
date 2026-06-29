@@ -1,5 +1,13 @@
 {
   "artifacts": {
+    "ai4fm_org_surface": {
+      "bytes": 2479,
+      "exists": true,
+      "kind": "public_ai4fm_org_surface_report",
+      "path": "outputs/manifests/ai4fm_org_surface.json",
+      "rows": null,
+      "sha256": "b0a05a87c43c4188ae03287f469da5a1f0c4b85b5d9ead83be12fb0107661b8f"
+    },
     "ai4fm_public_dataset_surface": {
       "bytes": 2384,
       "exists": true,
@@ -742,6 +750,404 @@
       "rows": null,
       "sha256": "1190a1ae3cc78ab4eb0bec2bc3205ade6896d81fc6d3c0a49694365323eecf32"
     },
+    "ai4fm_public_tlaprove_import_all_public_raw_v1": {
+      "bytes": 12893363,
+      "exists": true,
+      "kind": "raw_full_public_ai4fm_tlaprove_import",
+      "path": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
+      "rows": 2757,
+      "sha256": "6133599c0f874f473e1b7841df61dd8ebd2e8e5b6149443b0f404a17edd23434",
+      "summary": {
+        "dedupe_exact_final_spec": false,
+        "duplicate_rows_collapsed": 0,
+        "generated_at": "2026-06-29T11:09:41.065613+00:00",
+        "include_additional_public_jsonl": true,
+        "jsonl_sha256": "6133599c0f874f473e1b7841df61dd8ebd2e8e5b6149443b0f404a17edd23434",
+        "kept_rows": 2757,
+        "out": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
+        "per_corpus": {
+          "diamond_eval_holdout": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 30,
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "raw_rows": 30,
+            "split": "eval",
+            "unique_canonical_finals": 30
+          },
+          "diamond_gen_communication_protocols": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/communication_protocols.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_concurrency_primitives": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/concurrency_primitives.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_consensus_election": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/consensus_election.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_data_structures": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/data_structures.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_diamond_generated": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 200,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/diamond_generated.jsonl",
+            "raw_rows": 200,
+            "split": "train",
+            "unique_canonical_finals": 200
+          },
+          "diamond_gen_memory_caches": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/memory_caches.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_mutual_exclusion": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/mutual_exclusion.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_puzzles_classical": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/puzzles_classical.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_scheduling_resources": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/scheduling_resources.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_transactions_databases": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/transactions_databases.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_workflows_state_machines": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/workflows_state_machines.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_sft_v3": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 1053,
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "raw_rows": 1053,
+            "split": "train",
+            "unique_canonical_finals": 455
+          },
+          "processed_eval": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 4,
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "raw_rows": 4,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "processed_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 713,
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "raw_rows": 713,
+            "split": "train",
+            "unique_canonical_finals": 285
+          },
+          "ralph_dev": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 50,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "raw_rows": 50,
+            "split": "eval",
+            "unique_canonical_finals": 50
+          },
+          "ralph_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 500,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "raw_rows": 500,
+            "split": "train",
+            "unique_canonical_finals": 499
+          },
+          "toy_eval": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 2,
+            "kind": "messages",
+            "path": "data/toy/eval.jsonl",
+            "raw_rows": 2,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "toy_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 5,
+            "kind": "messages",
+            "path": "data/toy/train.jsonl",
+            "raw_rows": 5,
+            "split": "train",
+            "unique_canonical_finals": 5
+          }
+        },
+        "raw_rows": 2757,
+        "repo": {
+          "default_branch": "main",
+          "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+          "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+          "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+        },
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+      },
+      "summary_path": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json"
+    },
+    "ai4fm_public_tlaprove_import_all_public_v1": {
+      "bytes": 5070495,
+      "exists": true,
+      "kind": "normalized_full_public_ai4fm_tlaprove_import",
+      "path": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+      "rows": 1010,
+      "sha256": "9918bb2f631c0d5ea450a2a6d2ca043cf29cb94f484924fb7c4395d3f1616e10",
+      "summary": {
+        "dedupe_exact_final_spec": true,
+        "duplicate_rows_collapsed": 1747,
+        "generated_at": "2026-06-29T11:09:00.723995+00:00",
+        "include_additional_public_jsonl": true,
+        "jsonl_sha256": "9918bb2f631c0d5ea450a2a6d2ca043cf29cb94f484924fb7c4395d3f1616e10",
+        "kept_rows": 1010,
+        "out": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+        "per_corpus": {
+          "diamond_eval_holdout": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 30,
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "raw_rows": 30,
+            "split": "eval",
+            "unique_canonical_finals": 30
+          },
+          "diamond_gen_communication_protocols": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/communication_protocols.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_concurrency_primitives": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/concurrency_primitives.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_consensus_election": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/consensus_election.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_data_structures": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/data_structures.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_diamond_generated": {
+            "duplicate_rows_collapsed": 200,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/diamond_generated.jsonl",
+            "raw_rows": 200,
+            "split": "train",
+            "unique_canonical_finals": 200
+          },
+          "diamond_gen_memory_caches": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/memory_caches.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_mutual_exclusion": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/mutual_exclusion.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_puzzles_classical": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/puzzles_classical.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_scheduling_resources": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/scheduling_resources.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_transactions_databases": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/transactions_databases.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_workflows_state_machines": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/workflows_state_machines.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_sft_v3": {
+            "duplicate_rows_collapsed": 883,
+            "kept_rows": 170,
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "raw_rows": 1053,
+            "split": "train",
+            "unique_canonical_finals": 455
+          },
+          "processed_eval": {
+            "duplicate_rows_collapsed": 3,
+            "kept_rows": 1,
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "raw_rows": 4,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "processed_train": {
+            "duplicate_rows_collapsed": 428,
+            "kept_rows": 285,
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "raw_rows": 713,
+            "split": "train",
+            "unique_canonical_finals": 285
+          },
+          "ralph_dev": {
+            "duplicate_rows_collapsed": 2,
+            "kept_rows": 48,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "raw_rows": 50,
+            "split": "eval",
+            "unique_canonical_finals": 50
+          },
+          "ralph_train": {
+            "duplicate_rows_collapsed": 29,
+            "kept_rows": 471,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "raw_rows": 500,
+            "split": "train",
+            "unique_canonical_finals": 499
+          },
+          "toy_eval": {
+            "duplicate_rows_collapsed": 2,
+            "kept_rows": 0,
+            "kind": "messages",
+            "path": "data/toy/eval.jsonl",
+            "raw_rows": 2,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "toy_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 5,
+            "kind": "messages",
+            "path": "data/toy/train.jsonl",
+            "raw_rows": 5,
+            "split": "train",
+            "unique_canonical_finals": 5
+          }
+        },
+        "raw_rows": 2757,
+        "repo": {
+          "default_branch": "main",
+          "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+          "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+          "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+        },
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+      },
+      "summary_path": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json"
+    },
     "ai4fm_public_tlaprove_import_raw_v1": {
       "bytes": 11345822,
       "exists": true,
@@ -1017,7 +1423,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T11:06:38.953709+00:00",
+        "generated_at": "2026-06-29T11:15:28.417453+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -1057,7 +1463,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "0b05c59690799fafa83b2d9fb358acfff7610839e34489fc12a67088b2f6b2da"
+      "sha256": "c93324643794732b172db5f75f520c913d3864010d87b4a648da9b74f39260cf"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -1067,7 +1473,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T11:06:39.015067+00:00",
+        "generated_at": "2026-06-29T11:15:28.480307+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1308,7 +1714,7 @@
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "9df12d57d7fb49b1f2062af07a6882ee974d77c9376dd2860dbc05be2ba0b577"
+      "sha256": "91312b0c30e7413619518f2f3c9295df62aa147a32ab88995c12f938661250ab"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -1350,7 +1756,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T11:06:39.265009+00:00",
+  "generated_at": "2026-06-29T11:15:28.728931+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -1359,6 +1765,8 @@
     "build_ai4fm_public_seed_prover_candidates": "python3 scripts/build_ai4fm_public_seed_prover_candidates.py",
     "build_ai4fm_public_seed_tla_modules": "python3 scripts/build_ai4fm_public_seed_tla_modules.py",
     "build_ai4fm_public_tlaprove_import": "python3 scripts/build_ai4fm_public_tlaprove_import.py",
+    "build_ai4fm_public_tlaprove_import_all_public": "python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+    "build_ai4fm_public_tlaprove_import_all_public_raw": "python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
     "build_ai4fm_public_tlaprove_import_raw": "python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
     "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
     "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
@@ -1369,6 +1777,7 @@
     "evaluate_remote_results": "python3 scripts/evaluate_tla_prover_remote_results.py",
     "final_proof_verify_launch": "qsub scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
     "final_proof_verify_pbs": "scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
+    "inspect_ai4fm_org_surface": "python3 scripts/inspect_ai4fm_org_surface.py",
     "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
     "inspect_ai4fm_public_tlaprove_corpora": "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py",
     "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",

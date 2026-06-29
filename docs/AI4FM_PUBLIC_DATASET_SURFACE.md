@@ -167,6 +167,11 @@ path:
   - `13` currently excluded public JSONL files
   - `407` additional public rows from `data/toy/*` and
     `outputs/diamond_gen/*`
+  - current checked-in all-public import summaries:
+    - `1010` kept rows in `ai4fm_public_tlaprove_import_all_public_v1`
+    - `2757` kept rows in `ai4fm_public_tlaprove_import_all_public_raw_v1`
+    - only `5` new unique normalized rows beyond the default `1005`-row tracked
+      import lane
 - the default tracked import lane stays unchanged; this is a non-default audit
   / expansion path
 

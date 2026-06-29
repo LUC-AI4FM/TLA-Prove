@@ -44,8 +44,16 @@ def _write_manifests(repo: Path) -> None:
         json.dumps({"kept_rows": 1005}),
     )
     _write(
+        repo / "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json",
+        json.dumps({"kept_rows": 1010}),
+    )
+    _write(
         repo / "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
         json.dumps({"kept_rows": 2350}),
+    )
+    _write(
+        repo / "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json",
+        json.dumps({"kept_rows": 2757}),
     )
     _write(
         repo / "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
@@ -66,6 +74,10 @@ def _write_manifests(repo: Path) -> None:
     _write(
         repo / "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         json.dumps({"total_rows": 2433, "public_import_rows": 1005, "public_seed_candidates_rows": 98}),
+    )
+    _write(
+        repo / "outputs/manifests/ai4fm_org_surface.json",
+        json.dumps({"public_repo_count": 8, "summary": {"corpus_relevant_repo_count": 3}}),
     )
     _write(
         repo / "outputs/manifests/ai4fm_public_seed_license_surface.json",
@@ -112,6 +124,7 @@ def _write_manifests(repo: Path) -> None:
     )
 
     for bundle_name, source_rel in {
+        "ai4fm_org_surface.json": "outputs/manifests/ai4fm_org_surface.json",
         "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
         "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
@@ -119,6 +132,8 @@ def _write_manifests(repo: Path) -> None:
         "ai4fm_public_seed_tla_modules_v1.summary.json": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
         "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+        "ai4fm_public_tlaprove_import_all_public_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json",
+        "ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json",
         "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
         "ai4fm_public_tlaprove_import_raw_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
         "chattla_tla_prover_sft_public_expanded_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
@@ -181,11 +196,16 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
         "\n".join(
             [
                 "This bundle ships prover corpora plus metadata summaries for the broader public AI4FM expansion lanes.",
+                "- `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot (`8` repos,\n  `3` corpus-relevant).",
                 "- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
                 "  layer (`205` rows).",
                 "- `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus",
                 "  report (`2350` tracked training/eval rows within a `2757`-row committed public",
                 "  JSONL surface).",
+                "- `metadata/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json`: raw",
+                "  full-public import summary (`2757` undeduped rows).",
+                "- `metadata/ai4fm_public_tlaprove_import_all_public_v1.summary.json`: normalized",
+                "  full-public import layer (`1010` rows).",
                 "- `metadata/ai4fm_public_tlaprove_import_raw_v1.summary.json`: raw tracked-corpora",
                 "  import summary (`2350` undeduped rows).",
                 "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed",

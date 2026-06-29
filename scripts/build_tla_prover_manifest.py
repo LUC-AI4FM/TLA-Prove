@@ -53,10 +53,24 @@ ARTIFACTS = {
         "summary": "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
         "kind": "raw_public_ai4fm_tlaprove_import",
     },
+    "ai4fm_public_tlaprove_import_all_public_v1": {
+        "path": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+        "summary": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json",
+        "kind": "normalized_full_public_ai4fm_tlaprove_import",
+    },
+    "ai4fm_public_tlaprove_import_all_public_raw_v1": {
+        "path": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
+        "summary": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json",
+        "kind": "raw_full_public_ai4fm_tlaprove_import",
+    },
     "ai4fm_public_seed_file_manifest_v1": {
         "path": "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
         "summary": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
         "kind": "public_ai4fm_seed_repo_file_manifest",
+    },
+    "ai4fm_org_surface": {
+        "path": "outputs/manifests/ai4fm_org_surface.json",
+        "kind": "public_ai4fm_org_surface_report",
     },
     "ai4fm_public_seed_license_surface": {
         "path": "outputs/manifests/ai4fm_public_seed_license_surface.json",
@@ -199,6 +213,17 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates "
                 "--out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl"
             ),
+            "build_ai4fm_public_tlaprove_import_all_public": (
+                "python3 scripts/build_ai4fm_public_tlaprove_import.py "
+                "--include-additional-public-jsonl "
+                "--out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl"
+            ),
+            "build_ai4fm_public_tlaprove_import_all_public_raw": (
+                "python3 scripts/build_ai4fm_public_tlaprove_import.py "
+                "--include-additional-public-jsonl --keep-duplicates "
+                "--out data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl"
+            ),
+            "inspect_ai4fm_org_surface": "python3 scripts/inspect_ai4fm_org_surface.py",
             "build_ai4fm_public_seed_file_manifest": (
                 "python3 scripts/build_ai4fm_public_seed_file_manifest.py"
             ),
