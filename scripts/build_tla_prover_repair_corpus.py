@@ -17,6 +17,8 @@ from src.rlvr_canary.repair_dataset import (
     DEFAULT_REPAIR_PAIRS,
     resolve_repair_pair_paths,
 )
+
+DEFAULT_LONG_RALPH_REPAIR_PAIRS = "data/processed/ralph_repair_pairs_long_latest.jsonl"
 DEFAULT_OUT = REPO / "data" / "processed" / "tla_prover_repair_train_v1.jsonl"
 
 
@@ -85,6 +87,7 @@ def build_corpus(
         "difficulty_counts": difficulty_counts,
         "source_defaults": {
             "ralph_repair_pairs": DEFAULT_REPAIR_PAIRS,
+            "ralph_repair_pairs_long_latest": DEFAULT_LONG_RALPH_REPAIR_PAIRS,
             "benchmark_repair_pairs_fc128best": DEFAULT_BENCHMARK_REPAIR_PAIRS,
         },
     }
@@ -106,13 +109,17 @@ def main() -> int:
         default=None,
         help=(
             "Repair-pair JSONL to include. Repeat to mix sources. "
-            f"Defaults to `{DEFAULT_REPAIR_PAIRS}` plus `{DEFAULT_BENCHMARK_REPAIR_PAIRS}`."
+            f"Defaults to `{DEFAULT_REPAIR_PAIRS}`, `{DEFAULT_LONG_RALPH_REPAIR_PAIRS}`, "
+            f"and `{DEFAULT_BENCHMARK_REPAIR_PAIRS}`."
         ),
     )
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
 
-    repair_pair_files = list(args.repair_pair_file or [DEFAULT_REPAIR_PAIRS, DEFAULT_BENCHMARK_REPAIR_PAIRS])
+    repair_pair_files = list(
+        args.repair_pair_file
+        or [DEFAULT_REPAIR_PAIRS, DEFAULT_LONG_RALPH_REPAIR_PAIRS, DEFAULT_BENCHMARK_REPAIR_PAIRS]
+    )
     rows, summary = build_corpus(repair_pair_files=repair_pair_files)
     _write_jsonl(args.out, rows)
     summary_path = args.out.with_suffix(".summary.json")

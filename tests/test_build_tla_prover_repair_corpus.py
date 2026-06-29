@@ -55,3 +55,25 @@ def test_build_corpus_reports_missing_sources_without_failing(tmp_path: Path) ->
     assert summary["missing_sources"] == ["missing.jsonl"]
     assert summary["kept_rows_by_source"] == {"bench.jsonl": 1}
 
+
+def test_build_corpus_prefers_available_long_ralph_source(tmp_path: Path) -> None:
+    long_ralph = tmp_path / "data/processed/ralph_repair_pairs_long_latest.jsonl"
+    benchmark = tmp_path / "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+    _write_jsonl(long_ralph, [_row("LR1", 0.35)])
+    _write_jsonl(benchmark, [_row("B1", 0.15)])
+
+    rows, summary = build_corpus(
+        repair_pair_files=[
+            tmp_path / "data/processed/ralph_repair_pairs.jsonl",
+            long_ralph,
+            benchmark,
+        ],
+        repo=tmp_path,
+    )
+
+    assert [row["repair_id"] for row in rows] == ["B1", "LR1"]
+    assert summary["missing_sources"] == ["data/processed/ralph_repair_pairs.jsonl"]
+    assert summary["kept_rows_by_source"] == {
+        "data/processed/ralph_repair_pairs_long_latest.jsonl": 1,
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl": 1,
+    }
