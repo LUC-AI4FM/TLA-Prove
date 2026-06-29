@@ -1551,7 +1551,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T12:23:33.623862+00:00",
+        "generated_at": "2026-06-29T12:42:15.010802+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -1591,7 +1591,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "5fa60fda1f471a33c3a06d7bcfd788594d56010b02e5d041392d6ebdc53e45b3"
+      "sha256": "8ecc12a485d262d1fcfb5bbcf082f60638ca2c83c083ad8dbb779d4146c5d8c8"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -1601,7 +1601,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T12:23:33.687559+00:00",
+        "generated_at": "2026-06-29T12:42:15.073343+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1842,15 +1842,15 @@
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "d77a6a543d7bd5c426a72ca467706ed719bc36c4d110bd8d8d0d7841a3ea6058"
+      "sha256": "81a41e4c61afcfc20a5c1298154c5670ce4e6ee7c7764d98fbbb11ce5a88ae8f"
     },
     "tla_prover_corpus_preflight": {
-      "bytes": 5633,
+      "bytes": 7142,
       "exists": true,
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "2c26badbb45a721defba92586fdc9dc92ae26f8f228f1b2aaffc1518ae6e4a33"
+      "sha256": "5f29409bff3f7b08f59de37e515257152273ea1d860bf2ebcf6fb16b1a292f21"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -1892,7 +1892,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T12:23:34.001474+00:00",
+  "generated_at": "2026-06-29T12:42:15.714966+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
