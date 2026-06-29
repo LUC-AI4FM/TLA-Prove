@@ -1,13 +1,13 @@
 {
   "comparisons": {
-    "expanded_vs_default_extra_rows": 1164,
-    "full_public_vs_default_extra_rows": 1169,
+    "expanded_vs_default_extra_rows": 1170,
+    "full_public_vs_default_extra_rows": 1175,
     "full_public_vs_expanded_extra_rows": 5,
-    "shape_ready_not_sany_rows": 9,
-    "shape_ready_vs_sany_clean_extra_rows": 9
+    "shape_ready_not_sany_rows": 3,
+    "shape_ready_vs_sany_clean_extra_rows": 3
   },
   "default_train_file": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
-  "generated_at": "2026-06-29T19:23:40.799701+00:00",
+  "generated_at": "2026-06-29T19:45:10.205766+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -31,15 +31,15 @@
         "base_rows": 1053,
         "formalllm_rows": 205,
         "public_import_rows": 1005,
-        "public_seed_candidates_rows": 159,
+        "public_seed_candidates_rows": 165,
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
       },
       "default_publish_lane": false,
-      "delta_vs_default_rows": 1164,
+      "delta_vs_default_rows": 1170,
       "intended_role": "bounded_public_comparison_train",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-      "rows": 2494,
+      "rows": 2500,
       "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
       "trainable": true
     },
@@ -49,15 +49,15 @@
         "base_rows": 1053,
         "formalllm_rows": 205,
         "public_import_rows": 1010,
-        "public_seed_candidates_rows": 159,
+        "public_seed_candidates_rows": 165,
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
       },
       "default_publish_lane": false,
-      "delta_vs_default_rows": 1169,
+      "delta_vs_default_rows": 1175,
       "intended_role": "maximal_committed_public_comparison_train",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-      "rows": 2499,
+      "rows": 2505,
       "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json",
       "trainable": true
     },
@@ -68,7 +68,7 @@
       "intended_role": "repair_and_prompt_shape_probe",
       "path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
       "rows": 168,
-      "sany_clean_rows": 159,
+      "sany_clean_rows": 165,
       "shape_ready_source_rows": 168,
       "source_rows": 2108,
       "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json",
@@ -78,16 +78,16 @@
     "shape-ready-not-sany": {
       "alias": "shape-ready-not-sany",
       "default_publish_lane": false,
-      "delta_vs_shape_ready_rows": -159,
+      "delta_vs_shape_ready_rows": -165,
       "intended_role": "repair_only_seed_lane",
       "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-      "rows": 9,
-      "sany_clean_rows": 159,
+      "rows": 3,
+      "sany_clean_rows": 165,
       "shape_ready_source_rows": 168,
       "source_rows": 2108,
       "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
       "trainable": false,
-      "unique_modules": 9
+      "unique_modules": 3
     }
   },
   "named_corpora": {
@@ -133,8 +133,8 @@
   "repo": ".",
   "schema": "chattla_tla_prover_corpus_experiment_matrix_v1",
   "seed_funnel_snapshot": {
-    "sany_clean_rows": 159,
-    "shape_ready_but_not_sany_clean_rows": 9,
+    "sany_clean_rows": 165,
+    "shape_ready_but_not_sany_clean_rows": 3,
     "shape_ready_rows": 168,
     "shape_ready_unique_modules": 114,
     "source_rows": 2108

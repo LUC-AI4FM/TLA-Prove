@@ -34,14 +34,14 @@ quality: current publish readiness is still blocked by fresh `0/20` or stale
 | Source | Evidence | Implication |
 | --- | --- | --- |
 | `data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json` | Current default prover SFT is `1330` rows and already includes the full `205`-row `FormaLLM` layer. | The original `30`-row concern is resolved for the prover training lane itself. |
-| `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json` | Non-default tracked-public expanded lane is `2494` rows: `1330` base stack + `1005` normalized public import + `159` SANY-clean seed candidates. | This is the main public-expanded training candidate already materialized. |
-| `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json` | Broader committed-public lane is `2499` rows with `1010` normalized public-import rows. | The full committed-public `TLA-Prove` surface still buys only `5` extra unique normalized rows beyond the tracked-public lane. |
-| `outputs/manifests/ai4fm_public_seed_prover_funnel.json` | `2108` usable seed modules -> `168` shape-ready rows -> `159` SANY-clean rows, leaving `9` shape-ready-but-not-SANY-clean rows. | The strongest remaining public-data headroom is now in verifier/repair work on the narrowed `9`-row residual queue, not in scraping more JSONLs. |
+| `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json` | Non-default tracked-public expanded lane is `2500` rows: `1330` base stack + `1005` normalized public import + `165` SANY-clean seed candidates. | This is the main public-expanded training candidate already materialized. |
+| `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json` | Broader committed-public lane is `2505` rows with `1010` normalized public-import rows. | The full committed-public `TLA-Prove` surface still buys only `5` extra unique normalized rows beyond the tracked-public lane. |
+| `outputs/manifests/ai4fm_public_seed_prover_funnel.json` | `2108` usable seed modules -> `168` shape-ready rows -> `165` SANY-clean rows, leaving `3` shape-ready-but-not-SANY-clean rows. | The strongest remaining public-data headroom is now in verifier/repair work on the narrowed `3`-row residual queue, not in scraping more JSONLs. |
 | `data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json` | Shape-ready public seed lane is `168` rows with `114` unique modules. | This lane is useful as an analysis/eval surface for autoprover-shaped modules. |
-| `data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json` | Repair-target lane is `9` rows with `9` unique modules after excluding the `159` SANY-clean rows. | These are immediate repair targets, but not safe training inputs under the current syntax/verification problems. |
-| `data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json` | After transitive helper staging is accounted for, all `9` residual rows are recoverable from the current public helper surface (`2` TLAPS-standard-module, `5` same-repo helper staging, `2` cross-repo helper staging). | The queue is now a small verifier/SANY cleanup lane rather than a missing-public-dependency lane. |
-| `data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json` | The current builder still recovers `0/9` residual rows, but every remaining row now reaches a post-stage non-import SANY error. | Import staging recovered real headroom, and the remaining work is now fully targeted module cleanup rather than helper-surface expansion. |
-| `data/processed/formalllm_public_tla_modules_v1.summary.json`, `data/processed/tlapm_public_tla_modules_v1.summary.json`, and the default repair-analysis CLIs | The checked-in broader public `FormaLLM` tree contributes `501` helper-module rows, while the checked-in public TLAPM library contributes `14` helper modules including `FiniteSetTheorems`, `NaturalsInduction`, `SequenceTheorems`, `TLAPS`, and `WellFoundedInduction`. | Keeping both helper-source lanes in the default repair builders, preferring the real public `TLAPS.tla` over the fallback stub, and allowing deeper transitive staging unlocked the jump from `150` to `159` SANY-clean seed candidates. |
+| `data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json` | Repair-target lane is `3` rows with `3` unique modules after excluding the `165` SANY-clean rows. | These are immediate repair targets, but not safe training inputs under the current syntax/verification problems. |
+| `data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json` | After transitive helper staging is accounted for, all `3` residual rows are recoverable from the current public helper surface (`1` TLAPS-standard-module, `2` same-repo helper staging). | The queue is now a tiny verifier/SANY cleanup lane rather than a missing-public-dependency lane. |
+| `data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json` | The current builder still recovers `0/3` residual rows, and every remaining row now reaches a post-stage non-import SANY error. | Import staging and helper selection recovered most of the public headroom; the remaining work is now concentrated in `EWD998`, `EWD998Chan`, and `Paxos`. |
+| `data/processed/formalllm_public_tla_modules_v1.summary.json`, `data/processed/tlapm_public_tla_modules_v1.summary.json`, and the default repair-analysis CLIs | The checked-in broader public `FormaLLM` tree contributes `501` helper-module rows, while the checked-in public TLAPM library contributes `14` helper modules including `FiniteSetTheorems`, `NaturalsInduction`, `SequenceTheorems`, `TLAPS`, and `WellFoundedInduction`. | Keeping both helper-source lanes in the default repair builders, preferring the real public `TLAPS.tla` over the fallback stub, allowing deeper transitive staging, and preferring stronger canonical utility helpers unlocked the jump from `150` to `165` SANY-clean seed candidates. |
 | `outputs/manifests/hf_publish_readiness.json` | Canonical `chattla:20b` lane is blocked because the newest full benchmark is stale and also `0` SANY / `0` TLC. | The canonical public model is not publishable. |
 | `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` | `chattla:20b-fc128best` has a fresh full benchmark but still `0` SANY / `0` TLC. | Freshness alone does not clear the gate; candidate quality is also non-deployable. |
 | `docs/TLA_PROVER_2026_06_29_FC128BEST_DIAGNOSIS.md` | Representative failures are parse corruption (`CONSTDEF`, C-style assignment/comment syntax, placeholder fragments). | Training on known non-SANY rows right now is more likely to worsen the current blocker than to help it. |
@@ -55,9 +55,9 @@ Keep these roles:
 - `chattla_tla_prover_sft_v1` (`1330` rows):
   current default and the only lane that should be treated as the stable
   baseline.
-- `chattla_tla_prover_sft_public_expanded_v1` (`2494` rows):
+- `chattla_tla_prover_sft_public_expanded_v1` (`2500` rows):
   the main bounded public-expansion training comparison.
-- `chattla_tla_prover_sft_public_all_v1` (`2499` rows):
+- `chattla_tla_prover_sft_public_all_v1` (`2505` rows):
   a secondary bounded comparison for testing whether the extra `5` normalized
   rows help at all.
 
@@ -68,7 +68,7 @@ Use these as non-training surfaces for now:
 - `ai4fm_public_seed_prover_shape_ready_v1` (`168` rows):
   shape-compatible public modules that can support verifier-side analysis and
   future targeted experiments.
-- `ai4fm_public_seed_prover_shape_ready_not_sany_v1` (`9` rows):
+- `ai4fm_public_seed_prover_shape_ready_not_sany_v1` (`3` rows):
   the immediate repair-target surface for syntax/SANY cleanup work.
 
 ### Explicit non-decision

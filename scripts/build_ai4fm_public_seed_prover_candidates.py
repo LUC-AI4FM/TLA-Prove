@@ -38,6 +38,16 @@ SMT == TRUE
 Isabelle == TRUE
 ====\n"""
 
+COMMUNITY_UTILITY_MODULES = {
+    "FiniteSetsExt",
+    "Folds",
+    "FunctionTheorems",
+    "Functions",
+    "Graphs",
+    "Relation",
+    "SequencesExt",
+}
+
 
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     rows = []
@@ -78,15 +88,17 @@ def _missing_imports(raw_output: str) -> list[str]:
     return ordered
 
 
-def _build_indexes(source_rows: list[dict[str, Any]]) -> tuple[dict[tuple[str, str], dict[str, Any]], dict[str, list[dict[str, Any]]]]:
-    by_repo_module: dict[tuple[str, str], dict[str, Any]] = {}
+def _build_indexes(
+    source_rows: list[dict[str, Any]],
+) -> tuple[dict[tuple[str, str], list[dict[str, Any]]], dict[str, list[dict[str, Any]]]]:
+    by_repo_module: dict[tuple[str, str], list[dict[str, Any]]] = {}
     by_module: dict[str, list[dict[str, Any]]] = {}
     for row in source_rows:
         repo = str(row.get("repo", ""))
         module = str(row.get("module", ""))
         if module and isinstance(row.get("content"), str):
             if repo:
-                by_repo_module[(repo, module)] = row
+                by_repo_module.setdefault((repo, module), []).append(row)
             by_module.setdefault(module, []).append(row)
     return by_repo_module, by_module
 
@@ -99,6 +111,23 @@ def _path_tokens(path: str) -> set[str]:
             if token:
                 tokens.add(token)
     return tokens
+
+
+def _path_overlap(path: str, row_source_path: str) -> set[str]:
+    ignored = {
+        "tla",
+        "cfg",
+        "specifications",
+        "examples",
+        "example",
+        "modules",
+        "tests",
+        "test",
+        "org",
+        "lamport",
+        "tlatools",
+    }
+    return (_path_tokens(path) & _path_tokens(row_source_path)) - ignored
 
 
 def _candidate_rank(candidate: dict[str, Any], *, row_repo: str, row_source_path: str) -> tuple[int, str, str]:
@@ -115,21 +144,7 @@ def _candidate_rank(candidate: dict[str, Any], *, row_repo: str, row_source_path
         score -= 50
     if "/tests/" in path or "/.smoke/" in path:
         score -= 10
-
-    ignored = {
-        "tla",
-        "cfg",
-        "specifications",
-        "examples",
-        "example",
-        "modules",
-        "tests",
-        "test",
-        "org",
-        "lamport",
-        "tlatools",
-    }
-    overlap = (_path_tokens(path) & _path_tokens(row_source_path)) - ignored
+    overlap = _path_overlap(path, row_source_path)
     score += 5 * len(overlap)
     if Path(path).stem.lower() == Path(row_source_path).stem.lower():
         score += 5
@@ -141,19 +156,42 @@ def _resolve_import(
     *,
     row_repo: str,
     row_source_path: str,
-    by_repo_module: dict[tuple[str, str], dict[str, Any]],
+    by_repo_module: dict[tuple[str, str], list[dict[str, Any]]],
     by_module: dict[str, list[dict[str, Any]]],
 ) -> str | None:
     if module == "TLAPS":
-        tlapm_standard = by_repo_module.get(("tlaplus/tlapm", "TLAPS"))
-        if tlapm_standard is not None:
-            content = tlapm_standard.get("content")
-            if isinstance(content, str):
-                return content
-    same_repo = by_repo_module.get((row_repo, module))
-    if same_repo is not None:
-        content = same_repo.get("content")
-        return str(content) if isinstance(content, str) else None
+        tlapm_standard = by_repo_module.get(("tlaplus/tlapm", "TLAPS"), [])
+        if tlapm_standard:
+            ranked_tlapm = sorted(
+                (row for row in tlapm_standard if isinstance(row.get("content"), str)),
+                key=lambda row: _candidate_rank(row, row_repo=row_repo, row_source_path=row_source_path),
+                reverse=True,
+            )
+            if ranked_tlapm:
+                return str(ranked_tlapm[0].get("content"))
+    same_repo_candidates = by_repo_module.get((row_repo, module), [])
+    if same_repo_candidates:
+        ranked_same_repo = sorted(
+            (row for row in same_repo_candidates if isinstance(row.get("content"), str)),
+            key=lambda row: _candidate_rank(row, row_repo=row_repo, row_source_path=row_source_path),
+            reverse=True,
+        )
+        if ranked_same_repo:
+            best_same_repo = ranked_same_repo[0]
+            best_same_repo_overlap = _path_overlap(str(best_same_repo.get("source_path", "")), row_source_path)
+            if (
+                module in COMMUNITY_UTILITY_MODULES
+                and not best_same_repo_overlap
+                and any(str(row.get("repo", "")) == "tlaplus/CommunityModules" for row in by_module.get(module, []))
+            ):
+                ranked_global = sorted(
+                    (row for row in by_module.get(module, []) if isinstance(row.get("content"), str)),
+                    key=lambda row: _candidate_rank(row, row_repo="", row_source_path=row_source_path),
+                    reverse=True,
+                )
+                if ranked_global:
+                    return str(ranked_global[0].get("content"))
+            return str(ranked_same_repo[0].get("content"))
     candidates = by_module.get(module, [])
     if not candidates:
         return TLAPS_STUB if module == "TLAPS" else None
@@ -172,7 +210,7 @@ def _validate_with_staged_imports(
     *,
     initial_result: Any,
     validate_file: Callable[..., Any],
-    by_repo_module: dict[tuple[str, str], dict[str, Any]],
+    by_repo_module: dict[tuple[str, str], list[dict[str, Any]]],
     by_module: dict[str, list[dict[str, Any]]],
     initial_missing_imports: list[str],
 ) -> tuple[Any, dict[str, Any]]:

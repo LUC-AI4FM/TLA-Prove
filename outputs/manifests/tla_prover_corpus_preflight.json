@@ -19,7 +19,7 @@
         "missing_rows": 0,
         "ok": true,
         "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-        "rows": 2494
+        "rows": 2500
       },
       {
         "extra_occurrences_over_formalllm_rows": 0,
@@ -29,7 +29,7 @@
         "missing_rows": 0,
         "ok": true,
         "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-        "rows": 2499
+        "rows": 2505
       }
     ],
     "formalllm_path": "data/processed/formalllm_eval_v1.jsonl",
@@ -48,13 +48,13 @@
       "errors": [],
       "ok": true,
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-      "rows": 2494
+      "rows": 2500
     },
     {
       "errors": [],
       "ok": true,
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-      "rows": 2499
+      "rows": 2505
     },
     {
       "errors": [],
@@ -84,7 +84,7 @@
       "errors": [],
       "ok": true,
       "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-      "rows": 159
+      "rows": 165
     },
     {
       "errors": [],
@@ -102,7 +102,7 @@
   "sany_tlc_diagnostic": {
     "corpus": "data/processed/sany_tlc_pass_sft_v1.jsonl",
     "duplicate_modules": [],
-    "generated_at": "2026-06-29T19:23:41.396996+00:00",
+    "generated_at": "2026-06-29T19:45:10.727117+00:00",
     "holdout": "data/processed/diamond_eval_holdout.jsonl",
     "holdout_overlap": [],
     "jsonl_sha256": "c72006c0ac5933cfdaee82c15b456dd58f18d8af70cd6f3c82950f7abe14af51",

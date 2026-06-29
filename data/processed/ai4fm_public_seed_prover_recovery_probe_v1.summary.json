@@ -1,44 +1,37 @@
 {
   "final_error_family_counts": {
     "missing_substitution": 1,
-    "unknown_operator": 8
+    "unknown_operator": 2
   },
   "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-  "generated_at": "2026-06-29T19:23:40.272024+00:00",
+  "generated_at": "2026-06-29T19:45:09.769236+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
   "helper_source_rows": 515,
-  "jsonl_sha256": "2dbefcf5754689601e547a7d203379ca994631f721d2e59c7b6750072321b1bb",
-  "kept_rows": 9,
+  "jsonl_sha256": "f8fbc4ee9d1eada8050cf845d6c52a972b7c6c02e425ee46d6a9befd4557a49a",
+  "kept_rows": 3,
   "measured_conclusion": "The current public seed candidate builder only partially closes the remaining repair queue: some rows still fail on missing transitive imports after staging, while the dominant residual bucket is now post-staging non-import SANY failures.",
   "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
   "probe_status_counts": {
-    "post_stage_non_import_error": 9
+    "post_stage_non_import_error": 3
   },
   "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "rows_missing_full_source_row": 0,
-  "rows_post_stage_non_import_error": 9,
+  "rows_post_stage_non_import_error": 3,
   "rows_recovered_current_builder": 0,
   "rows_still_missing_imports_after_staging": 0,
   "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
   "status_by_recommended_action": {
-    "stage_cross_repo_seed_helpers": {
-      "post_stage_non_import_error": 2
-    },
     "stage_same_repo_seed_helpers": {
-      "post_stage_non_import_error": 5
+      "post_stage_non_import_error": 2
     },
     "stage_tlaps_standard_module": {
-      "post_stage_non_import_error": 2
+      "post_stage_non_import_error": 1
     }
   },
   "top_final_error_details": [
-    {
-      "detail": "Unknown operator: `vars'.",
-      "rows": 3
-    },
     {
       "detail": "Unknown operator: `Reduce'.",
       "rows": 2
@@ -46,39 +39,11 @@
     {
       "detail": "Substitution missing for symbol Value declared at line 4, col 10 to line 4, col 14 of module Consensus",
       "rows": 1
-    },
-    {
-      "detail": "Unknown operator: `SumFunctionOnSet'.",
-      "rows": 1
-    },
-    {
-      "detail": "Unknown operator: `Transpose'.",
-      "rows": 1
-    },
-    {
-      "detail": "Unknown operator: `Max'.",
-      "rows": 1
     }
   ],
   "top_final_errors": [
     {
-      "error": "line 947, col 49 to line 947, col 52 of module VoteProof",
-      "rows": 3
-    },
-    {
       "error": "line 543, col 1 to line 543, col 48 of module Paxos",
-      "rows": 1
-    },
-    {
-      "error": "line 683, col 10 to line 683, col 25 of module FunctionTheorems",
-      "rows": 1
-    },
-    {
-      "error": "line 424, col 16 to line 424, col 24 of module EWD687a",
-      "rows": 1
-    },
-    {
-      "error": "line 48, col 20 to line 48, col 22 of module BlockDag",
       "rows": 1
     },
     {
@@ -91,10 +56,6 @@
     }
   ],
   "top_repos": [
-    {
-      "repo": "tlaplus/Examples",
-      "rows": 6
-    },
     {
       "repo": "tlaplus/tlaplus",
       "rows": 2

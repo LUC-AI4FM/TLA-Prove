@@ -1,7 +1,7 @@
 {
   "dependency_staging": {
     "attempted_rows": 840,
-    "recovered_rows": 61,
+    "recovered_rows": 67,
     "sample_recovered": [
       {
         "module": "AddTwo",
@@ -32,6 +32,22 @@
           "Folds",
           "Functions",
           "NaturalsInduction",
+          "TLAPS",
+          "WellFoundedInduction"
+        ]
+      },
+      {
+        "module": "bcastByz",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/bcastByz/bcastByz.tla",
+        "staged_modules": [
+          "FiniteSetTheorems",
+          "Folds",
+          "FunctionTheorems",
+          "Functions",
+          "NaturalsInduction",
+          "SequenceTheorems",
           "TLAPS",
           "WellFoundedInduction"
         ]
@@ -81,6 +97,23 @@
         ]
       },
       {
+        "module": "BPConProof",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/byzpaxos/BPConProof.tla",
+        "staged_modules": [
+          "Consensus",
+          "FiniteSetTheorems",
+          "Folds",
+          "Functions",
+          "NaturalsInduction",
+          "PConProof",
+          "TLAPS",
+          "VoteProof",
+          "WellFoundedInduction"
+        ]
+      },
+      {
         "module": "Bug1682",
         "reason": "dependency_staging_recovered",
         "repo": "apalache-mc/apalache",
@@ -116,29 +149,6 @@
           "TLAPS",
           "WellFoundedInduction"
         ]
-      },
-      {
-        "module": "Consensus",
-        "reason": "dependency_staging_recovered",
-        "repo": "tlaplus/Examples",
-        "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
-        "staged_modules": [
-          "FiniteSetTheorems",
-          "Folds",
-          "Functions",
-          "NaturalsInduction",
-          "TLAPS",
-          "WellFoundedInduction"
-        ]
-      },
-      {
-        "module": "Consensus",
-        "reason": "dependency_staging_recovered",
-        "repo": "tlaplus/tlaplus",
-        "source_path": "tlatools/org.lamport.tlatools/test-model/VoteProof/Consensus.tla",
-        "staged_modules": [
-          "TLAPS"
-        ]
       }
     ]
   },
@@ -148,6 +158,7 @@
     "Consensus": 4,
     "DieHard": 2,
     "DistributedReplicatedLog": 2,
+    "EWD687a": 2,
     "EWD840": 8,
     "EWD998": 3,
     "EWD998Chan": 2,
@@ -165,26 +176,27 @@
     "SpanTreeRandom": 2,
     "SpanTreeTest": 2,
     "SyncTerminationDetection": 2,
+    "VoteProof": 2,
     "Voting": 2,
     "YoYoNoPruning": 2,
     "YoYoPruning": 2,
     "aba_asyn_byz": 2,
     "ast": 2,
-    "bcastByz": 2,
+    "bcastByz": 3,
     "bcastFolklore": 2,
     "cf1s_folklore": 2,
     "nbacg_guer01": 2,
     "spanning": 2,
     "test211": 3
   },
-  "generated_at": "2026-06-29T19:16:43.239201+00:00",
+  "generated_at": "2026-06-29T19:40:39.811473+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
   "helper_source_rows": 515,
-  "jsonl_sha256": "cfa94e3a1aa14280cbd207bf4c87b94a3e64c16795f867070c2fb4fccde68b71",
-  "kept_rows": 159,
+  "jsonl_sha256": "a74a297c86971cb07f9f7bd231f763433d54b4404e72bcce3046f0b0442cb287",
+  "kept_rows": 165,
   "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
   "rows_considered": 2108,
   "sample_not_autoprover_candidate": [
@@ -476,8 +488,8 @@
   ],
   "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
   "skipped": {
-    "not_autoprover_candidate": 1675,
-    "sany_invalid": 274
+    "not_autoprover_candidate": 1693,
+    "sany_invalid": 250
   },
   "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_rows": 2108,
