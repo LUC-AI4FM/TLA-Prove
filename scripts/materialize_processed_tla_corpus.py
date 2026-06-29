@@ -5,8 +5,14 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from collections import Counter
 from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO))
+
+from scripts.autoprover_smoke import _is_candidate
 
 
 _MODULE_RE = re.compile(r"-{4,}\s*MODULE\s+([A-Za-z_]\w*)", re.IGNORECASE)
@@ -22,6 +28,13 @@ def _assistant_final(row: dict) -> str | None:
     return None
 
 
+def _module_content(row: dict) -> str | None:
+    content = row.get("content")
+    if isinstance(content, str) and "---- MODULE" in content:
+        return content
+    return _assistant_final(row)
+
+
 def _module_name(text: str) -> str | None:
     match = _MODULE_RE.search(text)
     return match.group(1) if match else None
@@ -33,6 +46,7 @@ def materialize(
     *,
     source_filters: set[str] | None = None,
     tier_filters: set[str] | None = None,
+    candidate_only: bool = False,
 ) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     seen_names: Counter[str] = Counter()
@@ -53,11 +67,14 @@ def materialize(
         if tier_filters and tier not in tier_filters:
             skipped["tier_filtered"] += 1
             continue
-        final = _assistant_final(row)
+        final = _module_content(row)
         if not final:
-            skipped["missing_assistant_final_module"] += 1
+            skipped["missing_module_content"] += 1
             continue
-        module = row.get("_module_name") or _module_name(final)
+        if candidate_only and not _is_candidate(final):
+            skipped["not_autoprover_candidate"] += 1
+            continue
+        module = row.get("_module_name") or row.get("module") or _module_name(final)
         if not module:
             skipped["missing_module_name"] += 1
             continue
@@ -88,6 +105,7 @@ def main() -> int:
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--source", action="append", dest="sources", default=[])
     parser.add_argument("--tier", action="append", dest="tiers", default=[])
+    parser.add_argument("--candidate-only", action="store_true")
     parser.add_argument("--summary-out", type=Path)
     args = parser.parse_args()
 
@@ -96,6 +114,7 @@ def main() -> int:
         args.out_dir,
         source_filters=set(args.sources) if args.sources else None,
         tier_filters=set(args.tiers) if args.tiers else None,
+        candidate_only=args.candidate_only,
     )
     if args.summary_out:
         args.summary_out.parent.mkdir(parents=True, exist_ok=True)
