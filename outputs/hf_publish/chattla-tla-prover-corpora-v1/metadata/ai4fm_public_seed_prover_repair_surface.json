@@ -21,25 +21,25 @@
       "name": "missing_import"
     }
   ],
-  "generated_at": "2026-06-29T17:19:31.688470+00:00",
+  "generated_at": "2026-06-29T17:36:33.786674+00:00",
   "missing_imports": {
     "availability_counts": {
-      "missing_from_seed_surface": 4,
-      "same_repo_seed_module": 7,
-      "tlaps_standard_module": 13
+      "missing_from_seed_surface": 15,
+      "same_repo_seed_module": 4,
+      "tlaps_standard_module": 5
     },
-    "rows_recoverable_from_seed_surface_or_tlaps_stub": 20,
+    "rows_recoverable_from_seed_surface_or_tlaps_stub": 9,
     "rows_with_missing_imports": 24,
     "top_missing_modules": [
       {
-        "availability": "tlaps_standard_module",
-        "module": "TLAPS",
-        "rows": 13
-      },
-      {
         "availability": "missing_from_seed_surface",
         "module": "FiniteSetTheorems",
-        "rows": 2
+        "rows": 11
+      },
+      {
+        "availability": "tlaps_standard_module",
+        "module": "TLAPS",
+        "rows": 5
       },
       {
         "availability": "cross_repo_seed_module",
@@ -47,14 +47,14 @@
         "rows": 2
       },
       {
-        "availability": "cross_repo_seed_module",
-        "module": "Voting",
+        "availability": "missing_from_seed_surface",
+        "module": "NaturalsInduction",
         "rows": 2
       },
       {
-        "availability": "cross_repo_seed_module",
-        "module": "Functions",
-        "rows": 1
+        "availability": "missing_from_seed_surface",
+        "module": "SequenceTheorems",
+        "rows": 2
       },
       {
         "availability": "cross_repo_seed_module",
@@ -64,16 +64,6 @@
       {
         "availability": "cross_repo_seed_module",
         "module": "BlockDag",
-        "rows": 1
-      },
-      {
-        "availability": "missing_from_seed_surface",
-        "module": "SequenceTheorems",
-        "rows": 1
-      },
-      {
-        "availability": "missing_from_seed_surface",
-        "module": "NaturalsInduction",
         "rows": 1
       }
     ]
@@ -87,7 +77,10 @@
   "samples": [
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module TLAPS imported in module Bakery.",
+      "first_error": "line 342, col 16 to line 342, col 19 of module Bakery",
+      "initial_missing_imports": [
+        "TLAPS"
+      ],
       "missing_import_availability": [
         "tlaps_standard_module"
       ],
@@ -97,39 +90,58 @@
       "module": "Bakery",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/Bakery-Boulangerie/Bakery.tla",
+      "staged_modules": [
+        "TLAPS"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module TLAPS imported in module Barriers.",
+      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Barriers.",
+      "initial_missing_imports": [
+        "TLAPS"
+      ],
       "missing_import_availability": [
-        "tlaps_standard_module"
+        "missing_from_seed_surface"
       ],
       "missing_imports": [
-        "TLAPS"
+        "FiniteSetTheorems"
       ],
       "module": "Barriers",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/barriers/Barriers.tla",
+      "staged_modules": [
+        "TLAPS"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module Functions imported in module bcastByz.",
+      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module bcastByz.",
+      "initial_missing_imports": [
+        "Functions"
+      ],
       "missing_import_availability": [
-        "same_repo_seed_module"
+        "missing_from_seed_surface"
       ],
       "missing_imports": [
-        "Functions"
+        "FiniteSetTheorems"
       ],
       "module": "bcastByz",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/bcastByz/bcastByz.tla",
+      "staged_modules": [
+        "FunctionTheorems",
+        "Functions"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module TLAPS imported in module BinarySearch.",
+      "first_error": "line 146, col 18 to line 146, col 19 of module BinarySearch",
+      "initial_missing_imports": [
+        "TLAPS"
+      ],
       "missing_import_availability": [
         "tlaps_standard_module"
       ],
@@ -139,11 +151,17 @@
       "module": "BinarySearch",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/LoopInvariance/BinarySearch.tla",
+      "staged_modules": [
+        "TLAPS"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
       "first_error": "Cannot find source file for module FiniteSetTheorems imported in module BPConProof.",
+      "initial_missing_imports": [
+        "FiniteSetTheorems"
+      ],
       "missing_import_availability": [
         "missing_from_seed_surface"
       ],
@@ -153,11 +171,15 @@
       "module": "BPConProof",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/byzpaxos/BPConProof.tla",
+      "staged_modules": [],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
       "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
+      "initial_missing_imports": [
+        "FiniteSetTheorems"
+      ],
       "missing_import_availability": [
         "missing_from_seed_surface"
       ],
@@ -167,39 +189,55 @@
       "module": "Consensus",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/byzpaxos/Consensus.tla",
+      "staged_modules": [],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module TLAPS imported in module Consensus.",
+      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
+      "initial_missing_imports": [
+        "TLAPS"
+      ],
       "missing_import_availability": [
-        "tlaps_standard_module"
+        "missing_from_seed_surface"
       ],
       "missing_imports": [
-        "TLAPS"
+        "FiniteSetTheorems"
       ],
       "module": "Consensus",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/Paxos/Consensus.tla",
+      "staged_modules": [
+        "TLAPS"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module TLAPS imported in module Consensus.",
+      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
+      "initial_missing_imports": [
+        "TLAPS"
+      ],
       "missing_import_availability": [
-        "tlaps_standard_module"
+        "missing_from_seed_surface"
       ],
       "missing_imports": [
-        "TLAPS"
+        "FiniteSetTheorems"
       ],
       "module": "Consensus",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
+      "staged_modules": [
+        "TLAPS"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module Graphs imported in module EWD687a.",
+      "first_error": "line 424, col 16 to line 424, col 24 of module EWD687a",
+      "initial_missing_imports": [
+        "Graphs"
+      ],
       "missing_import_availability": [
         "same_repo_seed_module"
       ],
@@ -209,11 +247,17 @@
       "module": "EWD687a",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/ewd687a/EWD687a.tla",
+      "staged_modules": [
+        "Graphs"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module Utils imported in module EWD998.",
+      "first_error": "line 133, col 6 to line 133, col 11 of module EWD998",
+      "initial_missing_imports": [
+        "Utils"
+      ],
       "missing_import_availability": [
         "same_repo_seed_module"
       ],
@@ -223,11 +267,21 @@
       "module": "EWD998",
       "repo": "tlaplus/tlaplus",
       "source_path": "tlatools/org.lamport.tlatools/test-model/EWD998/EWD998.tla",
+      "staged_modules": [
+        "FiniteSetsExt",
+        "Folds",
+        "Functions",
+        "SequencesExt",
+        "Utils"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module Utils imported in module EWD998Chan.",
+      "first_error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
+      "initial_missing_imports": [
+        "Utils"
+      ],
       "missing_import_availability": [
         "same_repo_seed_module"
       ],
@@ -237,20 +291,36 @@
       "module": "EWD998Chan",
       "repo": "tlaplus/tlaplus",
       "source_path": "tlatools/org.lamport.tlatools/test-model/EWD998/EWD998Chan.tla",
+      "staged_modules": [
+        "AsyncTerminationDetection",
+        "EWD998",
+        "FiniteSetsExt",
+        "Folds",
+        "Functions",
+        "SequencesExt",
+        "Utils"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module TLAPS imported in module Paxos.",
+      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
+      "initial_missing_imports": [
+        "TLAPS"
+      ],
       "missing_import_availability": [
-        "tlaps_standard_module"
+        "missing_from_seed_surface"
       ],
       "missing_imports": [
-        "TLAPS"
+        "FiniteSetTheorems"
       ],
       "module": "Paxos",
       "repo": "tlaplus/DrTLAPlus",
       "source_path": "Paxos/Paxos.tla",
+      "staged_modules": [
+        "Consensus",
+        "TLAPS"
+      ],
       "unexpected_valid": false
     }
   ],
@@ -267,32 +337,28 @@
   },
   "top_first_errors": [
     {
-      "count": 2,
-      "error": "Cannot find source file for module TLAPS imported in module Consensus."
+      "count": 8,
+      "error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus."
     },
     {
       "count": 2,
-      "error": "Cannot find source file for module Voting imported in module Paxos."
-    },
-    {
-      "count": 2,
-      "error": "Cannot find source file for module TLAPS imported in module Voting."
+      "error": "Cannot find source file for module NaturalsInduction imported in module VoteProof."
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module TLAPS imported in module Bakery."
+      "error": "line 342, col 16 to line 342, col 19 of module Bakery"
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module TLAPS imported in module Barriers."
+      "error": "Cannot find source file for module FiniteSetTheorems imported in module Barriers."
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module Functions imported in module bcastByz."
+      "error": "Cannot find source file for module FiniteSetTheorems imported in module bcastByz."
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module TLAPS imported in module BinarySearch."
+      "error": "line 146, col 18 to line 146, col 19 of module BinarySearch"
     },
     {
       "count": 1,
@@ -300,19 +366,23 @@
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus."
+      "error": "line 424, col 16 to line 424, col 24 of module EWD687a"
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module Graphs imported in module EWD687a."
+      "error": "line 133, col 6 to line 133, col 11 of module EWD998"
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module Utils imported in module EWD998."
+      "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan"
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module Utils imported in module EWD998Chan."
+      "error": "Cannot find source file for module SequenceTheorems imported in module Quicksort."
+    },
+    {
+      "count": 1,
+      "error": "line 48, col 20 to line 48, col 22 of module BlockDag"
     }
   ],
   "warnings": []

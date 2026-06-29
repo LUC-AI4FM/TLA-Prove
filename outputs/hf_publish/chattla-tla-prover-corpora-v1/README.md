@@ -120,6 +120,11 @@ not bundle-local copies of every artifact named there.
   NOASSERTION repos, and `3` unknown-license repos.
 - Public AI4FM seed-module prover candidates: `144` rows out of `2108` usable
   public seed-module rows.
+- Public seed repair queue: `24` rows remaining, with `9` recoverable without
+  new public source material and `15` blocked on missing public helper modules.
+- Public seed recovery probe: `0` additional rows recovered by the current
+  builder on that residual queue; `15` still import-blocked and `9` now fail
+  with post-stage non-import SANY errors.
 - Canonical publish readiness gate: blocked, with `20` of `20` latest benchmark rows
   missing every core TLA component.
 - `fc128best` publish readiness gate: blocked, with `20` of `20` rows missing every core component

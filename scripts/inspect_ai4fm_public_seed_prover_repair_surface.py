@@ -16,6 +16,8 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
+from scripts.build_ai4fm_public_seed_prover_candidates import _build_indexes, _validate_with_staged_imports
+from src.validators.sany_validator import validate_file as validate_sany_file
 from src.validators.sany_validator import validate_string as validate_sany_string
 
 DEFAULT_SOURCE = REPO / "data" / "processed" / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl"
@@ -106,6 +108,7 @@ def build_report(
     source_summary: Path = DEFAULT_SOURCE_SUMMARY,
     seed_modules: Path = DEFAULT_SEED_MODULES,
     validate_module: Callable[..., Any] = validate_sany_string,
+    validate_file: Callable[..., Any] = validate_sany_file,
     workers: int = 4,
 ) -> dict[str, Any]:
     source_rows = _load_jsonl(source)
@@ -118,6 +121,7 @@ def build_report(
         repo = str(row.get("repo", ""))
         if module and repo:
             module_to_repos[module].add(repo)
+    by_repo_module, by_module = _build_indexes(seed_rows)
 
     category_counts: Counter[str] = Counter()
     first_error_counts: Counter[str] = Counter()
@@ -136,7 +140,25 @@ def build_report(
         errors = [str(item) for item in getattr(result, "errors", [])]
         raw_output = str(getattr(result, "raw_output", ""))
         first_error = _first_meaningful_error(errors, raw_output)
-        missing = _missing_imports(raw_output)
+        initial_missing = _missing_imports(raw_output)
+        missing = list(initial_missing)
+        staged_modules: list[str] = []
+        if initial_missing:
+            result, staged_info = _validate_with_staged_imports(
+                row,
+                initial_result=result,
+                validate_file=validate_file,
+                by_repo_module=by_repo_module,
+                by_module=by_module,
+                initial_missing_imports=initial_missing,
+            )
+            staged_modules = list(staged_info.get("staged_modules", []))
+            staged_unresolved = list(staged_info.get("unresolved_missing_imports", []))
+            final_errors = [str(item) for item in getattr(result, "errors", [])]
+            final_raw_output = str(getattr(result, "raw_output", ""))
+            first_error = _first_meaningful_error(final_errors, final_raw_output)
+            if staged_unresolved:
+                missing = list(staged_unresolved)
         availabilities = [_availability(name, row_repo=repo, module_to_repos=module_to_repos) for name in missing]
         category = _category(first_error, missing)
         return {
@@ -144,8 +166,10 @@ def build_report(
             "repo": repo,
             "source_path": row.get("source_path"),
             "first_error": first_error,
+            "initial_missing_imports": initial_missing,
             "missing_imports": missing,
             "missing_import_availability": availabilities,
+            "staged_modules": staged_modules,
             "category": category,
             "unexpected_valid": bool(getattr(result, "valid", False)),
         }
@@ -244,6 +268,7 @@ def main() -> int:
         source=args.source,
         source_summary=args.source_summary,
         seed_modules=args.seed_modules,
+        validate_file=validate_sany_file,
         workers=args.workers,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
