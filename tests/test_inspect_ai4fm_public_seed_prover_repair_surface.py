@@ -202,3 +202,45 @@ def test_build_report_uses_post_stage_missing_imports(tmp_path: Path) -> None:
     assert report["missing_imports"]["availability_counts"] == {"missing_from_seed_surface": 1}
     assert report["missing_imports"]["top_missing_modules"][0]["module"] == "FiniteSetTheorems"
     assert report["samples"][0]["missing_imports"] == ["FiniteSetTheorems"]
+
+
+def test_build_report_accepts_supplemental_helper_source(tmp_path: Path) -> None:
+    source = tmp_path / "repair.jsonl"
+    source_summary = tmp_path / "repair.summary.json"
+    seed_modules = tmp_path / "seed.jsonl"
+    helper_source = tmp_path / "helper.jsonl"
+
+    _write_jsonl(
+        source,
+        [
+            {"module": "SpecA", "repo": "org/repo-a", "source_path": "SpecA.tla", "content": "---- MODULE SpecA ----\n====\n"},
+        ],
+    )
+    _write(source_summary, json.dumps({"kept_rows": 1, "excluded_sany_clean_rows": 0}))
+    _write_jsonl(seed_modules, [])
+    _write_jsonl(
+        helper_source,
+        [
+            {"module": "SharedHelper", "repo": "formalllm/public", "source_path": "helpers/SharedHelper.tla", "content": "---- MODULE SharedHelper ----\n====\n"},
+        ],
+    )
+
+    def fake_validate(_content: str, *, module_name: str):
+        assert module_name == "SpecA"
+        raw = "In module SpecA\nCannot find source file for module SharedHelper imported in module SpecA.\n*** Errors: 1\n"
+        return _Sany(False, ["Cannot find source file for module SharedHelper imported in module SpecA.", "*** Errors: 1"], raw)
+
+    report = build_report(
+        source=source,
+        source_summary=source_summary,
+        seed_modules=seed_modules,
+        helper_source_paths=[helper_source],
+        validate_module=fake_validate,
+        workers=1,
+    )
+
+    assert report["missing_imports"]["rows_with_missing_imports"] == 1
+    assert report["missing_imports"]["rows_recoverable_from_seed_surface_or_tlaps_stub"] == 1
+    assert report["missing_imports"]["availability_counts"] == {"cross_repo_seed_module": 1}
+    assert report["seed_modules"]["helper_source_paths"] == [str(helper_source)]
+    assert report["seed_modules"]["helper_source_rows"] == 1

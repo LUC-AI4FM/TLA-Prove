@@ -1,25 +1,32 @@
 {
-  "blocked_on_missing_public_dependency_rows": 15,
-  "generated_at": "2026-06-29T17:33:42.682830+00:00",
-  "jsonl_sha256": "daa0f7d0a43a7a2be3a3f17c9b39015843a8f5a83ec3c55006d23ff3f0d54fb9",
+  "blocked_on_missing_public_dependency_rows": 13,
+  "generated_at": "2026-06-29T18:09:25.226655+00:00",
+  "helper_source_paths": [
+    "data/processed/formalllm_public_tla_modules_v1.jsonl"
+  ],
+  "helper_source_rows": 501,
+  "jsonl_sha256": "674c05032627bb3aea37cb0e389d2b59229b76118692615d6c24e93bfce82edf",
   "kept_rows": 24,
   "missing_import_availability_counts": {
-    "missing_from_seed_surface": 15,
+    "cross_repo_seed_module": 1,
+    "missing_from_seed_surface": 13,
     "same_repo_seed_module": 4,
-    "tlaps_standard_module": 5
+    "tlaps_standard_module": 6
   },
   "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "priority_counts": {
-    "p1": 5,
+    "p1": 6,
     "p2": 4,
-    "p4": 15
+    "p3": 1,
+    "p4": 13
   },
   "recommended_action_counts": {
-    "expand_public_dependency_surface": 15,
+    "expand_public_dependency_surface": 13,
+    "stage_cross_repo_seed_helpers": 1,
     "stage_same_repo_seed_helpers": 4,
-    "stage_tlaps_standard_module": 5
+    "stage_tlaps_standard_module": 6
   },
-  "recoverable_without_new_source_rows": 9,
+  "recoverable_without_new_source_rows": 11,
   "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
   "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -28,7 +35,7 @@
       "note": "Highest-leverage rows: missing only the standard TLAPS helper module.",
       "priority": "p1",
       "recommended_action": "stage_tlaps_standard_module",
-      "rows": 5
+      "rows": 6
     },
     {
       "note": "Rows recoverable by staging helper modules already present in the same public repo.",
@@ -40,34 +47,26 @@
       "note": "Rows recoverable by staging helper modules already visible elsewhere in the public seed surface.",
       "priority": "p3",
       "recommended_action": "stage_cross_repo_seed_helpers",
-      "rows": 0
+      "rows": 1
     },
     {
       "note": "Rows still blocked because at least one required helper module is missing from the current public seed surface.",
       "priority": "p4",
       "recommended_action": "expand_public_dependency_surface",
-      "rows": 15
+      "rows": 13
     }
   ],
   "top_missing_modules": [
     {
       "module": "FiniteSetTheorems",
-      "rows": 11
+      "rows": 13
     },
     {
       "module": "TLAPS",
-      "rows": 5
+      "rows": 6
     },
     {
       "module": "Utils",
-      "rows": 2
-    },
-    {
-      "module": "NaturalsInduction",
-      "rows": 2
-    },
-    {
-      "module": "SequenceTheorems",
       "rows": 2
     },
     {
@@ -76,6 +75,10 @@
     },
     {
       "module": "BlockDag",
+      "rows": 1
+    },
+    {
+      "module": "SequenceTheorems",
       "rows": 1
     }
   ],

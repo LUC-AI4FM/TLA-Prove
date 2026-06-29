@@ -21,39 +21,30 @@
       "name": "missing_import"
     }
   ],
-  "generated_at": "2026-06-29T17:36:33.786674+00:00",
+  "generated_at": "2026-06-29T18:09:19.665213+00:00",
   "missing_imports": {
     "availability_counts": {
-      "missing_from_seed_surface": 15,
+      "cross_repo_seed_module": 1,
+      "missing_from_seed_surface": 13,
       "same_repo_seed_module": 4,
-      "tlaps_standard_module": 5
+      "tlaps_standard_module": 6
     },
-    "rows_recoverable_from_seed_surface_or_tlaps_stub": 9,
+    "rows_recoverable_from_seed_surface_or_tlaps_stub": 11,
     "rows_with_missing_imports": 24,
     "top_missing_modules": [
       {
         "availability": "missing_from_seed_surface",
         "module": "FiniteSetTheorems",
-        "rows": 11
+        "rows": 13
       },
       {
         "availability": "tlaps_standard_module",
         "module": "TLAPS",
-        "rows": 5
+        "rows": 6
       },
       {
         "availability": "cross_repo_seed_module",
         "module": "Utils",
-        "rows": 2
-      },
-      {
-        "availability": "missing_from_seed_surface",
-        "module": "NaturalsInduction",
-        "rows": 2
-      },
-      {
-        "availability": "missing_from_seed_surface",
-        "module": "SequenceTheorems",
         "rows": 2
       },
       {
@@ -64,6 +55,11 @@
       {
         "availability": "cross_repo_seed_module",
         "module": "BlockDag",
+        "rows": 1
+      },
+      {
+        "availability": "cross_repo_seed_module",
+        "module": "SequenceTheorems",
         "rows": 1
       }
     ]
@@ -326,9 +322,13 @@
   ],
   "schema": "chattla_ai4fm_public_seed_prover_repair_surface_v1",
   "seed_modules": {
+    "helper_source_paths": [
+      "data/processed/formalllm_public_tla_modules_v1.jsonl"
+    ],
+    "helper_source_rows": 501,
     "path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
     "rows": 2108,
-    "unique_module_names": 1586
+    "unique_module_names": 1589
   },
   "source": {
     "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -342,7 +342,11 @@
     },
     {
       "count": 2,
-      "error": "Cannot find source file for module NaturalsInduction imported in module VoteProof."
+      "error": "Cannot find source file for module FiniteSetTheorems imported in module VoteProof."
+    },
+    {
+      "count": 2,
+      "error": "***Parse Error***"
     },
     {
       "count": 1,
@@ -375,10 +379,6 @@
     {
       "count": 1,
       "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan"
-    },
-    {
-      "count": 1,
-      "error": "Cannot find source file for module SequenceTheorems imported in module Quicksort."
     },
     {
       "count": 1,
