@@ -20,7 +20,7 @@
     "spanning": 2,
     "test211": 3
   },
-  "generated_at": "2026-06-29T01:23:23.419857+00:00",
+  "generated_at": "2026-06-29T03:20:17.416414+00:00",
   "jsonl_sha256": "3e1d0ca62ca52ec460d5431680202f8775b6cf4f9084ee92c45a2211b64804b9",
   "kept_rows": 98,
   "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
@@ -187,11 +187,10 @@
   ],
   "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
   "skipped": {
-    "missing_module_content": 11,
-    "not_autoprover_candidate": 998,
-    "sany_invalid": 1001
+    "not_autoprover_candidate": 1006,
+    "sany_invalid": 1004
   },
   "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_rows": 2108,
-  "workers": 8
+  "workers": 16
 }

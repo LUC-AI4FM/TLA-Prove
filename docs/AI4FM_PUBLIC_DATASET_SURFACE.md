@@ -36,11 +36,22 @@ We also re-checked the current upstream public repos directly on 2026-06-28:
 - `FormaLLM`
   - current `main`: `b159f5df093e7ed71f4793bba99459b97a2bb23d`
   - `data/all_models.json` still contains exactly `205` canonical records
-  - split files still sum to `205`: `143` train, `30` val, `32` test
+  - committed split files are currently `Input/train.json`, `Input/val.json`, and
+    `Input/test.json`, and they still sum to `205`: `143` train, `30` val,
+    `32` test
 - `tla-dataset-pipeline`
   - current `main`: `59bd5335f1d2c5ff66badbe98b594f4b064f8703`
   - seed recipe currently lists `11` repos, `7` org seeds, `9` user seeds, and `5` search queries
   - `dvc.lock` still reports `2628` `pull` files, `227` `parse` input files, and `3979` `parse` output files
+- `ai4fm.cs.luc.edu` public site source
+  - current site repo `main`: `c8a1e0b38b7b9226e70b35975faddfdfefa776b8`
+  - the current site source still describes the evaluation benchmark as `205`
+    TLA+ specifications
+- stale `1800+` note worth not over-trusting
+  - `FormaLLM/doc/ARCHITECTURE.md` still says `all_models.json` is metadata for
+    `1800+ specifications`
+  - that line no longer matches the current committed public metadata file,
+    which now contains `205` records
 
 Important interpretation:
 
@@ -48,11 +59,20 @@ Important interpretation:
 - the local `1005` normalized `ai4fm_public_tlaprove_import_v1` rows and `98`
   `ai4fm_public_seed_prover_candidates_v1` rows are ChatTLA-derived downstream
   corpora, not counts published by the two upstream repos above
-- our own local public-seed lane currently has one mismatch worth tracking:
-  `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public seed
-  `.tla` files, while `ai4fm_public_seed_prover_candidates_v1.summary.json`
-  reports `2108` `source_rows`; that discrepancy needs to stay explicit until we
-  reconcile the two-lane accounting
+- the older `1800+` language appears to describe an earlier or broader internal
+  surface, not the current committed public benchmark layer
+- our local public-seed lane is now reconciled:
+  - `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public
+    seed `.tla` files
+  - `ai4fm_public_seed_tla_modules_v1.summary.json` reports `2108` usable
+    module rows
+  - the exact `2`-row gap is explained by `.tla` files that do not expose a
+    module header accepted by the corpus builder:
+    - `apalache-mc/apalache:test/tla/y2k_09_OutTransition.tla`
+    - `tlaplus/Examples:specifications/transaction_commit/2PCwithBTM.tla`
+  - `ai4fm_public_seed_prover_candidates_v1.summary.json` now reads those
+    `2108` module rows cleanly, with the stale `missing_module_content` bucket
+    eliminated
 
 ## Public TLA-Prove corpora
 
@@ -159,6 +179,13 @@ This is the bridge from the file-level AI4FM seed surface to a concrete module
 dataset we can inspect, sample, and feed into later normalization or verifier
 work.
 
+Current reconciled live summary:
+
+- `2110` raw `.tla` files in the file-level manifest
+- `2108` usable module rows after header validation
+- `2` dropped `.tla` files with no accepted module header
+- `0` fetch failures during materialization
+
 ChatTLA now also has a stricter public prover-candidate builder on top of that
 raw module corpus:
 
@@ -172,6 +199,14 @@ the current autoprover contract (`Init`, `Next`, `Spec`, `TypeOK`, plus `vars`
 or an explicit `[Next]_vars`-style spec body). It is the cleanest public bridge
 from the 2,110-module seed lane into a prover-usable corpus without private
 infrastructure.
+
+Current reconciled live summary:
+
+- `2108` module rows considered
+- `98` kept prover-candidate rows
+- `1004` rows rejected by SANY
+- `1006` rows rejected as not matching the current autoprover candidate shape
+- `0` rows now land in the stale `missing_module_content` bucket
 
 ## How ChatTLA should use them
 

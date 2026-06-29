@@ -16,6 +16,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from scripts.autoprover_smoke import _is_candidate
+from scripts.build_ai4fm_public_seed_tla_modules import _module_name
 from src.validators.sany_validator import validate_string as validate_sany_string
 
 DEFAULT_SOURCE = REPO / "data" / "processed" / "ai4fm_public_seed_tla_modules_v1.jsonl"
@@ -72,7 +73,7 @@ def build_prover_candidates(
 
     def process(row: dict[str, Any]) -> tuple[str, dict[str, Any] | None, dict[str, Any] | None]:
         content = row.get("content")
-        if not isinstance(content, str) or "---- MODULE" not in content:
+        if not isinstance(content, str) or not _module_name(content):
             return "missing_module_content", None, _sample_entry(row, "missing_module_content")
 
         module = row.get("module")
