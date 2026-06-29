@@ -45,6 +45,20 @@ run interval = 300 seconds
     assert "Wait hook is active" in status["next_action"]
 
 
+def test_status_reports_direct_sophia_guidance_when_handoff_paused(tmp_path: Path) -> None:
+    manifest_dir = tmp_path / "outputs/manifests"
+    manifest_dir.mkdir(parents=True)
+    (manifest_dir / "tla_prover_handoff_paused.json").write_text(
+        json.dumps({"reason": "Mac mini dead for now"}),
+        encoding="utf-8",
+    )
+
+    status = build_status(tmp_path, launchctl_text="state = exited\n")
+
+    assert status["state"] == "handoff_paused"
+    assert "sync_sophia_and_submit_known18.sh" in status["next_action"]
+
+
 def test_status_reports_complete_when_watch_complete(tmp_path: Path) -> None:
     manifest_dir = tmp_path / "outputs/manifests"
     manifest_dir.mkdir(parents=True)

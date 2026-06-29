@@ -70,6 +70,9 @@ def test_direct_sophia_handoff_script_mentions_required_artifacts_and_dry_run() 
     assert "CHATTLA_REMOTE_PASSWORD" in text
     assert "SOPHIA_PASSWORD" in text
     assert "SSH_ASKPASS_REQUIRE=force" in text
+    assert "CHATTLA_REMOTE_SINGLE_SESSION" in text
+    assert "ControlMaster" in text
+    assert "expect" in text
     assert "--relative" in text
     assert "ALL_FILES" in text
     assert "tla_prover_remote_submission.json" in text
@@ -267,6 +270,103 @@ exit 0
     assert report["stage"] == "mirror_remote_report"
     assert report["exit_code"] == 76
     assert report["remote_host"] == "user@remote.example"
+
+
+def test_direct_sophia_handoff_single_session_uses_expect_when_enabled(tmp_path: Path) -> None:
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    (fake_bin / "ssh").write_text("#!/usr/bin/env bash\nexit 255\n", encoding="utf-8")
+    (fake_bin / "rsync").write_text("#!/usr/bin/env bash\nexit 255\n", encoding="utf-8")
+    (fake_bin / "expect").write_text(
+        "#!/usr/bin/env bash\n"
+        "printf 'called\\n' >> \"$EXPECT_LOG\"\n"
+        "cat >/dev/null\n"
+        "exit 0\n",
+        encoding="utf-8",
+    )
+    for name in ["ssh", "rsync", "expect"]:
+        (fake_bin / name).chmod(0o755)
+
+    repo = tmp_path / "repo"
+    (repo / "scripts").mkdir(parents=True)
+    for rel in [
+        "scripts/build_tla_prover_eval_corpus.py",
+        "scripts/build_sany_tlc_eval_corpus.py",
+        "scripts/diagnose_sany_tlc_pass_corpus.py",
+        "scripts/preflight_tla_prover_corpora.py",
+        "scripts/build_tla_prover_manifest.py",
+    ]:
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+        path.chmod(0o755)
+    (repo / "src").mkdir()
+    (repo / "outputs/manifests").mkdir(parents=True)
+    (repo / "data/processed/tla_prover").mkdir(parents=True)
+    (repo / "data/processed/tla_prover/tlaps_candidate_modules_18.txt").write_text(
+        "outputs/diamond_gen/example/AtomicRegister.tla\n",
+        encoding="utf-8",
+    )
+    (repo / "outputs/diamond_gen/example").mkdir(parents=True)
+    (repo / "outputs/diamond_gen/example/AtomicRegister.tla").write_text("---- MODULE AtomicRegister ----\n====\n", encoding="utf-8")
+    for rel in [
+        "scripts/autoprover_smoke.py",
+        "scripts/collect_tla_prover_direct_results.sh",
+        "scripts/summarize_autoprover_smoke.py",
+        "scripts/qsub_autoprover_known18_corrected_smoke.pbs",
+        "scripts/qsub_autoprover_full_dataset_smoke.pbs",
+        "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
+        "scripts/check_tla_prover_pr_ready.py",
+        "scripts/collect_tla_prover_remote_results.sh",
+        "scripts/doctor_tla_prover_handoff.py",
+        "scripts/evaluate_tla_prover_remote_results.py",
+        "scripts/preflight_tla_prover_remote.py",
+        "scripts/probe_tla_prover_control_planes.py",
+        "scripts/status_tla_prover_handoff.py",
+        "scripts/submit_tla_prover_remote_jobs.sh",
+        "scripts/sync_sophia_and_submit_known18.sh",
+        "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+        "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
+        "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
+        "data/processed/prover_eval.jsonl",
+        "data/processed/prover_eval.summary.json",
+        "data/processed/sany_tlc_pass_sft_v1.jsonl",
+        "data/processed/sany_tlc_pass_sft_v1.summary.json",
+        "data/processed/sany_tlc_pass_eval_v1.jsonl",
+        "data/processed/sany_tlc_pass_eval_v1.summary.json",
+        "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
+        "outputs/manifests/tla_prover_corpus_preflight.json",
+        "outputs/manifests/tla_prover_artifacts_v1.json",
+    ]:
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if not path.exists():
+            path.write_text("x\n", encoding="utf-8")
+
+    expect_log = tmp_path / "expect.log"
+    env = os.environ.copy()
+    env.update(
+        {
+            "PATH": f"{fake_bin}:{env['PATH']}",
+            "CHATTLA_LOCAL_REPO": str(repo),
+            "CHATTLA_REMOTE_HOST": "user@remote.example",
+            "CHATTLA_REMOTE_PASSWORD": "one-time",
+            "CHATTLA_REMOTE_SINGLE_SESSION": "1",
+            "EXPECT_LOG": str(expect_log),
+        }
+    )
+
+    result = subprocess.run(
+        ["bash", str(DIRECT_SCRIPT)],
+        cwd=repo,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert expect_log.read_text(encoding="utf-8").strip() == "called"
 
 
 def test_remote_handoff_dry_run_syncs_known18_modules_and_sft_dependencies() -> None:

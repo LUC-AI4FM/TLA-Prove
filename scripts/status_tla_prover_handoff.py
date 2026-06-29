@@ -227,7 +227,13 @@ def _derive_state(
         )
     if paused_data:
         reason = paused_data.get("reason", "handoff route paused")
-        return "handoff_paused", f"Remote handoff is paused ({reason}); continue local work or configure another relay."
+        return (
+            "handoff_paused",
+            (
+                f"Remote handoff is paused ({reason}); continue local work or use "
+                "scripts/sync_sophia_and_submit_known18.sh for the direct Sophia lane."
+            ),
+        )
     if launchagent.get("state") == "running":
         return "waiting_for_relay", "Wait hook is active; leave LaunchAgent running until relay SSH becomes reachable."
     if collection_data and collection_data.get("errors"):

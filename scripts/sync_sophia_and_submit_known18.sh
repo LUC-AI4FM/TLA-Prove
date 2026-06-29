@@ -49,11 +49,13 @@ done
 
 REMOTE_HOST="${CHATTLA_REMOTE_HOST:-${SOPHIA_HOST:-}}"
 REMOTE_PASSWORD="${CHATTLA_REMOTE_PASSWORD:-${SOPHIA_PASSWORD:-}}"
+REMOTE_SINGLE_SESSION="${CHATTLA_REMOTE_SINGLE_SESSION:-0}"
 REMOTE_REPO="${CHATTLA_REMOTE_REPO:-\$HOME/ChatTLA}"
 REMOTE_TLAPM="${CHATTLA_TLAPM:-tlapm}"
 LOCAL_SUBMISSION_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_submission.json"
 MIRROR_FAILURE_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_submission_mirror_failed.json"
 ASKPASS_SCRIPT=""
+CONTROL_SOCKET=""
 
 if [ -z "$REMOTE_HOST" ]; then
   echo "Set CHATTLA_REMOTE_HOST or SOPHIA_HOST to the remote SSH target." >&2
@@ -68,6 +70,10 @@ RSYNC_SSH=(
 )
 
 cleanup() {
+  if [ -n "$CONTROL_SOCKET" ]; then
+    ssh -S "$CONTROL_SOCKET" -O exit "$REMOTE_HOST" >/dev/null 2>&1 || true
+    rm -f "$CONTROL_SOCKET"
+  fi
   if [ -n "$ASKPASS_SCRIPT" ] && [ -f "$ASKPASS_SCRIPT" ]; then
     rm -f "$ASKPASS_SCRIPT"
   fi
@@ -76,7 +82,7 @@ cleanup() {
 trap cleanup EXIT
 
 setup_askpass() {
-  if [ -z "$REMOTE_PASSWORD" ] || [ "$DRY_RUN" = "1" ]; then
+  if [ -z "$REMOTE_PASSWORD" ] || [ "$DRY_RUN" = "1" ] || [ "$REMOTE_SINGLE_SESSION" = "1" ]; then
     return 0
   fi
   ASKPASS_SCRIPT="$(mktemp)"
@@ -87,8 +93,33 @@ printf '%s\n' "$REMOTE_PASSWORD"
 EOF
 }
 
+setup_single_session() {
+  if [ "$REMOTE_SINGLE_SESSION" != "1" ] || [ -z "$REMOTE_PASSWORD" ] || [ "$DRY_RUN" = "1" ]; then
+    return 0
+  fi
+  if ! command -v expect >/dev/null 2>&1; then
+    echo "expect is required when CHATTLA_REMOTE_SINGLE_SESSION=1" >&2
+    exit 2
+  fi
+  CONTROL_SOCKET="$(mktemp -u "${TMPDIR:-/tmp}/chattla-ssh-XXXXXX")"
+  expect <<EOF
+log_user 0
+set timeout 60
+spawn ssh -M -S "$CONTROL_SOCKET" -o ControlMaster=yes -o ControlPersist=600 -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new -o PreferredAuthentications=password,keyboard-interactive,hostbased -o PubkeyAuthentication=no -fnNT "$REMOTE_HOST"
+expect {
+  -re "(?i)yes/no" { send "yes\r"; exp_continue }
+  -re "(?i)(password|passcode|verification code|otp).*:" { send "$REMOTE_PASSWORD\r"; exp_continue }
+  eof
+}
+catch wait result
+set rc [lindex \$result 3]
+exit \$rc
+EOF
+  RSYNC_SSH+=(-o "ControlPath=$CONTROL_SOCKET" -o ControlMaster=no)
+}
+
 with_remote_auth() {
-  if [ -z "$REMOTE_PASSWORD" ] || [ "$DRY_RUN" = "1" ]; then
+  if [ "$REMOTE_SINGLE_SESSION" = "1" ] || [ -z "$REMOTE_PASSWORD" ] || [ "$DRY_RUN" = "1" ]; then
     "$@"
   else
     env \
@@ -179,6 +210,7 @@ PY
 
 cd "$LOCAL_REPO"
 setup_askpass
+setup_single_session
 python3 scripts/build_tla_prover_eval_corpus.py >/dev/null
 python3 scripts/build_sany_tlc_eval_corpus.py >/dev/null
 python3 scripts/diagnose_sany_tlc_pass_corpus.py >/dev/null
