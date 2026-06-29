@@ -18,11 +18,13 @@ DEFAULT_PATHS = [
     REPO / "data" / "processed" / "prover_eval.jsonl",
     REPO / "data" / "processed" / "formalllm_eval_v1.jsonl",
     REPO / "data" / "processed" / "ai4fm_public_tlaprove_import_v1.jsonl",
+    REPO / "data" / "processed" / "ai4fm_public_seed_prover_candidates_v1.jsonl",
     REPO / "data" / "processed" / "sany_tlc_pass_sft_v1.jsonl",
     REPO / "data" / "processed" / "sany_tlc_pass_eval_v1.jsonl",
 ]
 ALLOWED_ROLES = {"developer", "user", "assistant"}
 ALLOWED_ASSISTANT_CHANNELS = {"analysis", "commentary", "final"}
+MODULE_HEADER_RE = __import__("re").compile(r"(?m)^\s*-+\s*MODULE\s+([A-Za-z_]\w*)")
 
 
 def _display_path(path: Path) -> str:
@@ -68,6 +70,23 @@ def _check_messages(row: dict[str, Any], row_num: int, errors: list[str]) -> Non
         _err(errors, row_num, "missing assistant final message")
 
 
+def _check_direct_content_row(row: dict[str, Any], row_num: int, errors: list[str]) -> None:
+    content = row.get("content")
+    module = row.get("module")
+    if not isinstance(content, str) or "---- MODULE" not in content:
+        _err(errors, row_num, "missing direct module content")
+        return
+    match = MODULE_HEADER_RE.search(content)
+    if not match:
+        _err(errors, row_num, "content missing module header")
+        return
+    header = match.group(1)
+    if not isinstance(module, str) or not module.strip():
+        _err(errors, row_num, "missing module field")
+    elif module != header:
+        _err(errors, row_num, f"module/header mismatch {module} != {header}")
+
+
 def check_jsonl(path: Path, *, max_errors: int = 25) -> dict[str, Any]:
     errors: list[str] = []
     rows = 0
@@ -87,7 +106,12 @@ def check_jsonl(path: Path, *, max_errors: int = 25) -> dict[str, Any]:
             if not isinstance(row, dict):
                 _err(errors, row_num, "row is not an object")
             else:
-                _check_messages(row, row_num, errors)
+                if isinstance(row.get("messages"), list):
+                    _check_messages(row, row_num, errors)
+                elif "content" in row or "module" in row:
+                    _check_direct_content_row(row, row_num, errors)
+                else:
+                    _err(errors, row_num, "row matches neither messages corpus nor direct-content corpus schema")
             if len(errors) >= max_errors:
                 errors.append("error limit reached")
                 break

@@ -228,13 +228,209 @@
       "summary_path": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json"
     },
     "ai4fm_public_seed_prover_candidates_v1": {
-      "bytes": null,
-      "exists": false,
+      "bytes": 1025215,
+      "exists": true,
       "kind": "public_ai4fm_seed_repo_sany_valid_prover_candidate_corpus",
       "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-      "rows": null,
-      "sha256": null,
-      "summary": null,
+      "rows": 98,
+      "sha256": "3e1d0ca62ca52ec460d5431680202f8775b6cf4f9084ee92c45a2211b64804b9",
+      "summary": {
+        "duplicate_modules": {
+          "AsyncTerminationDetection": 2,
+          "BufferedRandomAccessFile": 3,
+          "DieHard": 2,
+          "EWD840": 6,
+          "NQSpec": 2,
+          "Paxos": 2,
+          "Prisoners": 2,
+          "SingleLaneBridge": 2,
+          "SpanTree": 2,
+          "SpanTreeRandom": 2,
+          "SpanTreeTest": 2,
+          "SyncTerminationDetection": 2,
+          "aba_asyn_byz": 2,
+          "ast": 2,
+          "bcastFolklore": 2,
+          "cf1s_folklore": 2,
+          "nbacg_guer01": 2,
+          "spanning": 2,
+          "test211": 3
+        },
+        "generated_at": "2026-06-29T01:23:23.419857+00:00",
+        "jsonl_sha256": "3e1d0ca62ca52ec460d5431680202f8775b6cf4f9084ee92c45a2211b64804b9",
+        "kept_rows": 98,
+        "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "rows_considered": 2108,
+        "sample_not_autoprover_candidate": [
+          {
+            "module": "__apalache_folds",
+            "reason": "not_autoprover_candidate",
+            "repo": "apalache-mc/apalache",
+            "source_path": "src/tla/__apalache_folds.tla"
+          },
+          {
+            "module": "__apalache_internal",
+            "reason": "not_autoprover_candidate",
+            "repo": "apalache-mc/apalache",
+            "source_path": "src/tla/__apalache_internal.tla"
+          },
+          {
+            "module": "_JsonTrace",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_JsonTrace.tla"
+          },
+          {
+            "module": "_Possible",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_Possible.tla"
+          },
+          {
+            "module": "_TLCTrace",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTrace.tla"
+          },
+          {
+            "module": "A",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/coverage/A.tla"
+          },
+          {
+            "module": "ABCorrectness",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/SpecifyingSystems/TLC/ABCorrectness.tla"
+          },
+          {
+            "module": "ABCorrectness",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/examples/SpecifyingSystems/TLC/ABCorrectness.tla"
+          },
+          {
+            "module": "ACP_SB",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/acp/ACP_SB.tla"
+          },
+          {
+            "module": "ACP_SB",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_SB.tla"
+          },
+          {
+            "module": "ActionComposition",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/cdot/ActionComposition.tla"
+          },
+          {
+            "module": "ActionCompositionDistributive",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/cdot/ActionCompositionDistributive.tla"
+          }
+        ],
+        "sample_sany_invalid": [
+          {
+            "detail": "*** Errors: 1",
+            "module": "_DotTrace",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_DotTrace.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "_TLAPlusCounterExample",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLAPlusCounterExample.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "_TLCActionTrace",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCActionTrace.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "_TLCTESpec",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTESpec.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "_TLCTracePlain",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTracePlain.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "abs",
+            "reason": "sany_invalid",
+            "repo": "microsoft/CCF",
+            "source_path": "tla/consensus/abs.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "AbstractComponentsModule",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AbstractComponentsModule.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/acp/ACP_NB.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_NB.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB_TLC",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/acp/ACP_NB_TLC.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB_TLC",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_NB_TLC.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB_WRONG_TLC",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/acp/ACP_NB_WRONG_TLC.tla"
+          }
+        ],
+        "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
+        "skipped": {
+          "missing_module_content": 11,
+          "not_autoprover_candidate": 998,
+          "sany_invalid": 1001
+        },
+        "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "source_rows": 2108,
+        "workers": 8
+      },
       "summary_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json"
     },
     "ai4fm_public_seed_tla_modules_v1": {
@@ -402,7 +598,7 @@
       "rows": 18,
       "sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
       "summary": {
-        "generated_at": "2026-06-29T01:18:06.294640+00:00",
+        "generated_at": "2026-06-29T01:24:58.400079+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
         "kept_rows": 18,
@@ -442,7 +638,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "8243306707ab24a40cf51ad81380a82eafa00c0ac545f84315608ed94cdd7cca"
+      "sha256": "503466cd989f054622adcd067dfb61402b5ddb633b0e8c675e96a13ba4388829"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -452,7 +648,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T01:18:06.367179+00:00",
+        "generated_at": "2026-06-29T01:24:58.472517+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -688,12 +884,12 @@
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_preflight": {
-      "bytes": 5347,
+      "bytes": 5492,
       "exists": true,
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "bbf56b3d9cc66ea6aa8e03db400040d80c4ab9999bcfc6a4c2790aaba8e6e533"
+      "sha256": "d4fd9621633b269269016b50dc4818dfecaeaa882e912c670a407ea688ee1dc7"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 104115,
@@ -735,7 +931,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T01:18:06.600419+00:00",
+  "generated_at": "2026-06-29T01:24:58.712159+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

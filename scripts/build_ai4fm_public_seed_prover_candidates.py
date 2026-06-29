@@ -58,6 +58,7 @@ def build_prover_candidates(
     generated_at: str | None = None,
     limit: int = 0,
     workers: int = 4,
+    source_label: str | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     source_rows = _load_jsonl(source_path)
     selected_rows = source_rows[:limit] if limit else source_rows
@@ -123,7 +124,7 @@ def build_prover_candidates(
     summary = {
         "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
         "generated_at": generated_at,
-        "source_path": _display_path(source_path),
+        "source_path": source_label or _display_path(source_path),
         "source_rows": len(source_rows),
         "rows_considered": len(selected_rows),
         "kept_rows": len(kept_rows),
@@ -154,6 +155,7 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--source-label", default=None)
     args = parser.parse_args()
 
     rows, summary = build_prover_candidates(
@@ -161,6 +163,7 @@ def main() -> int:
         generated_at=None,
         limit=args.limit,
         workers=args.workers,
+        source_label=args.source_label,
     )
     print(json.dumps(write_outputs(rows, summary, args.out), indent=2, sort_keys=True))
     return 0

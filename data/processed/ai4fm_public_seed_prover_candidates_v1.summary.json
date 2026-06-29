@@ -1,0 +1,197 @@
+{
+  "duplicate_modules": {
+    "AsyncTerminationDetection": 2,
+    "BufferedRandomAccessFile": 3,
+    "DieHard": 2,
+    "EWD840": 6,
+    "NQSpec": 2,
+    "Paxos": 2,
+    "Prisoners": 2,
+    "SingleLaneBridge": 2,
+    "SpanTree": 2,
+    "SpanTreeRandom": 2,
+    "SpanTreeTest": 2,
+    "SyncTerminationDetection": 2,
+    "aba_asyn_byz": 2,
+    "ast": 2,
+    "bcastFolklore": 2,
+    "cf1s_folklore": 2,
+    "nbacg_guer01": 2,
+    "spanning": 2,
+    "test211": 3
+  },
+  "generated_at": "2026-06-29T01:23:23.419857+00:00",
+  "jsonl_sha256": "3e1d0ca62ca52ec460d5431680202f8775b6cf4f9084ee92c45a2211b64804b9",
+  "kept_rows": 98,
+  "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+  "rows_considered": 2108,
+  "sample_not_autoprover_candidate": [
+    {
+      "module": "__apalache_folds",
+      "reason": "not_autoprover_candidate",
+      "repo": "apalache-mc/apalache",
+      "source_path": "src/tla/__apalache_folds.tla"
+    },
+    {
+      "module": "__apalache_internal",
+      "reason": "not_autoprover_candidate",
+      "repo": "apalache-mc/apalache",
+      "source_path": "src/tla/__apalache_internal.tla"
+    },
+    {
+      "module": "_JsonTrace",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_JsonTrace.tla"
+    },
+    {
+      "module": "_Possible",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_Possible.tla"
+    },
+    {
+      "module": "_TLCTrace",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTrace.tla"
+    },
+    {
+      "module": "A",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/coverage/A.tla"
+    },
+    {
+      "module": "ABCorrectness",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/SpecifyingSystems/TLC/ABCorrectness.tla"
+    },
+    {
+      "module": "ABCorrectness",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/examples/SpecifyingSystems/TLC/ABCorrectness.tla"
+    },
+    {
+      "module": "ACP_SB",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/acp/ACP_SB.tla"
+    },
+    {
+      "module": "ACP_SB",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_SB.tla"
+    },
+    {
+      "module": "ActionComposition",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/cdot/ActionComposition.tla"
+    },
+    {
+      "module": "ActionCompositionDistributive",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/cdot/ActionCompositionDistributive.tla"
+    }
+  ],
+  "sample_sany_invalid": [
+    {
+      "detail": "*** Errors: 1",
+      "module": "_DotTrace",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_DotTrace.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "_TLAPlusCounterExample",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLAPlusCounterExample.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "_TLCActionTrace",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCActionTrace.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "_TLCTESpec",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTESpec.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "_TLCTracePlain",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTracePlain.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "abs",
+      "reason": "sany_invalid",
+      "repo": "microsoft/CCF",
+      "source_path": "tla/consensus/abs.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "AbstractComponentsModule",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AbstractComponentsModule.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "ACP_NB",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/acp/ACP_NB.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "ACP_NB",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_NB.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "ACP_NB_TLC",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/acp/ACP_NB_TLC.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "ACP_NB_TLC",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_NB_TLC.tla"
+    },
+    {
+      "detail": "*** Errors: 1",
+      "module": "ACP_NB_WRONG_TLC",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/acp/ACP_NB_WRONG_TLC.tla"
+    }
+  ],
+  "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
+  "skipped": {
+    "missing_module_content": 11,
+    "not_autoprover_candidate": 998,
+    "sany_invalid": 1001
+  },
+  "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+  "source_rows": 2108,
+  "workers": 8
+}

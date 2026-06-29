@@ -81,4 +81,46 @@ def test_default_paths_include_prover_eval_gate() -> None:
     assert any(path.name == "prover_eval.jsonl" for path in DEFAULT_PATHS)
     assert any(path.name == "formalllm_eval_v1.jsonl" for path in DEFAULT_PATHS)
     assert any(path.name == "ai4fm_public_tlaprove_import_v1.jsonl" for path in DEFAULT_PATHS)
+    assert any(path.name == "ai4fm_public_seed_prover_candidates_v1.jsonl" for path in DEFAULT_PATHS)
     assert any(path.name == "sany_tlc_pass_eval_v1.jsonl" for path in DEFAULT_PATHS)
+
+
+def test_check_jsonl_accepts_direct_content_rows(tmp_path: Path) -> None:
+    path = tmp_path / "seed_candidates.jsonl"
+    _write(
+        path,
+        [
+            {
+                "repo": "example/alpha",
+                "module": "CandidateA",
+                "source_path": "CandidateA.tla",
+                "content": "---- MODULE CandidateA ----\nEXTENDS Naturals\n====\n",
+            }
+        ],
+    )
+
+    result = check_jsonl(path)
+
+    assert result["ok"] is True
+    assert result["rows"] == 1
+    assert result["errors"] == []
+
+
+def test_check_jsonl_rejects_direct_content_module_header_mismatch(tmp_path: Path) -> None:
+    path = tmp_path / "seed_candidates_bad.jsonl"
+    _write(
+        path,
+        [
+            {
+                "repo": "example/alpha",
+                "module": "CandidateA",
+                "source_path": "CandidateA.tla",
+                "content": "---- MODULE Other ----\nEXTENDS Naturals\n====\n",
+            }
+        ],
+    )
+
+    result = check_jsonl(path)
+
+    assert result["ok"] is False
+    assert any("module/header mismatch" in err for err in result["errors"])
