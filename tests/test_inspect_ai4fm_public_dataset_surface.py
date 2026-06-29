@@ -117,6 +117,13 @@ def test_build_report_summarizes_formalllm_and_pipeline_surface(tmp_path: Path) 
     assert report["formalllm"]["canonical_entries"] == 2
     assert report["formalllm"]["families"] == 1
     assert report["formalllm"]["tla_files"] == 4
+    assert report["formalllm"]["clean_tla_files"] == 2
+    assert report["formalllm"]["nonclean_tla_files"] == 2
+    assert report["formalllm"]["repo_tla_files"] == 4
+    assert report["formalllm"]["auxiliary_tla_files"] == 0
+    assert report["formalllm"]["cfg_files"] == 1
+    assert report["formalllm"]["repo_cfg_files"] == 1
+    assert report["formalllm"]["auxiliary_cfg_files"] == 0
     assert report["formalllm"]["split_files"]["counts"] == {"train": 1, "val": 1, "test": 0}
     assert report["formalllm"]["split_files"]["total"] == 2
     assert report["formalllm"]["architecture_doc"]["metadata_specification_claim"] == "1800+"
@@ -170,5 +177,9 @@ def test_cli_writes_report_json(tmp_path: Path) -> None:
     stdout = json.loads(result.stdout)
     saved = json.loads(out.read_text(encoding="utf-8"))
     assert stdout["formalllm"]["canonical_entries"] == 0
+    assert stdout["formalllm"]["clean_tla_files"] == 0
+    assert stdout["formalllm"]["nonclean_tla_files"] == 0
+    assert stdout["formalllm"]["repo_tla_files"] == 0
+    assert stdout["formalllm"]["auxiliary_tla_files"] == 0
     assert stdout["formalllm"]["split_files"]["total"] == 0
     assert saved == stdout

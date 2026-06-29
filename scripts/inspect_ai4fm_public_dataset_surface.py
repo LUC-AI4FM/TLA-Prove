@@ -98,11 +98,14 @@ def _architecture_metadata_claim(path: Path) -> str | None:
 def inspect_formalllm(formalllm_root: Path, *, input_root: Path, architecture_doc: Path) -> dict[str, Any]:
     entries, families = _load_family_entries(formalllm_root)
     models = [str(entry.get("model")) for entry in entries if entry.get("model")]
+    repo_root = formalllm_root.parent
     tla_files = sorted(formalllm_root.glob("*//tla/*.tla"))
+    clean_tla_files = [path for path in tla_files if path.stem.endswith("_clean")]
+    repo_tla_files = sorted(repo_root.rglob("*.tla"))
     cfg_files = sorted(formalllm_root.glob("*//cfg/*.cfg"))
+    repo_cfg_files = sorted(repo_root.rglob("*.cfg"))
     clean_comment_files = sorted(formalllm_root.glob("*//txt/*_comments_clean.txt"))
     all_comment_files = sorted(formalllm_root.glob("*//txt/*_comments*.txt"))
-    repo_root = formalllm_root.parent
     split_counts = _formalllm_split_counts(input_root)
     split_total = sum(count for count in split_counts.values() if isinstance(count, int))
     architecture_claim = _architecture_metadata_claim(architecture_doc)
@@ -113,7 +116,13 @@ def inspect_formalllm(formalllm_root: Path, *, input_root: Path, architecture_do
         "canonical_entries": len(entries),
         "unique_models": len(set(models)),
         "tla_files": len(tla_files),
+        "clean_tla_files": len(clean_tla_files),
+        "nonclean_tla_files": len(tla_files) - len(clean_tla_files),
+        "repo_tla_files": len(repo_tla_files),
+        "auxiliary_tla_files": len(repo_tla_files) - len(tla_files),
         "cfg_files": len(cfg_files),
+        "repo_cfg_files": len(repo_cfg_files),
+        "auxiliary_cfg_files": len(repo_cfg_files) - len(cfg_files),
         "clean_comment_files": len(clean_comment_files),
         "comment_files": len(all_comment_files),
         "split_files": {
@@ -254,6 +263,11 @@ def build_report(
         warnings.append(
             "FormaLLM split-file total does not match canonical_entries."
         )
+    clean_tla_files = formalllm.get("clean_tla_files")
+    if isinstance(clean_tla_files, int) and clean_tla_files != canonical_entries:
+        warnings.append(
+            "FormaLLM clean_tla_files count differs from current canonical_entries."
+        )
     architecture_claim = formalllm.get("architecture_doc", {}).get("metadata_specification_claim")
     if isinstance(architecture_claim, str) and architecture_claim != str(canonical_entries):
         warnings.append(
@@ -280,6 +294,7 @@ def build_report(
             "pipeline_role": "broader public extraction/parsing discovery surface",
             "recommended_next_step": (
                 "Use formalllm_eval_v1 for direct supervised/eval work, "
+                "treat the `_clean.tla` subset inside FormaLLM as the raw-module view of that canonical layer, "
                 "inspect ai4fm_public_tlaprove_corpora and build ai4fm_public_tlaprove_import_v1 "
                 "for stable public JSONL expansion, build ai4fm_public_seed_file_manifest_v1 "
                 "for the committed public GitHub file surface, build "

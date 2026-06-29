@@ -9,12 +9,12 @@
       "sha256": "67bd3ebeef1e1f292380f5cda2017fb053aafa6d1618421346c8a327e6df1134"
     },
     "ai4fm_public_dataset_surface": {
-      "bytes": 2384,
+      "bytes": 2653,
       "exists": true,
       "kind": "public_ai4fm_dataset_surface_report",
       "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
       "rows": null,
-      "sha256": "fa59246ddae82d2d575649e3eebc1881b635edeaf25a86436ac14777754b3110"
+      "sha256": "54873aad16c0168e442ce735ed99de4515185145abebde0259be6f0a58203dad"
     },
     "ai4fm_public_discovery_manifest_v1": {
       "bytes": 7034,
@@ -2307,7 +2307,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T16:17:56.802685+00:00",
+  "generated_at": "2026-06-29T16:32:00.968846+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

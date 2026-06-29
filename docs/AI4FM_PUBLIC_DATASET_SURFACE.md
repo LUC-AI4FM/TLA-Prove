@@ -28,6 +28,13 @@ re-verified below are the current public-source reference.
   - `71` families
   - `191` unique model names
   - `410` `.tla` files under `data/*/tla/*.tla`
+  - `205` `_clean.tla` files, matching the canonical benchmark row count
+  - `205` non-clean `.tla` variants in that same canonical module tree
+  - `503` total `.tla` files across the public repo tree, including `93`
+    auxiliary `.tla` files outside `data/*/tla/*.tla`
+  - `136` `.cfg` files under `data/*/cfg/*.cfg`
+  - `163` total `.cfg` files across the public repo tree, including `27`
+    auxiliary `.cfg` files outside `data/*/cfg/*.cfg`
   - `187` cleaned comment prompt files
 - `tla-dataset-pipeline`
   - git head: `59bd533`
@@ -52,6 +59,12 @@ We also re-checked the current upstream public repos directly on 2026-06-29:
   - committed split files are currently `Input/train.json`, `Input/val.json`, and
     `Input/test.json`, and they still sum to `205`: `143` train, `30` val,
     `32` test
+  - the canonical `data/*/tla/*.tla` module tree is `410` files:
+    `205` `_clean.tla` modules that line up with the canonical benchmark layer,
+    plus `205` paired non-clean variants
+  - the full public repo tree is larger: `503` total `.tla` files and `163`
+    total `.cfg` files, which includes `93` auxiliary `.tla` files and `27`
+    auxiliary `.cfg` files outside the canonical `data/*/{tla,cfg}` trees
 - `tla-dataset-pipeline`
   - current `main`: `4ac5620f7ef425285ca5a8d91304c9b4da5ca56f`
   - seed recipe currently lists `11` repos, `7` org seeds, `9` user seeds, and `5` search queries
@@ -73,6 +86,11 @@ for the compact live re-verification note and exact commands used.
 Important interpretation:
 
 - the local `205`-row `formalllm_eval_v1` lane matches upstream exactly
+- the broader public `FormaLLM` repo surface is larger than the canonical
+  benchmark layer: `503` `.tla` files are visible publicly, but only the `205`
+  `_clean.tla` files align one-for-one with the canonical benchmark rows; the
+  canonical `data/*/tla/*.tla` tree itself is `410` files once those clean
+  modules are paired with their non-clean variants
 - the local `1005` normalized `ai4fm_public_tlaprove_import_v1` rows and `98`
   `ai4fm_public_seed_prover_candidates_v1` rows are ChatTLA-derived downstream
   corpora, not counts published by the two upstream repos above
