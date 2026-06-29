@@ -134,6 +134,20 @@ This is the bridge from the file-level AI4FM seed surface to a concrete module
 dataset we can inspect, sample, and feed into later normalization or verifier
 work.
 
+ChatTLA now also has a stricter public prover-candidate builder on top of that
+raw module corpus:
+
+- command:
+  `python3 scripts/build_ai4fm_public_seed_prover_candidates.py`
+- default output:
+  `data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl`
+
+This keeps only public seed modules that are both SANY-clean and already match
+the current autoprover contract (`Init`, `Next`, `Spec`, `TypeOK`, plus `vars`
+or an explicit `[Next]_vars`-style spec body). It is the cleanest public bridge
+from the 2,110-module seed lane into a prover-usable corpus without private
+infrastructure.
+
 ## How ChatTLA should use them
 
 - Treat `FormaLLM` as the canonical public prompt/spec supervision layer.
@@ -147,6 +161,8 @@ work.
   expansion lane already committed in the pipeline seed repos.
 - Treat `ai4fm_public_seed_tla_modules_v1` as the usable raw public `.tla`
   module corpus derived from that seed-file lane.
+- Treat `ai4fm_public_seed_prover_candidates_v1` as the stricter public module
+  corpus for current autoprover experiments.
 - Treat `ai4fm_public_discovery_manifest_v1` as the public repo-level discovery
   lane we can ingest directly today.
 - Treat `tla-dataset-pipeline` DVC counts as the broader public parsing lane.
@@ -162,6 +178,7 @@ python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
 python3 scripts/build_ai4fm_public_tlaprove_import.py
 python3 scripts/build_ai4fm_public_seed_file_manifest.py
 python3 scripts/build_ai4fm_public_seed_tla_modules.py
+python3 scripts/build_ai4fm_public_seed_prover_candidates.py
 python3 scripts/inspect_ai4fm_public_dataset_surface.py
 python3 scripts/build_ai4fm_public_discovery_manifest.py
 python3 scripts/build_tla_prover_manifest.py

@@ -39,6 +39,7 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 
 PY_COMPILE_FILES = [
     "scripts/build_ai4fm_public_seed_file_manifest.py",
+    "scripts/build_ai4fm_public_seed_prover_candidates.py",
     "scripts/build_ai4fm_public_seed_tla_modules.py",
     "scripts/build_ai4fm_public_tlaprove_import.py",
     "scripts/build_ai4fm_public_discovery_manifest.py",
@@ -54,6 +55,7 @@ PY_COMPILE_FILES = [
 
 PYTEST_FILES = [
     "tests/test_build_ai4fm_public_seed_file_manifest.py",
+    "tests/test_build_ai4fm_public_seed_prover_candidates.py",
     "tests/test_build_ai4fm_public_seed_tla_modules.py",
     "tests/test_build_ai4fm_public_tlaprove_import.py",
     "tests/test_build_ai4fm_public_discovery_manifest.py",
@@ -184,7 +186,7 @@ def build_report(
     return {
         "ok": not findings and commands_ok,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "repo": str(repo),
+        "repo": ".",
         "scan": {
             "ok": not findings,
             "findings": findings,

@@ -25,6 +25,13 @@ ALLOWED_ROLES = {"developer", "user", "assistant"}
 ALLOWED_ASSISTANT_CHANNELS = {"analysis", "commentary", "final"}
 
 
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def _err(errors: list[str], row: int, message: str) -> None:
     errors.append(f"row {row}: {message}")
 
@@ -65,7 +72,7 @@ def check_jsonl(path: Path, *, max_errors: int = 25) -> dict[str, Any]:
     errors: list[str] = []
     rows = 0
     if not path.exists():
-        return {"path": str(path), "ok": False, "rows": 0, "errors": [f"missing file: {path}"]}
+        return {"path": _display_path(path), "ok": False, "rows": 0, "errors": [f"missing file: {_display_path(path)}"]}
 
     with path.open(encoding="utf-8") as handle:
         for row_num, line in enumerate(handle, start=1):
@@ -84,7 +91,7 @@ def check_jsonl(path: Path, *, max_errors: int = 25) -> dict[str, Any]:
             if len(errors) >= max_errors:
                 errors.append("error limit reached")
                 break
-    return {"path": str(path), "ok": not errors and rows > 0, "rows": rows, "errors": errors}
+    return {"path": _display_path(path), "ok": not errors and rows > 0, "rows": rows, "errors": errors}
 
 
 def build_report(

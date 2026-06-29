@@ -29,6 +29,7 @@ def test_check_jsonl_accepts_harmony_messages(tmp_path: Path) -> None:
     assert result["ok"] is True
     assert result["rows"] == 1
     assert result["errors"] == []
+    assert result["path"] == str(path)
 
 
 def test_check_jsonl_rejects_system_role_and_missing_final(tmp_path: Path) -> None:

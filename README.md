@@ -53,6 +53,7 @@ ChatTLA currently uses six public AI4FM-aligned corpus layers:
 | `TLA-Prove public corpora` | 2,350 JSONL rows across committed public corpora; largest single corpus is `diamond_sft_v3.jsonl` with 1,053 rows | `outputs/manifests/ai4fm_public_tlaprove_corpora.json` |
 | `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the committed public corpora | `data/processed/ai4fm_public_tlaprove_import_v1.jsonl` |
 | `tla-dataset-pipeline seed repo files` | 3,140 tracked `.tla` / `.cfg` / `.tlaps` files across the 11 committed public seed repos, including 2,110 `.tla` files | `data/processed/ai4fm_public_seed_file_manifest_v1.jsonl` |
+| `tla-dataset-pipeline seed prover candidates` | SANY-clean subset of the public seed-module lane that also satisfies the current autoprover contract | `data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl` |
 | `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories | `data/processed/ai4fm_public_discovery_manifest_v1.jsonl` |
 | `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface | `outputs/manifests/ai4fm_public_dataset_surface.json` |
 
@@ -62,6 +63,8 @@ Rebuild the public AI4FM artifacts with:
 python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
 python3 scripts/build_ai4fm_public_tlaprove_import.py
 python3 scripts/build_ai4fm_public_seed_file_manifest.py
+python3 scripts/build_ai4fm_public_seed_tla_modules.py
+python3 scripts/build_ai4fm_public_seed_prover_candidates.py
 python3 scripts/inspect_ai4fm_public_dataset_surface.py
 python3 scripts/build_ai4fm_public_discovery_manifest.py
 python3 scripts/build_tla_prover_manifest.py
@@ -72,6 +75,7 @@ python3 scripts/check_tla_prover_pr_ready.py --include-untracked-scripts
 The `TLA-Prove` report captures the stable public JSONL corpora already committed in GitHub, and the normalized import turns that public surface into a deduplicated ChatTLA-format corpus.
 The discovery manifest needs a local checkout of `LUC-AI4FM/tla-dataset-pipeline`; override it with `--pipeline-repo <path>` if your checkout is not at `/tmp/LUC-AI4FM-tla-dataset-pipeline`.
 The seed file manifest records the committed public seed-repo file surface directly from GitHub trees. The dataset surface report records the broader DVC-backed counts, while the discovery manifest records what the public seed/search recipe currently materializes. The manifest build, corpus preflight, and PR-ready check are the compact local gates for the checked-in public artifact surface.
+The seed prover-candidate corpus is the first stricter bridge from the 2,110 public `.tla` modules into the current prover lane: it keeps only modules that pass SANY and already match the Phase-1 `Init`/`Next`/`Spec`/`TypeOK` autoprover contract.
 
 ---
 
