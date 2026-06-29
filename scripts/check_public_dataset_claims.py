@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,18 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 BUNDLE_ROOT = REPO / "outputs" / "hf_publish" / "chattla-tla-prover-corpora-v1"
 BUNDLE_METADATA = BUNDLE_ROOT / "metadata"
+COUNT_WORDS = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+}
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -43,6 +56,30 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "tla_prover_corpus_preflight.json": "outputs/manifests/tla_prover_corpus_preflight.json",
         "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
     }
+
+
+def _find_public_dataset_layer_count_mismatch(readme_text: str) -> tuple[int, int] | None:
+    match = re.search(
+        r"ChatTLA currently tracks\s+([A-Za-z0-9]+)\s+public AI4FM-aligned data/artifact layers",
+        readme_text,
+    )
+    if not match:
+        return None
+    declared_raw = match.group(1).lower()
+    declared = int(declared_raw) if declared_raw.isdigit() else COUNT_WORDS.get(declared_raw)
+    if declared is None:
+        return None
+    start = readme_text.find("## Public Datasets")
+    if start == -1:
+        section = readme_text
+    else:
+        end_marker = "Rebuild the public AI4FM artifacts with:"
+        end = readme_text.find(end_marker, start)
+        section = readme_text[start:end] if end != -1 else readme_text[start:]
+    table_rows = sum(1 for line in section.splitlines() if line.startswith("| `"))
+    if declared != table_rows:
+        return declared, table_rows
+    return None
 
 
 def _expected_snippets(repo: Path) -> dict[str, list[str]]:
@@ -231,6 +268,19 @@ def build_report(*, repo: Path = REPO) -> dict[str, Any]:
         for snippet in snippets:
             if snippet not in text:
                 findings.append({"path": rel_path, "expected": snippet})
+        if rel_path == "README.md":
+            mismatch = _find_public_dataset_layer_count_mismatch(text)
+            if mismatch is not None:
+                declared, actual = mismatch
+                findings.append(
+                    {
+                        "path": rel_path,
+                        "expected": (
+                            "public AI4FM dataset intro count to match the number of dataset table rows "
+                            f"(declared {declared}, found {actual})"
+                        ),
+                    }
+                )
     for bundle_name, source_rel in _bundled_metadata_sources(repo).items():
         source_path = repo / source_rel
         bundle_path = repo / BUNDLE_ROOT.relative_to(REPO) / "metadata" / bundle_name
