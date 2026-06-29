@@ -306,6 +306,13 @@ def publish(
     if remote_paths is None:
         remote_paths = fetch_remote_paths_via_http(repo_id)
         remote_last = max_published_version(remote_paths or [])
+    if remote_paths is None and not dry_run:
+        print(
+            "[publish_hf] ABORT: could not inspect remote repo version state; "
+            "refusing real publish without remote version discovery",
+            file=sys.stderr,
+        )
+        return None
 
     new_ver, remote_last = next_version_for_publish(
         local_last=last,
