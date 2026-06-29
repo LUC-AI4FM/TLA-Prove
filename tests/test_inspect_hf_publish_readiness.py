@@ -88,6 +88,52 @@ def test_build_report_accepts_local_gguf_from_fallback_dir(tmp_path: Path) -> No
     assert str(fallback_dir / "chattla-20b-Q8_0.gguf") in report["local"]["gguf_files"]
 
 
+def test_build_report_blocks_degenerate_zero_pass_full_benchmark(tmp_path: Path) -> None:
+    state_path = tmp_path / "hf_publish_state.json"
+    _write(
+        state_path,
+        json.dumps(
+            {
+                "last_published_version": 21,
+                "last_repo": "EricSpencer00/chattla-20b",
+                "note": "aligned",
+            }
+        ),
+    )
+    gguf_dir = tmp_path / "outputs" / "gguf"
+    _write(gguf_dir / "chattla-20b-Q8_0.gguf", "placeholder gguf")
+    readme = tmp_path / "outputs" / "hf_readme" / "README.md"
+    _write(readme, "# README\n")
+
+    report = build_report(
+        repo_id="EricSpencer00/chattla-20b",
+        gguf_dir=gguf_dir,
+        gguf_search_dirs=(gguf_dir,),
+        state_path=state_path,
+        readme_template=readme,
+        benchmark_max_age_hours=24,
+        fetch_remote_paths=lambda _repo: [
+            "gguf/chattla-20b-v21-Q8_0.gguf",
+        ],
+        benchmark_stats={
+            "n": 20,
+            "sany": 0,
+            "tlc": 0,
+            "avg_struct": 0.8557,
+            "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
+            "source_path": str(tmp_path / "benchmark_results_fc128best_full_20260628_235102.csv"),
+            "mtime": 0,
+        },
+        now_fn=lambda: 3600,
+    )
+
+    assert report["ready_to_publish"] is False
+    assert (
+        "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+        in report["blockers"]
+    )
+
+
 def test_sync_state_to_remote_updates_local_counter(tmp_path: Path) -> None:
     state_path = tmp_path / "hf_publish_state.json"
     _write(
