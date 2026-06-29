@@ -86,10 +86,56 @@ def _build_indexes(source_rows: list[dict[str, Any]]) -> tuple[dict[tuple[str, s
     return by_repo_module, by_module
 
 
+def _path_tokens(path: str) -> set[str]:
+    tokens: set[str] = set()
+    for part in Path(path).parts:
+        for raw in re.split(r"[^A-Za-z0-9]+", part):
+            token = raw.lower()
+            if token:
+                tokens.add(token)
+    return tokens
+
+
+def _candidate_rank(candidate: dict[str, Any], *, row_repo: str, row_source_path: str) -> tuple[int, str, str]:
+    repo = str(candidate.get("repo", ""))
+    path = str(candidate.get("source_path", ""))
+    score = 0
+    if repo == row_repo:
+        score += 100
+    if "/modules/" in path or path.startswith("modules/"):
+        score += 30
+    if "CommunityModules" in repo:
+        score += 20
+    if "__rewire_" in path:
+        score -= 50
+    if "/tests/" in path or "/.smoke/" in path:
+        score -= 10
+
+    ignored = {
+        "tla",
+        "cfg",
+        "specifications",
+        "examples",
+        "example",
+        "modules",
+        "tests",
+        "test",
+        "org",
+        "lamport",
+        "tlatools",
+    }
+    overlap = (_path_tokens(path) & _path_tokens(row_source_path)) - ignored
+    score += 5 * len(overlap)
+    if Path(path).stem.lower() == Path(row_source_path).stem.lower():
+        score += 5
+    return score, repo, path
+
+
 def _resolve_import(
     module: str,
     *,
     row_repo: str,
+    row_source_path: str,
     by_repo_module: dict[tuple[str, str], dict[str, Any]],
     by_module: dict[str, list[dict[str, Any]]],
 ) -> str | None:
@@ -102,10 +148,14 @@ def _resolve_import(
     candidates = by_module.get(module, [])
     if not candidates:
         return None
-    contents = {str(row.get("content", "")) for row in candidates if isinstance(row.get("content"), str)}
-    if len(contents) == 1:
-        return next(iter(contents))
-    return None
+    ranked = sorted(
+        (row for row in candidates if isinstance(row.get("content"), str)),
+        key=lambda row: _candidate_rank(row, row_repo=row_repo, row_source_path=row_source_path),
+        reverse=True,
+    )
+    if not ranked:
+        return None
+    return str(ranked[0].get("content"))
 
 
 def _validate_with_staged_imports(
@@ -136,6 +186,7 @@ def _validate_with_staged_imports(
                 resolved = _resolve_import(
                     missing,
                     row_repo=repo,
+                    row_source_path=str(row.get("source_path", "")),
                     by_repo_module=by_repo_module,
                     by_module=by_module,
                 )

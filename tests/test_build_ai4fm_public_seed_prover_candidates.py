@@ -208,3 +208,50 @@ def test_build_prover_candidates_recovers_rows_via_dependency_staging(tmp_path: 
     assert summary["dependency_staging"]["attempted_rows"] == 1
     assert summary["dependency_staging"]["recovered_rows"] == 1
     assert summary["dependency_staging"]["sample_recovered"][0]["staged_modules"] == ["Helper"]
+
+
+def test_build_prover_candidates_prefers_real_cross_repo_helper_over_rewire_stub(tmp_path: Path) -> None:
+    source = tmp_path / "seed_modules.jsonl"
+    main = (
+        "---- MODULE CandidateA ----\n"
+        "EXTENDS SharedHelper\n"
+        "VARIABLE x\n"
+        "vars == <<x>>\n"
+        "Init == x = 0\n"
+        "Next == x' = x\n"
+        "Spec == Init /\\ [][Next]_vars\n"
+        "TypeOK == x \\in 0..1\n"
+        "====\n"
+    )
+    helper_real = "---- MODULE SharedHelper ----\nFoo == 1\n====\n"
+    helper_rewire = "---- MODULE SharedHelper ----\nBar == 2\n====\n"
+    _write_jsonl(
+        source,
+        [
+            {"repo": "example/alpha", "module": "CandidateA", "source_path": "specs/CandidateA.tla", "content": main},
+            {"repo": "tlaplus/CommunityModules", "module": "SharedHelper", "source_path": "modules/SharedHelper.tla", "content": helper_real},
+            {"repo": "apalache-mc/apalache", "module": "SharedHelper", "source_path": "src/tla/__rewire_shared_helper_in_apalache.tla", "content": helper_rewire},
+        ],
+    )
+
+    def fake_validate(content: str, *, module_name: str) -> _Sany:
+        if module_name == "CandidateA":
+            return _Sany(False, ["Cannot find source file for module SharedHelper imported in module CandidateA.", "*** Errors: 1"])
+        return _Sany(True)
+
+    def fake_validate_file(path: Path) -> _Sany:
+        helper = path.parent / "SharedHelper.tla"
+        if helper.exists() and "Foo == 1" in helper.read_text(encoding="utf-8"):
+            return _Sany(True)
+        return _Sany(False, ["wrong helper chosen", "*** Errors: 1"])
+
+    rows, summary = build_prover_candidates(
+        source,
+        validate_module=fake_validate,
+        validate_file=fake_validate_file,
+        workers=1,
+    )
+
+    assert [row["module"] for row in rows] == ["CandidateA"]
+    assert rows[0]["dependency_staging"]["staged_modules"] == ["SharedHelper"]
+    assert summary["dependency_staging"]["recovered_rows"] == 1

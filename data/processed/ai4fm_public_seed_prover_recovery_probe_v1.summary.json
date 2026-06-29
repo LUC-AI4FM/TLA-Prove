@@ -1,30 +1,27 @@
 {
   "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-  "generated_at": "2026-06-29T17:09:14.353422+00:00",
-  "jsonl_sha256": "467920a7c2afa2b653c5715e0a935c07a844bf43d4fdc52a124087b41ff03862",
-  "kept_rows": 44,
+  "generated_at": "2026-06-29T17:20:06.754181+00:00",
+  "jsonl_sha256": "42d1ab8fe8aea142e7aaecda72e592aa4b28a36979aadb2208e906404e315b96",
+  "kept_rows": 24,
   "measured_conclusion": "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket.",
   "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
   "probe_status_counts": {
-    "post_stage_non_import_error": 7,
-    "still_missing_imports_after_staging": 37
+    "post_stage_non_import_error": 9,
+    "still_missing_imports_after_staging": 15
   },
   "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "rows_missing_full_source_row": 0,
-  "rows_post_stage_non_import_error": 7,
+  "rows_post_stage_non_import_error": 9,
   "rows_recovered_current_builder": 0,
-  "rows_still_missing_imports_after_staging": 37,
+  "rows_still_missing_imports_after_staging": 15,
   "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
   "status_by_recommended_action": {
     "expand_public_dependency_surface": {
       "still_missing_imports_after_staging": 4
     },
-    "stage_cross_repo_seed_helpers": {
-      "still_missing_imports_after_staging": 18
-    },
     "stage_same_repo_seed_helpers": {
-      "post_stage_non_import_error": 2,
-      "still_missing_imports_after_staging": 7
+      "post_stage_non_import_error": 4,
+      "still_missing_imports_after_staging": 3
     },
     "stage_tlaps_standard_module": {
       "post_stage_non_import_error": 5,
@@ -34,26 +31,10 @@
   "top_final_errors": [
     {
       "error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
-      "rows": 7
-    },
-    {
-      "error": "Cannot find source file for module SequencesExt imported in module UndirectedGraphs.",
-      "rows": 5
-    },
-    {
-      "error": "Cannot find source file for module Functions imported in module Utils.",
-      "rows": 3
+      "rows": 8
     },
     {
       "error": "Cannot find source file for module NaturalsInduction imported in module VoteProof.",
-      "rows": 2
-    },
-    {
-      "error": "Cannot find source file for module SequencesExt imported in module DistributedReplicatedLog.",
-      "rows": 2
-    },
-    {
-      "error": "Cannot find source file for module SequencesExt imported in module Huang.",
       "rows": 2
     },
     {
@@ -79,20 +60,32 @@
     {
       "error": "line 424, col 16 to line 424, col 24 of module EWD687a",
       "rows": 1
+    },
+    {
+      "error": "line 48, col 20 to line 48, col 22 of module BlockDag",
+      "rows": 1
+    },
+    {
+      "error": "line 133, col 6 to line 133, col 11 of module EWD998",
+      "rows": 1
+    },
+    {
+      "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
+      "rows": 1
+    },
+    {
+      "error": "Cannot find source file for module FiniteSetTheorems imported in module Barriers.",
+      "rows": 1
     }
   ],
   "top_repos": [
     {
       "repo": "tlaplus/Examples",
-      "rows": 27
+      "rows": 20
     },
     {
       "repo": "tlaplus/tlaplus",
-      "rows": 12
-    },
-    {
-      "repo": "apalache-mc/apalache",
-      "rows": 4
+      "rows": 3
     },
     {
       "repo": "tlaplus/DrTLAPlus",
@@ -101,20 +94,8 @@
   ],
   "top_unresolved_missing_modules": [
     {
-      "module": "SequencesExt",
-      "rows": 11
-    },
-    {
       "module": "FiniteSetTheorems",
-      "rows": 10
-    },
-    {
-      "module": "Functions",
-      "rows": 5
-    },
-    {
-      "module": "Utils",
-      "rows": 4
+      "rows": 11
     },
     {
       "module": "NaturalsInduction",
@@ -123,18 +104,6 @@
     {
       "module": "SequenceTheorems",
       "rows": 2
-    },
-    {
-      "module": "Consensus",
-      "rows": 1
-    },
-    {
-      "module": "FiniteSetsExt",
-      "rows": 1
-    },
-    {
-      "module": "Graphs",
-      "rows": 1
     }
   ]
 }

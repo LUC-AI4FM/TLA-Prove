@@ -72,7 +72,7 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   repair curriculum summary (`19` rows covering `19` of `20` failed fresh-benchmark
   cases; `1` missing gold target).
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public
-  autoprover candidate subset (`124` rows).
+  autoprover candidate subset (`144` rows).
 - `metadata/ai4fm_public_discovery_manifest_v1.summary.json`: live public repo
   discovery manifest (`18` repo records).
 - `metadata/ai4fm_public_dataset_surface.json`: rollup report across the committed
@@ -84,7 +84,7 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   expanded prover SFT summary (`2464` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).
 - `metadata/tla_prover_corpus_experiment_matrix.json`: bounded corpus-lane
   comparison matrix covering the `1330`-row baseline, `2459`-row expanded lane,
-  `2464`-row full-public lane, and the `124`/`2108` public seed funnel.
+  `2464`-row full-public lane, and the `144`/`2108` public seed funnel.
 - `metadata/sany_tlc_pass_sft_v1.summary.json`: SANY/TLC-pass SFT summary.
 - `metadata/prover_eval.summary.json`: TLAPS prover eval summary.
 - `metadata/sany_tlc_pass_eval_v1.summary.json`: held-out SANY/TLC-pass eval
@@ -118,7 +118,7 @@ not bundle-local copies of every artifact named there.
   public corpora slice.
 - Public seed repo license surface: `3` Apache-2.0 repos, `3` MIT repos, `2`
   NOASSERTION repos, and `3` unknown-license repos.
-- Public AI4FM seed-module prover candidates: `124` rows out of `2108` usable
+- Public AI4FM seed-module prover candidates: `144` rows out of `2108` usable
   public seed-module rows.
 - Canonical publish readiness gate: blocked, with `20` of `20` latest benchmark rows
   missing every core TLA component.
