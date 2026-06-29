@@ -6,7 +6,6 @@ import argparse
 import json
 import sys
 import time
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -29,6 +28,7 @@ from src.training.publish_hf import (
     _load_state,
     _save_state,
     fetch_remote_repo_paths,
+    fetch_remote_paths_via_http,
     latest_full_benchmark_stats,
     max_published_version,
     next_version_for_publish,
@@ -186,25 +186,6 @@ def sync_state_to_remote(*, state_path: Path, report: dict[str, Any]) -> bool:
     else:
         state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
     return True
-
-
-def fetch_remote_paths_via_http(repo_id: str) -> list[str] | None:
-    url = f"https://huggingface.co/api/models/{repo_id}"
-    try:
-        with urllib.request.urlopen(url, timeout=30) as response:
-            payload = json.load(response)
-    except Exception:
-        return None
-    siblings = payload.get("siblings")
-    if not isinstance(siblings, list):
-        return None
-    paths: list[str] = []
-    for item in siblings:
-        if isinstance(item, dict) and isinstance(item.get("rfilename"), str):
-            paths.append(item["rfilename"])
-    return paths or None
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-id", default=_DEFAULT_REPO)

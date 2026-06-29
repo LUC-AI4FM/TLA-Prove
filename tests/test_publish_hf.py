@@ -4,6 +4,7 @@ from pathlib import Path
 
 from src.training.publish_hf import (
     _patch_readme,
+    fetch_remote_paths_via_http,
     fetch_remote_repo_paths,
     main,
     max_published_version,
@@ -93,6 +94,34 @@ def test_fetch_remote_repo_paths_falls_back_to_model_info() -> None:
     paths = fetch_remote_repo_paths(_ApiWithModelInfo(), "EricSpencer00/chattla-20b")
 
     assert paths == [".gitattributes", "gguf/chattla-20b-v20-Q8_0.gguf"]
+
+
+def test_fetch_remote_paths_via_http_reads_siblings(monkeypatch) -> None:
+    payload = {
+        "siblings": [
+            {"rfilename": "gguf/chattla-20b-v20-Q8_0.gguf"},
+            {"rfilename": "gguf/chattla-20b-v21-Q8_0.gguf"},
+            {"rfilename": "README.md"},
+        ]
+    }
+
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda url, timeout=30: _Resp())
+    monkeypatch.setattr("json.load", lambda _resp: payload)
+
+    paths = fetch_remote_paths_via_http("EricSpencer00/chattla-20b")
+
+    assert paths == [
+        "gguf/chattla-20b-v20-Q8_0.gguf",
+        "gguf/chattla-20b-v21-Q8_0.gguf",
+        "README.md",
+    ]
 
 
 def test_patch_readme_updates_stale_template_version_references() -> None:
@@ -222,6 +251,54 @@ def test_publish_dry_run_does_not_require_huggingface_hub(tmp_path: Path, monkey
         },
     )
     monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
+    monkeypatch.setattr(
+        "src.training.publish_hf.fetch_remote_paths_via_http",
+        lambda repo_id: [
+            "gguf/chattla-20b-v20-Q8_0.gguf",
+            "gguf/chattla-20b-v21-Q8_0.gguf",
+        ],
+    )
+
+    result = publish(
+        repo_id="EricSpencer00/chattla-20b",
+        dry_run=True,
+        gguf_dir=gguf_dir,
+        merged_model_dir=tmp_path / "merged_model",
+        require_fresh_full_benchmark_hours=24.0,
+    )
+
+    assert result == 22
+
+
+def test_publish_dry_run_uses_http_fallback_for_remote_version(tmp_path: Path, monkeypatch) -> None:
+    gguf_dir = tmp_path / "gguf"
+    gguf_dir.mkdir()
+    (gguf_dir / "chattla-20b-Q8_0.gguf").write_text("gguf", encoding="utf-8")
+    monkeypatch.setattr("src.training.publish_hf._load_hf_api_class", lambda required: None)
+    monkeypatch.setattr(
+        "src.training.publish_hf.fetch_remote_paths_via_http",
+        lambda repo_id: [
+            "gguf/chattla-20b-v20-Q8_0.gguf",
+            "gguf/chattla-20b-v21-Q8_0.gguf",
+        ],
+    )
+    monkeypatch.setattr(
+        "src.training.publish_hf.latest_full_benchmark_stats",
+        lambda: {
+            "source_csv": "benchmark_results_good_full.csv",
+            "source_path": str(tmp_path / "benchmark_results_good_full.csv"),
+            "mtime": 1000.0,
+            "n": 20,
+            "sany": 10,
+            "tlc": 8,
+            "avg_struct": 0.91,
+        },
+    )
+    monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
+    monkeypatch.setattr(
+        "src.training.publish_hf._load_state",
+        lambda: {"last_published_version": 15},
+    )
 
     result = publish(
         repo_id="EricSpencer00/chattla-20b",

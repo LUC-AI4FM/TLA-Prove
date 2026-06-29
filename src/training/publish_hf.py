@@ -31,6 +31,7 @@ import re
 import sys
 import tempfile
 import time
+import urllib.request
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -107,6 +108,23 @@ def fetch_remote_repo_paths(api: object, repo_id: str) -> list[str]:
                 paths.append(str(name))
         return paths
     raise AttributeError("HfApi does not expose list_repo_files or model_info")
+
+
+def fetch_remote_paths_via_http(repo_id: str) -> list[str] | None:
+    url = f"https://huggingface.co/api/models/{repo_id}"
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            payload = json.load(response)
+    except Exception:
+        return None
+    siblings = payload.get("siblings")
+    if not isinstance(siblings, list):
+        return None
+    paths: list[str] = []
+    for item in siblings:
+        if isinstance(item, dict) and isinstance(item.get("rfilename"), str):
+            paths.append(item["rfilename"])
+    return paths or None
 
 
 def latest_full_benchmark_stats() -> dict | None:
@@ -285,6 +303,9 @@ def publish(
             remote_last = max_published_version(remote_paths)
         except Exception as exc:
             print(f"[publish_hf] WARN: could not inspect remote repo version state: {exc}", file=sys.stderr)
+    if remote_paths is None:
+        remote_paths = fetch_remote_paths_via_http(repo_id)
+        remote_last = max_published_version(remote_paths or [])
 
     new_ver, remote_last = next_version_for_publish(
         local_last=last,
