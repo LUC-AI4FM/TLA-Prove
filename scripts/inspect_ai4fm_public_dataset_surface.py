@@ -22,6 +22,14 @@ DEFAULT_FORMALLLM_INPUT_ROOT = REPO / "data" / "FormaLLM" / "Input"
 DEFAULT_FORMALLLM_ARCHITECTURE_DOC = REPO / "data" / "FormaLLM" / "doc" / "ARCHITECTURE.md"
 DEFAULT_PIPELINE_REPO = Path("/tmp/LUC-AI4FM-tla-dataset-pipeline")
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "ai4fm_public_dataset_surface.json"
+DEFAULT_TLAPROVE_REPORT = REPO / "outputs" / "manifests" / "ai4fm_public_tlaprove_corpora.json"
+DEFAULT_SEED_FILE_SUMMARY = REPO / "data" / "processed" / "ai4fm_public_seed_file_manifest_v1.summary.json"
+DEFAULT_SEED_MODULE_SUMMARY = REPO / "data" / "processed" / "ai4fm_public_seed_tla_modules_v1.summary.json"
+DEFAULT_SEED_CANDIDATE_SUMMARY = REPO / "data" / "processed" / "ai4fm_public_seed_prover_candidates_v1.summary.json"
+DEFAULT_SHAPE_READY_SUMMARY = REPO / "data" / "processed" / "ai4fm_public_seed_prover_shape_ready_v1.summary.json"
+DEFAULT_SHAPE_READY_NOT_SANY_SUMMARY = (
+    REPO / "data" / "processed" / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
+)
 ARCHITECTURE_SPEC_COUNT_RE = re.compile(r"Metadata for\s+([0-9][0-9,+]*)\s+specifications")
 DEFAULT_FORMALLLM_REPO_URL = "https://github.com/LUC-AI4FM/FormaLLM.git"
 DEFAULT_PIPELINE_REPO_URL = "https://github.com/LUC-AI4FM/tla-dataset-pipeline.git"
@@ -78,6 +86,13 @@ def _json_rows(path: Path) -> int | None:
             return len(data)
         return len(payload)
     return None
+
+
+def _read_json(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return payload if isinstance(payload, dict) else None
 
 
 def _formalllm_split_counts(input_root: Path) -> dict[str, int | None]:
@@ -242,12 +257,97 @@ def inspect_pipeline(pipeline_repo: Path) -> dict[str, Any]:
     }
 
 
+def _public_lane_summary(path: Path, *, rows: int, detail: str) -> dict[str, Any]:
+    return {
+        "path": str(path.relative_to(REPO)) if path.is_relative_to(REPO) else str(path),
+        "rows": rows,
+        "detail": detail,
+    }
+
+
+def inspect_broader_public_lanes(
+    *,
+    tlaprove_report_path: Path,
+    seed_file_summary_path: Path,
+    seed_module_summary_path: Path,
+    seed_candidate_summary_path: Path,
+    shape_ready_summary_path: Path,
+    shape_ready_not_sany_summary_path: Path,
+) -> dict[str, Any]:
+    tlaprove = _read_json(tlaprove_report_path) or {}
+    aggregate = tlaprove.get("aggregate") if isinstance(tlaprove.get("aggregate"), dict) else {}
+    seed_files = _read_json(seed_file_summary_path) or {}
+    seed_modules = _read_json(seed_module_summary_path) or {}
+    seed_candidates = _read_json(seed_candidate_summary_path) or {}
+    shape_ready = _read_json(shape_ready_summary_path) or {}
+    shape_ready_not_sany = _read_json(shape_ready_not_sany_summary_path) or {}
+
+    tracked_public_jsonl_rows = int(aggregate.get("total_public_jsonl_rows", 0) or 0)
+    all_public_jsonl_rows = int(aggregate.get("all_public_jsonl_rows", tracked_public_jsonl_rows) or 0)
+    all_public_jsonl_files = int(aggregate.get("all_public_jsonl_files", 0) or 0)
+    tracked_public_jsonl_files = int(aggregate.get("tracked_public_jsonl_files", 0) or 0)
+    seed_tla_files = int((seed_files.get("totals") or {}).get("tla", 0) or 0)
+    usable_seed_modules = int(seed_modules.get("rows", seed_modules.get("kept_rows", 0)) or 0)
+    sany_clean_seed_candidates = int(seed_candidates.get("kept_rows", 0) or 0)
+    shape_ready_rows = int(shape_ready.get("kept_rows", shape_ready.get("rows", 0)) or 0)
+    shape_ready_unique_modules = int(shape_ready.get("unique_modules", 0) or 0)
+    shape_ready_not_sany_rows = int(
+        shape_ready_not_sany.get("rows", shape_ready_not_sany.get("kept_rows", 0)) or 0
+    )
+
+    return {
+        "tla_prove_committed_public_jsonl": _public_lane_summary(
+            tlaprove_report_path,
+            rows=all_public_jsonl_rows,
+            detail=(
+                f"{tracked_public_jsonl_rows} tracked training/eval rows across "
+                f"{tracked_public_jsonl_files} files; {all_public_jsonl_rows} committed public rows across "
+                f"{all_public_jsonl_files} files including auxiliary public JSONL lanes."
+            ),
+        ),
+        "seed_repo_tla_files": _public_lane_summary(
+            seed_file_summary_path,
+            rows=seed_tla_files,
+            detail="Public `.tla` files visible across the committed seed-repo lane.",
+        ),
+        "usable_seed_modules": _public_lane_summary(
+            seed_module_summary_path,
+            rows=usable_seed_modules,
+            detail="Usable `.tla` module rows after header validation and normalization.",
+        ),
+        "sany_clean_seed_prover_candidates": _public_lane_summary(
+            seed_candidate_summary_path,
+            rows=sany_clean_seed_candidates,
+            detail="Public seed modules that are already SANY-clean and prover-candidate shaped.",
+        ),
+        "shape_ready_seed_rows": _public_lane_summary(
+            shape_ready_summary_path,
+            rows=shape_ready_rows,
+            detail=(
+                f"Shape-ready public seed rows for repair/eval work; current unique module count "
+                f"is {shape_ready_unique_modules}."
+            ),
+        ),
+        "shape_ready_not_sany_rows": _public_lane_summary(
+            shape_ready_not_sany_summary_path,
+            rows=shape_ready_not_sany_rows,
+            detail="Immediate repair-target subset: shape-ready but not yet SANY-clean.",
+        ),
+    }
+
+
 def build_report(
     *,
     formalllm_root: Path,
     formalllm_input_root: Path,
     formalllm_architecture_doc: Path,
     pipeline_repo: Path,
+    tlaprove_report_path: Path = DEFAULT_TLAPROVE_REPORT,
+    seed_file_summary_path: Path = DEFAULT_SEED_FILE_SUMMARY,
+    seed_module_summary_path: Path = DEFAULT_SEED_MODULE_SUMMARY,
+    seed_candidate_summary_path: Path = DEFAULT_SEED_CANDIDATE_SUMMARY,
+    shape_ready_summary_path: Path = DEFAULT_SHAPE_READY_SUMMARY,
+    shape_ready_not_sany_summary_path: Path = DEFAULT_SHAPE_READY_NOT_SANY_SUMMARY,
     remote_head_resolver: Callable[[str], str | None] | None = None,
 ) -> dict[str, Any]:
     formalllm = inspect_formalllm(
@@ -256,6 +356,14 @@ def build_report(
         architecture_doc=formalllm_architecture_doc,
     )
     pipeline = inspect_pipeline(pipeline_repo)
+    broader_public_lanes = inspect_broader_public_lanes(
+        tlaprove_report_path=tlaprove_report_path,
+        seed_file_summary_path=seed_file_summary_path,
+        seed_module_summary_path=seed_module_summary_path,
+        seed_candidate_summary_path=seed_candidate_summary_path,
+        shape_ready_summary_path=shape_ready_summary_path,
+        shape_ready_not_sany_summary_path=shape_ready_not_sany_summary_path,
+    )
     warnings: list[str] = []
     split_total = formalllm.get("split_files", {}).get("total")
     canonical_entries = formalllm.get("canonical_entries")
@@ -284,10 +392,33 @@ def build_report(
             "pipeline_repo": remote_head_resolver(DEFAULT_PIPELINE_REPO_URL),
         }
 
+    canonical_entries = int(formalllm.get("canonical_entries", 0) or 0)
+    architecture_claim = str(formalllm.get("architecture_doc", {}).get("metadata_specification_claim") or "")
+    stale_for_formalllm = architecture_claim and architecture_claim != str(canonical_entries)
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "formalllm": formalllm,
         "pipeline": pipeline,
+        "broader_public_lanes": broader_public_lanes,
+        "public_1800_plus_interpretation": {
+            "claim": architecture_claim or None,
+            "status": (
+                "stale_for_formalllm_canonical_layer"
+                if stale_for_formalllm
+                else "aligned_with_current_canonical_layer"
+            ),
+            "canonical_formalllm_rows": canonical_entries,
+            "closest_reproducible_public_surfaces": [
+                broader_public_lanes["tla_prove_committed_public_jsonl"],
+                broader_public_lanes["seed_repo_tla_files"],
+                broader_public_lanes["usable_seed_modules"],
+            ],
+            "recommended_reference": (
+                "Use the larger public-lane counts above when discussing the broader AI4FM GitHub surface, "
+                "and reserve the canonical FormaLLM row count for the benchmark layer itself."
+            ),
+        },
         "warnings": warnings,
         "integration_recommendation": {
             "formalllm_role": "canonical prompt/spec supervised corpus",
@@ -313,6 +444,12 @@ def main() -> int:
     parser.add_argument("--formalllm-input-root", type=Path, default=DEFAULT_FORMALLLM_INPUT_ROOT)
     parser.add_argument("--formalllm-architecture-doc", type=Path, default=DEFAULT_FORMALLLM_ARCHITECTURE_DOC)
     parser.add_argument("--pipeline-repo", type=Path, default=DEFAULT_PIPELINE_REPO)
+    parser.add_argument("--tlaprove-report", type=Path, default=DEFAULT_TLAPROVE_REPORT)
+    parser.add_argument("--seed-file-summary", type=Path, default=DEFAULT_SEED_FILE_SUMMARY)
+    parser.add_argument("--seed-module-summary", type=Path, default=DEFAULT_SEED_MODULE_SUMMARY)
+    parser.add_argument("--seed-candidate-summary", type=Path, default=DEFAULT_SEED_CANDIDATE_SUMMARY)
+    parser.add_argument("--shape-ready-summary", type=Path, default=DEFAULT_SHAPE_READY_SUMMARY)
+    parser.add_argument("--shape-ready-not-sany-summary", type=Path, default=DEFAULT_SHAPE_READY_NOT_SANY_SUMMARY)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--include-remote-heads", action="store_true")
     args = parser.parse_args()
@@ -322,6 +459,12 @@ def main() -> int:
         formalllm_input_root=args.formalllm_input_root,
         formalllm_architecture_doc=args.formalllm_architecture_doc,
         pipeline_repo=args.pipeline_repo,
+        tlaprove_report_path=args.tlaprove_report,
+        seed_file_summary_path=args.seed_file_summary,
+        seed_module_summary_path=args.seed_module_summary,
+        seed_candidate_summary_path=args.seed_candidate_summary,
+        shape_ready_summary_path=args.shape_ready_summary,
+        shape_ready_not_sany_summary_path=args.shape_ready_not_sany_summary,
         remote_head_resolver=_remote_head if args.include_remote_heads else None,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
