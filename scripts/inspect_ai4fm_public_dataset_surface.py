@@ -8,7 +8,7 @@ import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 try:
     import yaml  # type: ignore
@@ -23,6 +23,8 @@ DEFAULT_FORMALLLM_ARCHITECTURE_DOC = REPO / "data" / "FormaLLM" / "doc" / "ARCHI
 DEFAULT_PIPELINE_REPO = Path("/tmp/LUC-AI4FM-tla-dataset-pipeline")
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "ai4fm_public_dataset_surface.json"
 ARCHITECTURE_SPEC_COUNT_RE = re.compile(r"Metadata for\s+([0-9][0-9,+]*)\s+specifications")
+DEFAULT_FORMALLLM_REPO_URL = "https://github.com/LUC-AI4FM/FormaLLM.git"
+DEFAULT_PIPELINE_REPO_URL = "https://github.com/LUC-AI4FM/tla-dataset-pipeline.git"
 
 
 def _git_head(repo: Path) -> str | None:
@@ -36,6 +38,20 @@ def _git_head(repo: Path) -> str | None:
     except subprocess.SubprocessError:
         return None
     return completed.stdout.strip() or None
+
+
+def _remote_head(url: str) -> str | None:
+    try:
+        completed = subprocess.run(
+            ["git", "ls-remote", url, "HEAD"],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+    except subprocess.SubprocessError:
+        return None
+    line = completed.stdout.strip()
+    return line.split()[0] if line else None
 
 
 def _load_family_entries(formalllm_root: Path) -> tuple[list[dict[str, Any]], int]:
@@ -223,6 +239,7 @@ def build_report(
     formalllm_input_root: Path,
     formalllm_architecture_doc: Path,
     pipeline_repo: Path,
+    remote_head_resolver: Callable[[str], str | None] | None = None,
 ) -> dict[str, Any]:
     formalllm = inspect_formalllm(
         formalllm_root,
@@ -242,6 +259,17 @@ def build_report(
         warnings.append(
             "FormaLLM architecture metadata claim differs from current canonical_entries."
         )
+    public_sources = {
+        "formalllm_repo": "https://github.com/LUC-AI4FM/FormaLLM",
+        "pipeline_repo": "https://github.com/LUC-AI4FM/tla-dataset-pipeline",
+        "pipeline_dvc_lock": "https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock",
+    }
+    if remote_head_resolver is not None:
+        public_sources["live_remote_heads"] = {
+            "formalllm_repo": remote_head_resolver(DEFAULT_FORMALLLM_REPO_URL),
+            "pipeline_repo": remote_head_resolver(DEFAULT_PIPELINE_REPO_URL),
+        }
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "formalllm": formalllm,
@@ -259,11 +287,7 @@ def build_report(
                 "and treat ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
             ),
         },
-        "public_sources": {
-            "formalllm_repo": "https://github.com/LUC-AI4FM/FormaLLM",
-            "pipeline_repo": "https://github.com/LUC-AI4FM/tla-dataset-pipeline",
-            "pipeline_dvc_lock": "https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock",
-        },
+        "public_sources": public_sources,
     }
 
 
@@ -274,6 +298,7 @@ def main() -> int:
     parser.add_argument("--formalllm-architecture-doc", type=Path, default=DEFAULT_FORMALLLM_ARCHITECTURE_DOC)
     parser.add_argument("--pipeline-repo", type=Path, default=DEFAULT_PIPELINE_REPO)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--include-remote-heads", action="store_true")
     args = parser.parse_args()
 
     report = build_report(
@@ -281,6 +306,7 @@ def main() -> int:
         formalllm_input_root=args.formalllm_input_root,
         formalllm_architecture_doc=args.formalllm_architecture_doc,
         pipeline_repo=args.pipeline_repo,
+        remote_head_resolver=_remote_head if args.include_remote_heads else None,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
