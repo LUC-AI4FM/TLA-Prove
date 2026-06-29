@@ -244,16 +244,16 @@
       "sha256": "01067043419a8de5562232bdb4baae39788b8b7527b879788b8cb29ac068bf55"
     },
     "ai4fm_public_seed_prover_candidates_v1": {
-      "bytes": 2216110,
+      "bytes": 2246146,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_sany_valid_prover_candidate_corpus",
       "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-      "rows": 167,
-      "sha256": "649c4ed278e8523f41ddab11a5f0944f2b8f25c0d7f5e7a557253e5a07ec2f51",
+      "rows": 168,
+      "sha256": "eaf6d2e33c64e1837cc17501af8fcf8f250c320dd948922bb7fe5a4922149c4c",
       "summary": {
         "dependency_staging": {
           "attempted_rows": 840,
-          "recovered_rows": 69,
+          "recovered_rows": 70,
           "sample_recovered": [
             {
               "module": "AddTwo",
@@ -420,7 +420,7 @@
           "Huang": 2,
           "Lock": 2,
           "NQSpec": 2,
-          "Paxos": 5,
+          "Paxos": 6,
           "Peterson": 3,
           "Prisoners": 2,
           "SingleLaneBridge": 2,
@@ -441,14 +441,14 @@
           "spanning": 2,
           "test211": 3
         },
-        "generated_at": "2026-06-29T19:52:12.870937+00:00",
+        "generated_at": "2026-06-29T20:12:56.497893+00:00",
         "helper_source_paths": [
           "data/processed/formalllm_public_tla_modules_v1.jsonl",
           "data/processed/tlapm_public_tla_modules_v1.jsonl"
         ],
-        "helper_source_rows": 515,
-        "jsonl_sha256": "649c4ed278e8523f41ddab11a5f0944f2b8f25c0d7f5e7a557253e5a07ec2f51",
-        "kept_rows": 167,
+        "helper_source_rows": 516,
+        "jsonl_sha256": "eaf6d2e33c64e1837cc17501af8fcf8f250c320dd948922bb7fe5a4922149c4c",
+        "kept_rows": 168,
         "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
         "rows_considered": 2108,
         "sample_not_autoprover_candidate": [
@@ -740,8 +740,8 @@
         ],
         "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
         "skipped": {
-          "not_autoprover_candidate": 1696,
-          "sany_invalid": 245
+          "not_autoprover_candidate": 1697,
+          "sany_invalid": 243
         },
         "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
         "source_rows": 2108,
@@ -755,94 +755,65 @@
       "kind": "public_ai4fm_seed_repo_prover_funnel_report",
       "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
       "rows": null,
-      "sha256": "17231e726866dd3c679548f9592407ace376d265893f4c215fa0b873c51d45df"
+      "sha256": "05ef0090561e2bb621f710770cf891b48d1d39103234eec41c4c4d18672b2cea"
     },
     "ai4fm_public_seed_prover_recovery_probe_v1": {
-      "bytes": 2393,
+      "bytes": 1,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_recovery_probe",
       "path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
-      "rows": 1,
-      "sha256": "4280a6e5eadaa557d1189f65b04599a85ddd41226290dd97ecabd25ec698d719",
+      "rows": 0,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
       "summary": {
-        "final_error_family_counts": {
-          "missing_substitution": 1
-        },
+        "final_error_family_counts": {},
         "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-        "generated_at": "2026-06-29T19:57:43.208482+00:00",
+        "generated_at": "2026-06-29T20:17:31.415577+00:00",
         "helper_source_paths": [
           "data/processed/formalllm_public_tla_modules_v1.jsonl",
           "data/processed/tlapm_public_tla_modules_v1.jsonl"
         ],
-        "helper_source_rows": 515,
-        "jsonl_sha256": "4280a6e5eadaa557d1189f65b04599a85ddd41226290dd97ecabd25ec698d719",
-        "kept_rows": 1,
+        "helper_source_rows": 516,
+        "jsonl_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kept_rows": 0,
         "measured_conclusion": "The current public seed candidate builder only partially closes the remaining repair queue: some rows still fail on missing transitive imports after staging, while the dominant residual bucket is now post-staging non-import SANY failures.",
         "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
-        "probe_status_counts": {
-          "post_stage_non_import_error": 1
-        },
+        "probe_status_counts": {},
         "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
         "rows_missing_full_source_row": 0,
-        "rows_post_stage_non_import_error": 1,
+        "rows_post_stage_non_import_error": 0,
         "rows_recovered_current_builder": 0,
         "rows_still_missing_imports_after_staging": 0,
         "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
-        "status_by_recommended_action": {
-          "stage_tlaps_standard_module": {
-            "post_stage_non_import_error": 1
-          }
-        },
-        "top_final_error_details": [
-          {
-            "detail": "Substitution missing for symbol Value declared at line 4, col 10 to line 4, col 14 of module Consensus",
-            "rows": 1
-          }
-        ],
-        "top_final_errors": [
-          {
-            "error": "line 543, col 1 to line 543, col 48 of module Paxos",
-            "rows": 1
-          }
-        ],
-        "top_repos": [
-          {
-            "repo": "tlaplus/DrTLAPlus",
-            "rows": 1
-          }
-        ],
+        "status_by_recommended_action": {},
+        "top_final_error_details": [],
+        "top_final_errors": [],
+        "top_repos": [],
         "top_unresolved_missing_modules": []
       },
       "summary_path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json"
     },
     "ai4fm_public_seed_prover_repair_queue_v1": {
-      "bytes": 1994,
+      "bytes": 1,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_repair_queue",
       "path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
-      "rows": 1,
-      "sha256": "c459cd3a1020b11f8829b37bed91740e45b9c291d00e2c95ffc603603ea87746",
+      "rows": 0,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
       "summary": {
         "blocked_on_missing_public_dependency_rows": 0,
-        "generated_at": "2026-06-29T19:57:41.383548+00:00",
+        "generated_at": "2026-06-29T20:17:31.264147+00:00",
         "helper_source_paths": [
           "data/processed/formalllm_public_tla_modules_v1.jsonl",
           "data/processed/tlapm_public_tla_modules_v1.jsonl"
         ],
-        "helper_source_rows": 515,
-        "jsonl_sha256": "c459cd3a1020b11f8829b37bed91740e45b9c291d00e2c95ffc603603ea87746",
-        "kept_rows": 1,
-        "missing_import_availability_counts": {
-          "tlaps_standard_module": 1
-        },
+        "helper_source_rows": 516,
+        "jsonl_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kept_rows": 0,
+        "missing_import_availability_counts": {},
         "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
-        "priority_counts": {
-          "p1": 1
-        },
-        "recommended_action_counts": {
-          "stage_tlaps_standard_module": 1
-        },
-        "recoverable_without_new_source_rows": 1,
+        "priority_counts": {},
+        "recommended_action_counts": {},
+        "recoverable_without_new_source_rows": 0,
         "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
         "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
         "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -851,7 +822,7 @@
             "note": "Highest-leverage rows: missing only the standard TLAPS helper module.",
             "priority": "p1",
             "recommended_action": "stage_tlaps_standard_module",
-            "rows": 1
+            "rows": 0
           },
           {
             "note": "Rows recoverable by staging helper modules already present in the same public repo.",
@@ -872,54 +843,39 @@
             "rows": 0
           }
         ],
-        "top_missing_modules": [
-          {
-            "module": "TLAPS",
-            "rows": 1
-          }
-        ],
-        "top_repos": [
-          {
-            "repo": "tlaplus/DrTLAPlus",
-            "rows": 1
-          }
-        ]
+        "top_missing_modules": [],
+        "top_repos": []
       },
       "summary_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json"
     },
     "ai4fm_public_seed_prover_repair_surface": {
-      "bytes": 2164,
+      "bytes": 1117,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_repair_surface_report",
       "path": "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
       "rows": null,
-      "sha256": "8e8a0ee917ba7f800dbe1fdb846aef4706839004e6cdc78576530c6e96af803b"
+      "sha256": "a23e1e0011aeebf75e04f03048762adeec7fe6f9cea735705e182e14a6c759cd"
     },
     "ai4fm_public_seed_prover_shape_ready_not_sany_v1": {
-      "bytes": 29970,
+      "bytes": 1,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_autoprover_shape_repair_target_corpus",
       "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-      "rows": 1,
-      "sha256": "91e55ff32fab7d6fbab9956daeab26cdbdde5da098ce70c84f1e5c39bae2a454",
+      "rows": 0,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
       "summary": {
         "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "excluded_sany_clean_rows": 167,
-        "generated_at": "2026-06-29T19:57:37.120935+00:00",
-        "jsonl_sha256": "91e55ff32fab7d6fbab9956daeab26cdbdde5da098ce70c84f1e5c39bae2a454",
-        "kept_rows": 1,
+        "excluded_sany_clean_rows": 168,
+        "generated_at": "2026-06-29T20:17:30.446963+00:00",
+        "jsonl_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "kept_rows": 0,
         "out": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
         "schema": "chattla_ai4fm_public_seed_prover_shape_ready_not_sany_v1",
         "shape_ready_source_rows": 168,
         "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
         "source_rows": 2108,
-        "top_repos": [
-          {
-            "repo": "tlaplus/DrTLAPlus",
-            "rows": 1
-          }
-        ],
-        "unique_modules": 1
+        "top_repos": [],
+        "unique_modules": 0
       },
       "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
     },
@@ -932,7 +888,7 @@
       "sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
       "summary": {
         "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "generated_at": "2026-06-29T19:57:37.119177+00:00",
+        "generated_at": "2026-06-29T20:17:30.445095+00:00",
         "jsonl_sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
         "kept_rows": 168,
         "out": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
@@ -1858,28 +1814,28 @@
       "summary_path": "data/processed/benchmark_repair_pairs_fc128best.summary.json"
     },
     "chattla_tla_prover_sft_public_all_v1": {
-      "bytes": 14392745,
+      "bytes": 14422747,
       "exists": true,
       "kind": "full_public_ai4fm_expanded_prover_sft_dataset",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-      "rows": 2507,
-      "sha256": "cb5aac4a8c4e8bc28c3e7553affe90cf8fe7e4b0e1569ea0b9bf519e1b5e6f53",
+      "rows": 2508,
+      "sha256": "11cdf29e8fce3c8718dcf7dc1bd8b430c3bfd77c214bf091bd3ac1047b886e53",
       "summary": {
         "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "formalllm": "data/processed/formalllm_eval_v1.jsonl",
         "formalllm_rows": 205,
-        "generated_at": "2026-06-29T19:57:43.585846+00:00",
-        "jsonl_sha256": "cb5aac4a8c4e8bc28c3e7553affe90cf8fe7e4b0e1569ea0b9bf519e1b5e6f53",
+        "generated_at": "2026-06-29T20:17:31.781831+00:00",
+        "jsonl_sha256": "11cdf29e8fce3c8718dcf7dc1bd8b430c3bfd77c214bf091bd3ac1047b886e53",
         "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
         "public_import": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
         "public_import_rows": 1010,
         "public_import_weight": 1,
         "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "public_seed_candidates_rows": 167,
+        "public_seed_candidates_rows": 168,
         "public_seed_candidates_weight": 1,
         "seed": 20260627,
-        "total_rows": 2507,
+        "total_rows": 2508,
         "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
@@ -1887,28 +1843,28 @@
       "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json"
     },
     "chattla_tla_prover_sft_public_expanded_v1": {
-      "bytes": 14350954,
+      "bytes": 14380956,
       "exists": true,
       "kind": "public_ai4fm_expanded_prover_sft_dataset",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-      "rows": 2502,
-      "sha256": "04a9bc15b23819bb1b30fc328eb9c7b6722ce0cac3bf5ad8b2f1c977d828ad64",
+      "rows": 2503,
+      "sha256": "814555af43f11d189c8f9f9094053120207cb79b7a4da599c8afb30695bb3a7d",
       "summary": {
         "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "formalllm": "data/processed/formalllm_eval_v1.jsonl",
         "formalllm_rows": 205,
-        "generated_at": "2026-06-29T19:57:43.402839+00:00",
-        "jsonl_sha256": "04a9bc15b23819bb1b30fc328eb9c7b6722ce0cac3bf5ad8b2f1c977d828ad64",
+        "generated_at": "2026-06-29T20:17:31.596562+00:00",
+        "jsonl_sha256": "814555af43f11d189c8f9f9094053120207cb79b7a4da599c8afb30695bb3a7d",
         "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
         "public_import": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         "public_import_rows": 1005,
         "public_import_weight": 1,
         "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "public_seed_candidates_rows": 167,
+        "public_seed_candidates_rows": 168,
         "public_seed_candidates_weight": 1,
         "seed": 20260627,
-        "total_rows": 2502,
+        "total_rows": 2503,
         "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
@@ -2573,7 +2529,7 @@
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "9366dc606fa83f9cbc1de2fb79aee20a12d82ce9c1e660eaf02c7f3a4f54d86e"
+      "sha256": "cb0a340940127dd845d56f56fd9f09b4a2c101ea7f2305a12b07fe68a289bc50"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7143,
@@ -2601,7 +2557,7 @@
               "missing_rows": 0,
               "ok": true,
               "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-              "rows": 2502
+              "rows": 2503
             },
             {
               "extra_occurrences_over_formalllm_rows": 0,
@@ -2611,7 +2567,7 @@
               "missing_rows": 0,
               "ok": true,
               "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-              "rows": 2507
+              "rows": 2508
             }
           ],
           "formalllm_path": "data/processed/formalllm_eval_v1.jsonl",
@@ -2620,7 +2576,7 @@
         }
       },
       "rows": null,
-      "sha256": "d1ad229de8fb9b535575fbd87ff7c10c750281d061c3a9f6052370727e532624"
+      "sha256": "4de820379927ca8427607f5e09e7a176f9b907c5cb9fbfc3846c012136b8b81d"
     },
     "tla_prover_full_dataset_failure_analysis": {
       "bytes": 20913,
@@ -2665,23 +2621,24 @@
       "summary_path": "data/processed/tla_prover_repair_train_v1.summary.json"
     },
     "tlapm_public_tla_modules_v1": {
-      "bytes": 233400,
+      "bytes": 234643,
       "exists": true,
       "kind": "public_tlapm_library_helper_module_corpus",
       "path": "data/processed/tlapm_public_tla_modules_v1.jsonl",
-      "rows": 14,
-      "sha256": "070a5462a3c9ebfc8b0713ea25992af6771967fa95e96eca4fbbf7d6b5cd8cd8",
+      "rows": 15,
+      "sha256": "d28a3564ba94620ccf169a4403f2bfb650567712a190ccd72493adc2585de8ba",
       "summary": {
+        "curated_example_candidates": 1,
         "duplicate_modules": {},
-        "generated_at": "2026-06-29T18:30:45.803846+00:00",
-        "jsonl_sha256": "070a5462a3c9ebfc8b0713ea25992af6771967fa95e96eca4fbbf7d6b5cd8cd8",
-        "kept_rows": 14,
+        "generated_at": "2026-06-29T20:12:35.345119+00:00",
+        "jsonl_sha256": "d28a3564ba94620ccf169a4403f2bfb650567712a190ccd72493adc2585de8ba",
+        "kept_rows": 15,
         "library_root": "data/external/tlapm/library",
         "out": "data/processed/tlapm_public_tla_modules_v1.jsonl",
         "repo_head_sha": "80172c61842c8dd15524c6f01a70ba91029802f5",
         "schema": "chattla_tlapm_public_tla_modules_v1",
         "skipped_missing_module_header": 0,
-        "tla_candidates": 14,
+        "tla_candidates": 15,
         "tlapm_root": "data/external/tlapm"
       },
       "summary_path": "data/processed/tlapm_public_tla_modules_v1.summary.json"
@@ -2726,7 +2683,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T19:57:44.230262+00:00",
+  "generated_at": "2026-06-29T20:17:32.433774+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

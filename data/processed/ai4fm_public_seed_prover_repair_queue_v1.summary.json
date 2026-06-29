@@ -1,24 +1,18 @@
 {
   "blocked_on_missing_public_dependency_rows": 0,
-  "generated_at": "2026-06-29T19:57:41.383548+00:00",
+  "generated_at": "2026-06-29T20:17:31.264147+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
-  "helper_source_rows": 515,
-  "jsonl_sha256": "c459cd3a1020b11f8829b37bed91740e45b9c291d00e2c95ffc603603ea87746",
-  "kept_rows": 1,
-  "missing_import_availability_counts": {
-    "tlaps_standard_module": 1
-  },
+  "helper_source_rows": 516,
+  "jsonl_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+  "kept_rows": 0,
+  "missing_import_availability_counts": {},
   "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
-  "priority_counts": {
-    "p1": 1
-  },
-  "recommended_action_counts": {
-    "stage_tlaps_standard_module": 1
-  },
-  "recoverable_without_new_source_rows": 1,
+  "priority_counts": {},
+  "recommended_action_counts": {},
+  "recoverable_without_new_source_rows": 0,
   "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
   "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -27,7 +21,7 @@
       "note": "Highest-leverage rows: missing only the standard TLAPS helper module.",
       "priority": "p1",
       "recommended_action": "stage_tlaps_standard_module",
-      "rows": 1
+      "rows": 0
     },
     {
       "note": "Rows recoverable by staging helper modules already present in the same public repo.",
@@ -48,16 +42,6 @@
       "rows": 0
     }
   ],
-  "top_missing_modules": [
-    {
-      "module": "TLAPS",
-      "rows": 1
-    }
-  ],
-  "top_repos": [
-    {
-      "repo": "tlaplus/DrTLAPlus",
-      "rows": 1
-    }
-  ]
+  "top_missing_modules": [],
+  "top_repos": []
 }

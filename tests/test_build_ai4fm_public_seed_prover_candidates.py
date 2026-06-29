@@ -502,6 +502,78 @@ def test_build_prover_candidates_breaks_same_repo_ties_by_closer_path_prefix(tmp
     assert summary["dependency_staging"]["recovered_rows"] == 1
 
 
+def test_build_prover_candidates_retries_alternative_helper_after_post_stage_semantic_failure(tmp_path: Path) -> None:
+    source = tmp_path / "seed_modules.jsonl"
+    main = (
+        "---- MODULE CandidateA ----\n"
+        "EXTENDS TLAPS\n"
+        "C == INSTANCE Consensus WITH chosen <- chosenBar\n"
+        "VARIABLE chosenBar\n"
+        "vars == <<chosenBar>>\n"
+        "Init == chosenBar = {}\n"
+        "Next == chosenBar' = chosenBar\n"
+        "Spec == Init /\\ [][Next]_chosenBar\n"
+        "TypeOK == chosenBar \\subseteq {}\n"
+        "====\n"
+    )
+    wrong_consensus = "---- MODULE Consensus ----\nWRONG == Value\n====\n"
+    right_consensus = "---- MODULE Consensus ----\nRIGHT == chosen\n====\n"
+    tlaps = "---- MODULE TLAPS ----\n====\n"
+    _write_jsonl(
+        source,
+        [
+            {"repo": "example/alpha", "module": "CandidateA", "source_path": "Paxos/CandidateA.tla", "content": main},
+            {
+                "repo": "example/beta",
+                "module": "Consensus",
+                "source_path": "Paxos/Consensus.tla",
+                "content": wrong_consensus,
+            },
+            {
+                "repo": "example/gamma",
+                "module": "Consensus",
+                "source_path": "examples/paxos/Consensus.tla",
+                "content": right_consensus,
+            },
+            {"repo": "tlaplus/tlapm", "module": "TLAPS", "source_path": "library/TLAPS.tla", "content": tlaps},
+        ],
+    )
+
+    def fake_validate(content: str, *, module_name: str) -> _Sany:
+        if module_name == "CandidateA":
+            return _Sany(
+                False,
+                [
+                    "Cannot find source file for module Consensus imported in module CandidateA.",
+                    "*** Errors: 1",
+                ],
+            )
+        return _Sany(True)
+
+    def fake_validate_file(path: Path) -> _Sany:
+        helper = path.parent / "Consensus.tla"
+        if helper.exists() and "RIGHT == chosen" in helper.read_text(encoding="utf-8"):
+            return _Sany(True)
+        return _Sany(
+            False,
+            [
+                "Substitution missing for symbol Value declared at line 4, col 10 to line 4, col 14 of module Consensus",
+                "*** Errors: 1",
+            ],
+        )
+
+    rows, summary = build_prover_candidates(
+        source,
+        validate_module=fake_validate,
+        validate_file=fake_validate_file,
+        workers=1,
+    )
+
+    assert [row["module"] for row in rows] == ["CandidateA"]
+    assert rows[0]["dependency_staging"]["staged_modules"] == ["Consensus"]
+    assert summary["dependency_staging"]["recovered_rows"] == 1
+
+
 def test_build_prover_candidates_recovers_deep_transitive_import_chain(tmp_path: Path) -> None:
     source = tmp_path / "seed_modules.jsonl"
     main = (

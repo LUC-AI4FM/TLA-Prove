@@ -47,3 +47,20 @@ def test_write_outputs_handles_out_of_repo_target(tmp_path: Path) -> None:
 
     assert final_summary["out"] == str(out)
     assert final_summary["summary"] == str(out.with_suffix(".summary.json"))
+
+
+def test_build_tlapm_tla_modules_includes_curated_public_example_helpers(tmp_path: Path) -> None:
+    tlapm_root = tmp_path / "tlapm"
+    library = tlapm_root / "library"
+    examples = tlapm_root / "examples" / "paxos"
+    _write(library / "TLAPS.tla", "---- MODULE TLAPS ----\n====\n")
+    _write(examples / "Consensus.tla", "---- MODULE Consensus ----\nCONSTANTS Acceptors, Values\n====\n")
+
+    rows, summary = build_tlapm_tla_modules(
+        tlapm_root=tlapm_root,
+        generated_at="2026-06-29T00:00:00+00:00",
+    )
+
+    by_source = {row["source_path"]: row for row in rows}
+    assert any(path.endswith("examples/paxos/Consensus.tla") for path in by_source)
+    assert summary["kept_rows"] == 2

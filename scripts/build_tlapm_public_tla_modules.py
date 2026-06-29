@@ -15,6 +15,9 @@ REPO = Path(__file__).resolve().parents[1]
 DEFAULT_TLAPM_ROOT = REPO / "data" / "external" / "tlapm"
 DEFAULT_OUT = REPO / "data" / "processed" / "tlapm_public_tla_modules_v1.jsonl"
 MODULE_RE = __import__("re").compile(r"(?m)^\s*-+\s*MODULE\s+([A-Za-z_]\w*)")
+CURATED_EXAMPLE_HELPERS = (
+    Path("examples/paxos/Consensus.tla"),
+)
 
 
 def _display_path(path: Path) -> str:
@@ -53,6 +56,8 @@ def build_tlapm_tla_modules(
     generated_at = generated_at or datetime.now(timezone.utc).isoformat()
     library_root = tlapm_root / "library"
     tla_paths = sorted(library_root.glob("*.tla"))
+    curated_paths = [tlapm_root / rel for rel in CURATED_EXAMPLE_HELPERS if (tlapm_root / rel).exists()]
+    tla_paths.extend(path for path in curated_paths if path not in tla_paths)
     rows: list[dict[str, Any]] = []
     duplicate_modules: Counter[str] = Counter()
     skipped_missing_module_header = 0
@@ -84,6 +89,7 @@ def build_tlapm_tla_modules(
         "library_root": _display_path(library_root),
         "repo_head_sha": repo_head_sha,
         "tla_candidates": len(tla_paths),
+        "curated_example_candidates": len(curated_paths),
         "kept_rows": len(rows),
         "skipped_missing_module_header": skipped_missing_module_header,
         "duplicate_modules": {name: count for name, count in sorted(duplicate_modules.items()) if count > 1},

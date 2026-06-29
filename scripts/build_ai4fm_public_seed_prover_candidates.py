@@ -161,24 +161,22 @@ def _candidate_rank(candidate: dict[str, Any], *, row_repo: str, row_source_path
     return score, repo, path
 
 
-def _resolve_import(
+def _ranked_import_candidates(
     module: str,
     *,
     row_repo: str,
     row_source_path: str,
     by_repo_module: dict[tuple[str, str], list[dict[str, Any]]],
     by_module: dict[str, list[dict[str, Any]]],
-) -> str | None:
+) -> list[dict[str, Any]]:
     if module == "TLAPS":
         tlapm_standard = by_repo_module.get(("tlaplus/tlapm", "TLAPS"), [])
         if tlapm_standard:
-            ranked_tlapm = sorted(
+            return sorted(
                 (row for row in tlapm_standard if isinstance(row.get("content"), str)),
                 key=lambda row: _candidate_rank(row, row_repo=row_repo, row_source_path=row_source_path),
                 reverse=True,
             )
-            if ranked_tlapm:
-                return str(ranked_tlapm[0].get("content"))
     same_repo_candidates = by_repo_module.get((row_repo, module), [])
     if same_repo_candidates:
         ranked_same_repo = sorted(
@@ -200,19 +198,36 @@ def _resolve_import(
                     reverse=True,
                 )
                 if ranked_global:
-                    return str(ranked_global[0].get("content"))
-            return str(ranked_same_repo[0].get("content"))
+                    return ranked_global
+            return ranked_same_repo
     candidates = by_module.get(module, [])
     if not candidates:
-        return TLAPS_STUB if module == "TLAPS" else None
-    ranked = sorted(
+        return []
+    return sorted(
         (row for row in candidates if isinstance(row.get("content"), str)),
         key=lambda row: _candidate_rank(row, row_repo=row_repo, row_source_path=row_source_path),
         reverse=True,
     )
-    if not ranked:
-        return TLAPS_STUB if module == "TLAPS" else None
-    return str(ranked[0].get("content"))
+
+
+def _resolve_import(
+    module: str,
+    *,
+    row_repo: str,
+    row_source_path: str,
+    by_repo_module: dict[tuple[str, str], list[dict[str, Any]]],
+    by_module: dict[str, list[dict[str, Any]]],
+) -> str | None:
+    ranked = _ranked_import_candidates(
+        module,
+        row_repo=row_repo,
+        row_source_path=row_source_path,
+        by_repo_module=by_repo_module,
+        by_module=by_module,
+    )
+    if ranked:
+        return str(ranked[0].get("content"))
+    return TLAPS_STUB if module == "TLAPS" else None
 
 
 def _validate_with_staged_imports(
@@ -227,64 +242,92 @@ def _validate_with_staged_imports(
     module = str(row.get("module", ""))
     repo = str(row.get("repo", ""))
     content = str(row.get("content", ""))
-    staged_modules: dict[str, str] = {module: content}
-    unresolved: list[str] = []
-    attempted = False
+    row_source_path = str(row.get("source_path", ""))
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        root = Path(tmpdir)
-        pending = list(initial_missing_imports)
-        last_result = None
-        for _round in range(MAX_IMPORT_STAGING_ROUNDS):
-            added = False
-            for missing in pending:
-                if missing in staged_modules:
-                    continue
-                resolved = _resolve_import(
-                    missing,
-                    row_repo=repo,
-                    row_source_path=str(row.get("source_path", "")),
-                    by_repo_module=by_repo_module,
-                    by_module=by_module,
-                )
-                if resolved is None:
-                    unresolved.append(missing)
-                    continue
-                staged_modules[missing] = resolved
-                added = True
-                attempted = True
-            if not added:
-                break
-            for staged_module, staged_content in staged_modules.items():
-                (root / f"{staged_module}.tla").write_text(staged_content, encoding="utf-8")
-            last_result = validate_file(root / f"{module}.tla")
-            if getattr(last_result, "valid", False):
-                return last_result, {
-                    "attempted": attempted,
-                    "recovered": True,
-                    "staged_modules": sorted(name for name in staged_modules if name != module),
-                    "unresolved_missing_imports": sorted(set(unresolved)),
-                }
-            pending = _missing_imports(str(getattr(last_result, "raw_output", "")))
-            if not pending:
-                break
+    def run_staging(choice_overrides: dict[str, int]) -> tuple[Any, dict[str, Any], dict[str, str]]:
+        staged_modules: dict[str, str] = {module: content}
+        unresolved: list[str] = []
+        attempted = False
 
-    if last_result is None:
-        return initial_result, {
-            "attempted": False,
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            pending = list(initial_missing_imports)
+            last_result = None
+            for _round in range(MAX_IMPORT_STAGING_ROUNDS):
+                added = False
+                for missing in pending:
+                    if missing in staged_modules:
+                        continue
+                    ranked = _ranked_import_candidates(
+                        missing,
+                        row_repo=repo,
+                        row_source_path=row_source_path,
+                        by_repo_module=by_repo_module,
+                        by_module=by_module,
+                    )
+                    choice_index = choice_overrides.get(missing, 0)
+                    if not ranked and missing == "TLAPS":
+                        staged_modules[missing] = TLAPS_STUB
+                        added = True
+                        attempted = True
+                        continue
+                    if choice_index >= len(ranked):
+                        unresolved.append(missing)
+                        continue
+                    staged_modules[missing] = str(ranked[choice_index].get("content"))
+                    added = True
+                    attempted = True
+                if not added:
+                    break
+                for staged_module, staged_content in staged_modules.items():
+                    (root / f"{staged_module}.tla").write_text(staged_content, encoding="utf-8")
+                last_result = validate_file(root / f"{module}.tla")
+                if getattr(last_result, "valid", False):
+                    return last_result, {
+                        "attempted": attempted,
+                        "recovered": True,
+                        "staged_modules": sorted(name for name in staged_modules if name != module),
+                        "unresolved_missing_imports": sorted(set(unresolved)),
+                    }, staged_modules
+                pending = _missing_imports(str(getattr(last_result, "raw_output", "")))
+                if not pending:
+                    break
+
+        if last_result is None:
+            return initial_result, {
+                "attempted": False,
+                "recovered": False,
+                "staged_modules": [],
+                "unresolved_missing_imports": sorted(set(initial_missing_imports)),
+                "final_missing_imports": sorted(set(initial_missing_imports)),
+            }, staged_modules
+        final_missing_imports = _missing_imports(str(getattr(last_result, "raw_output", "")))
+        return last_result, {
+            "attempted": attempted,
             "recovered": False,
-            "staged_modules": [],
-            "unresolved_missing_imports": sorted(set(initial_missing_imports)),
-            "final_missing_imports": sorted(set(initial_missing_imports)),
-        }
-    final_missing_imports = _missing_imports(str(getattr(last_result, "raw_output", "")))
-    return last_result, {
-        "attempted": attempted,
-        "recovered": False,
-        "staged_modules": sorted(name for name in staged_modules if name != module),
-        "unresolved_missing_imports": sorted(set(unresolved)),
-        "final_missing_imports": final_missing_imports,
-    }
+            "staged_modules": sorted(name for name in staged_modules if name != module),
+            "unresolved_missing_imports": sorted(set(unresolved)),
+            "final_missing_imports": final_missing_imports,
+        }, staged_modules
+
+    primary_result, primary_info, primary_staged = run_staging({})
+    if getattr(primary_result, "valid", False):
+        return primary_result, primary_info
+
+    for staged_name in sorted(name for name in primary_staged if name != module):
+        ranked = _ranked_import_candidates(
+            staged_name,
+            row_repo=repo,
+            row_source_path=row_source_path,
+            by_repo_module=by_repo_module,
+            by_module=by_module,
+        )
+        for choice_index in range(1, len(ranked)):
+            alt_result, alt_info, _alt_staged = run_staging({staged_name: choice_index})
+            if getattr(alt_result, "valid", False):
+                return alt_result, alt_info
+
+    return primary_result, primary_info
 
 
 def build_prover_candidates(

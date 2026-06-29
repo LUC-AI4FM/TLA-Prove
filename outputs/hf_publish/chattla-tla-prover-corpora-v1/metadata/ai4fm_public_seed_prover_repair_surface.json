@@ -1,88 +1,38 @@
 {
   "by_repo": {
-    "top_repair_repos": [
-      {
-        "count": 1,
-        "name": "tlaplus/DrTLAPlus"
-      }
-    ]
+    "top_repair_repos": []
   },
-  "failure_categories": [
-    {
-      "count": 1,
-      "name": "missing_import"
-    }
-  ],
-  "generated_at": "2026-06-29T19:57:39.580911+00:00",
+  "failure_categories": [],
+  "generated_at": "2026-06-29T20:17:31.114312+00:00",
   "missing_imports": {
-    "availability_counts": {
-      "tlaps_standard_module": 1
-    },
-    "rows_recoverable_from_seed_surface_or_tlaps_stub": 1,
-    "rows_with_missing_imports": 1,
-    "top_missing_modules": [
-      {
-        "availability": "tlaps_standard_module",
-        "module": "TLAPS",
-        "rows": 1
-      }
-    ]
+    "availability_counts": {},
+    "rows_recoverable_from_seed_surface_or_tlaps_stub": 0,
+    "rows_with_missing_imports": 0,
+    "top_missing_modules": []
   },
   "repair_surface": {
-    "excluded_sany_clean_rows": 167,
-    "rows": 1,
-    "unique_modules": 1,
-    "unique_repos": 1
+    "excluded_sany_clean_rows": 168,
+    "rows": 0,
+    "unique_modules": 0,
+    "unique_repos": 0
   },
-  "samples": [
-    {
-      "category": "missing_import",
-      "first_error": "line 543, col 1 to line 543, col 48 of module Paxos",
-      "initial_missing_imports": [
-        "TLAPS"
-      ],
-      "missing_import_availability": [
-        "tlaps_standard_module"
-      ],
-      "missing_imports": [
-        "TLAPS"
-      ],
-      "module": "Paxos",
-      "repo": "tlaplus/DrTLAPlus",
-      "source_path": "Paxos/Paxos.tla",
-      "staged_modules": [
-        "Consensus",
-        "FiniteSetTheorems",
-        "Folds",
-        "Functions",
-        "NaturalsInduction",
-        "TLAPS",
-        "WellFoundedInduction"
-      ],
-      "unexpected_valid": false
-    }
-  ],
+  "samples": [],
   "schema": "chattla_ai4fm_public_seed_prover_repair_surface_v1",
   "seed_modules": {
     "helper_source_paths": [
       "data/processed/formalllm_public_tla_modules_v1.jsonl",
       "data/processed/tlapm_public_tla_modules_v1.jsonl"
     ],
-    "helper_source_rows": 515,
+    "helper_source_rows": 516,
     "path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
     "rows": 2108,
     "unique_module_names": 1596
   },
   "source": {
     "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-    "rows": 1,
+    "rows": 0,
     "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
   },
-  "top_first_errors": [
-    {
-      "count": 1,
-      "error": "line 543, col 1 to line 543, col 48 of module Paxos"
-    }
-  ],
+  "top_first_errors": [],
   "warnings": []
 }

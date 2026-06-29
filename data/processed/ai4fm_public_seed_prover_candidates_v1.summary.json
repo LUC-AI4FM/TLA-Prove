@@ -1,7 +1,7 @@
 {
   "dependency_staging": {
     "attempted_rows": 840,
-    "recovered_rows": 69,
+    "recovered_rows": 70,
     "sample_recovered": [
       {
         "module": "AddTwo",
@@ -168,7 +168,7 @@
     "Huang": 2,
     "Lock": 2,
     "NQSpec": 2,
-    "Paxos": 5,
+    "Paxos": 6,
     "Peterson": 3,
     "Prisoners": 2,
     "SingleLaneBridge": 2,
@@ -189,14 +189,14 @@
     "spanning": 2,
     "test211": 3
   },
-  "generated_at": "2026-06-29T19:52:12.870937+00:00",
+  "generated_at": "2026-06-29T20:12:56.497893+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
-  "helper_source_rows": 515,
-  "jsonl_sha256": "649c4ed278e8523f41ddab11a5f0944f2b8f25c0d7f5e7a557253e5a07ec2f51",
-  "kept_rows": 167,
+  "helper_source_rows": 516,
+  "jsonl_sha256": "eaf6d2e33c64e1837cc17501af8fcf8f250c320dd948922bb7fe5a4922149c4c",
+  "kept_rows": 168,
   "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
   "rows_considered": 2108,
   "sample_not_autoprover_candidate": [
@@ -488,8 +488,8 @@
   ],
   "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
   "skipped": {
-    "not_autoprover_candidate": 1696,
-    "sany_invalid": 245
+    "not_autoprover_candidate": 1697,
+    "sany_invalid": 243
   },
   "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_rows": 2108,

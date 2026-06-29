@@ -220,7 +220,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             ),
             (
                 "| `TLA-Prove normalized import` | "
-                f"{_comma(normalized_rows)} deduplicated ChatTLA-format rows built from the committed public corpora |"
+                f"{_comma(normalized_rows)} deduplicated ChatTLA-format rows built from the tracked public corpora slice |"
             ),
             (
                 "| `TLA-Prove raw import` | "
@@ -328,6 +328,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             (
                 "| `outputs/manifests/ai4fm_public_seed_prover_funnel.json` | "
                 f"`{usable_module_rows}` usable seed modules -> `168` shape-ready rows -> `{candidate_rows}` SANY-clean rows, leaving `{shape_ready_not_sany_rows}` shape-ready-but-not-SANY-clean rows. |"
+            ),
+            (
+                "The public corpus side is now sufficiently built out. The next real win is to\n"
+                "use the repo's new public lanes to run disciplined, bounded comparisons while\n"
+                "keeping the publish gate strict."
             ),
             f"| `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` | `chattla:20b-fc128best` has a fresh full benchmark but still `0` SANY / `0` TLC. | Freshness alone does not clear the gate; candidate quality is also non-deployable. |",
         ],
