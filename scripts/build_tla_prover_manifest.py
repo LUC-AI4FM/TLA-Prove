@@ -115,6 +115,10 @@ ARTIFACTS = {
         "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
         "kind": "public_ai4fm_seed_repo_prover_funnel_report",
     },
+    "ai4fm_public_seed_prover_repair_surface": {
+        "path": "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
+        "kind": "public_ai4fm_seed_repo_prover_repair_surface_report",
+    },
     "tla_prover_full_dataset_failure_analysis": {
         "path": "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
         "kind": "full_dataset_autoprover_failure_analysis_report",

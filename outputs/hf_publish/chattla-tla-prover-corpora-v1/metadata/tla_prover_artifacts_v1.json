@@ -456,6 +456,14 @@
       "rows": null,
       "sha256": "26b1040d90eb70509daa32ee5d7ada41ed84c7752b917b59f6e121d17c401999"
     },
+    "ai4fm_public_seed_prover_repair_surface": {
+      "bytes": 9704,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_prover_repair_surface_report",
+      "path": "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
+      "rows": null,
+      "sha256": "421a923b902627b08598a5f43e208aa9c0730a7b90b1e7a2fc8677b777323347"
+    },
     "ai4fm_public_seed_prover_shape_ready_not_sany_v1": {
       "bytes": 1213893,
       "exists": true,
@@ -2084,7 +2092,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T14:10:05.980439+00:00",
+  "generated_at": "2026-06-29T15:58:18.146460+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
