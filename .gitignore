@@ -22,6 +22,7 @@ env/
 # Training artefacts (large — don't commit to repo)
 # Patterns without trailing slash also match symlinks to external storage.
 outputs/gguf
+outputs/gguf_fc128_best
 outputs/gguf_backup
 outputs/merged_model
 outputs/merged_model_*
