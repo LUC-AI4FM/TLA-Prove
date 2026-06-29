@@ -21,12 +21,12 @@ from scripts.build_ai4fm_public_seed_prover_candidates import (
     _missing_imports,
     _validate_with_staged_imports,
 )
+from scripts.public_tla_helper_sources import default_existing_helper_sources
 from src.validators.sany_validator import validate_file as validate_sany_file
 from src.validators.sany_validator import validate_string as validate_sany_string
 
 DEFAULT_REPAIR_QUEUE = REPO / "data" / "processed" / "ai4fm_public_seed_prover_repair_queue_v1.jsonl"
 DEFAULT_FULL_SOURCE = REPO / "data" / "processed" / "ai4fm_public_seed_tla_modules_v1.jsonl"
-DEFAULT_HELPER_SOURCE = REPO / "data" / "processed" / "formalllm_public_tla_modules_v1.jsonl"
 DEFAULT_OUT = REPO / "data" / "processed" / "ai4fm_public_seed_prover_recovery_probe_v1.jsonl"
 MAX_TOP = 12
 
@@ -225,8 +225,8 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
     helper_paths = list(args.helper_source)
-    if not helper_paths and DEFAULT_HELPER_SOURCE.exists():
-        helper_paths = [DEFAULT_HELPER_SOURCE]
+    if not helper_paths:
+        helper_paths = default_existing_helper_sources()
 
     rows, summary = build_probe(
         repair_queue=args.repair_queue,

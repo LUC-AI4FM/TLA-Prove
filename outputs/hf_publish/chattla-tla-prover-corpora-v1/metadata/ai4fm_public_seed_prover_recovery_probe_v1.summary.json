@@ -1,49 +1,42 @@
 {
   "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-  "generated_at": "2026-06-29T18:09:30.793768+00:00",
+  "generated_at": "2026-06-29T18:35:37.277565+00:00",
   "helper_source_paths": [
-    "data/processed/formalllm_public_tla_modules_v1.jsonl"
+    "data/processed/formalllm_public_tla_modules_v1.jsonl",
+    "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
-  "helper_source_rows": 501,
-  "jsonl_sha256": "a521f6f6fbd0d01b4ab23b2b5d2e6af63a4be55597f2e86c2af12f9fc19496cd",
-  "kept_rows": 24,
+  "helper_source_rows": 515,
+  "jsonl_sha256": "cdce9182aa3bea1bfd136e288f110c2fb01d6c57573781d1567e71957e690dcb",
+  "kept_rows": 18,
   "measured_conclusion": "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket.",
   "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
   "probe_status_counts": {
-    "post_stage_non_import_error": 11,
-    "still_missing_imports_after_staging": 13
+    "post_stage_non_import_error": 18
   },
   "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "rows_missing_full_source_row": 0,
-  "rows_post_stage_non_import_error": 11,
+  "rows_post_stage_non_import_error": 18,
   "rows_recovered_current_builder": 0,
-  "rows_still_missing_imports_after_staging": 13,
+  "rows_still_missing_imports_after_staging": 0,
   "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
   "status_by_recommended_action": {
-    "expand_public_dependency_surface": {
-      "still_missing_imports_after_staging": 13
-    },
     "stage_cross_repo_seed_helpers": {
-      "post_stage_non_import_error": 1
-    },
-    "stage_same_repo_seed_helpers": {
       "post_stage_non_import_error": 4
     },
+    "stage_same_repo_seed_helpers": {
+      "post_stage_non_import_error": 5
+    },
     "stage_tlaps_standard_module": {
-      "post_stage_non_import_error": 6
+      "post_stage_non_import_error": 9
     }
   },
   "top_final_errors": [
     {
-      "error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
-      "rows": 8
-    },
-    {
-      "error": "***Parse Error***",
+      "error": "line 66, col 24 to line 66, col 36 of module Consensus",
       "rows": 2
     },
     {
-      "error": "Cannot find source file for module FiniteSetTheorems imported in module VoteProof.",
+      "error": "line 309, col 33 to line 309, col 35 of module VoteProof",
       "rows": 2
     },
     {
@@ -52,6 +45,10 @@
     },
     {
       "error": "line 146, col 18 to line 146, col 19 of module BinarySearch",
+      "rows": 1
+    },
+    {
+      "error": "line 138, col 42 to line 138, col 45 of module Quicksort",
       "rows": 1
     },
     {
@@ -67,6 +64,10 @@
       "rows": 1
     },
     {
+      "error": "line 683, col 10 to line 683, col 25 of module FunctionTheorems",
+      "rows": 1
+    },
+    {
       "error": "line 424, col 16 to line 424, col 24 of module EWD687a",
       "rows": 1
     },
@@ -77,16 +78,12 @@
     {
       "error": "line 133, col 6 to line 133, col 11 of module EWD998",
       "rows": 1
-    },
-    {
-      "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
-      "rows": 1
     }
   ],
   "top_repos": [
     {
       "repo": "tlaplus/Examples",
-      "rows": 20
+      "rows": 14
     },
     {
       "repo": "tlaplus/tlaplus",
@@ -97,10 +94,5 @@
       "rows": 1
     }
   ],
-  "top_unresolved_missing_modules": [
-    {
-      "module": "FiniteSetTheorems",
-      "rows": 13
-    }
-  ]
+  "top_unresolved_missing_modules": []
 }

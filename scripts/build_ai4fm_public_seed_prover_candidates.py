@@ -19,6 +19,7 @@ sys.path.insert(0, str(REPO))
 
 from scripts.autoprover_smoke import _is_candidate
 from scripts.build_ai4fm_public_seed_tla_modules import _module_name
+from scripts.public_tla_helper_sources import default_existing_helper_sources
 from src.validators.sany_validator import validate_file as validate_sany_file
 from src.validators.sany_validator import validate_string as validate_sany_string
 
@@ -400,6 +401,9 @@ def main() -> int:
     parser.add_argument("--source-label", default=None)
     parser.add_argument("--helper-source", type=Path, action="append", default=[])
     args = parser.parse_args()
+    helper_paths = list(args.helper_source)
+    if not helper_paths:
+        helper_paths = default_existing_helper_sources()
 
     rows, summary = build_prover_candidates(
         args.source,
@@ -407,7 +411,7 @@ def main() -> int:
         limit=args.limit,
         workers=args.workers,
         source_label=args.source_label,
-        helper_source_paths=args.helper_source,
+        helper_source_paths=helper_paths,
     )
     print(json.dumps(write_outputs(rows, summary, args.out), indent=2, sort_keys=True))
     return 0

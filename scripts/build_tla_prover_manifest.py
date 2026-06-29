@@ -58,6 +58,11 @@ ARTIFACTS = {
         "summary": "data/processed/formalllm_public_prover_surface_v1.summary.json",
         "kind": "public_formalllm_prover_surface_report",
     },
+    "tlapm_public_tla_modules_v1": {
+        "path": "data/processed/tlapm_public_tla_modules_v1.jsonl",
+        "summary": "data/processed/tlapm_public_tla_modules_v1.summary.json",
+        "kind": "public_tlapm_library_helper_module_corpus",
+    },
     "ai4fm_public_tlaprove_import_v1": {
         "path": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         "summary": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",

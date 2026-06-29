@@ -67,8 +67,8 @@
       },
       {
         "repo": "tlaplus/Examples",
-        "sany_clean_rate": 0.142506,
-        "sany_clean_rows": 58,
+        "sany_clean_rate": 0.157248,
+        "sany_clean_rows": 64,
         "shape_ready_rate": 0.191646,
         "shape_ready_rows": 78,
         "total_rows": 407
@@ -92,7 +92,7 @@
     ],
     "top_sany_clean_repos": [
       {
-        "count": 58,
+        "count": 64,
         "name": "tlaplus/Examples"
       },
       {
@@ -153,18 +153,18 @@
   },
   "candidates": {
     "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-    "rows": 144,
+    "rows": 150,
     "summary_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json"
   },
   "funnel": {
     "not_shape_ready_rows": 1940,
-    "sany_clean_rows": 144,
-    "shape_ready_but_not_sany_clean_rows": 24,
+    "sany_clean_rows": 150,
+    "shape_ready_but_not_sany_clean_rows": 18,
     "shape_ready_rows": 168,
     "shape_ready_unique_modules": 114,
     "source_rows": 2108
   },
-  "generated_at": "2026-06-29T17:19:15.492187+00:00",
+  "generated_at": "2026-06-29T18:35:03.438319+00:00",
   "missing_requirement_counts": {
     "operators": {
       "Init": 1082,
