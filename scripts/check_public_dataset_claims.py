@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
+BUNDLE_ROOT = REPO / "outputs" / "hf_publish" / "chattla-tla-prover-corpora-v1"
+BUNDLE_METADATA = BUNDLE_ROOT / "metadata"
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -19,6 +21,27 @@ def _comma(value: int) -> str:
     return f"{value:,}"
 
 
+def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
+    return {
+        "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
+        "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
+        "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
+        "ai4fm_public_seed_license_surface.json": "outputs/manifests/ai4fm_public_seed_license_surface.json",
+        "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
+        "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+        "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
+        "chattla_tla_prover_sft_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
+        "formalllm_eval_v1.summary.json": "data/processed/formalllm_eval_v1.summary.json",
+        "prover_eval.summary.json": "data/processed/prover_eval.summary.json",
+        "sany_tlc_pass_corpus_diagnostic.json": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
+        "sany_tlc_pass_eval_v1.summary.json": "data/processed/sany_tlc_pass_eval_v1.summary.json",
+        "sany_tlc_pass_sft_v1.summary.json": "data/processed/sany_tlc_pass_sft_v1.summary.json",
+        "tla_prover_artifacts_v1.json": "outputs/manifests/tla_prover_artifacts_v1.json",
+        "tla_prover_corpus_preflight.json": "outputs/manifests/tla_prover_corpus_preflight.json",
+        "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
+    }
+
+
 def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     formalllm = _read_json(repo / "data/processed/formalllm_eval_v1.summary.json")
     tlaprove = _read_json(repo / "outputs/manifests/ai4fm_public_tlaprove_corpora.json")
@@ -27,6 +50,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     seed_modules = _read_json(repo / "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json")
     seed_candidates = _read_json(repo / "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json")
     mixed_sft = _read_json(repo / "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json")
+    seed_license_surface = _read_json(repo / "outputs/manifests/ai4fm_public_seed_license_surface.json")
     dataset_surface = _read_json(repo / "outputs/manifests/ai4fm_public_dataset_surface.json")
 
     formalllm_rows = int(formalllm["rows"])
@@ -46,6 +70,13 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     usable_module_rows = int(seed_modules.get("rows", seed_modules["kept_rows"]))
     candidate_rows = int(seed_candidates["kept_rows"])
     mixed_sft_rows = int(mixed_sft["total_rows"])
+    license_repo_counts = seed_license_surface["license_summary"]["repo_counts"]
+    permissive_repo_count = int(seed_license_surface["license_summary"]["clearly_permissive_repo_count"])
+    caution_repo_count = int(seed_license_surface["license_summary"]["caution_repo_count"])
+    apache_repos = int(license_repo_counts.get("Apache-2.0", 0))
+    mit_repos = int(license_repo_counts.get("MIT", 0))
+    noassertion_repos = int(license_repo_counts.get("NOASSERTION", 0))
+    unknown_repos = int(license_repo_counts.get("UNKNOWN", 0))
     pull_files = int(dataset_surface["pipeline"]["pull"]["nfiles"])
     parsed_artifacts = int(dataset_surface["pipeline"]["parse_output"]["nfiles"])
 
@@ -90,6 +121,10 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"and `{_comma(usable_module_rows)}` usable seed modules."
             ),
             (
+                f"Repo-level license provenance across the `{seed_repo_inputs}` committed public seed repos is mixed: "
+                f"`{apache_repos}` Apache-2.0, `{mit_repos}` MIT, `{noassertion_repos}` NOASSERTION, and `{unknown_repos}` unknown."
+            ),
+            (
                 "The seed prover-candidate corpus is the first stricter bridge from the "
                 f"{_comma(raw_tla_files)} public `.tla` files / {_comma(usable_module_rows)} usable module rows into the current prover lane"
             ),
@@ -100,6 +135,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             f"- full committed public JSONL surface: `{all_public_rows}` rows across `{all_public_files}` files",
             f"- `ai4fm_public_seed_file_manifest_v1.summary.json` reports `{raw_tla_files}` public",
             f"- `ai4fm_public_seed_tla_modules_v1.summary.json` reports `{usable_module_rows}` usable",
+            f"- `{permissive_repo_count}` repos with clearly permissive SPDX labels at the repo level, versus `{caution_repo_count}` redistribution-caution repos",
             f"- `{raw_rows}` raw public rows across the tracked corpora",
             f"- `{normalized_rows}` kept ChatTLA-format rows after normalization and exact final-spec dedupe",
             (
@@ -119,9 +155,17 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed\n"
                 f"  file manifest (`{tracked_seed_files}` tracked files, `{raw_tla_files}` `.tla` files, `{usable_module_rows}` usable module rows)."
             ),
+            (
+                f"- `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance\n"
+                f"  rollup for the `{seed_repo_inputs}` committed public seed repos."
+            ),
             f"- Mixed prover SFT corpus: `{mixed_sft_rows}` rows",
             f"- Public AI4FM normalized import: `{normalized_rows}` rows from the tracked `{raw_rows}`-row",
             "  public corpora slice.",
+            (
+                f"- Public seed repo license surface: `{apache_repos}` Apache-2.0 repos, `{mit_repos}` MIT repos, `{noassertion_repos}`\n"
+                f"  NOASSERTION repos, and `{unknown_repos}` unknown-license repos."
+            ),
             (
                 f"- Public AI4FM seed-module prover candidates: `{candidate_rows}` rows out of `{usable_module_rows}` usable\n"
                 "  public seed-module rows."
@@ -141,6 +185,27 @@ def build_report(*, repo: Path = REPO) -> dict[str, Any]:
         for snippet in snippets:
             if snippet not in text:
                 findings.append({"path": rel_path, "expected": snippet})
+    for bundle_name, source_rel in _bundled_metadata_sources(repo).items():
+        source_path = repo / source_rel
+        bundle_path = repo / BUNDLE_ROOT.relative_to(REPO) / "metadata" / bundle_name
+        if not source_path.exists():
+            findings.append({"path": source_rel, "expected": "source artifact to exist"})
+            continue
+        if not bundle_path.exists():
+            findings.append(
+                {
+                    "path": str(bundle_path.relative_to(repo)),
+                    "expected": f"bundled copy of {source_rel}",
+                }
+            )
+            continue
+        if bundle_path.read_text(encoding="utf-8") != source_path.read_text(encoding="utf-8"):
+            findings.append(
+                {
+                    "path": str(bundle_path.relative_to(repo)),
+                    "expected": f"exact content match for {source_rel}",
+                }
+            )
     return {
         "ok": not findings,
         "generated_at": datetime.now(timezone.utc).isoformat(),

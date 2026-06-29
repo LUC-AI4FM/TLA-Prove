@@ -36,6 +36,8 @@ AI4FM expansion lanes alongside the prover replay evidence.
   import layer (`1005` rows).
 - `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed
   file manifest (`3140` tracked files, `2110` `.tla` files, `2108` usable module rows).
+- `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance
+  rollup for the `11` committed public seed repos.
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public
   autoprover candidate subset (`98` rows).
 - `metadata/ai4fm_public_discovery_manifest_v1.summary.json`: live public repo
@@ -63,6 +65,8 @@ AI4FM expansion lanes alongside the prover replay evidence.
 - `FormaLLM`: `205` canonical prompt/spec rows across `71` families.
 - Public AI4FM normalized import: `1005` rows from the tracked `2350`-row
   public corpora slice.
+- Public seed repo license surface: `3` Apache-2.0 repos, `3` MIT repos, `2`
+  NOASSERTION repos, and `3` unknown-license repos.
 - Public AI4FM seed-module prover candidates: `98` rows out of `2108` usable
   public seed-module rows.
 

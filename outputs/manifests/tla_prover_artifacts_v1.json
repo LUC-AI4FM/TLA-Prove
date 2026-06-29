@@ -227,6 +227,14 @@
       },
       "summary_path": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json"
     },
+    "ai4fm_public_seed_license_surface": {
+      "bytes": 6201,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_license_surface_report",
+      "path": "outputs/manifests/ai4fm_public_seed_license_surface.json",
+      "rows": null,
+      "sha256": "01067043419a8de5562232bdb4baae39788b8b7527b879788b8cb29ac068bf55"
+    },
     "ai4fm_public_seed_prover_candidates_v1": {
       "bytes": 1025215,
       "exists": true,
@@ -891,7 +899,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T07:31:09.019371+00:00",
+        "generated_at": "2026-06-29T08:02:59.112251+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -931,7 +939,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "3fc2a090eae4c71a01bfe047cbe5d1aebc218e422f34c4f28ec7f78c29f0574c"
+      "sha256": "c0bbc926d339f430ab4c4ac82861275289492b6b9e6b1390c707765a7b3c0883"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -941,7 +949,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T07:31:09.081737+00:00",
+        "generated_at": "2026-06-29T08:02:59.175223+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1182,7 +1190,7 @@
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "d9156d8517407889df1521b831fba5f10bb958fb695b23dee488c4fdb5fc7478"
+      "sha256": "e88416850fc0e4515a62219346391fdd523f4bedeeafed5876067a6a0c8ac07e"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -1224,11 +1232,12 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T07:31:09.327455+00:00",
+  "generated_at": "2026-06-29T08:02:59.424517+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
     "build_ai4fm_public_seed_file_manifest": "python3 scripts/build_ai4fm_public_seed_file_manifest.py",
+    "build_ai4fm_public_seed_license_manifest": "python3 scripts/build_ai4fm_public_seed_license_manifest.py",
     "build_ai4fm_public_seed_prover_candidates": "python3 scripts/build_ai4fm_public_seed_prover_candidates.py",
     "build_ai4fm_public_seed_tla_modules": "python3 scripts/build_ai4fm_public_seed_tla_modules.py",
     "build_ai4fm_public_tlaprove_import": "python3 scripts/build_ai4fm_public_tlaprove_import.py",

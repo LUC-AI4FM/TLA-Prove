@@ -77,6 +77,14 @@ Important interpretation:
   - `ai4fm_public_seed_prover_candidates_v1.summary.json` now reads those
     `2108` module rows cleanly, with the stale `missing_module_content` bucket
     eliminated
+- repo-level license provenance across the `11` committed public seed repos is
+  mixed:
+  - `3` Apache-2.0 repos covering `525` tracked `.tla` files
+  - `3` MIT repos covering `1116` tracked `.tla` files
+  - `2` NOASSERTION repos covering `410` tracked `.tla` files
+  - `3` unknown-license repos covering `59` tracked `.tla` files
+  - see `outputs/manifests/ai4fm_public_seed_license_surface.json` for the
+    exact per-repo rollup and caution buckets
 
 ## Public TLA-Prove corpora
 
@@ -175,6 +183,7 @@ Current live summary:
 - `3140` tracked `.tla`, `.cfg`, and `.tlaps` files across those repos
 - `2110` `.tla` files
 - `1030` `.cfg` files
+- `6` repos with clearly permissive SPDX labels at the repo level, versus `5` redistribution-caution repos (`2` NOASSERTION and `3` unknown)
 - largest seed repo surfaces:
   - `tlaplus/tlaplus`: `1660` tracked files
   - `tlaplus/Examples`: `634` tracked files

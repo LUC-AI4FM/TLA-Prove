@@ -1,0 +1,235 @@
+{
+  "caution_repos": [
+    "atomix/atomix-tlaplus",
+    "tendermint/spec",
+    "tlaplus/DrTLAPlus",
+    "tlaplus/Examples",
+    "tlaplus/ValidationTestSuite"
+  ],
+  "generated_at": "2026-06-29T07:46:23.865736+00:00",
+  "license_summary": {
+    "caution_repo_count": 5,
+    "clearly_permissive_repo_count": 6,
+    "repo_counts": {
+      "Apache-2.0": 3,
+      "MIT": 3,
+      "NOASSERTION": 2,
+      "UNKNOWN": 3
+    },
+    "tracked_file_counts": {
+      "Apache-2.0": 687,
+      "MIT": 1758,
+      "NOASSERTION": 636,
+      "UNKNOWN": 59
+    },
+    "tracked_tla_file_counts": {
+      "Apache-2.0": 525,
+      "MIT": 1116,
+      "NOASSERTION": 410,
+      "UNKNOWN": 59
+    }
+  },
+  "missing_discovery_records": [],
+  "notes": [
+    "This report joins live-discovery repo metadata with the committed seed file-manifest counts.",
+    "Repo-level SPDX labels are a provenance aid, not a file-by-file legal conclusion for every copied artifact.",
+    "UNKNOWN and NOASSERTION entries should be treated as redistribution-caution buckets until reviewed separately."
+  ],
+  "repos": [
+    {
+      "clearly_permissive_license": true,
+      "counts": {
+        "all": 3,
+        "cfg": 0,
+        "tla": 3,
+        "tlaps": 0
+      },
+      "default_branch": "master",
+      "html_url": "https://github.com/Azure/azure-cosmos-tla",
+      "license_spdx": "MIT",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "Azure/azure-cosmos-tla",
+      "repo_head_sha": "a8357c9c0a8d0ed710c68a64bc3a9ed0dc860a8a"
+    },
+    {
+      "clearly_permissive_license": true,
+      "counts": {
+        "all": 608,
+        "cfg": 128,
+        "tla": 480,
+        "tlaps": 0
+      },
+      "default_branch": "main",
+      "html_url": "https://github.com/apalache-mc/apalache",
+      "license_spdx": "Apache-2.0",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "apalache-mc/apalache",
+      "repo_head_sha": "cf765e0400097cf4744d2fd658264cc56b94436e"
+    },
+    {
+      "clearly_permissive_license": false,
+      "counts": {
+        "all": 6,
+        "cfg": 0,
+        "tla": 6,
+        "tlaps": 0
+      },
+      "default_branch": "master",
+      "html_url": "https://github.com/atomix/atomix-tlaplus",
+      "license_spdx": "UNKNOWN",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "atomix/atomix-tlaplus",
+      "repo_head_sha": "8770160427b184630c4eaeb253e84911c9cc378b"
+    },
+    {
+      "clearly_permissive_license": true,
+      "counts": {
+        "all": 38,
+        "cfg": 16,
+        "tla": 22,
+        "tlaps": 0
+      },
+      "default_branch": "main",
+      "html_url": "https://github.com/microsoft/CCF",
+      "license_spdx": "Apache-2.0",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "microsoft/CCF",
+      "repo_head_sha": "6b9afd455ec5adc7e2020b02906d287675791328"
+    },
+    {
+      "clearly_permissive_license": true,
+      "counts": {
+        "all": 41,
+        "cfg": 18,
+        "tla": 23,
+        "tlaps": 0
+      },
+      "default_branch": "master",
+      "html_url": "https://github.com/pingcap/tla-plus",
+      "license_spdx": "Apache-2.0",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "pingcap/tla-plus",
+      "repo_head_sha": "8ae629ddf9f5ad8efc763bff93e3e43ce0a3585d"
+    },
+    {
+      "clearly_permissive_license": false,
+      "counts": {
+        "all": 51,
+        "cfg": 0,
+        "tla": 51,
+        "tlaps": 0
+      },
+      "default_branch": "master",
+      "html_url": "https://github.com/tendermint/spec",
+      "license_spdx": "UNKNOWN",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "tendermint/spec",
+      "repo_head_sha": "9d5734e21479dfc9c308f5630678c800d85a2067"
+    },
+    {
+      "clearly_permissive_license": true,
+      "counts": {
+        "all": 95,
+        "cfg": 22,
+        "tla": 73,
+        "tlaps": 0
+      },
+      "default_branch": "master",
+      "html_url": "https://github.com/tlaplus/CommunityModules",
+      "license_spdx": "MIT",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "tlaplus/CommunityModules",
+      "repo_head_sha": "a20cc8eb2ee6e7140848ca511040cf283e9d7256"
+    },
+    {
+      "clearly_permissive_license": false,
+      "counts": {
+        "all": 2,
+        "cfg": 0,
+        "tla": 2,
+        "tlaps": 0
+      },
+      "default_branch": "master",
+      "html_url": "https://github.com/tlaplus/DrTLAPlus",
+      "license_spdx": "UNKNOWN",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "tlaplus/DrTLAPlus",
+      "repo_head_sha": "b74cff5f3616c7a4beb5416203c292e818e87b5a"
+    },
+    {
+      "clearly_permissive_license": false,
+      "counts": {
+        "all": 634,
+        "cfg": 226,
+        "tla": 408,
+        "tlaps": 0
+      },
+      "default_branch": "master",
+      "html_url": "https://github.com/tlaplus/Examples",
+      "license_spdx": "NOASSERTION",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "tlaplus/Examples",
+      "repo_head_sha": "47b0e2cc0268836b89f5ce451f38e5df5f1cf773"
+    },
+    {
+      "clearly_permissive_license": false,
+      "counts": {
+        "all": 2,
+        "cfg": 0,
+        "tla": 2,
+        "tlaps": 0
+      },
+      "default_branch": "main",
+      "html_url": "https://github.com/tlaplus/ValidationTestSuite",
+      "license_spdx": "NOASSERTION",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "tlaplus/ValidationTestSuite",
+      "repo_head_sha": "19944506c0e0bd20a1341e8a0aa4da8fe0b0382f"
+    },
+    {
+      "clearly_permissive_license": true,
+      "counts": {
+        "all": 1660,
+        "cfg": 620,
+        "tla": 1040,
+        "tlaps": 0
+      },
+      "default_branch": "master",
+      "html_url": "https://github.com/tlaplus/tlaplus",
+      "license_spdx": "MIT",
+      "query_hits": [
+        "seed"
+      ],
+      "repo": "tlaplus/tlaplus",
+      "repo_head_sha": "4ba7d8811289fb8e95dac4d5e554c05216ba3100"
+    }
+  ],
+  "schema": "chattla_ai4fm_public_seed_license_surface_v1",
+  "seed_repo_inputs": 11,
+  "sources": {
+    "discovery_manifest": "data/processed/ai4fm_public_discovery_manifest_v1.jsonl",
+    "seed_file_manifest_summary": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json"
+  },
+  "tracked_seed_files": 3140,
+  "tracked_tla_files": 2110
+}
