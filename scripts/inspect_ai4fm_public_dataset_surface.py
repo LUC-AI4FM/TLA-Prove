@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,8 +18,11 @@ except ImportError:  # pragma: no cover - exercised only if PyYAML is unavailabl
 
 REPO = Path(__file__).resolve().parents[1]
 DEFAULT_FORMALLLM_ROOT = REPO / "data" / "FormaLLM" / "data"
+DEFAULT_FORMALLLM_INPUT_ROOT = REPO / "data" / "FormaLLM" / "Input"
+DEFAULT_FORMALLLM_ARCHITECTURE_DOC = REPO / "data" / "FormaLLM" / "doc" / "ARCHITECTURE.md"
 DEFAULT_PIPELINE_REPO = Path("/tmp/LUC-AI4FM-tla-dataset-pipeline")
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "ai4fm_public_dataset_surface.json"
+ARCHITECTURE_SPEC_COUNT_RE = re.compile(r"Metadata for\s+([0-9][0-9,+]*)\s+specifications")
 
 
 def _git_head(repo: Path) -> str | None:
@@ -46,7 +50,36 @@ def _load_family_entries(formalllm_root: Path) -> tuple[list[dict[str, Any]], in
     return entries, families
 
 
-def inspect_formalllm(formalllm_root: Path) -> dict[str, Any]:
+def _json_rows(path: Path) -> int | None:
+    if not path.exists():
+        return None
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(payload, list):
+        return len(payload)
+    if isinstance(payload, dict):
+        data = payload.get("data")
+        if isinstance(data, list):
+            return len(data)
+        return len(payload)
+    return None
+
+
+def _formalllm_split_counts(input_root: Path) -> dict[str, int | None]:
+    return {
+        "train": _json_rows(input_root / "train.json"),
+        "val": _json_rows(input_root / "val.json"),
+        "test": _json_rows(input_root / "test.json"),
+    }
+
+
+def _architecture_metadata_claim(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    match = ARCHITECTURE_SPEC_COUNT_RE.search(path.read_text(encoding="utf-8"))
+    return match.group(1) if match else None
+
+
+def inspect_formalllm(formalllm_root: Path, *, input_root: Path, architecture_doc: Path) -> dict[str, Any]:
     entries, families = _load_family_entries(formalllm_root)
     models = [str(entry.get("model")) for entry in entries if entry.get("model")]
     tla_files = sorted(formalllm_root.glob("*//tla/*.tla"))
@@ -54,6 +87,9 @@ def inspect_formalllm(formalllm_root: Path) -> dict[str, Any]:
     clean_comment_files = sorted(formalllm_root.glob("*//txt/*_comments_clean.txt"))
     all_comment_files = sorted(formalllm_root.glob("*//txt/*_comments*.txt"))
     repo_root = formalllm_root.parent
+    split_counts = _formalllm_split_counts(input_root)
+    split_total = sum(count for count in split_counts.values() if isinstance(count, int))
+    architecture_claim = _architecture_metadata_claim(architecture_doc)
     return {
         "root": str(formalllm_root.relative_to(REPO)) if formalllm_root.is_relative_to(REPO) else formalllm_root.name,
         "git_head": _git_head(repo_root),
@@ -64,6 +100,15 @@ def inspect_formalllm(formalllm_root: Path) -> dict[str, Any]:
         "cfg_files": len(cfg_files),
         "clean_comment_files": len(clean_comment_files),
         "comment_files": len(all_comment_files),
+        "split_files": {
+            "root": str(input_root.relative_to(REPO)) if input_root.is_relative_to(REPO) else str(input_root),
+            "counts": split_counts,
+            "total": split_total,
+        },
+        "architecture_doc": {
+            "path": str(architecture_doc.relative_to(REPO)) if architecture_doc.is_relative_to(REPO) else str(architecture_doc),
+            "metadata_specification_claim": architecture_claim,
+        },
     }
 
 
@@ -143,6 +188,23 @@ def _parse_dvc_lock(dvc_lock: Path) -> dict[str, Any]:
 def inspect_pipeline(pipeline_repo: Path) -> dict[str, Any]:
     dvc_lock = pipeline_repo / "dvc.lock"
     parsed = _parse_dvc_lock(dvc_lock) if dvc_lock.exists() else {}
+    seed_repo_config = pipeline_repo / "config" / "seeds" / "repos.yaml"
+    query_config = pipeline_repo / "config" / "seeds" / "queries.yaml"
+    seed_config_counts: dict[str, int] | None = None
+    if yaml is not None and seed_repo_config.exists() and query_config.exists():
+        seed_payload = yaml.safe_load(seed_repo_config.read_text(encoding="utf-8")) or {}
+        query_payload = yaml.safe_load(query_config.read_text(encoding="utf-8")) or {}
+        if isinstance(seed_payload, dict) and isinstance(query_payload, dict):
+            repos = seed_payload.get("repos")
+            orgs = seed_payload.get("orgs")
+            users = seed_payload.get("users")
+            queries = query_payload.get("queries")
+            seed_config_counts = {
+                "repos": len(repos) if isinstance(repos, list) else 0,
+                "orgs": len(orgs) if isinstance(orgs, list) else 0,
+                "users": len(users) if isinstance(users, list) else 0,
+                "queries": len(queries) if isinstance(queries, list) else 0,
+            }
     return {
         "repo": pipeline_repo.name,
         "git_head": _git_head(pipeline_repo),
@@ -151,16 +213,40 @@ def inspect_pipeline(pipeline_repo: Path) -> dict[str, Any]:
         "pull": parsed.get("pull"),
         "parse_input": parsed.get("parse_input"),
         "parse_output": parsed.get("parse_output"),
+        "seed_config_counts": seed_config_counts,
     }
 
 
-def build_report(*, formalllm_root: Path, pipeline_repo: Path) -> dict[str, Any]:
-    formalllm = inspect_formalllm(formalllm_root)
+def build_report(
+    *,
+    formalllm_root: Path,
+    formalllm_input_root: Path,
+    formalllm_architecture_doc: Path,
+    pipeline_repo: Path,
+) -> dict[str, Any]:
+    formalllm = inspect_formalllm(
+        formalllm_root,
+        input_root=formalllm_input_root,
+        architecture_doc=formalllm_architecture_doc,
+    )
     pipeline = inspect_pipeline(pipeline_repo)
+    warnings: list[str] = []
+    split_total = formalllm.get("split_files", {}).get("total")
+    canonical_entries = formalllm.get("canonical_entries")
+    if isinstance(split_total, int) and split_total != canonical_entries:
+        warnings.append(
+            "FormaLLM split-file total does not match canonical_entries."
+        )
+    architecture_claim = formalllm.get("architecture_doc", {}).get("metadata_specification_claim")
+    if isinstance(architecture_claim, str) and architecture_claim != str(canonical_entries):
+        warnings.append(
+            "FormaLLM architecture metadata claim differs from current canonical_entries."
+        )
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "formalllm": formalllm,
         "pipeline": pipeline,
+        "warnings": warnings,
         "integration_recommendation": {
             "formalllm_role": "canonical prompt/spec supervised corpus",
             "pipeline_role": "broader public extraction/parsing discovery surface",
@@ -184,11 +270,18 @@ def build_report(*, formalllm_root: Path, pipeline_repo: Path) -> dict[str, Any]
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--formalllm-root", type=Path, default=DEFAULT_FORMALLLM_ROOT)
+    parser.add_argument("--formalllm-input-root", type=Path, default=DEFAULT_FORMALLLM_INPUT_ROOT)
+    parser.add_argument("--formalllm-architecture-doc", type=Path, default=DEFAULT_FORMALLLM_ARCHITECTURE_DOC)
     parser.add_argument("--pipeline-repo", type=Path, default=DEFAULT_PIPELINE_REPO)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
 
-    report = build_report(formalllm_root=args.formalllm_root, pipeline_repo=args.pipeline_repo)
+    report = build_report(
+        formalllm_root=args.formalllm_root,
+        formalllm_input_root=args.formalllm_input_root,
+        formalllm_architecture_doc=args.formalllm_architecture_doc,
+        pipeline_repo=args.pipeline_repo,
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, sort_keys=True))
