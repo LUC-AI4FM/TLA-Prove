@@ -28,6 +28,7 @@ from src.harmony_extract import extract_final_channel
 ADAPTER = REPO / "outputs" / "checkpoints_prover" / "checkpoint-48"
 BASE_MODEL = "openai/gpt-oss-20b"
 TRAIN_JSONL = REPO / "data" / "processed" / "prover_train.jsonl"
+FALLBACK_TRAINLIKE_JSONL = REPO / "data" / "processed" / "prover_eval.jsonl"
 EVAL_JSONL = REPO / "data" / "processed" / "prover_eval.jsonl"
 REPORT = REPO / "outputs" / "prover_diagnose.json"
 
@@ -132,7 +133,13 @@ def run_one(model, tokenizer, example: dict, tag: str) -> dict:
 def main():
     model, tokenizer = load_model()
 
-    train_rows = [json.loads(l) for l in TRAIN_JSONL.open()]
+    train_path = TRAIN_JSONL if TRAIN_JSONL.exists() else FALLBACK_TRAINLIKE_JSONL
+    if train_path != TRAIN_JSONL:
+        print(
+            f"[diagnose] {TRAIN_JSONL.name} missing; using {train_path.name} "
+            "as the training-like probe corpus."
+        )
+    train_rows = [json.loads(l) for l in train_path.open()]
     eval_rows = [json.loads(l) for l in EVAL_JSONL.open()]
 
     # Memorization sanity: take 2 train examples
