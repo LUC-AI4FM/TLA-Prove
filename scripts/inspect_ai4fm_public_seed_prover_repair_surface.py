@@ -23,6 +23,7 @@ from src.validators.sany_validator import validate_string as validate_sany_strin
 DEFAULT_SOURCE = REPO / "data" / "processed" / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl"
 DEFAULT_SOURCE_SUMMARY = REPO / "data" / "processed" / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
 DEFAULT_SEED_MODULES = REPO / "data" / "processed" / "ai4fm_public_seed_tla_modules_v1.jsonl"
+DEFAULT_HELPER_SOURCE = REPO / "data" / "processed" / "formalllm_public_tla_modules_v1.jsonl"
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "ai4fm_public_seed_prover_repair_surface.json"
 MAX_TOP_ITEMS = 12
 MISSING_IMPORT_RE = re.compile(r"Cannot find source file for module ([A-Za-z0-9_]+) imported in module ([A-Za-z0-9_]+)\.")
@@ -107,6 +108,7 @@ def build_report(
     source: Path = DEFAULT_SOURCE,
     source_summary: Path = DEFAULT_SOURCE_SUMMARY,
     seed_modules: Path = DEFAULT_SEED_MODULES,
+    helper_source_paths: list[Path] | None = None,
     validate_module: Callable[..., Any] = validate_sany_string,
     validate_file: Callable[..., Any] = validate_sany_file,
     workers: int = 4,
@@ -114,14 +116,19 @@ def build_report(
     source_rows = _load_jsonl(source)
     source_summary_payload = _load_json(source_summary) if source_summary.exists() else None
     seed_rows = _load_jsonl(seed_modules)
+    helper_paths = helper_source_paths or []
+    helper_rows: list[dict[str, Any]] = []
+    for helper_path in helper_paths:
+        helper_rows.extend(_load_jsonl(helper_path))
+    all_seed_rows = seed_rows + helper_rows
 
     module_to_repos: dict[str, set[str]] = defaultdict(set)
-    for row in seed_rows:
+    for row in all_seed_rows:
         module = str(row.get("module", ""))
         repo = str(row.get("repo", ""))
         if module and repo:
             module_to_repos[module].add(repo)
-    by_repo_module, by_module = _build_indexes(seed_rows)
+    by_repo_module, by_module = _build_indexes(all_seed_rows)
 
     category_counts: Counter[str] = Counter()
     first_error_counts: Counter[str] = Counter()
@@ -225,6 +232,8 @@ def build_report(
             "path": _display_path(seed_modules),
             "rows": len(seed_rows),
             "unique_module_names": len(module_to_repos),
+            "helper_source_paths": [_display_path(path) for path in helper_paths],
+            "helper_source_rows": len(helper_rows),
         },
         "repair_surface": {
             "rows": len(source_rows),
@@ -260,14 +269,19 @@ def main() -> int:
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
     parser.add_argument("--source-summary", type=Path, default=DEFAULT_SOURCE_SUMMARY)
     parser.add_argument("--seed-modules", type=Path, default=DEFAULT_SEED_MODULES)
+    parser.add_argument("--helper-source", type=Path, action="append", default=[])
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
+    helper_paths = list(args.helper_source)
+    if not helper_paths and DEFAULT_HELPER_SOURCE.exists():
+        helper_paths = [DEFAULT_HELPER_SOURCE]
 
     report = build_report(
         source=args.source,
         source_summary=args.source_summary,
         seed_modules=args.seed_modules,
+        helper_source_paths=helper_paths,
         validate_file=validate_sany_file,
         workers=args.workers,
     )

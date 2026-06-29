@@ -711,40 +711,45 @@
       "sha256": "42e192208f0d75d1318933b752351f4e10b063ec25a9c76f43fe774679c180d5"
     },
     "ai4fm_public_seed_prover_recovery_probe_v1": {
-      "bytes": 35723,
+      "bytes": 42040,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_recovery_probe",
       "path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
       "rows": 24,
-      "sha256": "42d1ab8fe8aea142e7aaecda72e592aa4b28a36979aadb2208e906404e315b96",
+      "sha256": "a521f6f6fbd0d01b4ab23b2b5d2e6af63a4be55597f2e86c2af12f9fc19496cd",
       "summary": {
         "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-        "generated_at": "2026-06-29T17:33:43.457977+00:00",
-        "jsonl_sha256": "42d1ab8fe8aea142e7aaecda72e592aa4b28a36979aadb2208e906404e315b96",
+        "generated_at": "2026-06-29T18:09:30.793768+00:00",
+        "helper_source_paths": [
+          "data/processed/formalllm_public_tla_modules_v1.jsonl"
+        ],
+        "helper_source_rows": 501,
+        "jsonl_sha256": "a521f6f6fbd0d01b4ab23b2b5d2e6af63a4be55597f2e86c2af12f9fc19496cd",
         "kept_rows": 24,
         "measured_conclusion": "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket.",
         "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
         "probe_status_counts": {
-          "post_stage_non_import_error": 9,
-          "still_missing_imports_after_staging": 15
+          "post_stage_non_import_error": 11,
+          "still_missing_imports_after_staging": 13
         },
         "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
         "rows_missing_full_source_row": 0,
-        "rows_post_stage_non_import_error": 9,
+        "rows_post_stage_non_import_error": 11,
         "rows_recovered_current_builder": 0,
-        "rows_still_missing_imports_after_staging": 15,
+        "rows_still_missing_imports_after_staging": 13,
         "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
         "status_by_recommended_action": {
           "expand_public_dependency_surface": {
-            "still_missing_imports_after_staging": 4
+            "still_missing_imports_after_staging": 13
+          },
+          "stage_cross_repo_seed_helpers": {
+            "post_stage_non_import_error": 1
           },
           "stage_same_repo_seed_helpers": {
-            "post_stage_non_import_error": 4,
-            "still_missing_imports_after_staging": 3
+            "post_stage_non_import_error": 4
           },
           "stage_tlaps_standard_module": {
-            "post_stage_non_import_error": 5,
-            "still_missing_imports_after_staging": 8
+            "post_stage_non_import_error": 6
           }
         },
         "top_final_errors": [
@@ -753,7 +758,11 @@
             "rows": 8
           },
           {
-            "error": "Cannot find source file for module NaturalsInduction imported in module VoteProof.",
+            "error": "***Parse Error***",
+            "rows": 2
+          },
+          {
+            "error": "Cannot find source file for module FiniteSetTheorems imported in module VoteProof.",
             "rows": 2
           },
           {
@@ -791,10 +800,6 @@
           {
             "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
             "rows": 1
-          },
-          {
-            "error": "Cannot find source file for module FiniteSetTheorems imported in module Barriers.",
-            "rows": 1
           }
         ],
         "top_repos": [
@@ -814,49 +819,48 @@
         "top_unresolved_missing_modules": [
           {
             "module": "FiniteSetTheorems",
-            "rows": 11
-          },
-          {
-            "module": "NaturalsInduction",
-            "rows": 2
-          },
-          {
-            "module": "SequenceTheorems",
-            "rows": 2
+            "rows": 13
           }
         ]
       },
       "summary_path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json"
     },
     "ai4fm_public_seed_prover_repair_queue_v1": {
-      "bytes": 31533,
+      "bytes": 36616,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_repair_queue",
       "path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
       "rows": 24,
-      "sha256": "daa0f7d0a43a7a2be3a3f17c9b39015843a8f5a83ec3c55006d23ff3f0d54fb9",
+      "sha256": "674c05032627bb3aea37cb0e389d2b59229b76118692615d6c24e93bfce82edf",
       "summary": {
-        "blocked_on_missing_public_dependency_rows": 15,
-        "generated_at": "2026-06-29T17:33:42.682830+00:00",
-        "jsonl_sha256": "daa0f7d0a43a7a2be3a3f17c9b39015843a8f5a83ec3c55006d23ff3f0d54fb9",
+        "blocked_on_missing_public_dependency_rows": 13,
+        "generated_at": "2026-06-29T18:09:25.226655+00:00",
+        "helper_source_paths": [
+          "data/processed/formalllm_public_tla_modules_v1.jsonl"
+        ],
+        "helper_source_rows": 501,
+        "jsonl_sha256": "674c05032627bb3aea37cb0e389d2b59229b76118692615d6c24e93bfce82edf",
         "kept_rows": 24,
         "missing_import_availability_counts": {
-          "missing_from_seed_surface": 15,
+          "cross_repo_seed_module": 1,
+          "missing_from_seed_surface": 13,
           "same_repo_seed_module": 4,
-          "tlaps_standard_module": 5
+          "tlaps_standard_module": 6
         },
         "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
         "priority_counts": {
-          "p1": 5,
+          "p1": 6,
           "p2": 4,
-          "p4": 15
+          "p3": 1,
+          "p4": 13
         },
         "recommended_action_counts": {
-          "expand_public_dependency_surface": 15,
+          "expand_public_dependency_surface": 13,
+          "stage_cross_repo_seed_helpers": 1,
           "stage_same_repo_seed_helpers": 4,
-          "stage_tlaps_standard_module": 5
+          "stage_tlaps_standard_module": 6
         },
-        "recoverable_without_new_source_rows": 9,
+        "recoverable_without_new_source_rows": 11,
         "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
         "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
         "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -865,7 +869,7 @@
             "note": "Highest-leverage rows: missing only the standard TLAPS helper module.",
             "priority": "p1",
             "recommended_action": "stage_tlaps_standard_module",
-            "rows": 5
+            "rows": 6
           },
           {
             "note": "Rows recoverable by staging helper modules already present in the same public repo.",
@@ -877,34 +881,26 @@
             "note": "Rows recoverable by staging helper modules already visible elsewhere in the public seed surface.",
             "priority": "p3",
             "recommended_action": "stage_cross_repo_seed_helpers",
-            "rows": 0
+            "rows": 1
           },
           {
             "note": "Rows still blocked because at least one required helper module is missing from the current public seed surface.",
             "priority": "p4",
             "recommended_action": "expand_public_dependency_surface",
-            "rows": 15
+            "rows": 13
           }
         ],
         "top_missing_modules": [
           {
             "module": "FiniteSetTheorems",
-            "rows": 11
+            "rows": 13
           },
           {
             "module": "TLAPS",
-            "rows": 5
+            "rows": 6
           },
           {
             "module": "Utils",
-            "rows": 2
-          },
-          {
-            "module": "NaturalsInduction",
-            "rows": 2
-          },
-          {
-            "module": "SequenceTheorems",
             "rows": 2
           },
           {
@@ -913,6 +909,10 @@
           },
           {
             "module": "BlockDag",
+            "rows": 1
+          },
+          {
+            "module": "SequenceTheorems",
             "rows": 1
           }
         ],
@@ -934,12 +934,12 @@
       "summary_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json"
     },
     "ai4fm_public_seed_prover_repair_surface": {
-      "bytes": 10527,
+      "bytes": 10497,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_repair_surface_report",
       "path": "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
       "rows": null,
-      "sha256": "4a633ed2566d11ba9c5645f4a1057fc40ab0221c5462b24e3a6ad91fe1f9e71c"
+      "sha256": "8954bf796f7d871f259034206a503dbeb5d1a84a41fba82be4698580d81be8ad"
     },
     "ai4fm_public_seed_prover_shape_ready_not_sany_v1": {
       "bytes": 652409,
@@ -2758,7 +2758,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T17:37:03.308988+00:00",
+  "generated_at": "2026-06-29T18:09:41.741554+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

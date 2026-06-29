@@ -26,6 +26,7 @@ from src.validators.sany_validator import validate_string as validate_sany_strin
 
 DEFAULT_REPAIR_QUEUE = REPO / "data" / "processed" / "ai4fm_public_seed_prover_repair_queue_v1.jsonl"
 DEFAULT_FULL_SOURCE = REPO / "data" / "processed" / "ai4fm_public_seed_tla_modules_v1.jsonl"
+DEFAULT_HELPER_SOURCE = REPO / "data" / "processed" / "formalllm_public_tla_modules_v1.jsonl"
 DEFAULT_OUT = REPO / "data" / "processed" / "ai4fm_public_seed_prover_recovery_probe_v1.jsonl"
 MAX_TOP = 12
 
@@ -72,13 +73,18 @@ def build_probe(
     *,
     repair_queue: Path = DEFAULT_REPAIR_QUEUE,
     full_source: Path = DEFAULT_FULL_SOURCE,
+    helper_source_paths: list[Path] | None = None,
     validate_module: Callable[..., Any] = validate_sany_string,
     validate_file: Callable[..., Any] = validate_sany_file,
     workers: int = 4,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     repair_rows = _load_jsonl(repair_queue)
     full_rows = _load_jsonl(full_source)
-    by_repo_module, by_module = _build_indexes(full_rows)
+    helper_paths = helper_source_paths or []
+    helper_rows: list[dict[str, Any]] = []
+    for helper_path in helper_paths:
+        helper_rows.extend(_load_jsonl(helper_path))
+    by_repo_module, by_module = _build_indexes(full_rows + helper_rows)
     full_by_key = {_row_key(row): row for row in full_rows}
 
     def process(row: dict[str, Any]) -> dict[str, Any]:
@@ -172,6 +178,8 @@ def build_probe(
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repair_queue_path": _display_path(repair_queue),
         "full_source_path": _display_path(full_source),
+        "helper_source_paths": [_display_path(path) for path in helper_paths],
+        "helper_source_rows": len(helper_rows),
         "kept_rows": len(ordered),
         "rows_recovered_current_builder": sum(1 for row in ordered if row.get("current_builder_recovers_row")),
         "probe_status_counts": dict(sorted(probe_status_counts.items())),
@@ -212,13 +220,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repair-queue", type=Path, default=DEFAULT_REPAIR_QUEUE)
     parser.add_argument("--full-source", type=Path, default=DEFAULT_FULL_SOURCE)
+    parser.add_argument("--helper-source", type=Path, action="append", default=[])
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
+    helper_paths = list(args.helper_source)
+    if not helper_paths and DEFAULT_HELPER_SOURCE.exists():
+        helper_paths = [DEFAULT_HELPER_SOURCE]
 
     rows, summary = build_probe(
         repair_queue=args.repair_queue,
         full_source=args.full_source,
+        helper_source_paths=helper_paths,
         workers=args.workers,
     )
     report = _write_jsonl_and_summary(rows=rows, summary=summary, out=args.out)

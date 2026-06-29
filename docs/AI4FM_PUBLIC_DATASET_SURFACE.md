@@ -125,16 +125,17 @@ Important interpretation:
 - the remaining public seed repair queue is now materialized directly as
   `data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl`:
   - `24` remaining shape-ready-but-not-SANY rows total
-  - `9` are recoverable without new source material after transitive helper
+  - `11` are recoverable without new source material after transitive helper
     staging is taken into account
-  - action split: `5` TLAPS-stub-only, `4` same-repo helper staging,
-    `15` blocked on missing public dependencies
+  - action split: `6` TLAPS-stub-only, `4` same-repo helper staging,
+    `1` cross-repo helper staging, and `13` blocked on missing public
+    dependencies
 - measured replay against the current public candidate builder is stricter than
   that first-pass queue:
   - `data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl` currently
     shows `0/24` rows recovered by the existing builder
-  - `15` remain blocked on unresolved imports even after current staging
-  - `9` move past import staging but still fail with non-import SANY errors
+  - `13` remain blocked on unresolved imports even after current staging
+  - `11` move past import staging but still fail with non-import SANY errors
 - repo-level license provenance across the `11` committed public seed repos is
   mixed:
   - `3` Apache-2.0 repos covering `525` tracked `.tla` files
