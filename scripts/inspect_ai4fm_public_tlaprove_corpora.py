@@ -210,7 +210,7 @@ def build_report(
             },
             {
                 "path": diamond_eval_holdout["path"],
-                "reason": "30-row public holdout useful for evaluation alignment",
+                "reason": "explicit 30-row public eval holdout useful for evaluation alignment",
             },
             {
                 "path": "data/diamond_gen_topics.json",
@@ -278,7 +278,7 @@ def build_report(
         }
         if suite_items is not None and readme_mentions_30_spec and suite_items != 30:
             report["notes"].append(
-                "Public TLA-Prove README still mentions a 30-spec held-out suite, but benchmark_suite.json currently contains a different item count."
+                f"Public TLA-Prove README still mentions a 30-spec held-out suite, but benchmark_suite.json currently exposes {suite_items} benchmark items."
             )
     return report
 

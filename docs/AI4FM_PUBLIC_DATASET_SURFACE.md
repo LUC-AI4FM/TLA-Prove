@@ -104,7 +104,9 @@ ChatTLA now also tracks the stable public corpora already committed in
 - prompt/topic expansion metadata: `200` topics across `10` batches
 - public benchmark surface: `20` benchmark items and `13` non-null benchmark
   module mappings; the upstream `README.md` still mentions a `30-spec`
-  held-out suite
+  held-out suite, so treat the explicit `diamond_eval_holdout.jsonl` file as
+  the `30`-row eval holdout and `benchmark_suite.json` as the current
+  `20`-item benchmark surface
 
 The tracked `2350`-row slice is the stable public training/eval stack ChatTLA
 ingests today without DVC or private infrastructure. The broader `2757`-row

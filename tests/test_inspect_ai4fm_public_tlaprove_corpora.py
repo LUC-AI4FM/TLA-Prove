@@ -190,5 +190,5 @@ def test_build_report_summarizes_public_tlaprove_corpora() -> None:
     assert report["benchmark_surface"]["benchmark_suite_items"] == 2
     assert report["benchmark_surface"]["non_null_module_mappings"] == 1
     assert report["benchmark_surface"]["repo_readme_mentions_30_spec_holdout"] is True
-    assert any("30-spec held-out suite" in note for note in report["notes"])
+    assert any("benchmark_suite.json currently exposes 2 benchmark items" in note for note in report["notes"])
     assert report["recommended_ingest_order"][0]["path"] == "data/processed/diamond_sft_v3.jsonl"
