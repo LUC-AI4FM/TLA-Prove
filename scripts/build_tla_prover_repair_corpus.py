@@ -40,6 +40,10 @@ def _difficulty_bucket(before_score: float) -> str:
     return "hard"
 
 
+def _is_benchmark_source(source_key: str) -> bool:
+    return source_key.endswith("benchmark_repair_pairs_fc128best.jsonl")
+
+
 def build_corpus(
     *,
     repair_pair_files: list[str | Path],
@@ -77,6 +81,17 @@ def build_corpus(
             difficulty_counts[_difficulty_bucket(float(row.get("before_score", 0.0)))] += 1
 
     rows.sort(key=lambda item: (float(item.get("before_score", 0.0)), str(item.get("repair_id", ""))))
+    benchmark_only = bool(rows) and all(_is_benchmark_source(source_key) for source_key in kept_rows_by_source)
+    only_easy_rows = bool(rows) and difficulty_counts["easy"] == len(rows)
+    warnings: list[str] = []
+    if any("ralph_repair_pairs" in source for source in missing_sources):
+        warnings.append("missing_ralph_sources")
+    if len(kept_rows_by_source) == 1 and rows:
+        warnings.append("single_source_repair_corpus")
+    if benchmark_only:
+        warnings.append("benchmark_only_repair_corpus")
+    if only_easy_rows:
+        warnings.append("easy_only_repair_corpus")
     summary = {
         "schema": "chattla_tla_prover_repair_train_summary_v1",
         "rows": len(rows),
@@ -89,6 +104,12 @@ def build_corpus(
             "ralph_repair_pairs": DEFAULT_REPAIR_PAIRS,
             "ralph_repair_pairs_long_latest": DEFAULT_LONG_RALPH_REPAIR_PAIRS,
             "benchmark_repair_pairs_fc128best": DEFAULT_BENCHMARK_REPAIR_PAIRS,
+        },
+        "health": {
+            "ok": not warnings,
+            "warnings": warnings,
+            "benchmark_only": benchmark_only,
+            "only_easy_rows": only_easy_rows,
         },
     }
     return rows, summary

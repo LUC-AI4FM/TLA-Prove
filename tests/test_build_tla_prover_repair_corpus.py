@@ -40,6 +40,8 @@ def test_build_corpus_merges_sources_and_preserves_source_counts(tmp_path: Path)
     assert summary["kept_rows_by_source"] == {"ralph.jsonl": 2, "bench.jsonl": 1}
     assert summary["duplicate_repair_ids"] == ["R2"]
     assert summary["difficulty_counts"] == {"easy": 1, "medium": 1, "hard": 1}
+    assert summary["health"]["ok"] is True
+    assert summary["health"]["warnings"] == []
 
 
 def test_build_corpus_reports_missing_sources_without_failing(tmp_path: Path) -> None:
@@ -77,3 +79,24 @@ def test_build_corpus_prefers_available_long_ralph_source(tmp_path: Path) -> Non
         "data/processed/ralph_repair_pairs_long_latest.jsonl": 1,
         "data/processed/benchmark_repair_pairs_fc128best.jsonl": 1,
     }
+
+
+def test_build_corpus_flags_degraded_benchmark_only_easy_mix(tmp_path: Path) -> None:
+    benchmark = tmp_path / "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+    _write_jsonl(benchmark, [_row("B1", 0.01), _row("B2", 0.05)])
+
+    _rows, summary = build_corpus(
+        repair_pair_files=[
+            tmp_path / "data/processed/ralph_repair_pairs.jsonl",
+            tmp_path / "data/processed/ralph_repair_pairs_long_latest.jsonl",
+            benchmark,
+        ],
+        repo=tmp_path,
+    )
+
+    assert summary["health"]["ok"] is False
+    assert summary["health"]["benchmark_only"] is True
+    assert summary["health"]["only_easy_rows"] is True
+    assert "missing_ralph_sources" in summary["health"]["warnings"]
+    assert "single_source_repair_corpus" in summary["health"]["warnings"]
+    assert "easy_only_repair_corpus" in summary["health"]["warnings"]

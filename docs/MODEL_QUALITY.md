@@ -39,16 +39,17 @@ Public model: [EricSpencer00/chattla-20b](https://huggingface.co/EricSpencer00/c
   `python -m src.training.dataset_builder --sany-only --include-augmented --include-description-sft --bugfix-oversample 2`  
   (omit `--no-silver-augmented` / `--no-augmented-best-per-prompt` unless you want the old behavior)
 - Run a **full** benchmark (`python -m src.inference.benchmark ...` without `--limit`) before claiming a win on TLC.
-- When training against repair corpora, `python -m scripts.train_rl_repair --include-benchmark-repair-pairs`
-  now mixes the benchmark-derived `fc128best` failures from
-  `data/processed/benchmark_repair_pairs_fc128best.jsonl` into the default
-  Ralph repair dataset, so the current blocked publish lane feeds directly into
-  the repair loop.
-- For a reproducible tracked training input instead of ad hoc CLI mixing, run
-  `python3 scripts/build_tla_prover_repair_corpus.py` and then train from
-  `data/processed/tla_prover_repair_train_v1.jsonl`. The builder will use the
-  short Ralph corpus, the long-Ralph latest corpus, and the benchmark repair
-  corpus when those local files exist.
+- When training against repair corpora, prefer the tracked merged corpus:
+  `python3 scripts/build_tla_prover_repair_corpus.py` and then
+  `python -m scripts.train_rl_repair`.
+- `scripts.train_rl_repair` now prefers
+  `data/processed/tla_prover_repair_train_v1.jsonl` when it exists instead of
+  defaulting to a single Ralph-only file.
+- The merged repair-corpus summary now exposes health warnings. Check
+  `data/processed/tla_prover_repair_train_v1.summary.json` before launching a
+  run; if it reports `benchmark_only_repair_corpus` or `easy_only_repair_corpus`,
+  regenerate the Ralph sources before treating the corpus as a serious repair
+  curriculum.
 - For Hub releases: ensure `HF_TOKEN` is in `.env`; `python -m src.training.publish_hf --dry-run` is a real deployability preflight:
   - it still computes the next version even when `huggingface_hub` is not installed locally;
   - it exits nonzero when the current candidate would be blocked from a real publish.

@@ -73,10 +73,15 @@ fresh benchmark failures directly via:
 
 - `python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best`
 - `python3 scripts/build_tla_prover_repair_corpus.py`
-- `python3 -m scripts.train_rl_repair --include-benchmark-repair-pairs`
+- `python3 -m scripts.train_rl_repair`
 
 If a local long-Ralph run exists, the tracked repair-corpus builder also folds
 in `data/processed/ralph_repair_pairs_long_latest.jsonl` automatically.
+
+Check `data/processed/tla_prover_repair_train_v1.summary.json` before launch:
+the current checked-in merged repair corpus is benchmark-only (`19` easy rows)
+because both Ralph sources are absent, so that state should be treated as a
+degraded repair curriculum rather than a strong next candidate.
 
 Any future comparison should record the exact Ollama tag used and should
 benchmark a canonically registered model tag if the result is meant to speak

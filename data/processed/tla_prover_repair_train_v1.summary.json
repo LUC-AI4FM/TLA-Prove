@@ -5,6 +5,17 @@
     "medium": 0
   },
   "duplicate_repair_ids": [],
+  "health": {
+    "benchmark_only": true,
+    "ok": false,
+    "only_easy_rows": true,
+    "warnings": [
+      "missing_ralph_sources",
+      "single_source_repair_corpus",
+      "benchmark_only_repair_corpus",
+      "easy_only_repair_corpus"
+    ]
+  },
   "kept_rows_by_source": {
     "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19
   },

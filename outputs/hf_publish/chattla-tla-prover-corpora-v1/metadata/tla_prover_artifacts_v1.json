@@ -2600,6 +2600,17 @@
           "medium": 0
         },
         "duplicate_repair_ids": [],
+        "health": {
+          "benchmark_only": true,
+          "ok": false,
+          "only_easy_rows": true,
+          "warnings": [
+            "missing_ralph_sources",
+            "single_source_repair_corpus",
+            "benchmark_only_repair_corpus",
+            "easy_only_repair_corpus"
+          ]
+        },
         "kept_rows_by_source": {
           "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19
         },
@@ -2683,7 +2694,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T20:17:32.433774+00:00",
+  "generated_at": "2026-06-29T23:21:14.944218+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

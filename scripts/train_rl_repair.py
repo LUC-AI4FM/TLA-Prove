@@ -29,6 +29,10 @@ Run:
     python -m scripts.train_rl_repair --max-steps 300   # full run (~16h)
     python -m scripts.train_rl_repair --difficulty easy  # SANY-only curriculum
     python -m scripts.train_rl_repair --trajectory-file data/processed/tla_prover_repair_train_v1.jsonl
+
+Default input behavior:
+    Prefer data/processed/tla_prover_repair_train_v1.jsonl when present.
+    Otherwise fall back to the available component repair corpora.
 """
 
 from __future__ import annotations
@@ -43,10 +47,18 @@ os.environ.setdefault("USE_JAX", "0")
 os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_MERGED_REPAIR_PAIRS = "data/processed/tla_prover_repair_train_v1.jsonl"
 DEFAULT_REPAIR_PAIRS = "data/processed/ralph_repair_pairs.jsonl"
 DEFAULT_BENCHMARK_REPAIR_PAIRS = "data/processed/benchmark_repair_pairs_fc128best.jsonl"
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+
+
+def _path_exists(path_str: str) -> bool:
+    path = Path(path_str)
+    if not path.is_absolute():
+        path = _REPO_ROOT / path
+    return path.is_file()
 
 
 def _resolve_base_model() -> str:
@@ -107,7 +119,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         "defense is dataset-level filtering)")
     parser.add_argument("--trajectory-file", action="append", default=None,
                         help="Path to a repair-pairs JSONL. Repeat to mix multiple corpora. "
-                        f"Defaults to `{DEFAULT_REPAIR_PAIRS}`.")
+                        f"Defaults to `{DEFAULT_MERGED_REPAIR_PAIRS}` when present, otherwise the available component corpora.")
     parser.add_argument("--include-benchmark-repair-pairs", action="store_true",
                         help="Also load the benchmark-derived repair corpus at "
                         f"`{DEFAULT_BENCHMARK_REPAIR_PAIRS}`.")
@@ -117,8 +129,19 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 
 def resolve_trajectory_files(args: argparse.Namespace) -> list[str]:
-    files = list(args.trajectory_file or [DEFAULT_REPAIR_PAIRS])
-    if args.include_benchmark_repair_pairs:
+    if args.trajectory_file:
+        files = list(args.trajectory_file)
+        if args.include_benchmark_repair_pairs and DEFAULT_BENCHMARK_REPAIR_PAIRS not in files:
+            files.append(DEFAULT_BENCHMARK_REPAIR_PAIRS)
+        return files
+
+    if _path_exists(DEFAULT_MERGED_REPAIR_PAIRS):
+        return [DEFAULT_MERGED_REPAIR_PAIRS]
+
+    files = [path for path in [DEFAULT_REPAIR_PAIRS, DEFAULT_BENCHMARK_REPAIR_PAIRS] if _path_exists(path)]
+    if not files:
+        files = [DEFAULT_REPAIR_PAIRS]
+    if args.include_benchmark_repair_pairs and DEFAULT_BENCHMARK_REPAIR_PAIRS not in files:
         files.append(DEFAULT_BENCHMARK_REPAIR_PAIRS)
     return files
 
