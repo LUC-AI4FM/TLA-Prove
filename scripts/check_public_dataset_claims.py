@@ -25,6 +25,8 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     tlaprove_import = _read_json(repo / "data/processed/ai4fm_public_tlaprove_import_v1.summary.json")
     seed_files = _read_json(repo / "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json")
     seed_modules = _read_json(repo / "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json")
+    seed_candidates = _read_json(repo / "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json")
+    mixed_sft = _read_json(repo / "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json")
     dataset_surface = _read_json(repo / "outputs/manifests/ai4fm_public_dataset_surface.json")
 
     formalllm_rows = int(formalllm["rows"])
@@ -35,15 +37,19 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     largest_rows = int(largest["rows"])
     normalized_rows = int(tlaprove_import["kept_rows"])
     seed_repo_inputs = int(seed_files["seed_repo_inputs"])
-    raw_tla_files = int(seed_files["totals"]["tla"])
+    seed_totals = seed_files.get("totals", {})
+    tracked_seed_files = int(seed_totals.get("all", seed_files.get("kept_rows", 0)))
+    raw_tla_files = int(seed_totals["tla"])
     usable_module_rows = int(seed_modules.get("rows", seed_modules["kept_rows"]))
+    candidate_rows = int(seed_candidates["kept_rows"])
+    mixed_sft_rows = int(mixed_sft["total_rows"])
     pull_files = int(dataset_surface["pipeline"]["pull"]["nfiles"])
     parsed_artifacts = int(dataset_surface["pipeline"]["parse_output"]["nfiles"])
 
     return {
         "README.md": [
             (
-                "ChatTLA currently uses seven public AI4FM-aligned corpus layers spanning "
+                "ChatTLA currently uses seven public AI4FM-aligned data/artifact layers spanning "
                 f"the {formalllm_rows}-example `FormaLLM` benchmark, {_comma(raw_rows)} raw public "
                 f"`TLA-Prove` JSONL rows, and a {_comma(raw_tla_files)}-file / "
                 f"{_comma(usable_module_rows)}-module public seed-repo surface:"
@@ -60,8 +66,12 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             ),
             (
                 "| `tla-dataset-pipeline seed repo files` | "
-                f"3,140 tracked `.tla` / `.cfg` / `.tlaps` files across the {seed_repo_inputs} committed public seed repos, "
+                f"{_comma(tracked_seed_files)} tracked `.tla` / `.cfg` / `.tlaps` files across the {seed_repo_inputs} committed public seed repos, "
                 f"including {_comma(raw_tla_files)} `.tla` files |"
+            ),
+            (
+                "| `tla-dataset-pipeline seed prover candidates` | "
+                f"{_comma(candidate_rows)} SANY-clean prover-candidate rows from {_comma(usable_module_rows)} usable public seed-module rows |"
             ),
             (
                 "| `tla-dataset-pipeline` | "
@@ -70,6 +80,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             (
                 "The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; "
                 f"ChatTLA treats the live `{formalllm_rows}`-entry `all_models.json` and `Input/{{train,val,test}}.json` split files as the canonical public FormaLLM surface."
+            ),
+            (
+                "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: "
+                f"`{_comma(raw_rows)}` committed `TLA-Prove` JSONL rows, `{_comma(raw_tla_files)}` public seed `.tla` files, "
+                f"and `{_comma(usable_module_rows)}` usable seed modules."
             ),
             (
                 "The seed prover-candidate corpus is the first stricter bridge from the "
@@ -83,6 +98,24 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             f"- `ai4fm_public_seed_tla_modules_v1.summary.json` reports `{usable_module_rows}` usable",
             f"- `{raw_rows}` raw public rows across the committed corpora",
             f"- `{normalized_rows}` kept ChatTLA-format rows after normalization and exact final-spec dedupe",
+            (
+                f"- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: "
+                f"`{raw_rows}` committed `TLA-Prove` JSONL rows, `{raw_tla_files}` public seed `.tla` files, or `{usable_module_rows}` usable seed modules"
+            ),
+        ],
+        "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md": [
+            f"- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
+            f"  layer (`{formalllm_rows}` rows).",
+            (
+                "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed\n"
+                f"  file manifest (`{tracked_seed_files}` tracked files, `{raw_tla_files}` `.tla` files, `{usable_module_rows}` usable module rows)."
+            ),
+            f"- Mixed prover SFT corpus: `{mixed_sft_rows}` rows",
+            f"- Public AI4FM normalized import: `{normalized_rows}` rows.",
+            (
+                f"- Public AI4FM seed-module prover candidates: `{candidate_rows}` rows out of `{usable_module_rows}` usable\n"
+                "  public seed-module rows."
+            ),
         ],
     }
 
@@ -90,7 +123,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
 def build_report(*, repo: Path = REPO) -> dict[str, Any]:
     findings: list[dict[str, str]] = []
     for rel_path, snippets in _expected_snippets(repo).items():
-        text = (repo / rel_path).read_text(encoding="utf-8")
+        path = repo / rel_path
+        if not path.exists():
+            findings.append({"path": rel_path, "expected": "file to exist"})
+            continue
+        text = path.read_text(encoding="utf-8")
         for snippet in snippets:
             if snippet not in text:
                 findings.append({"path": rel_path, "expected": snippet})

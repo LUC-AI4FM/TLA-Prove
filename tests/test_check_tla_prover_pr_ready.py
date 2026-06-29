@@ -49,6 +49,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_inspect_ai4fm_public_tlaprove_corpora.py" in joined
     assert "tests/test_inspect_ai4fm_public_dataset_surface.py" in joined
     assert "tests/test_inspect_hf_publish_readiness.py" in joined
+    assert "tests/test_qsub_fc128_artifact_preflight.py" in joined
     assert "tests/test_upload_v11.py" in joined
     assert "tests/test_materialize_processed_tla_corpus.py" in joined
     assert "tests/test_preflight_tla_prover_remote.py" in joined

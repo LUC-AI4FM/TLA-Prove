@@ -34,7 +34,7 @@ AI4FM expansion lanes alongside the prover replay evidence.
 - `metadata/ai4fm_public_tlaprove_import_v1.summary.json`: normalized public AI4FM
   import layer (`1005` rows).
 - `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed
-  file manifest (`3140` tracked files, `2110` `.tla` files).
+  file manifest (`3140` tracked files, `2110` `.tla` files, `2108` usable module rows).
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public
   autoprover candidate subset (`98` rows).
 - `metadata/ai4fm_public_discovery_manifest_v1.summary.json`: live public repo
@@ -61,7 +61,7 @@ AI4FM expansion lanes alongside the prover replay evidence.
 - SANY/TLC held-out replay: `30` checked, `30` TLC-gold, `29` Diamond.
 - `FormaLLM`: `205` canonical prompt/spec rows across `71` families.
 - Public AI4FM normalized import: `1005` rows.
-- Public AI4FM seed-module prover candidates: `98` rows out of `2108` extracted
-  public `.tla` modules.
+- Public AI4FM seed-module prover candidates: `98` rows out of `2108` usable
+  public seed-module rows.
 
 Use the metadata files as the source of truth for checksums and replay status.
