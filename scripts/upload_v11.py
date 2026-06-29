@@ -1,36 +1,19 @@
-"""Legacy one-off upload script.
+#!/usr/bin/env python3
+"""Disabled legacy uploader kept only as a pointer to the guarded publish path."""
+from __future__ import annotations
 
-Prefer:  HF_TOKEN=... python -m src.training.publish_hf
-(Versioned uploads + Modelfile + README; state in data/benchmarks/hf_publish_state.json)
+import sys
 
-"""
-import os
-import time
-from pathlib import Path
 
-# Load .env
-env_path = Path(__file__).resolve().parents[1] / ".env"
-for line in env_path.read_text().splitlines():
-    line = line.strip()
-    if "=" in line and not line.startswith("#"):
-        k, v = line.split("=", 1)
-        os.environ.setdefault(k.strip(), v.strip())
+def main() -> int:
+    print(
+        "scripts/upload_v11.py is disabled. "
+        "Use `python -m src.training.publish_hf --dry-run` to inspect blockers "
+        "and `python -m src.training.publish_hf` for the guarded publish path.",
+        file=sys.stderr,
+    )
+    return 1
 
-from huggingface_hub import HfApi
 
-token = os.environ["HF_TOKEN"]
-api = HfApi(token=token)
-repo = "EricSpencer00/chattla-20b"
-gguf = Path(__file__).resolve().parents[1] / "outputs" / "gguf" / "chattla-20b-Q8_0.gguf"
-
-print(f"Uploading {gguf.name} ({gguf.stat().st_size / 1e9:.1f} GB) as gguf/chattla-20b-v11-Q8_0.gguf …", flush=True)
-t0 = time.time()
-url = api.upload_file(
-    path_or_fileobj=str(gguf),
-    path_in_repo="gguf/chattla-20b-v11-Q8_0.gguf",
-    repo_id=repo,
-    repo_type="model",
-    commit_message="v11: add Q8_0 GGUF (21 GB, harmony TEMPLATE fix)",
-)
-elapsed = time.time() - t0
-print(f"Done in {elapsed / 60:.1f} min — {url}")
+if __name__ == "__main__":
+    raise SystemExit(main())
