@@ -126,7 +126,9 @@ The corpus decision is now clearer than it was at the start of this audit:
 That makes the next high-yield public-data options:
 
 1. widen the seed-module to prover-candidate funnel beyond the current `98`
-   SANY-clean rows;
+   SANY-clean rows; the new funnel report shows `168` rows already match the
+   current autoprover shape, so the immediate public headroom is the `70`
+   shape-ready rows still blocked by SANY rather than by missing operators;
 2. run verifier-backed experiments on the `2438`-row full-public lane before
    changing any default training path;
 3. keep Hugging Face publish decisions gated on verified model quality rather

@@ -270,6 +270,15 @@ Current reconciled live summary:
 - `1004` rows rejected by SANY
 - `1006` rows rejected as not matching the current autoprover candidate shape
 - `0` rows now land in the stale `missing_module_content` bucket
+- the new checked-in funnel report at
+  `outputs/manifests/ai4fm_public_seed_prover_funnel.json` makes the next
+  expansion ceiling explicit:
+  - `168` rows already match the current autoprover shape
+  - `70` of those shape-ready rows are still blocked by SANY rather than by
+    missing `Init` / `Next` / `Spec` / `TypeOK`
+  - the largest missing-shape bucket is still the fully incompatible surface:
+    `994` rows missing all four required operators plus the `vars` / temporal
+    spec shape
 
 ## How ChatTLA should use them
 

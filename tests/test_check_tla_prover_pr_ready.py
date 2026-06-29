@@ -43,6 +43,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/inspect_ai4fm_org_surface.py" in joined
     assert "scripts/inspect_ai4fm_public_tlaprove_corpora.py" in joined
     assert "scripts/inspect_ai4fm_public_dataset_surface.py" in joined
+    assert "scripts/inspect_ai4fm_public_seed_prover_funnel.py" in joined
     assert "scripts/materialize_processed_tla_corpus.py" in joined
     assert "scripts/inspect_hf_publish_readiness.py" in joined
     assert "scripts/sync_hf_publish_corpora_metadata.py" in joined
@@ -52,6 +53,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_inspect_ai4fm_org_surface.py" in joined
     assert "tests/test_inspect_ai4fm_public_tlaprove_corpora.py" in joined
     assert "tests/test_inspect_ai4fm_public_dataset_surface.py" in joined
+    assert "tests/test_inspect_ai4fm_public_seed_prover_funnel.py" in joined
     assert "tests/test_inspect_hf_publish_readiness.py" in joined
     assert "tests/test_qsub_fc128_artifact_preflight.py" in joined
     assert "tests/test_prover_diagnostic_fallbacks.py" in joined
@@ -85,6 +87,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
         "outputs/autoprover/tlaps_verify_published_161016/summary.json",
         "outputs/manifests/ai4fm_org_surface.json",
         "outputs/manifests/ai4fm_public_dataset_surface.json",
+        "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
         "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "outputs/manifests/hf_publish_readiness.json",
         "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
@@ -99,6 +102,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     assert "outputs/autoprover/tlaps_verify_published_161016/summary.json" in paths
     assert "outputs/manifests/ai4fm_org_surface.json" in paths
     assert "outputs/manifests/ai4fm_public_dataset_surface.json" in paths
+    assert "outputs/manifests/ai4fm_public_seed_prover_funnel.json" in paths
     assert "outputs/manifests/ai4fm_public_seed_license_surface.json" in paths
     assert "outputs/manifests/hf_publish_readiness.json" in paths
     assert "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json" in paths

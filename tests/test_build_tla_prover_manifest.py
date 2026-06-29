@@ -28,6 +28,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"license_summary": {"repo_counts": {"MIT": 1, "UNKNOWN": 1}}}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/ai4fm_public_seed_prover_funnel.json").write_text(
+        json.dumps({"funnel": {"source_rows": 2, "shape_ready_rows": 1, "sany_clean_rows": 1}}),
+        encoding="utf-8",
+    )
     (repo / "outputs/manifests/hf_publish_readiness.json").write_text(
         json.dumps({"ready_to_publish": False, "next_publish_version": 22}),
         encoding="utf-8",
@@ -168,6 +172,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_seed_license_surface"]["kind"] == (
         "public_ai4fm_seed_repo_license_surface_report"
     )
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_funnel"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_funnel"]["kind"] == (
+        "public_ai4fm_seed_repo_prover_funnel_report"
+    )
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["kind"] == (
@@ -202,6 +210,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["inspect_ai4fm_public_dataset_surface"] == (
         "python3 scripts/inspect_ai4fm_public_dataset_surface.py"
+    )
+    assert manifest["remote_next_steps"]["inspect_ai4fm_public_seed_prover_funnel"] == (
+        "python3 scripts/inspect_ai4fm_public_seed_prover_funnel.py"
     )
     assert manifest["remote_next_steps"]["inspect_ai4fm_public_tlaprove_corpora"] == (
         "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py"
