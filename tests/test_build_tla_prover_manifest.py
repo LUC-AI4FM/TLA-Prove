@@ -199,6 +199,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"kept_rows": 1, "recoverable_without_new_source_rows": 1, "blocked_on_missing_public_dependency_rows": 0}),
         encoding="utf-8",
     )
+    _write_jsonl(
+        repo / "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
+        [{"module": "SpecB", "repo": "a/b", "source_path": "SpecB.tla", "probe_status": "still_missing_imports_after_staging"}],
+    )
+    (repo / "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json").write_text(
+        json.dumps({"kept_rows": 1, "rows_recovered_current_builder": 0, "rows_still_missing_imports_after_staging": 1}),
+        encoding="utf-8",
+    )
     _write_jsonl(repo / "data/processed/ai4fm_public_discovery_manifest_v1.jsonl", [{"repo": "a/b"}])
     (repo / "data/processed/ai4fm_public_discovery_manifest_v1.summary.json").write_text(
         json.dumps({"unique_repo_records": 1}),
@@ -273,6 +281,15 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert (
         manifest["artifacts"]["ai4fm_public_seed_prover_repair_queue_v1"]["summary"]["recoverable_without_new_source_rows"]
+        == 1
+    )
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_recovery_probe_v1"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_recovery_probe_v1"]["rows"] == 1
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_recovery_probe_v1"]["kind"] == (
+        "public_ai4fm_seed_repo_prover_recovery_probe"
+    )
+    assert (
+        manifest["artifacts"]["ai4fm_public_seed_prover_recovery_probe_v1"]["summary"]["rows_still_missing_imports_after_staging"]
         == 1
     )
     assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["exists"] is True
@@ -487,6 +504,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["build_ai4fm_public_seed_prover_repair_queue"] == (
         "python3 scripts/build_ai4fm_public_seed_prover_repair_queue.py"
+    )
+    assert manifest["remote_next_steps"]["build_ai4fm_public_seed_prover_recovery_probe"] == (
+        "python3 scripts/build_ai4fm_public_seed_prover_recovery_probe.py"
     )
     assert manifest["remote_next_steps"]["inspect_hf_publish_readiness"] == (
         "python3 scripts/inspect_hf_publish_readiness.py"

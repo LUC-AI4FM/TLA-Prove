@@ -129,6 +129,12 @@ Important interpretation:
   - action split: `13` TLAPS-stub-only, `9` same-repo helper staging,
     `18` cross-repo helper staging, `4` still blocked on missing public
     dependencies
+- measured replay against the current public candidate builder is stricter than
+  that first-pass queue:
+  - `data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl` currently
+    shows `0/44` rows recovered by the existing builder
+  - `37` remain blocked on unresolved imports even after current staging
+  - `7` move past import staging but still fail with non-import SANY errors
 - repo-level license provenance across the `11` committed public seed repos is
   mixed:
   - `3` Apache-2.0 repos covering `525` tracked `.tla` files

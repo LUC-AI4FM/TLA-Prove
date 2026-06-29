@@ -42,6 +42,10 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   queue for the remaining shape-ready-but-not-SANY public seed rows, including
   which rows are TLAPS-stub-only, helper-stageable from public repos, or still
   blocked on missing public dependencies.
+- `metadata/ai4fm_public_seed_prover_recovery_probe_v1.summary.json`: measured
+  replay of that queue through the current public candidate-builder staging
+  logic, showing how many rows are still import-blocked versus advancing to
+  non-import SANY errors.
 - `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus
   report (`2350` tracked training/eval rows within a `2757`-row committed public
   JSONL surface).
