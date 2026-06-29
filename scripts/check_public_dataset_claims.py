@@ -94,7 +94,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     return {
         "README.md": [
             (
-                "ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spanning "
+                "ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spanning "
                 f"the {formalllm_rows}-example `FormaLLM` benchmark, a {_comma(raw_rows)}-row tracked `TLA-Prove` training/eval slice within a "
                 f"{_comma(all_public_rows)}-row committed public JSONL surface, and a {_comma(raw_tla_files)}-file / "
                 f"{_comma(usable_module_rows)}-module public seed-repo surface:"

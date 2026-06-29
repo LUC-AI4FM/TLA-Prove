@@ -141,7 +141,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
         tmp_path / "README.md",
         "\n".join(
             [
-                "ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:",
+                "ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:",
                 "| `FormaLLM` | 205 canonical prompt/spec entries across 71 families |",
                 "| `TLA-Prove public corpora` | 2,350 JSONL rows across the tracked public training/eval corpora; the full committed public JSONL surface currently spans 2,757 rows across 19 files |",
                 "| `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the committed public corpora |",
