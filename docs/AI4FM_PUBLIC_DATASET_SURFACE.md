@@ -21,6 +21,9 @@ These values come from the checked-in inspection report at
 `outputs/manifests/ai4fm_public_dataset_surface.json`.
 Treat them as the reproducible local snapshot; the live upstream heads
 re-verified below are the current public-source reference.
+That report now also carries a machine-readable `public_1800_plus_interpretation`
+section plus `broader_public_lanes` counts, so the larger GitHub-surface
+interpretation is encoded in the manifest and not only in this note.
 The broader public FormaLLM file surface is also materialized directly in
 `data/processed/formalllm_public_module_manifest_v1.jsonl` with a summary beside
 it. A prover-facing join against the latest full-dataset smoke now lives at

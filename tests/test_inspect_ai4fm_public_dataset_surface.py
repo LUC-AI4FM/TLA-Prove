@@ -102,12 +102,51 @@ def test_build_report_summarizes_formalllm_and_pipeline_surface(tmp_path: Path) 
         pipeline / "config" / "seeds" / "queries.yaml",
         "queries:\n  - extension:tla\n  - TLAPS extension:tla\n",
     )
+    _write(
+        tmp_path / "ai4fm_public_tlaprove_corpora.json",
+        json.dumps(
+            {
+                "aggregate": {
+                    "total_public_jsonl_rows": 2350,
+                    "tracked_public_jsonl_files": 6,
+                    "all_public_jsonl_rows": 2757,
+                    "all_public_jsonl_files": 19,
+                }
+            }
+        ),
+    )
+    _write(
+        tmp_path / "ai4fm_public_seed_file_manifest_v1.summary.json",
+        json.dumps({"totals": {"tla": 2110}}),
+    )
+    _write(
+        tmp_path / "ai4fm_public_seed_tla_modules_v1.summary.json",
+        json.dumps({"kept_rows": 2108}),
+    )
+    _write(
+        tmp_path / "ai4fm_public_seed_prover_candidates_v1.summary.json",
+        json.dumps({"kept_rows": 124}),
+    )
+    _write(
+        tmp_path / "ai4fm_public_seed_prover_shape_ready_v1.summary.json",
+        json.dumps({"kept_rows": 168, "unique_modules": 114}),
+    )
+    _write(
+        tmp_path / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
+        json.dumps({"rows": 44}),
+    )
 
     report = build_report(
         formalllm_root=formalllm,
         formalllm_input_root=formalllm_repo / "Input",
         formalllm_architecture_doc=formalllm_repo / "doc" / "ARCHITECTURE.md",
         pipeline_repo=pipeline,
+        tlaprove_report_path=tmp_path / "ai4fm_public_tlaprove_corpora.json",
+        seed_file_summary_path=tmp_path / "ai4fm_public_seed_file_manifest_v1.summary.json",
+        seed_module_summary_path=tmp_path / "ai4fm_public_seed_tla_modules_v1.summary.json",
+        seed_candidate_summary_path=tmp_path / "ai4fm_public_seed_prover_candidates_v1.summary.json",
+        shape_ready_summary_path=tmp_path / "ai4fm_public_seed_prover_shape_ready_v1.summary.json",
+        shape_ready_not_sany_summary_path=tmp_path / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
         remote_head_resolver=lambda url: {
             "https://github.com/LUC-AI4FM/FormaLLM.git": "formalllm-head",
             "https://github.com/LUC-AI4FM/tla-dataset-pipeline.git": "pipeline-head",
@@ -132,6 +171,13 @@ def test_build_report_summarizes_formalllm_and_pipeline_surface(tmp_path: Path) 
     assert report["pipeline"]["parse_input"]["nfiles"] == 227
     assert report["pipeline"]["parse_output"]["nfiles"] == 3979
     assert report["pipeline"]["seed_config_counts"] == {"repos": 3, "orgs": 2, "users": 1, "queries": 2}
+    assert report["broader_public_lanes"]["tla_prove_committed_public_jsonl"]["rows"] == 2757
+    assert report["broader_public_lanes"]["seed_repo_tla_files"]["rows"] == 2110
+    assert report["broader_public_lanes"]["usable_seed_modules"]["rows"] == 2108
+    assert report["broader_public_lanes"]["shape_ready_not_sany_rows"]["rows"] == 44
+    assert report["public_1800_plus_interpretation"]["claim"] == "1800+"
+    assert report["public_1800_plus_interpretation"]["status"] == "stale_for_formalllm_canonical_layer"
+    assert report["public_1800_plus_interpretation"]["closest_reproducible_public_surfaces"][0]["rows"] == 2757
     assert report["public_sources"]["live_remote_heads"] == {
         "formalllm_repo": "formalllm-head",
         "pipeline_repo": "pipeline-head",
@@ -151,6 +197,12 @@ def test_cli_writes_report_json(tmp_path: Path) -> None:
     _write(formalllm_repo / "doc" / "ARCHITECTURE.md", "No count here.\n")
     pipeline = tmp_path / "pipeline"
     _write(pipeline / "dvc.lock", "schema: '2.0'\nstages: {}\n")
+    _write(tmp_path / "tlaprove.json", json.dumps({"aggregate": {"all_public_jsonl_rows": 0}}))
+    _write(tmp_path / "seed_files.json", json.dumps({"totals": {"tla": 0}}))
+    _write(tmp_path / "seed_modules.json", json.dumps({"kept_rows": 0}))
+    _write(tmp_path / "seed_candidates.json", json.dumps({"kept_rows": 0}))
+    _write(tmp_path / "shape_ready.json", json.dumps({"kept_rows": 0, "unique_modules": 0}))
+    _write(tmp_path / "shape_ready_not_sany.json", json.dumps({"rows": 0}))
     out = tmp_path / "report.json"
     script = Path(__file__).resolve().parents[1] / "scripts" / "inspect_ai4fm_public_dataset_surface.py"
 
@@ -166,6 +218,18 @@ def test_cli_writes_report_json(tmp_path: Path) -> None:
             str(formalllm_repo / "doc" / "ARCHITECTURE.md"),
             "--pipeline-repo",
             str(pipeline),
+            "--tlaprove-report",
+            str(tmp_path / "tlaprove.json"),
+            "--seed-file-summary",
+            str(tmp_path / "seed_files.json"),
+            "--seed-module-summary",
+            str(tmp_path / "seed_modules.json"),
+            "--seed-candidate-summary",
+            str(tmp_path / "seed_candidates.json"),
+            "--shape-ready-summary",
+            str(tmp_path / "shape_ready.json"),
+            "--shape-ready-not-sany-summary",
+            str(tmp_path / "shape_ready_not_sany.json"),
             "--out",
             str(out),
         ],
@@ -182,4 +246,6 @@ def test_cli_writes_report_json(tmp_path: Path) -> None:
     assert stdout["formalllm"]["repo_tla_files"] == 0
     assert stdout["formalllm"]["auxiliary_tla_files"] == 0
     assert stdout["formalllm"]["split_files"]["total"] == 0
+    assert stdout["public_1800_plus_interpretation"]["status"] == "aligned_with_current_canonical_layer"
+    assert stdout["broader_public_lanes"]["usable_seed_modules"]["rows"] == 0
     assert saved == stdout
