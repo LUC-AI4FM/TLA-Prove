@@ -194,33 +194,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
             "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
             "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",
-            "handoff_status": "python3 scripts/status_tla_prover_handoff.py --live",
-            "handoff_status_compact": "python3 scripts/status_tla_prover_handoff.py --no-live --compact",
-            "handoff_doctor": "python3 scripts/doctor_tla_prover_handoff.py --dry-run --live",
-            "handoff_doctor_compact": (
-                "python3 scripts/doctor_tla_prover_handoff.py --dry-run --no-live --compact"
-            ),
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",
-            "macmini_known18_handoff": "scripts/sync_macmini_and_submit_known18.sh",
-            "macmini_known18_plus_launchagents_handoff": (
-                "scripts/sync_macmini_and_submit_known18.sh --install-launchagents"
-            ),
-            "macmini_known18_plus_sft_preflight_handoff": (
-                "scripts/sync_macmini_and_submit_known18.sh --submit-sft-preflight"
-            ),
-            "wait_for_macmini_then_handoff": (
-                "scripts/wait_for_macmini_and_handoff_known18.sh --submit-sft-preflight"
-            ),
-            "retry_submission_report_mirror": (
-                "scripts/wait_for_macmini_and_handoff_known18.sh --mirror-report-only"
-            ),
-            "install_laptop_wait_handoff_launchagent": (
-                "CHATTLA_RELAY_HOST=<user@relay-host> scripts/install_wait_handoff_launchagent.sh"
-            ),
-            "install_laptop_handoff_doctor_launchagent": (
-                "scripts/install_handoff_doctor_launchagent.sh --interval 300"
-            ),
-            "macmini_launchagents": "scripts/install_macmini_launchagents.sh",
         },
         "promotion_gate": (
             "Do not promote or publish a new model until fresh evals beat or match "

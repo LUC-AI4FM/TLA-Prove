@@ -130,3 +130,33 @@ def test_write_outputs_handles_out_of_repo_target(tmp_path: Path) -> None:
 
     assert final_summary["out"] == str(out)
     assert final_summary["summary"] == str(out.with_suffix(".summary.json"))
+
+
+def test_build_prover_candidates_accepts_nonstandard_dash_count_module_header(tmp_path: Path) -> None:
+    source = tmp_path / "seed_modules.jsonl"
+    candidate = (
+        "--- MODULE CandidateA ---\n"
+        "EXTENDS Naturals\n"
+        "VARIABLE x\n"
+        "vars == <<x>>\n"
+        "Init == x = 0\n"
+        "Next == x' = x\n"
+        "Spec == Init /\\ [][Next]_vars\n"
+        "TypeOK == x \\in 0..1\n"
+        "====\n"
+    )
+    _write_jsonl(
+        source,
+        [
+            {"repo": "example/alpha", "module": "CandidateA", "source_path": "CandidateA.tla", "content": candidate},
+        ],
+    )
+
+    rows, summary = build_prover_candidates(
+        source,
+        validate_module=lambda *_args, **_kwargs: _Sany(True),
+        workers=1,
+    )
+
+    assert [row["module"] for row in rows] == ["CandidateA"]
+    assert "missing_module_content" not in summary["skipped"]

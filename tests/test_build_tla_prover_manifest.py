@@ -115,24 +115,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["known18_pbs"] == "scripts/qsub_autoprover_known18_corrected_smoke.pbs"
     assert manifest["remote_next_steps"]["evaluate_remote_results"] == "python3 scripts/evaluate_tla_prover_remote_results.py"
     assert manifest["remote_next_steps"]["remote_decision_report"] == "outputs/manifests/tla_prover_remote_decision.json"
-    assert manifest["remote_next_steps"]["install_laptop_handoff_doctor_launchagent"] == (
-        "scripts/install_handoff_doctor_launchagent.sh --interval 300"
-    )
-    assert manifest["remote_next_steps"]["retry_submission_report_mirror"] == (
-        "scripts/wait_for_macmini_and_handoff_known18.sh --mirror-report-only"
-    )
-    assert manifest["remote_next_steps"]["macmini_known18_plus_launchagents_handoff"] == (
-        "scripts/sync_macmini_and_submit_known18.sh --install-launchagents"
-    )
     assert manifest["remote_next_steps"]["probe_control_planes"] == "python3 scripts/probe_tla_prover_control_planes.py"
     assert manifest["remote_next_steps"]["diagnose_sany_tlc_pass_corpus"] == (
         "python3 scripts/diagnose_sany_tlc_pass_corpus.py"
-    )
-    assert manifest["remote_next_steps"]["handoff_status_compact"] == (
-        "python3 scripts/status_tla_prover_handoff.py --no-live --compact"
-    )
-    assert manifest["remote_next_steps"]["handoff_doctor_compact"] == (
-        "python3 scripts/doctor_tla_prover_handoff.py --dry-run --no-live --compact"
     )
     assert manifest["remote_next_steps"]["pr_ready_check"] == "python3 scripts/check_tla_prover_pr_ready.py"
     assert manifest["remote_next_steps"]["build_tla_prover_eval_corpus"] == (
@@ -166,3 +151,15 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["build_sany_tlc_eval_corpus"] == (
         "python3 scripts/build_sany_tlc_eval_corpus.py"
     )
+    assert "handoff_status" not in manifest["remote_next_steps"]
+    assert "handoff_status_compact" not in manifest["remote_next_steps"]
+    assert "handoff_doctor" not in manifest["remote_next_steps"]
+    assert "handoff_doctor_compact" not in manifest["remote_next_steps"]
+    assert "macmini_known18_handoff" not in manifest["remote_next_steps"]
+    assert "macmini_known18_plus_launchagents_handoff" not in manifest["remote_next_steps"]
+    assert "macmini_known18_plus_sft_preflight_handoff" not in manifest["remote_next_steps"]
+    assert "wait_for_macmini_then_handoff" not in manifest["remote_next_steps"]
+    assert "retry_submission_report_mirror" not in manifest["remote_next_steps"]
+    assert "install_laptop_wait_handoff_launchagent" not in manifest["remote_next_steps"]
+    assert "install_laptop_handoff_doctor_launchagent" not in manifest["remote_next_steps"]
+    assert "macmini_launchagents" not in manifest["remote_next_steps"]

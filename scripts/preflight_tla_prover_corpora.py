@@ -18,6 +18,7 @@ DEFAULT_PATHS = [
     REPO / "data" / "processed" / "prover_eval.jsonl",
     REPO / "data" / "processed" / "formalllm_eval_v1.jsonl",
     REPO / "data" / "processed" / "ai4fm_public_tlaprove_import_v1.jsonl",
+    REPO / "data" / "processed" / "ai4fm_public_seed_tla_modules_v1.jsonl",
     REPO / "data" / "processed" / "ai4fm_public_seed_prover_candidates_v1.jsonl",
     REPO / "data" / "processed" / "sany_tlc_pass_sft_v1.jsonl",
     REPO / "data" / "processed" / "sany_tlc_pass_eval_v1.jsonl",
@@ -73,7 +74,7 @@ def _check_messages(row: dict[str, Any], row_num: int, errors: list[str]) -> Non
 def _check_direct_content_row(row: dict[str, Any], row_num: int, errors: list[str]) -> None:
     content = row.get("content")
     module = row.get("module")
-    if not isinstance(content, str) or "---- MODULE" not in content:
+    if not isinstance(content, str):
         _err(errors, row_num, "missing direct module content")
         return
     match = MODULE_HEADER_RE.search(content)
