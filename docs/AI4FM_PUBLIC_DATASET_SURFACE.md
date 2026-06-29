@@ -122,6 +122,13 @@ Important interpretation:
   - `ai4fm_public_seed_prover_candidates_v1.summary.json` now reads those
     `2108` module rows cleanly, with the stale `missing_module_content` bucket
     eliminated
+- the remaining public seed repair queue is now materialized directly as
+  `data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl`:
+  - `44` remaining shape-ready-but-not-SANY rows total
+  - `40` are recoverable without new source material
+  - action split: `13` TLAPS-stub-only, `9` same-repo helper staging,
+    `18` cross-repo helper staging, `4` still blocked on missing public
+    dependencies
 - repo-level license provenance across the `11` committed public seed repos is
   mixed:
   - `3` Apache-2.0 repos covering `525` tracked `.tla` files

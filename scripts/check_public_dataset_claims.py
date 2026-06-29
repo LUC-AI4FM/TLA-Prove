@@ -52,6 +52,9 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json": (
             "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
         ),
+        "ai4fm_public_seed_prover_repair_queue_v1.summary.json": (
+            "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json"
+        ),
         "ai4fm_public_seed_prover_repair_surface.json": (
             "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json"
         ),

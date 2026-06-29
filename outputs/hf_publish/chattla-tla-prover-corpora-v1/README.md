@@ -38,6 +38,10 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   audited public `FormaLLM` file surface and the latest full-dataset prover smoke,
   showing which canonical `.tla` files are still skip-only versus TLC-repair
   candidates.
+- `metadata/ai4fm_public_seed_prover_repair_queue_v1.summary.json`: prioritized
+  queue for the remaining shape-ready-but-not-SANY public seed rows, including
+  which rows are TLAPS-stub-only, helper-stageable from public repos, or still
+  blocked on missing public dependencies.
 - `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus
   report (`2350` tracked training/eval rows within a `2757`-row committed public
   JSONL surface).

@@ -191,6 +191,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"kept_rows": 1, "excluded_sany_clean_rows": 1}),
         encoding="utf-8",
     )
+    _write_jsonl(
+        repo / "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
+        [{"module": "SpecB", "repo": "a/b", "source_path": "SpecB.tla", "repair_priority": "p1"}],
+    )
+    (repo / "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json").write_text(
+        json.dumps({"kept_rows": 1, "recoverable_without_new_source_rows": 1, "blocked_on_missing_public_dependency_rows": 0}),
+        encoding="utf-8",
+    )
     _write_jsonl(repo / "data/processed/ai4fm_public_discovery_manifest_v1.jsonl", [{"repo": "a/b"}])
     (repo / "data/processed/ai4fm_public_discovery_manifest_v1.summary.json").write_text(
         json.dumps({"unique_repo_records": 1}),
@@ -258,6 +266,15 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "public_formalllm_prover_surface_report"
     )
     assert manifest["artifacts"]["formalllm_public_prover_surface_v1"]["summary"]["scanned_formalllm_rows"] == 1
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_repair_queue_v1"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_repair_queue_v1"]["rows"] == 1
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_repair_queue_v1"]["kind"] == (
+        "public_ai4fm_seed_repo_prover_repair_queue"
+    )
+    assert (
+        manifest["artifacts"]["ai4fm_public_seed_prover_repair_queue_v1"]["summary"]["recoverable_without_new_source_rows"]
+        == 1
+    )
     assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["exists"] is True
     assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["rows"] == 5
     assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["summary"]["public_import_rows"] == 2
@@ -467,6 +484,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["build_formalllm_public_prover_surface"] == (
         "python3 scripts/build_formalllm_public_prover_surface.py"
+    )
+    assert manifest["remote_next_steps"]["build_ai4fm_public_seed_prover_repair_queue"] == (
+        "python3 scripts/build_ai4fm_public_seed_prover_repair_queue.py"
     )
     assert manifest["remote_next_steps"]["inspect_hf_publish_readiness"] == (
         "python3 scripts/inspect_hf_publish_readiness.py"

@@ -111,6 +111,11 @@ ARTIFACTS = {
         "summary": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
         "kind": "public_ai4fm_seed_repo_autoprover_shape_repair_target_corpus",
     },
+    "ai4fm_public_seed_prover_repair_queue_v1": {
+        "path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
+        "summary": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json",
+        "kind": "public_ai4fm_seed_repo_prover_repair_queue",
+    },
     "benchmark_repair_pairs_fc128best": {
         "path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
         "summary": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
@@ -320,6 +325,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             ),
             "build_ai4fm_public_seed_prover_shape_corpora": (
                 "python3 scripts/build_ai4fm_public_seed_prover_shape_corpora.py"
+            ),
+            "build_ai4fm_public_seed_prover_repair_queue": (
+                "python3 scripts/build_ai4fm_public_seed_prover_repair_queue.py"
             ),
             "build_ai4fm_public_discovery_manifest": (
                 "python3 scripts/build_ai4fm_public_discovery_manifest.py"
