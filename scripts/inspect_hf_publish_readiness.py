@@ -32,6 +32,7 @@ from src.training.publish_hf import (
     latest_full_benchmark_stats,
     max_published_version,
     next_version_for_publish,
+    publish_readiness_blockers,
 )
 
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "hf_publish_readiness.json"
@@ -102,23 +103,14 @@ def build_report(
         version_override=None,
     )
 
-    blockers: list[str] = []
     warnings: list[str] = []
-    if local_gguf is None:
-        blockers.append("local GGUF artifact missing under outputs/gguf")
-    if stats is None:
-        blockers.append("no full benchmark CSV found")
-    elif benchmark_age_hours is not None and benchmark_age_hours > benchmark_max_age_hours:
-        blockers.append(
-            f"latest full benchmark is stale at {benchmark_age_hours:.1f}h "
-            f"(limit {benchmark_max_age_hours:.1f}h)"
-        )
-    elif int(stats.get("sany", 0) or 0) == 0 and int(stats.get("tlc", 0) or 0) == 0:
-        blockers.append(
-            "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
-        )
-    if not readme_template.is_file():
-        blockers.append("outputs/hf_readme/README.md missing")
+    blockers = publish_readiness_blockers(
+        gguf_present=local_gguf is not None,
+        readme_present=readme_template.is_file(),
+        stats=stats,
+        benchmark_max_age_hours=benchmark_max_age_hours,
+        now=now_fn(),
+    )
     if remote_last is not None and remote_last > local_last:
         warnings.append(
             f"local publish state v{local_last} lags remote GGUF state v{remote_last}"
