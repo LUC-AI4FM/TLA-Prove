@@ -27,6 +27,15 @@ def _int(value: Any) -> int:
         return 0
 
 
+def _display_path(path: Path | None, repo: Path) -> str | None:
+    if path is None:
+        return None
+    try:
+        return str(path.resolve().relative_to(repo.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def evaluate_known18_summary(summary: dict[str, Any]) -> dict[str, Any]:
     rows = _int(summary.get("rows"))
     statuses = dict(summary.get("statuses") or {})
@@ -203,6 +212,7 @@ def discover_latest_full_dataset_summary(repo: Path = REPO) -> Path:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, default=REPO)
     parser.add_argument("--summary", type=Path, help="Known-18 corrected smoke summary JSON")
     parser.add_argument(
         "--final-proof-verify-summary",
@@ -221,22 +231,23 @@ def main() -> int:
     )
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
+    repo = args.repo.resolve()
 
-    summary_path = args.summary or discover_latest_summary()
+    summary_path = args.summary or discover_latest_summary(repo)
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     decision = evaluate_known18_summary(summary)
-    decision["summary_path"] = str(summary_path)
+    decision["summary_path"] = _display_path(summary_path, repo)
     final_summary_path = args.final_proof_verify_summary
     final_summary = None
     if final_summary_path is None and not args.no_auto_discover_extra_lanes:
         try:
-            final_summary_path = discover_latest_final_proof_verify_summary()
+            final_summary_path = discover_latest_final_proof_verify_summary(repo)
         except FileNotFoundError:
             final_summary_path = None
     if final_summary_path is not None:
         final_summary = json.loads(final_summary_path.read_text(encoding="utf-8"))
     artifact = evaluate_final_proof_verify_summary(final_summary)
-    decision["final_proof_verify_summary_path"] = str(final_summary_path) if final_summary_path else None
+    decision["final_proof_verify_summary_path"] = _display_path(final_summary_path, repo)
     decision["final_proof_verify_present"] = artifact["present"]
     decision["final_proof_verify_passed"] = artifact["passed"]
     decision["proof_artifact_revalidated"] = artifact["passed"]
@@ -253,13 +264,13 @@ def main() -> int:
     full_dataset_summary = None
     if full_dataset_summary_path is None and not args.no_auto_discover_extra_lanes:
         try:
-            full_dataset_summary_path = discover_latest_full_dataset_summary()
+            full_dataset_summary_path = discover_latest_full_dataset_summary(repo)
         except FileNotFoundError:
             full_dataset_summary_path = None
     if full_dataset_summary_path is not None:
         full_dataset_summary = json.loads(full_dataset_summary_path.read_text(encoding="utf-8"))
     full_dataset = evaluate_full_dataset_summary(full_dataset_summary)
-    decision["full_dataset_summary_path"] = str(full_dataset_summary_path) if full_dataset_summary_path else None
+    decision["full_dataset_summary_path"] = _display_path(full_dataset_summary_path, repo)
     decision["full_dataset_present"] = full_dataset["present"]
     decision["full_dataset_rows"] = full_dataset["rows"]
     decision["full_dataset_statuses"] = full_dataset["statuses"]

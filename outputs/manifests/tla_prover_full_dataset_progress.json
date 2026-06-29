@@ -1,0 +1,15 @@
+{
+  "job_id": "161031.sophia-pbs-01.lab.alcf.anl.gov",
+  "rows_so_far": 610,
+  "modules_seen": 383,
+  "statuses": {
+    "not_inductive": 21,
+    "skipped": 498,
+    "tlaps_partial": 79,
+    "tlc_error": 12
+  },
+  "last_completed_module_path": "data/FormaLLM/data/transaction_commit/tla/TwoPhase_clean.tla",
+  "last_completed_status": "skipped",
+  "next_module_path": "outputs/materialized_tla/tla_descriptions/2PCwithBTM.tla",
+  "source": "outputs/autoprover/full_dataset_smoke_161031.jsonl"
+}
