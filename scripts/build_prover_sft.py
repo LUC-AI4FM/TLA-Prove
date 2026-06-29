@@ -2,7 +2,7 @@
 build_prover_sft.py — Extract per-theorem (preamble, statement, proof) chunks
 from the deduped FormaLLM TLAPS corpus.
 
-Output: data/processed/prover_chunks.jsonl  (raw chunks, pre-roundtrip)
+Output: data/processed/tla_prover/prover_chunks.jsonl  (raw chunks, pre-roundtrip)
         Each row: {preamble, statement, proof, source_file, theorem_line}
 
 The next stage (roundtrip_prover_sft.py) takes this file, runs each chunk
@@ -35,7 +35,7 @@ SCAN_FILES = [
     REPO / "outputs" / "tlaps_formallm_scan.json",
     REPO / "outputs" / "tlaps_recovery_scan.json",
 ]
-OUT = REPO / "data" / "processed" / "prover_chunks.jsonl"
+OUT = REPO / "data" / "processed" / "tla_prover" / "prover_chunks.jsonl"
 
 THEOREM_RE = re.compile(r"^(THEOREM|LEMMA|COROLLARY)\b")
 PROOF_START_RE = re.compile(r"^\s*(PROOF\b|<\d+>|BY\b|OBVIOUS\b)")
