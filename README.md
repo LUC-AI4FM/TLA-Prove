@@ -53,6 +53,7 @@ ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spannin
 | `FormaLLM` | 205 canonical prompt/spec entries across 71 families | `data/processed/formalllm_eval_v1.jsonl` |
 | `TLA-Prove public corpora` | 2,350 JSONL rows across the tracked public training/eval corpora; the full committed public JSONL surface currently spans 2,757 rows across 19 files | `outputs/manifests/ai4fm_public_tlaprove_corpora.json` |
 | `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the committed public corpora | `data/processed/ai4fm_public_tlaprove_import_v1.jsonl` |
+| `TLA-Prove raw import` | 2,350 undeduped ChatTLA-format rows spanning the full tracked public corpora slice | `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` |
 | `tla-dataset-pipeline seed repo files` | 3,140 tracked `.tla` / `.cfg` / `.tlaps` files across the 11 committed public seed repos, including 2,110 `.tla` files | `data/processed/ai4fm_public_seed_file_manifest_v1.jsonl` |
 | `tla-dataset-pipeline seed prover candidates` | 98 SANY-clean prover-candidate rows from 2,108 usable public seed-module rows | `data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl` |
 | `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories | `data/processed/ai4fm_public_discovery_manifest_v1.jsonl` |
@@ -61,6 +62,7 @@ ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spannin
 The mixed prover SFT lane already carries the full `205`-row `FormaLLM` benchmark. The generated local training file is `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl`, and the committed public copy is `outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl`; the nearby `30`-row corpora in this repo are holdout/eval slices, not the prover training corpus.
 Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.
 There is now an explicit non-default expansion build path as well: `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current `1330`-row prover SFT stack plus the `1005`-row normalized public `TLA-Prove` import and `98` public seed prover-candidate replays for `2433` total rows. It is meant for bounded experiments, not as the default training lane.
+The full tracked-corpora public row lane is also materialized at `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `2350` rows when we need the undeduped AI4FM public import surface.
 
 Rebuild the public AI4FM artifacts with:
 

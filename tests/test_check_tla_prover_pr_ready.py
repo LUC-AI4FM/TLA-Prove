@@ -74,6 +74,10 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     (tmp_path / "tracked.py").write_text("print('ok')\n", encoding="utf-8")
     subprocess.run(["git", "add", "tracked.py"], cwd=tmp_path, check=True)
 
+    raw_summary = tmp_path / "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json"
+    raw_summary.parent.mkdir(parents=True, exist_ok=True)
+    raw_summary.write_text("{}\n", encoding="utf-8")
+
     for rel in [
         "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
         "outputs/autoprover/tlaps_verify_published_161016/summary.json",
@@ -94,6 +98,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     assert "outputs/manifests/ai4fm_public_seed_license_surface.json" in paths
     assert "outputs/manifests/hf_publish_readiness.json" in paths
     assert "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json" in paths
+    assert "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json" in paths
 
 
 def test_readiness_files_can_include_untracked_scripts_but_not_outputs(tmp_path: Path) -> None:

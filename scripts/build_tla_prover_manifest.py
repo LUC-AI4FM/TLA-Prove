@@ -48,6 +48,11 @@ ARTIFACTS = {
         "summary": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
         "kind": "normalized_public_ai4fm_tlaprove_import",
     },
+    "ai4fm_public_tlaprove_import_raw_v1": {
+        "path": "data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+        "summary": "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
+        "kind": "raw_public_ai4fm_tlaprove_import",
+    },
     "ai4fm_public_seed_file_manifest_v1": {
         "path": "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
         "summary": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",

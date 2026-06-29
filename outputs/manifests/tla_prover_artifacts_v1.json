@@ -742,6 +742,87 @@
       "rows": null,
       "sha256": "1190a1ae3cc78ab4eb0bec2bc3205ade6896d81fc6d3c0a49694365323eecf32"
     },
+    "ai4fm_public_tlaprove_import_raw_v1": {
+      "bytes": 11345822,
+      "exists": true,
+      "kind": "raw_public_ai4fm_tlaprove_import",
+      "path": "data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+      "rows": 2350,
+      "sha256": "8db94892c20897d1d1dfdb8939091cae82d940382b5d34ab451199ddf1852bd6",
+      "summary": {
+        "dedupe_exact_final_spec": false,
+        "duplicate_rows_collapsed": 0,
+        "generated_at": "2026-06-29T10:40:18.154655+00:00",
+        "jsonl_sha256": "8db94892c20897d1d1dfdb8939091cae82d940382b5d34ab451199ddf1852bd6",
+        "kept_rows": 2350,
+        "out": "data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+        "per_corpus": {
+          "diamond_eval_holdout": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 30,
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "raw_rows": 30,
+            "split": "eval",
+            "unique_canonical_finals": 30
+          },
+          "diamond_sft_v3": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 1053,
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "raw_rows": 1053,
+            "split": "train",
+            "unique_canonical_finals": 455
+          },
+          "processed_eval": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 4,
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "raw_rows": 4,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "processed_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 713,
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "raw_rows": 713,
+            "split": "train",
+            "unique_canonical_finals": 285
+          },
+          "ralph_dev": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 50,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "raw_rows": 50,
+            "split": "eval",
+            "unique_canonical_finals": 50
+          },
+          "ralph_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 500,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "raw_rows": 500,
+            "split": "train",
+            "unique_canonical_finals": 499
+          }
+        },
+        "raw_rows": 2350,
+        "repo": {
+          "default_branch": "main",
+          "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+          "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+          "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+        },
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+      },
+      "summary_path": "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json"
+    },
     "ai4fm_public_tlaprove_import_v1": {
       "bytes": 5028704,
       "exists": true,
@@ -936,7 +1017,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T10:36:23.643255+00:00",
+        "generated_at": "2026-06-29T10:45:26.597580+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -976,7 +1057,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "418388f8c1c9c26494780c9687c20109406b605629797832ff41b5d858637440"
+      "sha256": "ebb936d78245149587e0164671c88a0266f0733a27677220d8e1c5f592dd58f8"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -986,7 +1067,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T10:36:23.705692+00:00",
+        "generated_at": "2026-06-29T10:45:26.659095+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1227,7 +1308,7 @@
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "2c4215ac9bb4cc32d3639084eb1dda91a042c8d7d8d01d9c51ee1345b58bb4a4"
+      "sha256": "aeff8a7afbccdea576f20b14af9e9fa23fce1adc9f92c6c81ef2e32f89f5b2b9"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -1269,7 +1350,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T10:36:23.952899+00:00",
+  "generated_at": "2026-06-29T10:45:26.905493+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

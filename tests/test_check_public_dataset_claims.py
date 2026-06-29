@@ -44,6 +44,10 @@ def _write_manifests(repo: Path) -> None:
         json.dumps({"kept_rows": 1005}),
     )
     _write(
+        repo / "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
+        json.dumps({"kept_rows": 2350}),
+    )
+    _write(
         repo / "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
         json.dumps({"seed_repo_inputs": 11, "kept_rows": 3140, "totals": {"all": 3140, "tla": 2110}}),
     )
@@ -116,6 +120,7 @@ def _write_manifests(repo: Path) -> None:
         "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
+        "ai4fm_public_tlaprove_import_raw_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
         "chattla_tla_prover_sft_public_expanded_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         "chattla_tla_prover_sft_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
         "formalllm_eval_v1.summary.json": "data/processed/formalllm_eval_v1.summary.json",
@@ -140,6 +145,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "| `FormaLLM` | 205 canonical prompt/spec entries across 71 families |",
                 "| `TLA-Prove public corpora` | 2,350 JSONL rows across the tracked public training/eval corpora; the full committed public JSONL surface currently spans 2,757 rows across 19 files |",
                 "| `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the committed public corpora |",
+                "| `TLA-Prove raw import` | 2,350 undeduped ChatTLA-format rows spanning the full tracked public corpora slice |",
                 "| `tla-dataset-pipeline seed repo files` | 3,140 tracked `.tla` / `.cfg` / `.tlaps` files across the 11 committed public seed repos, including 2,110 `.tla` files |",
                 "| `tla-dataset-pipeline seed prover candidates` | 98 SANY-clean prover-candidate rows from 2,108 usable public seed-module rows |",
                 "| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface |",
@@ -148,6 +154,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown.",
                 "Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.",
                 "There is now an explicit non-default expansion build path as well: `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current `1330`-row prover SFT stack plus the `1005`-row normalized public `TLA-Prove` import and `98` public seed prover-candidate replays for `2433` total rows.",
+                "The full tracked-corpora public row lane is also materialized at `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `2350` rows when we need the undeduped AI4FM public import surface.",
             ]
         ),
     )
@@ -157,6 +164,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
             [
                 "- `205` canonical metadata entries",
                 "- public JSONL rows across the tracked training/eval corpora: `2350`",
+                "- `2350` kept rows in `ai4fm_public_tlaprove_import_raw_v1` when exact-final-spec dedupe is disabled",
                 "- full committed public JSONL surface: `2757` rows across `19` files",
                 "- `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public",
                 "- `ai4fm_public_seed_tla_modules_v1.summary.json` reports `2108` usable",
@@ -177,6 +185,8 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "- `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus",
                 "  report (`2350` tracked training/eval rows within a `2757`-row committed public",
                 "  JSONL surface).",
+                "- `metadata/ai4fm_public_tlaprove_import_raw_v1.summary.json`: raw tracked-corpora",
+                "  import summary (`2350` undeduped rows).",
                 "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed",
                 "  file manifest (`3140` tracked files, `2110` `.tla` files, `2108` usable module rows).",
                 "- `metadata/ai4fm_public_seed_tla_modules_v1.summary.json`: usable public `.tla`",
