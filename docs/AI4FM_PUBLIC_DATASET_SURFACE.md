@@ -5,11 +5,15 @@ without private infrastructure.
 
 ## Current public sources
 
+- `LUC-AI4FM` org surface:
+  <https://github.com/LUC-AI4FM>
 - `FormaLLM`: <https://github.com/LUC-AI4FM/FormaLLM>
 - `TLA-Prove`: <https://github.com/LUC-AI4FM/TLA-Prove>
 - `tla-dataset-pipeline`: <https://github.com/LUC-AI4FM/tla-dataset-pipeline>
 - `tla-dataset-pipeline` DVC metadata:
   <https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock>
+- checked-in org manifest:
+  `outputs/manifests/ai4fm_org_surface.json`
 
 ## Verified current counts
 
@@ -35,6 +39,13 @@ re-verified below are the current public-source reference.
 
 We also re-checked the current upstream public repos directly on 2026-06-29:
 
+- `LUC-AI4FM` org surface
+  - the public org currently exposes `8` repos
+  - `3` are corpus-relevant for ChatTLA today:
+    `FormaLLM`, `TLA-Prove`, and `tla-dataset-pipeline`
+  - the remaining `5` public repos (`FormaLLM-Reverse`, `paper-parse`,
+    `webpage`, `ralph-tla`, `.github`) are useful context/provenance surfaces,
+    but not primary TLA training lanes
 - `FormaLLM`
   - current `main`: `b159f5df093e7ed71f4793bba99459b97a2bb23d`
   - `data/all_models.json` still contains exactly `205` canonical records
@@ -146,9 +157,18 @@ deduped import, ChatTLA can now materialize that tracked public stack directly:
 - current tracked raw-import artifact:
   - `2350` kept rows in `ai4fm_public_tlaprove_import_raw_v1` when exact-final-spec dedupe is disabled
 
-The current importer does not yet materialize every committed public JSONL file
-from `TLA-Prove`; it intentionally excludes `data/toy/*` and
-`outputs/diamond_gen/*` from the tracked import lane.
+If we want the full committed public `TLA-Prove` JSONL surface instead of just
+the tracked six-corpus slice, the importer now also has an opt-in expansion
+path:
+
+- command:
+  `python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl`
+- current extra public surface behind that flag:
+  - `13` currently excluded public JSONL files
+  - `407` additional public rows from `data/toy/*` and
+    `outputs/diamond_gen/*`
+- the default tracked import lane stays unchanged; this is a non-default audit
+  / expansion path
 
 That gives us a clean two-lane setup:
 

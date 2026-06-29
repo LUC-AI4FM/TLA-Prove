@@ -40,6 +40,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/build_ai4fm_public_seed_tla_modules.py" in joined
     assert "scripts/build_ai4fm_public_tlaprove_import.py" in joined
     assert "scripts/build_ai4fm_public_discovery_manifest.py" in joined
+    assert "scripts/inspect_ai4fm_org_surface.py" in joined
     assert "scripts/inspect_ai4fm_public_tlaprove_corpora.py" in joined
     assert "scripts/inspect_ai4fm_public_dataset_surface.py" in joined
     assert "scripts/materialize_processed_tla_corpus.py" in joined
@@ -48,6 +49,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/upload_v11.py" in joined
     assert "tests/test_remote_handoff_script.py" in joined
     assert "tests/test_build_ai4fm_public_discovery_manifest.py" in joined
+    assert "tests/test_inspect_ai4fm_org_surface.py" in joined
     assert "tests/test_inspect_ai4fm_public_tlaprove_corpora.py" in joined
     assert "tests/test_inspect_ai4fm_public_dataset_surface.py" in joined
     assert "tests/test_inspect_hf_publish_readiness.py" in joined
@@ -81,6 +83,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     for rel in [
         "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
         "outputs/autoprover/tlaps_verify_published_161016/summary.json",
+        "outputs/manifests/ai4fm_org_surface.json",
         "outputs/manifests/ai4fm_public_dataset_surface.json",
         "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "outputs/manifests/hf_publish_readiness.json",
@@ -94,6 +97,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
 
     assert "outputs/autoprover/tlaps_verify_published_161016/manifest.json" in paths
     assert "outputs/autoprover/tlaps_verify_published_161016/summary.json" in paths
+    assert "outputs/manifests/ai4fm_org_surface.json" in paths
     assert "outputs/manifests/ai4fm_public_dataset_surface.json" in paths
     assert "outputs/manifests/ai4fm_public_seed_license_surface.json" in paths
     assert "outputs/manifests/hf_publish_readiness.json" in paths

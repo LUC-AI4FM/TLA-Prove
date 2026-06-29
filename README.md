@@ -63,10 +63,12 @@ The mixed prover SFT lane already carries the full `205`-row `FormaLLM` benchmar
 Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.
 There is now an explicit non-default expansion build path as well: `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current `1330`-row prover SFT stack plus the `1005`-row normalized public `TLA-Prove` import and `98` public seed prover-candidate replays for `2433` total rows. It is meant for bounded experiments, not as the default training lane.
 The full tracked-corpora public row lane is also materialized at `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `2350` rows when we need the undeduped AI4FM public import surface.
+There is also an opt-in full committed-surface import path now: `python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl` pulls in the currently excluded `data/toy/*` and `outputs/diamond_gen/*` files (`407` public rows across `13` JSONLs) without changing the default tracked-corpora lane.
 
 Rebuild the public AI4FM artifacts with:
 
 ```bash
+python3 scripts/inspect_ai4fm_org_surface.py
 python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
 python3 scripts/build_ai4fm_public_tlaprove_import.py
 python3 scripts/build_ai4fm_public_seed_file_manifest.py
@@ -84,6 +86,7 @@ The discovery manifest needs a local checkout of `LUC-AI4FM/tla-dataset-pipeline
 The seed file manifest records the committed public seed-repo file surface directly from GitHub trees. The dataset surface report records the broader DVC-backed counts, while the discovery manifest records what the public seed/search recipe currently materializes. The manifest build, corpus preflight, and PR-ready check are the compact local gates for the checked-in public artifact surface.
 The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface. See `docs/AI4FM_PUBLIC_DATASET_SURFACE.md` for the exact upstream evidence and links.
 If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules. That is a statement about broader public AI4FM corpora, not the canonical `FormaLLM` benchmark.
+The checked-in org-surface manifest at `outputs/manifests/ai4fm_org_surface.json` makes that broader GitHub surface concrete: on 2026-06-29 the public `LUC-AI4FM` org exposed `8` repos, with `FormaLLM`, `TLA-Prove`, and `tla-dataset-pipeline` as the `3` corpus-relevant ones.
 Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown. Treat the `5` non-permissive/unknown buckets as redistribution-caution surfaces until reviewed separately; see `outputs/manifests/ai4fm_public_seed_license_surface.json`.
 The seed prover-candidate corpus is the first stricter audited bridge from the 2,110 public `.tla` files / 2,108 usable module rows toward future prover-lane expansion: it keeps only modules that pass SANY and already match the Phase-1 `Init`/`Next`/`Spec`/`TypeOK` autoprover contract.
 
