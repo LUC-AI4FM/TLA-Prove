@@ -76,6 +76,31 @@ def test_remote_preflight_requires_sft_dependencies_when_enabled(tmp_path: Path)
     assert any("src/training/train.py" in error for error in report["errors"])
 
 
+def test_remote_preflight_accepts_public_sft_fallback_when_local_train_missing(tmp_path: Path) -> None:
+    repo = _minimal_repo(tmp_path)
+    for rel in [
+        "configs/accelerate_fsdp.yaml",
+        "data/processed/prover_eval.jsonl",
+        "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl",
+        "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
+        "src/training/train.py",
+        "src/training/tlc_eval_callback.py",
+    ]:
+        _write(repo / rel)
+
+    report = run_preflight(
+        repo=repo,
+        module_list=repo / "data/processed/tla_prover/tlaps_candidate_modules_18.txt",
+        sft_preflight=True,
+    )
+
+    assert report["ok"] is True
+    assert (
+        report["resolved_sft_train_file"]
+        == "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
+    )
+
+
 def test_remote_preflight_checks_sft_tools_when_required(tmp_path: Path, monkeypatch) -> None:
     repo = _minimal_repo(tmp_path)
     for rel in [

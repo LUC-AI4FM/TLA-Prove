@@ -56,6 +56,7 @@ def test_direct_sophia_handoff_script_mentions_required_artifacts_and_dry_run() 
     assert "verify_published_tlaps_proof_artifact.py" in text
     assert "tlaps_reproduced_final_160816.tar.gz" in text
     assert "outputs/hf_publish/chattla-tla-prover-108-108/metadata/summary.json" in text
+    assert "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl" in text
     assert "tla_prover_artifacts_v1.json" in text
     assert "tla_prover_corpus_preflight.json" in text
     assert "build_tla_prover_eval_corpus.py" in text
@@ -114,6 +115,7 @@ def test_direct_sophia_handoff_dry_run_syncs_known18_modules_and_sft_dependencie
     assert "data/processed/prover_eval.jsonl" in normalized
     assert "data/processed/sany_tlc_pass_eval_v1.jsonl" in normalized
     assert "scripts/submit_tla_prover_remote_jobs.sh --submit-sft-preflight" in normalized
+    assert "CHATTLA_TLA_PROVER_TRAIN_FILE" in normalized
     assert "outputs/manifests/tla_prover_remote_submission.json" in normalized
     assert "user@remote.example" in normalized
 
