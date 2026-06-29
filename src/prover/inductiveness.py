@@ -547,6 +547,219 @@ def _augment_with_pointwise_function_domains(module_src: str, clauses: list[str]
     return augmented
 
 
+def _direct_in_domains(clauses: list[str], variables: list[str]) -> dict[str, str]:
+    direct: dict[str, str] = {}
+    for clause in clauses:
+        stripped = clause.strip()
+        for variable in variables:
+            match = re.search(
+                rf"^\s*/\\\s*{re.escape(variable)}\s*\\in\s*(.+)$",
+                stripped,
+                re.DOTALL,
+            )
+            if match:
+                direct[variable] = _normalize_expr(
+                    re.sub(r"\s*\\\*.*$", "", match.group(1), flags=re.MULTILINE)
+                )
+                break
+    return direct
+
+
+def _has_direct_domain_clause(variable: str, clauses: list[str]) -> bool:
+    pattern = rf"^\s*/\\\s*{re.escape(variable)}\s*(\\in|=|\\subseteq)\s*(.+)$"
+    return any(re.search(pattern, clause, re.DOTALL) for clause in clauses)
+
+
+def _range_upper_bound_expr(domain: str) -> str | None:
+    match = re.fullmatch(r"(.+)\.\.(.+)", _normalize_expr(domain))
+    if not match:
+        return None
+    start_expr = _strip_wrapping_parens(match.group(1))
+    if start_expr != "0":
+        return None
+    return _normalize_expr(match.group(2))
+
+
+def _quantifier_domain_map(module_src: str) -> dict[str, str]:
+    candidates: dict[str, list[str]] = {}
+    for line in module_src.splitlines():
+        for quantifier in ("\\A", "\\E"):
+            start = line.find(quantifier)
+            if start < 0:
+                continue
+            tail = line[start + len(quantifier) :]
+            colon = tail.find(":")
+            if colon < 0:
+                continue
+            prefix = tail[:colon]
+            for part in _split_top_level(prefix, ","):
+                match = re.match(r"^\s*([A-Za-z_]\w*)\s+\\in\s+(.+?)\s*$", part)
+                if match:
+                    candidates.setdefault(match.group(1), []).append(_normalize_expr(match.group(2)))
+    domains: dict[str, str] = {}
+    candidate_names = set(candidates)
+    for name, values in candidates.items():
+        ranked = sorted(
+            dict.fromkeys(values),
+            key=lambda domain: (
+                any(token in candidate_names for token in re.findall(r"[A-Za-z_]\w*", domain)),
+                len(domain),
+            ),
+        )
+        domains[name] = ranked[0]
+    return domains
+
+
+def _singleton_set_elements(expr: str) -> list[str]:
+    elements: list[str] = []
+    for match in re.finditer(r"\{([^{}]+)\}", expr):
+        inner = match.group(1).strip()
+        if inner:
+            elements.append(inner)
+    return elements
+
+
+def _free_quantified_identifiers(expr: str, quantifier_domains: dict[str, str]) -> list[str]:
+    field_names = set(re.findall(r"([A-Za-z_]\w*)\s*\|->", expr))
+    ordered: list[str] = []
+    for token in re.findall(r"[A-Za-z_]\w*", expr):
+        if token in field_names or token not in quantifier_domains or token in ordered:
+            continue
+        ordered.append(token)
+    return ordered
+
+
+def _set_builder_expr(expr: str, quantifier_domains: dict[str, str]) -> str:
+    vars_in_expr = _free_quantified_identifiers(expr, quantifier_domains)
+    if not vars_in_expr:
+        return f"{{{expr}}}"
+    built = f"{{{expr} : {vars_in_expr[-1]} \\in {quantifier_domains[vars_in_expr[-1]]}}}"
+    for name in reversed(vars_in_expr[:-1]):
+        built = f"(UNION {{ {built} : {name} \\in {quantifier_domains[name]} }})"
+    return built
+
+
+def _shifted_range_expr(domain: str, delta: int) -> str | None:
+    match = re.fullmatch(r"(.+)\.\.(.+)", _normalize_expr(domain))
+    if not match:
+        return None
+    start = _strip_wrapping_parens(match.group(1))
+    end = _strip_wrapping_parens(match.group(2))
+    if delta == 0:
+        return f"{start}..{end}"
+    if re.fullmatch(r"\d+", start):
+        shifted_start = str(int(start) + delta)
+    else:
+        shifted_start = f"({start} + {delta})"
+    if re.fullmatch(r"\d+", end):
+        shifted_end = str(int(end) + delta)
+    else:
+        shifted_end = f"({end} + {delta})"
+    return f"{shifted_start}..{shifted_end}"
+
+
+def _append_element_domain_expr(
+    expr: str,
+    scalar_domains: dict[str, str],
+    sequence_elem_domains: dict[str, str],
+) -> str | None:
+    normalized = _normalize_expr(expr)
+    if re.fullmatch(r"\d+", normalized):
+        return f"{normalized}..{normalized}"
+    if normalized in scalar_domains:
+        return scalar_domains[normalized]
+    if head_match := re.fullmatch(r"Head\(\s*([A-Za-z_]\w*)\s*\)", normalized):
+        return sequence_elem_domains.get(head_match.group(1))
+    shift_match = re.fullmatch(r"([A-Za-z_]\w*)\s*([+-])\s*(\d+)", normalized)
+    if not shift_match:
+        return None
+    base_name, sign, amount_text = shift_match.groups()
+    base_domain = scalar_domains.get(base_name)
+    if base_domain is None:
+        return None
+    amount = int(amount_text)
+    return _shifted_range_expr(base_domain, amount if sign == "+" else -amount)
+
+
+def _union_domain_expr(domains: list[str]) -> str:
+    unique: list[str] = []
+    for domain in domains:
+        normalized = _normalize_expr(domain)
+        if normalized not in unique:
+            unique.append(normalized)
+    if len(unique) == 1:
+        return unique[0]
+    return " \\cup ".join(f"({domain})" for domain in unique)
+
+
+def _operational_domain_clauses(module_src: str, clauses: list[str]) -> list[str]:
+    declared = _declared_variables(module_src)
+    direct_domains = _direct_in_domains(clauses, declared)
+    direct_variables = {
+        variable for variable in declared if _has_direct_domain_clause(variable, clauses)
+    }
+    quantifier_domains = _quantifier_domain_map(module_src)
+    inferred: list[str] = []
+    seen = set(clauses)
+
+    for variable in declared:
+        if variable in direct_variables:
+            continue
+        if re.search(rf"\b{re.escape(variable)}\s*=\s*\{{\s*\}}", _operator_body(module_src, "Init")):
+            builders: list[str] = []
+            for update_match in re.finditer(
+                rf"\b{re.escape(variable)}'\s*=\s*(.+)$",
+                module_src,
+                re.MULTILINE,
+            ):
+                for element in _singleton_set_elements(update_match.group(1)):
+                    builders.append(_set_builder_expr(element, quantifier_domains))
+            if builders:
+                clause = f"/\\ {variable} \\subseteq ({_union_domain_expr(builders)})"
+                if clause not in seen:
+                    inferred.append(clause)
+                    seen.add(clause)
+
+    scalar_domains = _direct_in_domains(clauses + inferred, declared)
+    sequence_elem_domains: dict[str, str] = {}
+    changed = True
+    while changed:
+        changed = False
+        for variable in declared:
+            if variable in direct_variables or variable in sequence_elem_domains:
+                continue
+            if not re.search(
+                rf"\b{re.escape(variable)}\s*=\s*<<\s*>>", _operator_body(module_src, "Init")
+            ):
+                continue
+            domains: list[str] = []
+            for update_match in re.finditer(
+                rf"\b{re.escape(variable)}'\s*=\s*Append\(\s*{re.escape(variable)}\s*,\s*(.+?)\s*\)\s*$",
+                module_src,
+                re.MULTILINE,
+            ):
+                domain = _append_element_domain_expr(
+                    update_match.group(1), scalar_domains, sequence_elem_domains
+                )
+                if domain is not None:
+                    domains.append(domain)
+            if domains:
+                elem_domain = _union_domain_expr(domains)
+                clause = f"/\\ {variable} \\in Seq({elem_domain})"
+                if clause not in seen:
+                    inferred.append(clause)
+                    seen.add(clause)
+                    changed = True
+                sequence_elem_domains[variable] = elem_domain
+    return inferred
+
+
+def _augment_with_inferred_domains(module_src: str, clauses: list[str]) -> list[str]:
+    augmented = _augment_with_pointwise_function_domains(module_src, clauses)
+    inferred = _operational_domain_clauses(module_src, augmented)
+    return augmented + [clause for clause in inferred if clause not in augmented]
+
+
 def _seq_len_upper_bound(
     module_src: str,
     clauses: list[str],
@@ -626,6 +839,7 @@ def _seq_len_upper_bounds(module_src: str, clauses: list[str]) -> dict[str, str]
     variables = _declared_variables(module_src)
     typeok = _operator_body(module_src, _TYPE_BOUND_NAME)
     defs = _simple_definitions(module_src)
+    scalar_domains = _direct_in_domains(clauses, variables)
     bounds = {
         variable: bound
         for variable in variables
@@ -646,6 +860,23 @@ def _seq_len_upper_bounds(module_src: str, clauses: list[str]) -> dict[str, str]
                 if variable not in bounds:
                     bounds[variable] = total_bound
                     changed = True
+        for clause in clauses:
+            for variable in variables:
+                if variable in bounds:
+                    continue
+                patterns = (
+                    rf"^\s*(?:/\\\s*)?Len\(\s*{re.escape(variable)}\s*\)\s*=\s*([A-Za-z_]\w*)\s*$",
+                    rf"^\s*(?:/\\\s*)?([A-Za-z_]\w*)\s*=\s*Len\(\s*{re.escape(variable)}\s*\)\s*$",
+                )
+                for pattern in patterns:
+                    match = re.match(pattern, clause.strip())
+                    if not match:
+                        continue
+                    upper = _range_upper_bound_expr(scalar_domains.get(match.group(1), ""))
+                    if upper is not None:
+                        bounds[variable] = upper
+                        changed = True
+                        break
         for variable in variables:
             if variable in bounds:
                 continue
@@ -666,7 +897,7 @@ def _enumerable_type_bound_expr(module_src: str) -> str | None:
     typeok = _operator_body(module_src, _TYPE_BOUND_NAME)
     if not typeok:
         return None
-    clauses = _augment_with_pointwise_function_domains(
+    clauses = _augment_with_inferred_domains(
         module_src, _expand_helper_conjuncts(module_src, _split_top_level_conjuncts(typeok))
     )
     seq_len_bounds = _seq_len_upper_bounds(module_src, clauses)

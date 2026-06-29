@@ -243,3 +243,59 @@ Spec == Init /\ [][Next]_vars
     assert expr is not None
     assert r"/\ used \in [Tasks -> 0..1]" in expr
     assert r"/\ alarm \in BOOLEAN" in expr
+
+
+def test_enumerable_type_bound_expr_infers_message_set_domain_from_updates() -> None:
+    module_src = r"""---- MODULE MessageUniverse ----
+EXTENDS Naturals
+Clients == {"c1", "c2"}
+Addrs == {"a1", "a2"}
+VARIABLES msgs, phase
+vars == << msgs, phase >>
+Init == /\ msgs = {}
+        /\ phase = 0
+Discover(c) == /\ phase = 0
+               /\ msgs' = msgs \cup {<<"discover", c>>}
+               /\ phase' = 1
+Offer(c, a) == /\ phase = 1
+               /\ msgs' = (msgs \ {<<"discover", c>>}) \cup {<<"offer", c, a>>}
+               /\ phase' = 0
+Next == \/ \E c \in Clients : Discover(c)
+        \/ \E c \in Clients, a \in Addrs : Offer(c, a)
+Spec == Init /\ [][Next]_vars
+TypeOK == phase \in 0..1
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ phase \in 0..1" in expr
+    assert r"/\ msgs \in (SUBSET" in expr
+    assert r'<<"discover", c>>' in expr
+    assert r'<<"offer", c, a>>' in expr
+
+
+def test_enumerable_type_bound_expr_infers_append_only_sequence_domain_from_updates() -> None:
+    module_src = r"""---- MODULE AppendOnlySeq ----
+EXTENDS Naturals, Sequences
+MaxMsgs == 3
+VARIABLES seq, broadcast
+vars == << seq, broadcast >>
+Init == /\ seq = 0
+        /\ broadcast = << >>
+Assign == /\ seq < MaxMsgs
+          /\ seq' = seq + 1
+          /\ broadcast' = Append(broadcast, seq + 1)
+Next == Assign
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ seq \in 0..MaxMsgs
+          /\ Len(broadcast) = seq
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ seq \in 0..MaxMsgs" in expr
+    assert r"/\ broadcast \in (UNION { [1..n -> (1..(MaxMsgs + 1))] : n \in 0..MaxMsgs })" in expr

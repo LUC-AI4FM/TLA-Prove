@@ -170,7 +170,7 @@ TypeOK == x \\in
 
     monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
 
-    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=True)
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
 
     assert row["status"] == "skipped"
     assert row["reason"] == "sany_parse_or_semantic_invalid"
@@ -215,7 +215,9 @@ TypeOK == /\ q \in Seq(1..MaxQueue)
     assert row["status"] == "skeleton_emitted"
 
 
-def test_run_one_skips_typeok_missing_direct_domain_for_variable(monkeypatch, tmp_path: Path) -> None:
+def test_run_one_accepts_append_sequence_domain_inferred_from_length_and_updates(
+    monkeypatch, tmp_path: Path
+) -> None:
     module_path = tmp_path / "MissingDomain.tla"
     module_path.write_text(
         r"""---- MODULE MissingDomain ----
@@ -244,17 +246,18 @@ TypeOK == /\ seq \in 0..3
         errors = []
         raw_output = "Semantic processing of module MissingDomain"
 
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
     monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
 
-    def fail_check_inductive(*_args, **_kwargs):
-        raise AssertionError("check_inductive should not run when a TypeOK variable lacks a direct domain")
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
 
-    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
-
-    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=True)
-
-    assert row["status"] == "skipped"
-    assert row["reason"] == "typeok_missing_variable_domain_broadcast"
+    assert row["status"] == "skeleton_emitted"
 
 
 def test_run_one_accepts_finite_subseteq_variable_domains(monkeypatch, tmp_path: Path) -> None:
@@ -707,6 +710,96 @@ Spec == Init /\ [][Next]_vars
         valid = True
         errors = []
         raw_output = "Semantic processing of module QuantifiedThenPlain"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_message_set_domain_inferred_from_updates(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "MessageUniverse.tla"
+    module_path.write_text(
+        r"""---- MODULE MessageUniverse ----
+EXTENDS Naturals
+Clients == {"c1", "c2"}
+Addrs == {"a1", "a2"}
+VARIABLES msgs, phase
+vars == << msgs, phase >>
+Init == /\ msgs = {}
+        /\ phase = 0
+Discover(c) == /\ phase = 0
+               /\ msgs' = msgs \cup {<<"discover", c>>}
+               /\ phase' = 1
+Offer(c, a) == /\ phase = 1
+               /\ msgs' = (msgs \ {<<"discover", c>>}) \cup {<<"offer", c, a>>}
+               /\ phase' = 0
+Next == \/ \E c \in Clients : Discover(c)
+        \/ \E c \in Clients, a \in Addrs : Offer(c, a)
+Spec == Init /\ [][Next]_vars
+TypeOK == phase \in 0..1
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module MessageUniverse"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_append_only_sequence_domain_inferred_from_updates(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "AppendOnlySeq.tla"
+    module_path.write_text(
+        r"""---- MODULE AppendOnlySeq ----
+EXTENDS Naturals, Sequences
+MaxMsgs == 3
+VARIABLES seq, broadcast
+vars == << seq, broadcast >>
+Init == /\ seq = 0
+        /\ broadcast = << >>
+Assign == /\ seq < MaxMsgs
+          /\ seq' = seq + 1
+          /\ broadcast' = Append(broadcast, seq + 1)
+Next == Assign
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ seq \in 0..MaxMsgs
+          /\ Len(broadcast) = seq
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module AppendOnlySeq"
 
     class Inductive:
         inductive = True
