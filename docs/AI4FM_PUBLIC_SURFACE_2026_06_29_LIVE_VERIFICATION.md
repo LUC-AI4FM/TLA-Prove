@@ -27,6 +27,11 @@ The current public AI4FM surface still supports ChatTLA's existing split:
 - Public site still aligns with the `205`-entry benchmark layer:
   - <https://ai4fm.cs.luc.edu/>
   - <https://ai4fm.cs.luc.edu/papers/llm-tla-evaluation/>
+- Primary upstream files:
+  - <https://raw.githubusercontent.com/LUC-AI4FM/FormaLLM/main/data/all_models.json>
+  - <https://raw.githubusercontent.com/LUC-AI4FM/FormaLLM/main/Input/train.json>
+  - <https://raw.githubusercontent.com/LUC-AI4FM/FormaLLM/main/Input/val.json>
+  - <https://raw.githubusercontent.com/LUC-AI4FM/FormaLLM/main/Input/test.json>
 
 ### TLA-Prove
 
@@ -49,6 +54,15 @@ The current public AI4FM surface still supports ChatTLA's existing split:
   `python3 scripts/build_ai4fm_public_discovery_manifest.py`:
   - `18` unique repo records
   - `4` of the `5` shipped search queries still return zero repositories
+- Current checked-in public seed recipe:
+  - `11` explicit repo seeds
+  - `7` org seeds
+  - `9` user seeds
+  - `5` search queries
+- Primary upstream files:
+  - <https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/config/seeds/repos.yaml>
+  - <https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/config/seeds/queries.yaml>
+  - <https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock>
 - Existing checked-in seed-file/module surfaces remain consistent with the live
   interpretation:
   - `2110` public `.tla` files
@@ -68,6 +82,10 @@ That means the existing ChatTLA wording is still directionally correct:
 
 - keep `205` as the canonical `FormaLLM` count;
 - treat `1800+` as stale if it is used to describe `FormaLLM` itself;
+- if someone means the broader public AI4FM GitHub surface, the closest direct
+  public evidence today is the larger `TLA-Prove` JSONL surface plus the
+  `tla-dataset-pipeline` seed/DVC recipe, not the canonical `FormaLLM`
+  metadata file;
 - when someone means the broader public GitHub surface, use the reproducible
   higher-signal lanes (`2757`, `2110`, `2108`, `18`) instead of repeating the
   stale `1800+` shorthand.
