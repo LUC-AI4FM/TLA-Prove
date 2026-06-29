@@ -282,6 +282,34 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"`{all_public_rows}` committed `TLA-Prove` JSONL rows, `{raw_tla_files}` public seed `.tla` files, or `{usable_module_rows}` usable seed modules"
             ),
         ],
+        "docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md": [
+            f"- `FormaLLM` remains the canonical `{formalllm_rows}`-entry benchmark layer.",
+            f"- tracked public training/eval surface: `{raw_rows}` rows across `{tracked_public_files}` files",
+            f"- full committed public JSONL surface: `{all_public_rows}` rows across `{all_public_files}` files",
+            f"- `{raw_tla_files}` public `.tla` files",
+            f"- `{usable_module_rows}` usable module rows",
+            "- `4` of the `5` shipped search queries still return zero repositories",
+        ],
+        "docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md": [
+            (
+                "| `data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json` | "
+                f"Current default prover SFT is `{mixed_sft_rows}` rows and already includes the full `{formalllm_rows}`-row `FormaLLM` layer. |"
+            ),
+            (
+                "| `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json` | "
+                f"Non-default tracked-public expanded lane is `{expanded_sft_rows}` rows: `{mixed_sft_rows}` base stack + "
+                f"`{expanded_public_import_rows}` normalized public import + `{expanded_seed_candidate_rows}` SANY-clean seed candidates. |"
+            ),
+            (
+                "| `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json` | "
+                f"Broader committed-public lane is `{full_public_expanded_sft_rows}` rows with `{full_public_expanded_public_import_rows}` normalized public-import rows. |"
+            ),
+            (
+                "| `outputs/manifests/ai4fm_public_seed_prover_funnel.json` | "
+                f"`{usable_module_rows}` usable seed modules -> `168` shape-ready rows -> `{candidate_rows}` SANY-clean rows, leaving `70` shape-ready-but-not-SANY-clean rows. |"
+            ),
+            f"| `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` | `chattla:20b-fc128best` has a fresh full benchmark but still `0` SANY / `0` TLC. | Freshness alone does not clear the gate; candidate quality is also non-deployable. |",
+        ],
         "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md": [
             "This bundle ships prover corpora plus metadata summaries for the broader public AI4FM expansion lanes.",
             f"- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
