@@ -68,6 +68,7 @@ There is now an explicit non-default expansion build path as well: `data/process
 The broader committed-public variant is now materialized too: `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl` carries the same prover stack plus the `1010`-row full-public normalized import for `2484` total rows.
 The full tracked-corpora public row lane is also materialized at `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `2350` rows when we need the undeduped AI4FM public import surface.
 There is also an opt-in full committed-surface import path now: `python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl` pulls in the currently excluded `data/toy/*` and `outputs/diamond_gen/*` files (`407` public rows across `13` JSONLs) without changing the default tracked-corpora lane. The current checked-in all-public import summaries land at `1010` deduped rows and `2757` raw rows, so the broader committed JSONL surface adds only `5` new unique normalized examples on top of the existing `1005`-row tracked import.
+The residual public seed repair lane is now narrower and better classified: `data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json` shows `24` shape-ready-but-not-SANY rows remaining, with `9` recoverable without new source material and `15` blocked on missing public helper modules such as `FiniteSetTheorems`, `NaturalsInduction`, and `SequenceTheorems`.
 
 Rebuild the public AI4FM artifacts with:
 

@@ -17,6 +17,8 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
+from scripts.build_ai4fm_public_seed_prover_candidates import _build_indexes, _validate_with_staged_imports
+from src.validators.sany_validator import validate_file as validate_sany_file
 from src.validators.sany_validator import validate_string as validate_sany_string
 
 DEFAULT_SOURCE = REPO / "data" / "processed" / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl"
@@ -116,6 +118,7 @@ def build_queue(
     source: Path = DEFAULT_SOURCE,
     seed_modules: Path = DEFAULT_SEED_MODULES,
     validate_module: Callable[..., Any] = validate_sany_string,
+    validate_file: Callable[..., Any] = validate_sany_file,
     workers: int = 4,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     source_rows = _load_jsonl(source)
@@ -125,6 +128,7 @@ def build_queue(
         module = str(row.get("module", ""))
         if module:
             module_to_rows[module].append(row)
+    by_repo_module, by_module = _build_indexes(seed_rows)
 
     def process(row: dict[str, Any]) -> dict[str, Any]:
         module = str(row.get("module", ""))
@@ -133,7 +137,27 @@ def build_queue(
         errors = [str(item) for item in getattr(result, "errors", [])]
         raw_output = str(getattr(result, "raw_output", ""))
         first_error = _first_meaningful_error(errors, raw_output)
-        missing = _missing_imports(raw_output)
+        initial_missing = _missing_imports(raw_output)
+        missing = list(initial_missing)
+        staged_modules: list[str] = []
+        staged_unresolved: list[str] = []
+        final_first_error = first_error
+        if initial_missing:
+            result, staged_info = _validate_with_staged_imports(
+                row,
+                initial_result=result,
+                validate_file=validate_file,
+                by_repo_module=by_repo_module,
+                by_module=by_module,
+                initial_missing_imports=initial_missing,
+            )
+            staged_modules = list(staged_info.get("staged_modules", []))
+            staged_unresolved = list(staged_info.get("unresolved_missing_imports", []))
+            final_errors = [str(item) for item in getattr(result, "errors", [])]
+            final_raw_output = str(getattr(result, "raw_output", ""))
+            final_first_error = _first_meaningful_error(final_errors, final_raw_output)
+            if staged_unresolved:
+                missing = list(staged_unresolved)
         details = []
         availabilities: list[str] = []
         for missing_module in missing:
@@ -156,9 +180,13 @@ def build_queue(
             "repo_head_sha": row.get("repo_head_sha"),
             "html_url": row.get("html_url"),
             "download_url": row.get("download_url"),
-            "first_error": first_error,
+            "first_error": final_first_error,
+            "initial_first_error": first_error,
+            "initial_missing_imports": initial_missing,
             "missing_imports": missing,
             "missing_import_details": details,
+            "staged_modules": staged_modules,
+            "post_stage_unresolved_missing_imports": staged_unresolved,
             "repair_priority": priority,
             "recommended_action": recommended_action,
             "recoverable_without_new_source": recoverable,
@@ -270,6 +298,7 @@ def main() -> int:
     rows, summary = build_queue(
         source=args.source,
         seed_modules=args.seed_modules,
+        validate_file=validate_sany_file,
         workers=args.workers,
     )
     report = _write_jsonl_and_summary(rows=rows, summary=summary, out=args.out)

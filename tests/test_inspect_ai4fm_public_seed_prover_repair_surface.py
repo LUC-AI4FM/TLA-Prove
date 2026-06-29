@@ -62,11 +62,32 @@ def test_build_report_summarizes_import_blocked_repair_surface(tmp_path: Path) -
         raw = "In module SpecC\nUnknown operator: FooBar\n*** Errors: 1\n"
         return _Sany(False, ["Unknown operator: FooBar", "*** Errors: 1"], raw)
 
+    def fake_validate_file(path: Path):
+        module_name = path.stem
+        if module_name == "SpecA":
+            raw = "In module SpecA\nCannot find source file for module TLAPS imported in module SpecA.\n*** Errors: 1\n"
+            return _Sany(False, ["Cannot find source file for module TLAPS imported in module SpecA.", "*** Errors: 1"], raw)
+        if module_name == "SpecB":
+            raw = (
+                "In module SpecB\n"
+                "Cannot find source file for module LocalHelper imported in module SpecB.\n"
+                "Cannot find source file for module SharedHelper imported in module SpecB.\n"
+                "*** Errors: 2\n"
+            )
+            return _Sany(
+                False,
+                ["Cannot find source file for module LocalHelper imported in module SpecB.", "*** Errors: 2"],
+                raw,
+            )
+        raw = "In module SpecC\nUnknown operator: FooBar\n*** Errors: 1\n"
+        return _Sany(False, ["Unknown operator: FooBar", "*** Errors: 1"], raw)
+
     report = build_report(
         source=source,
         source_summary=source_summary,
         seed_modules=seed_modules,
         validate_module=fake_validate,
+        validate_file=fake_validate_file,
         workers=1,
     )
 
@@ -130,3 +151,54 @@ def test_cli_writes_repair_surface_report(tmp_path: Path) -> None:
     saved = json.loads(out.read_text(encoding="utf-8"))
     assert stdout["repair_surface"]["rows"] == 1
     assert saved == stdout
+
+
+def test_build_report_uses_post_stage_missing_imports(tmp_path: Path) -> None:
+    source = tmp_path / "repair.jsonl"
+    source_summary = tmp_path / "repair.summary.json"
+    seed_modules = tmp_path / "seed.jsonl"
+
+    _write_jsonl(
+        source,
+        [
+            {"module": "SpecA", "repo": "org/repo-a", "source_path": "SpecA.tla", "content": "---- MODULE SpecA ----\nEXTENDS TLAPS\n====\n"},
+        ],
+    )
+    _write(source_summary, json.dumps({"kept_rows": 1, "excluded_sany_clean_rows": 0}))
+    _write_jsonl(
+        seed_modules,
+        [
+            {"module": "TLAPS", "repo": "tlaplus/tlaplus", "source_path": "TLAPS.tla", "content": "---- MODULE TLAPS ----\nPTL == TRUE\n====\n"},
+        ],
+    )
+
+    def fake_validate(_content: str, *, module_name: str):
+        assert module_name == "SpecA"
+        raw = "In module SpecA\nCannot find source file for module TLAPS imported in module SpecA.\n*** Errors: 1\n"
+        return _Sany(False, ["Cannot find source file for module TLAPS imported in module SpecA.", "*** Errors: 1"], raw)
+
+    def fake_validate_file(path: Path):
+        if (path.parent / "TLAPS.tla").exists():
+            raw = "In module SpecA\nCannot find source file for module FiniteSetTheorems imported in module SpecA.\n*** Errors: 1\n"
+            return _Sany(
+                False,
+                ["Cannot find source file for module FiniteSetTheorems imported in module SpecA.", "*** Errors: 1"],
+                raw,
+            )
+        raw = "In module SpecA\nCannot find source file for module TLAPS imported in module SpecA.\n*** Errors: 1\n"
+        return _Sany(False, ["Cannot find source file for module TLAPS imported in module SpecA.", "*** Errors: 1"], raw)
+
+    report = build_report(
+        source=source,
+        source_summary=source_summary,
+        seed_modules=seed_modules,
+        validate_module=fake_validate,
+        validate_file=fake_validate_file,
+        workers=1,
+    )
+
+    assert report["missing_imports"]["rows_with_missing_imports"] == 1
+    assert report["missing_imports"]["rows_recoverable_from_seed_surface_or_tlaps_stub"] == 0
+    assert report["missing_imports"]["availability_counts"] == {"missing_from_seed_surface": 1}
+    assert report["missing_imports"]["top_missing_modules"][0]["module"] == "FiniteSetTheorems"
+    assert report["samples"][0]["missing_imports"] == ["FiniteSetTheorems"]

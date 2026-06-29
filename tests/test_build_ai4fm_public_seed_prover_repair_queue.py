@@ -148,3 +148,68 @@ def test_cli_writes_repair_queue(tmp_path: Path) -> None:
     assert rows[0]["repair_priority"] == "p1"
     assert stdout["kept_rows"] == 1
     assert out.with_suffix(".summary.json").exists()
+
+
+def test_build_queue_uses_post_stage_missing_imports_for_priority(tmp_path: Path) -> None:
+    source = tmp_path / "repair.jsonl"
+    seed_modules = tmp_path / "seed.jsonl"
+    _write_jsonl(
+        source,
+        [
+            {
+                "module": "SpecA",
+                "repo": "org/repo-a",
+                "source_path": "SpecA.tla",
+                "content_sha256": "aaa",
+                "content": "---- MODULE SpecA ----\nEXTENDS TLAPS\n====\n",
+            }
+        ],
+    )
+    _write_jsonl(
+        seed_modules,
+        [
+            {
+                "module": "TLAPS",
+                "repo": "tlaplus/tlaplus",
+                "source_path": "TLAPS.tla",
+                "repo_head_sha": "sha-tlaps",
+                "content": "---- MODULE TLAPS ----\nPTL == TRUE\n====\n",
+            }
+        ],
+    )
+
+    def fake_validate(_content: str, *, module_name: str):
+        assert module_name == "SpecA"
+        raw = "Cannot find source file for module TLAPS imported in module SpecA.\n*** Errors: 1\n"
+        return _Sany(False, ["Cannot find source file for module TLAPS imported in module SpecA."], raw)
+
+    def fake_validate_file(path: Path):
+        if (path.parent / "TLAPS.tla").exists():
+            raw = (
+                "Cannot find source file for module FiniteSetTheorems imported in module SpecA.\n"
+                "*** Errors: 1\n"
+            )
+            return _Sany(
+                False,
+                ["Cannot find source file for module FiniteSetTheorems imported in module SpecA."],
+                raw,
+            )
+        raw = "Cannot find source file for module TLAPS imported in module SpecA.\n*** Errors: 1\n"
+        return _Sany(False, ["Cannot find source file for module TLAPS imported in module SpecA."], raw)
+
+    rows, summary = build_queue(
+        source=source,
+        seed_modules=seed_modules,
+        validate_module=fake_validate,
+        validate_file=fake_validate_file,
+        workers=1,
+    )
+
+    assert rows[0]["initial_missing_imports"] == ["TLAPS"]
+    assert rows[0]["staged_modules"] == ["TLAPS"]
+    assert rows[0]["missing_imports"] == ["FiniteSetTheorems"]
+    assert rows[0]["recommended_action"] == "expand_public_dependency_surface"
+    assert rows[0]["recoverable_without_new_source"] is False
+    assert rows[0]["missing_import_details"][0]["availability"] == "missing_from_seed_surface"
+    assert summary["recoverable_without_new_source_rows"] == 0
+    assert summary["blocked_on_missing_public_dependency_rows"] == 1
