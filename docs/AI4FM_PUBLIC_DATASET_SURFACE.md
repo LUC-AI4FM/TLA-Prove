@@ -64,6 +64,22 @@ Current live import summary:
   - `48` from `data/frs_tla_ralph_gen/dev.jsonl`
   - `1` from `data/processed/eval.jsonl`
 
+If we want the full public GitHub row surface instead of the normalized,
+deduped import, ChatTLA can now materialize the raw public stack directly:
+
+- command:
+  `python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl`
+- expected scale from the current public repo surface:
+  - `2350` raw public rows from `LUC-AI4FM/TLA-Prove`
+  - plus the separate `205`-row `FormaLLM` canonical corpus
+
+That gives us a clean two-lane setup:
+
+- `formalllm_eval_v1.jsonl` for the canonical `205`-example benchmark layer
+- `ai4fm_public_tlaprove_import_v1.jsonl` for normalized public-AI4FM imports
+- `ai4fm_public_tlaprove_import_raw_v1.jsonl` when we need the full public row
+  surface without exact-final-spec collapse
+
 ## Public discovery manifest
 
 ChatTLA now also materializes the checked-in public discovery recipe as:
@@ -113,6 +129,8 @@ already expose a multi-thousand-file public formal-spec surface.
   layer available right now.
 - Treat `ai4fm_public_tlaprove_import_v1` as the normalized ChatTLA-format
   import built from that public corpus stack.
+- Treat `ai4fm_public_tlaprove_import_raw_v1` as the full public row lane when
+  we want to preserve oversampling and duplicate examples exactly as committed.
 - Treat `ai4fm_public_seed_file_manifest_v1` as the public GitHub file-level
   expansion lane already committed in the pipeline seed repos.
 - Treat `ai4fm_public_discovery_manifest_v1` as the public repo-level discovery

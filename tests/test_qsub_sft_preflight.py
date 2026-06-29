@@ -8,7 +8,7 @@ def test_sft_preflight_uses_new_prover_corpus_and_safe_bounds() -> None:
     text = PBS.read_text(encoding="utf-8")
 
     assert "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl" in text
-    assert "data/processed/prover_eval.jsonl" in text
+    assert "data/processed/formalllm_eval_v1.jsonl" in text
     assert "src.training.train" in text
     assert "--prover" in text
     assert "--eval-file \"$PROVER_EVAL_FILE\"" in text
@@ -21,4 +21,4 @@ def test_sft_preflight_uses_new_prover_corpus_and_safe_bounds() -> None:
     assert "HF_HUB_OFFLINE=1" in text
     assert "MLFLOW_TRACKING_URI" in text
     assert "MLFLOW_ALLOW_FILE_STORE" in text
-    assert "startup/data/VRAM/TLAPS-eval preflight" in text
+    assert "startup/data/VRAM/full-FormaLLM preflight" in text

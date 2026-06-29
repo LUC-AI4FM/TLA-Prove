@@ -4,6 +4,7 @@ from pathlib import Path
 from scripts.build_ai4fm_public_tlaprove_import import (
     build_import,
     source_specs,
+    write_outputs,
 )
 
 
@@ -119,3 +120,58 @@ def test_build_import_summary_is_json_serializable(tmp_path: Path) -> None:
     path.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
     loaded = json.loads(path.read_text(encoding="utf-8"))
     assert loaded["kept_rows"] == 0
+
+
+def test_build_import_can_keep_raw_duplicate_rows() -> None:
+    rows, summary = build_import(
+        {
+            "processed_train": [
+                {
+                    "_prompt_id": "train/1",
+                    "_source": "processed_train",
+                    "messages": _assistant_messages("---- MODULE A ----\n====\nSPECIFICATION Spec\n"),
+                }
+            ],
+            "diamond_sft_v3": [
+                {
+                    "_prompt_id": "diamond/dup",
+                    "_source": "diamond_sft_v3",
+                    "messages": _assistant_messages("---- MODULE A ----\n====\nSPECIFICATION Spec\n"),
+                }
+            ],
+            "processed_eval": [],
+            "diamond_eval_holdout": [],
+            "ralph_train": [],
+            "ralph_dev": [],
+        },
+        generated_at="2026-06-28T00:00:00+00:00",
+        dedupe=False,
+    )
+
+    assert [row["_module"] for row in rows] == ["A", "A"]
+    assert rows[0]["_ai4fm_public_corpora"] == ["processed_train"]
+    assert rows[1]["_ai4fm_public_corpora"] == ["diamond_sft_v3"]
+    assert summary["raw_rows"] == 2
+    assert summary["kept_rows"] == 2
+    assert summary["duplicate_rows_collapsed"] == 0
+    assert summary["dedupe_exact_final_spec"] is False
+
+
+def test_write_outputs_accepts_out_of_repo_target(tmp_path: Path) -> None:
+    rows = [{"messages": [{"role": "developer", "content": "dev"}, {"role": "user", "content": "u"}, {"role": "assistant", "channel": "final", "content": "---- MODULE A ----\n====\n"}]}]
+    summary = {
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1",
+        "generated_at": "2026-06-28T00:00:00+00:00",
+        "repo": {"nameWithOwner": "LUC-AI4FM/TLA-Prove"},
+        "raw_rows": 1,
+        "kept_rows": 1,
+        "duplicate_rows_collapsed": 0,
+        "dedupe_exact_final_spec": False,
+        "per_corpus": {},
+    }
+
+    out = tmp_path / "ai4fm_public_tlaprove_import_raw_v1.jsonl"
+    final_summary = write_outputs(rows, summary, out)
+
+    assert final_summary["out"] == str(out)
+    assert final_summary["summary"] == str(out.with_suffix(".summary.json"))

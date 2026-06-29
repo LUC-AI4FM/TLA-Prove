@@ -165,6 +165,10 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "build_ai4fm_public_tlaprove_import": (
                 "python3 scripts/build_ai4fm_public_tlaprove_import.py"
             ),
+            "build_ai4fm_public_tlaprove_import_raw": (
+                "python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates "
+                "--out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl"
+            ),
             "build_ai4fm_public_seed_file_manifest": (
                 "python3 scripts/build_ai4fm_public_seed_file_manifest.py"
             ),
