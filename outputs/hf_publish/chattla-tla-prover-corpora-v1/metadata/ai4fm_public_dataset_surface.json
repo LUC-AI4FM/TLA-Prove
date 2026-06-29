@@ -1,5 +1,9 @@
 {
   "formalllm": {
+    "architecture_doc": {
+      "metadata_specification_claim": "1800+",
+      "path": "data/FormaLLM/doc/ARCHITECTURE.md"
+    },
     "canonical_entries": 205,
     "cfg_files": 136,
     "clean_comment_files": 187,
@@ -7,10 +11,19 @@
     "families": 71,
     "git_head": "e74c2ed",
     "root": "data/FormaLLM/data",
+    "split_files": {
+      "counts": {
+        "test": 32,
+        "train": 143,
+        "val": 30
+      },
+      "root": "data/FormaLLM/Input",
+      "total": 205
+    },
     "tla_files": 410,
     "unique_models": 191
   },
-  "generated_at": "2026-06-29T03:26:37.238911+00:00",
+  "generated_at": "2026-06-29T03:56:29.136562+00:00",
   "integration_recommendation": {
     "formalllm_role": "canonical prompt/spec supervised corpus",
     "pipeline_role": "broader public extraction/parsing discovery surface",
@@ -35,11 +48,20 @@
       "path": "data/raw",
       "size": 12034995
     },
-    "repo": "LUC-AI4FM-tla-dataset-pipeline"
+    "repo": "LUC-AI4FM-tla-dataset-pipeline",
+    "seed_config_counts": {
+      "orgs": 7,
+      "queries": 5,
+      "repos": 11,
+      "users": 9
+    }
   },
   "public_sources": {
     "formalllm_repo": "https://github.com/LUC-AI4FM/FormaLLM",
     "pipeline_dvc_lock": "https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock",
     "pipeline_repo": "https://github.com/LUC-AI4FM/tla-dataset-pipeline"
-  }
+  },
+  "warnings": [
+    "FormaLLM architecture metadata claim differs from current canonical_entries."
+  ]
 }
