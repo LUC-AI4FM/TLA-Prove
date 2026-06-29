@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -43,6 +44,16 @@ DEFAULT_GGUF_SEARCH_DIRS = (
     REPO / "outputs" / "gguf_fc128_best",
 )
 _AUTO = object()
+
+
+def default_out_path_for_benchmark_model(benchmark_model: str | None) -> Path:
+    canonical_model = default_benchmark_model()
+    if not benchmark_model or benchmark_model == canonical_model:
+        return DEFAULT_OUT
+    safe_model = re.sub(r"[^A-Za-z0-9]+", "_", benchmark_model).strip("_").lower()
+    if not safe_model:
+        return DEFAULT_OUT
+    return DEFAULT_OUT.parent / f"{DEFAULT_OUT.stem}.{safe_model}{DEFAULT_OUT.suffix}"
 
 
 def _local_gguf_files(*gguf_dirs: Path) -> list[Path]:
@@ -200,7 +211,7 @@ def sync_state_to_remote(*, state_path: Path, report: dict[str, Any]) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-id", default=_DEFAULT_REPO)
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--benchmark-max-age-hours", type=float, default=DEFAULT_BENCHMARK_MAX_AGE_HOURS)
     parser.add_argument("--benchmark-model", default=default_benchmark_model())
     parser.add_argument("--sync-state", action="store_true")
@@ -213,6 +224,7 @@ def main() -> int:
     if remote_fetcher is None:
         remote_fetcher = fetch_remote_paths_via_http
 
+    out_path = args.out or default_out_path_for_benchmark_model(args.benchmark_model)
     report = build_report(
         repo_id=args.repo_id,
         benchmark_max_age_hours=args.benchmark_max_age_hours,
@@ -232,8 +244,8 @@ def main() -> int:
         else:
             report["state_synced"] = False
 
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0
 

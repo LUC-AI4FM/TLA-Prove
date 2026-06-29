@@ -1,7 +1,12 @@
 import json
 from pathlib import Path
 
-from scripts.inspect_hf_publish_readiness import build_report, sync_state_to_remote
+from scripts.inspect_hf_publish_readiness import (
+    DEFAULT_OUT,
+    build_report,
+    default_out_path_for_benchmark_model,
+    sync_state_to_remote,
+)
 
 
 def _write(path: Path, content: str) -> None:
@@ -49,6 +54,13 @@ def test_build_report_detects_remote_state_drift_and_local_blockers(tmp_path: Pa
     assert report["next_publish_version"] == 22
     assert "local publish state v15 lags remote GGUF state v21" in report["warnings"]
     assert "hf_publish_state note is stale relative to last_published_version" in report["warnings"]
+
+
+def test_default_out_path_keeps_canonical_lane_stable_and_candidates_separate() -> None:
+    assert default_out_path_for_benchmark_model("chattla:20b") == DEFAULT_OUT
+    assert default_out_path_for_benchmark_model("chattla:20b-fc128best") == (
+        DEFAULT_OUT.parent / "hf_publish_readiness.chattla_20b_fc128best.json"
+    )
 
 
 def test_build_report_accepts_local_gguf_from_fallback_dir(tmp_path: Path) -> None:
