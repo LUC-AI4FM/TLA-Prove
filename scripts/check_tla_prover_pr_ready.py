@@ -17,6 +17,7 @@ DEFAULT_EXCLUDE_FILES = {"memory.md", "docs/formallm.md"}
 DEFAULT_UNTRACKED_SCAN_PREFIXES = ("scripts/",)
 TRACKED_SHARED_ARTIFACTS = (
     "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
+    "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
     "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
     "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
     "data/processed/formalllm_eval_v1.summary.json",

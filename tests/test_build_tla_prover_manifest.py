@@ -41,6 +41,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     _write_jsonl(
+        repo / "data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+        [{"messages": []}, {"messages": []}, {"messages": []}, {"messages": []}, {"messages": []}],
+    )
+    (repo / "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json").write_text(
+        json.dumps({"kept_rows": 5, "duplicate_rows_collapsed": 0, "dedupe_exact_final_spec": False}),
+        encoding="utf-8",
+    )
+    _write_jsonl(
         repo / "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
         [{"repo": "a/b", "path": "SpecA.tla"}, {"repo": "a/b", "path": "SpecA.cfg"}],
     )
@@ -114,6 +122,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["rows"] == 4
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["summary"]["duplicate_rows_collapsed"] == 2
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_raw_v1"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_raw_v1"]["rows"] == 5
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_raw_v1"]["summary"]["dedupe_exact_final_spec"] is False
     assert manifest["artifacts"]["ai4fm_public_seed_file_manifest_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_seed_file_manifest_v1"]["rows"] == 2
     assert manifest["artifacts"]["ai4fm_public_seed_file_manifest_v1"]["summary"]["totals"]["tla"] == 1

@@ -143,6 +143,8 @@ deduped import, ChatTLA can now materialize that tracked public stack directly:
 - expected scale from the current tracked corpora surface:
   - `2350` raw public rows from the tracked `LUC-AI4FM/TLA-Prove` corpora
   - plus the separate `205`-row `FormaLLM` canonical corpus
+- current tracked raw-import artifact:
+  - `2350` kept rows in `ai4fm_public_tlaprove_import_raw_v1` when exact-final-spec dedupe is disabled
 
 The current importer does not yet materialize every committed public JSONL file
 from `TLA-Prove`; it intentionally excludes `data/toy/*` and

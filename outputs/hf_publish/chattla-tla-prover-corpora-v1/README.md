@@ -31,6 +31,8 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
 - `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus
   report (`2350` tracked training/eval rows within a `2757`-row committed public
   JSONL surface).
+- `metadata/ai4fm_public_tlaprove_import_raw_v1.summary.json`: raw tracked-corpora
+  import summary (`2350` undeduped rows).
 - `metadata/ai4fm_public_tlaprove_import_v1.summary.json`: normalized public AI4FM
   import layer (`1005` rows).
 - `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed
