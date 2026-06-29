@@ -7,7 +7,7 @@
     "shape_ready_vs_sany_clean_extra_rows": 70
   },
   "default_train_file": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
-  "generated_at": "2026-06-29T13:19:53.613611+00:00",
+  "generated_at": "2026-06-29T13:27:48.384961+00:00",
   "lanes": {
     "default": {
       "alias": "default",

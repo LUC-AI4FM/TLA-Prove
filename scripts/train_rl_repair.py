@@ -42,6 +42,8 @@ os.environ.setdefault("USE_JAX", "0")
 os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_REPAIR_PAIRS = "data/processed/ralph_repair_pairs.jsonl"
+DEFAULT_BENCHMARK_REPAIR_PAIRS = "data/processed/benchmark_repair_pairs_fc128best.jsonl"
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
@@ -65,7 +67,7 @@ def _resolve_base_model() -> str:
     return "EricSpencer00/chattla-20b"
 
 
-def main() -> None:
+def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -102,11 +104,26 @@ def main() -> None:
                         "that blows up eager-attention memory (this version of "
                         "TRL has no GRPOConfig.max_prompt_length, so the only "
                         "defense is dataset-level filtering)")
-    parser.add_argument("--trajectory-file",
-                        default="data/processed/ralph_repair_pairs.jsonl",
-                        help="Path to repair pairs JSONL")
+    parser.add_argument("--trajectory-file", action="append", default=None,
+                        help="Path to a repair-pairs JSONL. Repeat to mix multiple corpora. "
+                        f"Defaults to `{DEFAULT_REPAIR_PAIRS}`.")
+    parser.add_argument("--include-benchmark-repair-pairs", action="store_true",
+                        help="Also load the benchmark-derived repair corpus at "
+                        f"`{DEFAULT_BENCHMARK_REPAIR_PAIRS}`.")
     parser.add_argument("--smoke", action="store_true",
                         help="2 steps, no checkpoint, sanity-check the wiring")
+    return parser
+
+
+def resolve_trajectory_files(args: argparse.Namespace) -> list[str]:
+    files = list(args.trajectory_file or [DEFAULT_REPAIR_PAIRS])
+    if args.include_benchmark_repair_pairs:
+        files.append(DEFAULT_BENCHMARK_REPAIR_PAIRS)
+    return files
+
+
+def main() -> None:
+    parser = build_arg_parser()
     args = parser.parse_args()
 
     if args.model is None:
@@ -137,9 +154,10 @@ def main() -> None:
     tokenizer.padding_side = "left"
 
     # -- Dataset --------------------------------------------------------
-    print(f"[rl-repair] loading repair prompts from {args.trajectory_file} ...")
+    trajectory_files = resolve_trajectory_files(args)
+    print(f"[rl-repair] loading repair prompts from {trajectory_files} ...")
     examples, before_scores = load_repair_prompts(
-        trajectory_file=args.trajectory_file,
+        trajectory_file=trajectory_files,
         difficulty=args.difficulty,
         max_examples=10 if args.smoke else None,
         min_before_score=args.min_before_score,
@@ -148,7 +166,10 @@ def main() -> None:
         tokenizer=tokenizer,
     )
     if not examples:
-        sys.exit("No repair pairs found. Check filters or run collect_ralph_trajectories.py.")
+        sys.exit(
+            "No repair pairs found. Check filters or rebuild the selected corpora "
+            "(for example collect_ralph_trajectories.py or build_benchmark_repair_pairs.py)."
+        )
     print(f"[rl-repair] loaded {len(examples)} repair pairs "
           f"(difficulty={args.difficulty}, "
           f"score=[{args.min_before_score},{args.max_before_score}], "

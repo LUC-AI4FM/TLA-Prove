@@ -107,6 +107,8 @@ PYTEST_FILES = [
     "tests/test_upload_v11.py",
     "tests/test_doctor_tla_prover_handoff.py",
     "tests/test_publish_hf.py",
+    "tests/test_repair_dataset.py",
+    "tests/test_train_rl_repair.py",
 ]
 
 
