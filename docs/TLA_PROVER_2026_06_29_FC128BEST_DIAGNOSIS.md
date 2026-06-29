@@ -12,7 +12,7 @@ primarily model-side parse corruption rather than a broken validator/runtime.
   - `outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv`
   - `20` rows, `0/20` SANY, `0/20` TLC
 - Publish gate:
-  - `outputs/manifests/hf_publish_readiness.json`
+  - `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json`
   - blocks publish with `latest full benchmark has zero SANY and zero TLC passes; do not publish this model`
 - Representative parse failures from generated specs:
   - `BM002`: invented `CONSTDEF`

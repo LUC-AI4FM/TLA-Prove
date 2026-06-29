@@ -28,6 +28,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"ready_to_publish": False, "next_publish_version": 22}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json").write_text(
+        json.dumps({"benchmark_model": "chattla:20b-fc128best", "ready_to_publish": False}),
+        encoding="utf-8",
+    )
     _write_jsonl(
         repo / "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         [{"messages": []}, {"messages": []}, {"messages": []}, {"messages": []}],
@@ -103,6 +107,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_tlaprove_corpora"]["kind"] == "public_ai4fm_tlaprove_corpora_report"
     assert manifest["artifacts"]["hf_publish_readiness"]["exists"] is True
     assert manifest["artifacts"]["hf_publish_readiness"]["kind"] == "model_hf_publish_readiness_report"
+    assert manifest["artifacts"]["hf_publish_readiness_fc128best"]["exists"] is True
+    assert manifest["artifacts"]["hf_publish_readiness_fc128best"]["kind"] == (
+        "model_hf_publish_readiness_report"
+    )
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["rows"] == 4
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["summary"]["duplicate_rows_collapsed"] == 2
@@ -181,6 +189,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["inspect_hf_publish_readiness"] == (
         "python3 scripts/inspect_hf_publish_readiness.py"
+    )
+    assert manifest["remote_next_steps"]["inspect_hf_publish_readiness_fc128best"] == (
+        "python3 scripts/inspect_hf_publish_readiness.py "
+        "--benchmark-model chattla:20b-fc128best"
     )
     assert "sft_preflight_pbs" not in manifest["remote_next_steps"]
     assert "sft_preflight_launch" not in manifest["remote_next_steps"]

@@ -93,6 +93,10 @@ ARTIFACTS = {
         "path": "outputs/manifests/hf_publish_readiness.json",
         "kind": "model_hf_publish_readiness_report",
     },
+    "hf_publish_readiness_fc128best": {
+        "path": "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        "kind": "model_hf_publish_readiness_report",
+    },
     "known18_module_list": {
         "path": "data/processed/tla_prover/tlaps_candidate_modules_18.txt",
         "kind": "remote_smoke_input",
@@ -209,6 +213,10 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
             "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",
             "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
+            "inspect_hf_publish_readiness_fc128best": (
+                "python3 scripts/inspect_hf_publish_readiness.py "
+                "--benchmark-model chattla:20b-fc128best"
+            ),
             "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",
         },

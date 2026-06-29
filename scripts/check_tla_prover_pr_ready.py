@@ -26,6 +26,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "outputs/manifests/ai4fm_public_dataset_surface.json",
     "outputs/manifests/ai4fm_public_seed_license_surface.json",
     "outputs/manifests/hf_publish_readiness.json",
+    "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
     "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",
 )
