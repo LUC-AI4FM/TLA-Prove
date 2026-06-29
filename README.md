@@ -58,7 +58,7 @@ ChatTLA currently uses seven public AI4FM-aligned data/artifact layers spanning 
 | `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories | `data/processed/ai4fm_public_discovery_manifest_v1.jsonl` |
 | `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface | `outputs/manifests/ai4fm_public_dataset_surface.json` |
 
-The mixed prover SFT lane already carries the full `205`-row `FormaLLM` benchmark via `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl`; the nearby `30`-row corpora in this repo are holdout/eval slices, not the prover training corpus.
+The mixed prover SFT lane already carries the full `205`-row `FormaLLM` benchmark. The generated local training file is `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl`, and the committed public copy is `outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl`; the nearby `30`-row corpora in this repo are holdout/eval slices, not the prover training corpus.
 
 Rebuild the public AI4FM artifacts with:
 

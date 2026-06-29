@@ -528,11 +528,14 @@ New trainable artifacts:
   contains 18 structured verified proof traces from the all-green `160816`
   archive, raw 299/299 TLAPS obligations, checksum
   `5444bd7da9a1946380877202f48658376df0c8e77bbf5328b9547c9eecb78e35`.
-- `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl` contains 1330
+- The generated local prover SFT file
+  `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl` contains 1330
   SFT rows: `diamond_sft_v3`, the full `205`-row `formalllm_eval_v1`, plus 4x
   oversampled verified TLAPS proof rows, normalized to
   `developer`/`user`/assistant-channel message format, checksum
   `3b4350956d94d214f1e1d8c2225bc7ecbcdf438b8cb1d23ac9f75464ccfb446e`.
+- The committed public copy of that same corpus lives at
+  `outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl`.
 - `data/processed/prover_eval.jsonl` contains 18 TLAPS-callback-compatible
   prover eval rows derived from the verified proof traces, 299/299 gold TLAPS
   obligations, checksum
@@ -577,7 +580,25 @@ cd ~/ChatTLA
 qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs
 ```
 
-One-command handoff from the MacBook, once the Mac mini route is reachable:
+Preferred one-command handoff from the MacBook when direct Sophia login is
+available:
+
+```bash
+CHATTLA_REMOTE_HOST=user@sophia-login-01 \
+CHATTLA_REMOTE_SINGLE_SESSION=1 \
+CHATTLA_REMOTE_PASSWORD=<one-time-password> \
+scripts/sync_sophia_and_submit_known18.sh
+```
+
+This is the primary lane when the Mac mini relay is paused or when credentials
+are single-use. `CHATTLA_REMOTE_SINGLE_SESSION=1` opens one `ControlMaster`
+session via `expect`, then reuses that transport for the sync, remote submit,
+and mirrored submission report so we do not spend multiple password prompts on
+one handoff. Use `scripts/sync_sophia_and_submit_known18.sh
+--submit-sft-preflight`, `--submit-final-proof-verify`, or
+`--submit-full-dataset-smoke` for the bounded remote variants.
+
+Legacy relay handoff from the MacBook, once the Mac mini route is reachable:
 
 ```bash
 scripts/sync_macmini_and_submit_known18.sh
