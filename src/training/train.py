@@ -104,6 +104,10 @@ _EVAL_JSONL   = _REPO_ROOT / "data" / "processed" / "eval.jsonl"
 # The prover lane now trains against the mixed SFT corpus, which already
 # includes the full 205-row FormaLLM layer plus Diamond/verified-TLAPS rows.
 _PROVER_TRAIN_JSONL = _REPO_ROOT / "data" / "processed" / "tla_prover" / "chattla_tla_prover_sft_v1.jsonl"
+# For bounded public-AI4FM expansion experiments, pass:
+#   --train-file data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl
+# That non-default corpus keeps the baseline prover stack and appends the
+# normalized public TLA-Prove import plus public seed prover-candidate replays.
 _PROVER_EVAL_JSONL  = _REPO_ROOT / "data" / "processed" / "prover_eval.jsonl"
 _CHECKPOINT_DIR = _REPO_ROOT / "outputs" / "checkpoints"
 _PROVER_CHECKPOINT_DIR = _REPO_ROOT / "outputs" / "checkpoints_prover"
@@ -662,7 +666,8 @@ if __name__ == "__main__":
                              "use TLAPSEvalCallback, save to outputs/checkpoints_prover/")
     parser.add_argument("--train-file", default=None,
                         help="Path to a custom training JSONL (overrides the hardcoded default). "
-                             "Used for Fork A validator-segregated corpora.")
+                             "Used for Fork A validator-segregated corpora or "
+                             "--train-file data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl.")
     parser.add_argument("--eval-file", default=None,
                         help="Path to a custom evaluation JSONL (overrides eval.jsonl/prover_eval.jsonl).")
     parser.add_argument("--output-dir", default=None,

@@ -19,6 +19,7 @@ def _write_sources(repo: Path) -> None:
         "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
+        "chattla_tla_prover_sft_public_expanded_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         "chattla_tla_prover_sft_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
         "formalllm_eval_v1.summary.json": "data/processed/formalllm_eval_v1.summary.json",
         "prover_eval.summary.json": "data/processed/prover_eval.summary.json",
@@ -44,6 +45,7 @@ def test_build_report_syncs_bundle_metadata(tmp_path: Path) -> None:
     target = bundle_root / "metadata" / "tla_prover_artifacts_v1.json"
     assert target.exists()
     assert json.loads(target.read_text(encoding="utf-8")) == {"bundle_name": "tla_prover_artifacts_v1.json"}
+    assert (bundle_root / "metadata" / "chattla_tla_prover_sft_public_expanded_v1.summary.json").exists()
 
 
 def test_build_report_check_mode_detects_missing_sources_without_writing(tmp_path: Path) -> None:
