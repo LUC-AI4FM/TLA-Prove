@@ -27,6 +27,7 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
         "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
         "ai4fm_public_seed_license_surface.json": "outputs/manifests/ai4fm_public_seed_license_surface.json",
+        "ai4fm_public_seed_tla_modules_v1.summary.json": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
         "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
@@ -154,6 +155,10 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             (
                 "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed\n"
                 f"  file manifest (`{tracked_seed_files}` tracked files, `{raw_tla_files}` `.tla` files, `{usable_module_rows}` usable module rows)."
+            ),
+            (
+                f"- `metadata/ai4fm_public_seed_tla_modules_v1.summary.json`: usable public `.tla`\n"
+                f"  module corpus (`{usable_module_rows}` rows)."
             ),
             (
                 f"- `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance\n"

@@ -2,13 +2,14 @@
 build_prover_sft.py — Extract per-theorem (preamble, statement, proof) chunks
 from the deduped FormaLLM TLAPS corpus.
 
-Output: data/processed/tla_prover/prover_chunks.jsonl  (raw chunks, pre-roundtrip)
+Output: data/processed/legacy_tla_prover_chunks/prover_chunks.jsonl
+        (raw chunks, pre-roundtrip)
         Each row: {preamble, statement, proof, source_file, theorem_line}
 
 The next stages (`roundtrip_prover_sft.py` then `emit_prover_harmony.py`)
 take this file, run each chunk through tlapm in a synthetic module, drop the
 ones that don't verify, and emit legacy chunk-pipeline training/eval artifacts
-under `data/processed/tla_prover/`.
+under `data/processed/legacy_tla_prover_chunks/`.
 
 Chunking strategy
 -----------------
@@ -36,7 +37,7 @@ SCAN_FILES = [
     REPO / "outputs" / "tlaps_formallm_scan.json",
     REPO / "outputs" / "tlaps_recovery_scan.json",
 ]
-OUT = REPO / "data" / "processed" / "tla_prover" / "prover_chunks.jsonl"
+OUT = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks.jsonl"
 
 THEOREM_RE = re.compile(r"^(THEOREM|LEMMA|COROLLARY)\b")
 PROOF_START_RE = re.compile(r"^\s*(PROOF\b|<\d+>|BY\b|OBVIOUS\b)")
