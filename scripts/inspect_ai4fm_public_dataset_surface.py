@@ -168,7 +168,8 @@ def build_report(*, formalllm_root: Path, pipeline_repo: Path) -> dict[str, Any]
                 "Use formalllm_eval_v1 for direct supervised/eval work, "
                 "inspect ai4fm_public_tlaprove_corpora and build ai4fm_public_tlaprove_import_v1 "
                 "for stable public JSONL expansion, build ai4fm_public_seed_file_manifest_v1 "
-                "for the committed public GitHub file surface, "
+                "for the committed public GitHub file surface, build "
+                "ai4fm_public_seed_tla_modules_v1 for a usable `.tla` module corpus from that lane, "
                 "and treat ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
             ),
         },
