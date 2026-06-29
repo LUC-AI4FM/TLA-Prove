@@ -21,6 +21,8 @@ TRACKED_SHARED_ARTIFACTS = (
     "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
     "data/processed/formalllm_eval_v1.summary.json",
     "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
+    "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
+    "outputs/autoprover/tlaps_verify_published_161016/summary.json",
     "outputs/manifests/ai4fm_public_dataset_surface.json",
     "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",

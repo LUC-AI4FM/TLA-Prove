@@ -47,6 +47,36 @@ def _load_expected(path: Path | None) -> dict | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _display_path(path: Path | None) -> str | None:
+    if path is None:
+        return None
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
+
+
+def _display_tool_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return path.name
+
+
+def _sanitize_result_paths(results: list[dict]) -> list[dict]:
+    sanitized: list[dict] = []
+    for item in results:
+        row = dict(item)
+        raw_path = row.get("path")
+        if isinstance(raw_path, str):
+            row["path"] = f"proofs/{Path(raw_path).name}"
+        raw_log = row.get("raw_log")
+        if isinstance(raw_log, str):
+            row["raw_log"] = _display_path(Path(raw_log)) or raw_log
+        sanitized.append(row)
+    return sanitized
+
+
 def _expected_matches(actual: dict, expected: dict | None) -> bool | None:
     if expected is None:
         return None
@@ -65,12 +95,12 @@ def write_manifest(
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "command": "scripts/verify_published_tlaps_proof_artifact.py",
-        "tarball": str(tarball),
+        "tarball": _display_path(tarball),
         "tarball_sha256": _sha256(tarball),
-        "expected_summary": str(expected_summary_path) if expected_summary_path else None,
+        "expected_summary": _display_path(expected_summary_path),
         "expected_matches": expected_matches,
-        "out_dir": str(out_dir),
-        "tlapm": str(args.tlapm),
+        "out_dir": _display_path(out_dir),
+        "tlapm": _display_tool_path(args.tlapm),
         "threads": args.threads,
         "timeout": args.timeout,
         "expected_modules": args.expected_modules,
@@ -127,9 +157,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         ]
 
     summary = summarize_results(results, require_no_asterisk=True)
-    summary["source_tarball"] = str(tarball)
+    summary["results"] = _sanitize_result_paths(summary["results"])
+    summary["source_tarball"] = _display_path(tarball)
     summary["source_tarball_sha256"] = _sha256(tarball)
-    summary["expected_summary_path"] = str(args.expected_summary) if args.expected_summary else None
+    summary["expected_summary_path"] = _display_path(args.expected_summary)
     expected = _load_expected(args.expected_summary)
     summary["matches_expected_summary"] = _expected_matches(summary, expected)
     summary_path = out_dir / "summary.json"
