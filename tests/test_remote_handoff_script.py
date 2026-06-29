@@ -45,6 +45,7 @@ def test_direct_sophia_handoff_script_mentions_required_artifacts_and_dry_run() 
     text = DIRECT_SCRIPT.read_text(encoding="utf-8")
 
     assert "--dry-run" in text
+    assert "--sft-corpus" in text
     assert "--submit-sft-preflight" in text
     assert "--submit-final-proof-verify" in text
     assert "--submit-full-dataset-smoke" in text
@@ -132,6 +133,30 @@ def test_direct_sophia_handoff_dry_run_honors_custom_prover_train_file() -> None
     )
     result = subprocess.run(
         [str(DIRECT_SCRIPT), "--dry-run", "--submit-sft-preflight"],
+        cwd=REPO,
+        env=env,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    normalized = result.stdout.replace("\\ ", " ")
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl" in normalized
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json" in normalized
+    assert "CHATTLA_TLA_PROVER_TRAIN_FILE" in normalized
+
+
+def test_direct_sophia_handoff_dry_run_accepts_expanded_corpus_flag() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_REMOTE_HOST": "user@remote.example",
+            "CHATTLA_REMOTE_REPO": "~/ChatTLA",
+            "CHATTLA_TLAPM": "/opt/tlaps/bin/tlapm",
+        }
+    )
+    result = subprocess.run(
+        [str(DIRECT_SCRIPT), "--dry-run", "--submit-sft-preflight", "--sft-corpus", "expanded"],
         cwd=REPO,
         env=env,
         check=True,
@@ -545,6 +570,33 @@ def test_remote_handoff_dry_run_honors_custom_prover_train_file() -> None:
     )
     result = subprocess.run(
         [str(SCRIPT), "--dry-run", "--submit-sft-preflight"],
+        cwd=REPO,
+        env=env,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    normalized = result.stdout.replace("\\ ", " ")
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl" in normalized
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json" in normalized
+    assert "CHATTLA_TLA_PROVER_TRAIN_FILE" in normalized
+
+
+def test_remote_handoff_dry_run_accepts_expanded_corpus_flag() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_RELAY_HOST": "relay.example",
+            "CHATTLA_RELAY_KEY": "/tmp/relay_key",
+            "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
+            "CHATTLA_REMOTE_HOST": "remote-hpc",
+            "SOPHIA_CTL": "/tmp/remote-ctl",
+            "CHATTLA_TLAPM": "/opt/tlaps/bin/tlapm",
+        }
+    )
+    result = subprocess.run(
+        [str(SCRIPT), "--dry-run", "--submit-sft-preflight", "--sft-corpus", "expanded"],
         cwd=REPO,
         env=env,
         check=True,
