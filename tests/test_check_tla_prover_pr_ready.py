@@ -41,10 +41,12 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/inspect_ai4fm_public_tlaprove_corpora.py" in joined
     assert "scripts/inspect_ai4fm_public_dataset_surface.py" in joined
     assert "scripts/materialize_processed_tla_corpus.py" in joined
+    assert "scripts/inspect_hf_publish_readiness.py" in joined
     assert "tests/test_remote_handoff_script.py" in joined
     assert "tests/test_build_ai4fm_public_discovery_manifest.py" in joined
     assert "tests/test_inspect_ai4fm_public_tlaprove_corpora.py" in joined
     assert "tests/test_inspect_ai4fm_public_dataset_surface.py" in joined
+    assert "tests/test_inspect_hf_publish_readiness.py" in joined
     assert "tests/test_materialize_processed_tla_corpus.py" in joined
     assert "tests/test_preflight_tla_prover_remote.py" in joined
     assert "tests/test_build_tla_prover_manifest.py" in joined
@@ -52,6 +54,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_build_ai4fm_public_seed_file_manifest.py" in joined
     assert "tests/test_build_ai4fm_public_seed_prover_candidates.py" in joined
     assert "tests/test_build_ai4fm_public_seed_tla_modules.py" in joined
+    assert "tests/test_publish_hf.py" in joined
 
 
 def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None:
@@ -63,6 +66,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
         "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
         "outputs/autoprover/tlaps_verify_published_161016/summary.json",
         "outputs/manifests/ai4fm_public_dataset_surface.json",
+        "outputs/manifests/hf_publish_readiness.json",
     ]:
         path = tmp_path / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -73,6 +77,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     assert "outputs/autoprover/tlaps_verify_published_161016/manifest.json" in paths
     assert "outputs/autoprover/tlaps_verify_published_161016/summary.json" in paths
     assert "outputs/manifests/ai4fm_public_dataset_surface.json" in paths
+    assert "outputs/manifests/hf_publish_readiness.json" in paths
 
 
 def test_readiness_files_can_include_untracked_scripts_but_not_outputs(tmp_path: Path) -> None:

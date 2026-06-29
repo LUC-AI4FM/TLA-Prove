@@ -1,12 +1,12 @@
 {
   "artifacts": {
     "ai4fm_public_dataset_surface": {
-      "bytes": 1703,
+      "bytes": 2216,
       "exists": true,
       "kind": "public_ai4fm_dataset_surface_report",
       "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
       "rows": null,
-      "sha256": "8e5c26489f374917cd02e5ee089786822108ee234184c0475e47d00b8b8585a8"
+      "sha256": "6df1a2bd70eea7335b0bf9d5f05f01768236a7ca11cadca50991b9d63d560e7d"
     },
     "ai4fm_public_discovery_manifest_v1": {
       "bytes": 7034,
@@ -867,6 +867,14 @@
       },
       "summary_path": "data/processed/formalllm_eval_v1.summary.json"
     },
+    "hf_publish_readiness": {
+      "bytes": 1827,
+      "exists": true,
+      "kind": "model_hf_publish_readiness_report",
+      "path": "outputs/manifests/hf_publish_readiness.json",
+      "rows": null,
+      "sha256": "0dc21a0bcbb12ad2e73f4620e4fb6f8944d795412f2f4dfcfc714d11f644760f"
+    },
     "known18_module_list": {
       "bytes": 1194,
       "exists": true,
@@ -1216,7 +1224,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T03:56:29.100559+00:00",
+  "generated_at": "2026-06-29T04:17:23.739358+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -1236,6 +1244,7 @@
     "final_proof_verify_pbs": "scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
     "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
     "inspect_ai4fm_public_tlaprove_corpora": "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py",
+    "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
     "known18_launch": "qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs",
     "known18_pbs": "scripts/qsub_autoprover_known18_corrected_smoke.pbs",
     "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",
@@ -1245,8 +1254,6 @@
     "remote_results_watch_report": "outputs/manifests/tla_prover_remote_watch.json",
     "remote_submission_report": "outputs/manifests/tla_prover_remote_submission.json",
     "remote_submit_script": "scripts/submit_tla_prover_remote_jobs.sh --submit-sft-preflight",
-    "sft_preflight_launch": "qsub scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
-    "sft_preflight_pbs": "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
     "watch_remote_results": "scripts/watch_tla_prover_remote_results.sh"
   },
   "repo": ".",

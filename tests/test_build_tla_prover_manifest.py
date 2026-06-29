@@ -20,6 +20,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"aggregate": {"total_public_jsonl_rows": 2350}}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/hf_publish_readiness.json").write_text(
+        json.dumps({"ready_to_publish": False, "next_publish_version": 22}),
+        encoding="utf-8",
+    )
     _write_jsonl(
         repo / "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         [{"messages": []}, {"messages": []}, {"messages": []}, {"messages": []}],
@@ -85,6 +89,8 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_dataset_surface"]["kind"] == "public_ai4fm_dataset_surface_report"
     assert manifest["artifacts"]["ai4fm_public_tlaprove_corpora"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_corpora"]["kind"] == "public_ai4fm_tlaprove_corpora_report"
+    assert manifest["artifacts"]["hf_publish_readiness"]["exists"] is True
+    assert manifest["artifacts"]["hf_publish_readiness"]["kind"] == "model_hf_publish_readiness_report"
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["rows"] == 4
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["summary"]["duplicate_rows_collapsed"] == 2
@@ -151,6 +157,11 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["build_sany_tlc_eval_corpus"] == (
         "python3 scripts/build_sany_tlc_eval_corpus.py"
     )
+    assert manifest["remote_next_steps"]["inspect_hf_publish_readiness"] == (
+        "python3 scripts/inspect_hf_publish_readiness.py"
+    )
+    assert "sft_preflight_pbs" not in manifest["remote_next_steps"]
+    assert "sft_preflight_launch" not in manifest["remote_next_steps"]
     assert "handoff_status" not in manifest["remote_next_steps"]
     assert "handoff_status_compact" not in manifest["remote_next_steps"]
     assert "handoff_doctor" not in manifest["remote_next_steps"]

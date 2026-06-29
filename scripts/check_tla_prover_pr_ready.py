@@ -24,6 +24,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
     "outputs/autoprover/tlaps_verify_published_161016/summary.json",
     "outputs/manifests/ai4fm_public_dataset_surface.json",
+    "outputs/manifests/hf_publish_readiness.json",
     "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",
 )
@@ -53,6 +54,7 @@ PY_COMPILE_FILES = [
     "scripts/probe_tla_prover_control_planes.py",
     "scripts/status_tla_prover_handoff.py",
     "scripts/doctor_tla_prover_handoff.py",
+    "scripts/inspect_hf_publish_readiness.py",
 ]
 
 PYTEST_FILES = [
@@ -74,7 +76,9 @@ PYTEST_FILES = [
     "tests/test_qsub_sft_preflight.py",
     "tests/test_build_tla_prover_manifest.py",
     "tests/test_inspect_ai4fm_public_dataset_surface.py",
+    "tests/test_inspect_hf_publish_readiness.py",
     "tests/test_doctor_tla_prover_handoff.py",
+    "tests/test_publish_hf.py",
 ]
 
 
