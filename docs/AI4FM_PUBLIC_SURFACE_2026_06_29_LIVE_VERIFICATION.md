@@ -107,6 +107,31 @@ That means the existing ChatTLA wording is still directionally correct:
   higher-signal lanes (`2757`, `2110`, `2108`, `18`) instead of repeating the
   stale `1800+` shorthand.
 
+## Next move
+
+The corpus decision is now clearer than it was at the start of this audit:
+
+- keep `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl` as the
+  default `1330`-row prover SFT lane, because it already includes the full
+  `205`-row `FormaLLM` benchmark layer;
+- treat
+  `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl` as a
+  non-default `2438`-row experiment lane for the broader committed-public
+  AI4FM surface;
+- do not assume the broader committed-public `TLA-Prove` surface is a major new
+  data source by itself: it raises the normalized import from `1005` to `1010`,
+  so the wider prover lane adds only `5` new unique normalized examples beyond
+  the existing tracked-corpora expansion path.
+
+That makes the next high-yield public-data options:
+
+1. widen the seed-module to prover-candidate funnel beyond the current `98`
+   SANY-clean rows;
+2. run verifier-backed experiments on the `2438`-row full-public lane before
+   changing any default training path;
+3. keep Hugging Face publish decisions gated on verified model quality rather
+   than corpus size alone.
+
 ## Commands used
 
 ```bash

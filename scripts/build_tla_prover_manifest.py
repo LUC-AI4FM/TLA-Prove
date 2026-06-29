@@ -33,6 +33,11 @@ ARTIFACTS = {
         "summary": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         "kind": "public_ai4fm_expanded_prover_sft_dataset",
     },
+    "chattla_tla_prover_sft_public_all_v1": {
+        "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+        "summary": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json",
+        "kind": "full_public_ai4fm_expanded_prover_sft_dataset",
+    },
     "prover_eval_v1": {
         "path": "data/processed/prover_eval.jsonl",
         "summary": "data/processed/prover_eval.summary.json",
@@ -222,6 +227,12 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "python3 scripts/build_ai4fm_public_tlaprove_import.py "
                 "--include-additional-public-jsonl --keep-duplicates "
                 "--out data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl"
+            ),
+            "build_tla_prover_finetune_corpus_public_all": (
+                "python3 scripts/build_tla_prover_finetune_corpus.py "
+                "--public-import data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl "
+                "--public-import-weight 1 --public-seed-candidates-weight 1 "
+                "--out data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl"
             ),
             "inspect_ai4fm_org_surface": "python3 scripts/inspect_ai4fm_org_surface.py",
             "build_ai4fm_public_seed_file_manifest": (

@@ -76,6 +76,10 @@ def _write_manifests(repo: Path) -> None:
         json.dumps({"total_rows": 2433, "public_import_rows": 1005, "public_seed_candidates_rows": 98}),
     )
     _write(
+        repo / "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json",
+        json.dumps({"total_rows": 2438, "public_import_rows": 1010, "public_seed_candidates_rows": 98}),
+    )
+    _write(
         repo / "outputs/manifests/ai4fm_org_surface.json",
         json.dumps({"public_repo_count": 8, "summary": {"corpus_relevant_repo_count": 3}}),
     )
@@ -134,6 +138,7 @@ def _write_manifests(repo: Path) -> None:
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         "ai4fm_public_tlaprove_import_all_public_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json",
         "ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json",
+        "chattla_tla_prover_sft_public_all_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json",
         "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
         "ai4fm_public_tlaprove_import_raw_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
         "chattla_tla_prover_sft_public_expanded_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
@@ -170,6 +175,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown.",
                 "Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.",
                 "There is now an explicit non-default expansion build path as well: `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current `1330`-row prover SFT stack plus the `1005`-row normalized public `TLA-Prove` import and `98` public seed prover-candidate replays for `2433` total rows.",
+                "The broader committed-public variant is now materialized too: `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl` carries the same prover stack plus the `1010`-row full-public normalized import for `2438` total rows.",
                 "The full tracked-corpora public row lane is also materialized at `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `2350` rows when we need the undeduped AI4FM public import surface.",
             ]
         ),
@@ -216,6 +222,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "  rollup for the `11` committed public seed repos.",
                 "- Mixed prover SFT corpus: `1330` rows",
                 "- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n  public-AI4FM expanded prover SFT summary (`2433` rows total; `1005` normalized import rows + `98` seed prover-candidate replays on top of the baseline prover stack).",
+                "- `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public\n  expanded prover SFT summary (`2438` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).",
                 "- Public AI4FM normalized import: `1005` rows from the tracked `2350`-row",
                 "  public corpora slice.",
                 "- Public seed repo license surface: `3` Apache-2.0 repos, `3` MIT repos, `2`",
