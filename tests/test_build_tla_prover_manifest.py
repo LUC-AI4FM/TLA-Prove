@@ -156,6 +156,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["build_ai4fm_public_seed_license_manifest"] == (
         "python3 scripts/build_ai4fm_public_seed_license_manifest.py"
     )
+    assert manifest["remote_next_steps"]["sync_hf_publish_corpora_metadata"] == (
+        "python3 scripts/sync_hf_publish_corpora_metadata.py"
+    )
     assert manifest["remote_next_steps"]["build_ai4fm_public_seed_tla_modules"] == (
         "python3 scripts/build_ai4fm_public_seed_tla_modules.py"
     )
