@@ -120,6 +120,31 @@ def test_direct_sophia_handoff_dry_run_syncs_known18_modules_and_sft_dependencie
     assert "user@remote.example" in normalized
 
 
+def test_direct_sophia_handoff_dry_run_honors_custom_prover_train_file() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_REMOTE_HOST": "user@remote.example",
+            "CHATTLA_REMOTE_REPO": "~/ChatTLA",
+            "CHATTLA_TLAPM": "/opt/tlaps/bin/tlapm",
+            "CHATTLA_TLA_PROVER_TRAIN_FILE": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+        }
+    )
+    result = subprocess.run(
+        [str(DIRECT_SCRIPT), "--dry-run", "--submit-sft-preflight"],
+        cwd=REPO,
+        env=env,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    normalized = result.stdout.replace("\\ ", " ")
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl" in normalized
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json" in normalized
+    assert "CHATTLA_TLA_PROVER_TRAIN_FILE" in normalized
+
+
 def test_direct_sophia_handoff_dry_run_syncs_final_verify_artifacts() -> None:
     env = os.environ.copy()
     env.update(
@@ -503,6 +528,34 @@ def test_remote_handoff_dry_run_syncs_known18_modules_and_sft_dependencies() -> 
     assert "data/processed/sany_tlc_pass_eval_v1.jsonl" in normalized
     assert "scripts/install_macmini_launchagents.sh --dry-run" in normalized
     assert "scripts/submit_tla_prover_remote_jobs.sh --submit-sft-preflight" in normalized
+
+
+def test_remote_handoff_dry_run_honors_custom_prover_train_file() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_RELAY_HOST": "relay.example",
+            "CHATTLA_RELAY_KEY": "/tmp/relay_key",
+            "CHATTLA_RELAY_REPO": "/tmp/relay-repo",
+            "CHATTLA_REMOTE_HOST": "remote-hpc",
+            "SOPHIA_CTL": "/tmp/remote-ctl",
+            "CHATTLA_TLAPM": "/opt/tlaps/bin/tlapm",
+            "CHATTLA_TLA_PROVER_TRAIN_FILE": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+        }
+    )
+    result = subprocess.run(
+        [str(SCRIPT), "--dry-run", "--submit-sft-preflight"],
+        cwd=REPO,
+        env=env,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    normalized = result.stdout.replace("\\ ", " ")
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl" in normalized
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json" in normalized
+    assert "CHATTLA_TLA_PROVER_TRAIN_FILE" in normalized
 
 
 def test_remote_handoff_dry_run_honors_relay_env_over_mac_aliases() -> None:
