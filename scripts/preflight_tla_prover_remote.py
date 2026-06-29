@@ -18,6 +18,7 @@ DEFAULT_PYTHON = Path(os.environ.get("CHATTLA_PYTHON", sys.executable))
 from scripts.tla_prover_corpus_paths import (
     DEFAULT_LOCAL_SFT_TRAIN,
     DEFAULT_PUBLIC_SFT_TRAIN,
+    resolve_remote_sft_corpus_metadata,
     resolve_remote_sft_train_file,
 )
 
@@ -75,8 +76,15 @@ def run_preflight(
             errors.append(f"missing required path: {rel_path}")
 
     resolved_sft_train = None
+    resolved_sft_corpus: dict[str, Any] | None = None
     checked_sft_train_paths: list[str] = []
     if sft_preflight:
+        resolved_sft_corpus = resolve_remote_sft_corpus_metadata(
+            repo,
+            requested=os.environ.get("CHATTLA_TLA_PROVER_TRAIN_FILE"),
+            local_default=DEFAULT_LOCAL_SFT_TRAIN,
+            public_default=DEFAULT_PUBLIC_SFT_TRAIN,
+        )
         resolved_sft_train, checked_sft_train_paths = resolve_remote_sft_train_file(
             repo,
             requested=os.environ.get("CHATTLA_TLA_PROVER_TRAIN_FILE"),
@@ -184,6 +192,7 @@ def run_preflight(
         "module_list": str(module_list),
         "module_count": len(module_paths),
         "resolved_sft_train_file": resolved_sft_train,
+        "resolved_sft_corpus": resolved_sft_corpus,
         "sft_preflight": sft_preflight,
         "require_tools": require_tools,
         "errors": errors,

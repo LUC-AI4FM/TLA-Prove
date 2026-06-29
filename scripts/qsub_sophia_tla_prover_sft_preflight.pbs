@@ -33,6 +33,9 @@ DEFAULT_TRAIN_FILE="data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl"
 PUBLIC_TRAIN_FILE="outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
 TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-$DEFAULT_TRAIN_FILE}"
 PROVER_EVAL_FILE="${CHATTLA_TLA_PROVER_EVAL_FILE:-data/processed/formalllm_eval_v1.jsonl}"
+CORPUS_LABEL="${CHATTLA_TLA_PROVER_CORPUS_LABEL:-default}"
+CORPUS_ROWS="${CHATTLA_TLA_PROVER_CORPUS_ROWS:-unknown}"
+CORPUS_SUMMARY="${CHATTLA_TLA_PROVER_CORPUS_SUMMARY:-}"
 
 if [ -z "${CHATTLA_TLA_PROVER_TRAIN_FILE:-}" ] && [ ! -s "$TRAIN_FILE" ] && [ -s "$PUBLIC_TRAIN_FILE" ]; then
   TRAIN_FILE="$PUBLIC_TRAIN_FILE"
@@ -40,6 +43,10 @@ fi
 
 nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv || true
 # This is a startup/data/VRAM/full-FormaLLM preflight for the mixed TLA prover corpus.
+echo "Using prover corpus lane: $CORPUS_LABEL"
+echo "Resolved prover train file: $TRAIN_FILE"
+echo "Resolved prover corpus rows: $CORPUS_ROWS"
+[ -n "$CORPUS_SUMMARY" ] && echo "Resolved prover corpus summary: $CORPUS_SUMMARY"
 test -s "$TRAIN_FILE"
 test -s "$PROVER_EVAL_FILE"
 "$PY" -u -m src.training.train \

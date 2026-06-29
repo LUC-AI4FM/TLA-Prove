@@ -8,9 +8,12 @@ from scripts.tla_prover_corpus_paths import (
     FULL_PUBLIC_LOCAL_SFT_TRAIN,
     SHAPE_READY_LOCAL_SFT_TRAIN,
     SHAPE_READY_NOT_SANY_LOCAL_SFT_TRAIN,
+    infer_named_sft_alias,
     resolve_named_sft_corpus,
+    resolve_remote_sft_corpus_metadata,
     resolve_probe_corpus_file,
     resolve_remote_sft_train_file,
+    summary_path_for_sft_train_file,
 )
 
 
@@ -50,6 +53,18 @@ def test_resolve_named_sft_corpus_supports_public_aliases() -> None:
     assert resolve_named_sft_corpus("data/custom.jsonl") == "data/custom.jsonl"
 
 
+def test_summary_path_and_alias_resolution_cover_default_and_public_lanes() -> None:
+    assert infer_named_sft_alias(DEFAULT_LOCAL_SFT_TRAIN) == "default"
+    assert infer_named_sft_alias(DEFAULT_PUBLIC_SFT_TRAIN) == "default"
+    assert infer_named_sft_alias(FULL_PUBLIC_LOCAL_SFT_TRAIN) == "full-public"
+    assert summary_path_for_sft_train_file(DEFAULT_LOCAL_SFT_TRAIN) == (
+        "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json"
+    )
+    assert summary_path_for_sft_train_file(FULL_PUBLIC_LOCAL_SFT_TRAIN) == (
+        "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json"
+    )
+
+
 def test_resolve_remote_sft_train_file_accepts_named_full_public_alias(tmp_path: Path) -> None:
     _write(tmp_path / FULL_PUBLIC_LOCAL_SFT_TRAIN)
 
@@ -57,6 +72,26 @@ def test_resolve_remote_sft_train_file_accepts_named_full_public_alias(tmp_path:
 
     assert resolved == FULL_PUBLIC_LOCAL_SFT_TRAIN
     assert checked == [FULL_PUBLIC_LOCAL_SFT_TRAIN]
+
+
+def test_resolve_remote_sft_corpus_metadata_reads_lane_details_from_matrix(tmp_path: Path) -> None:
+    _write(tmp_path / FULL_PUBLIC_LOCAL_SFT_TRAIN)
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+        (
+            '{"lanes":{"full-public":{"rows":2438,"default_publish_lane":false,'
+            '"intended_role":"maximal_committed_public_comparison_train","trainable":true}}}\n'
+        ),
+    )
+
+    metadata = resolve_remote_sft_corpus_metadata(tmp_path, requested="full-public")
+
+    assert metadata["alias"] == "full-public"
+    assert metadata["resolved_train_file"] == FULL_PUBLIC_LOCAL_SFT_TRAIN
+    assert metadata["rows"] == 2438
+    assert metadata["default_publish_lane"] is False
+    assert metadata["intended_role"] == "maximal_committed_public_comparison_train"
+    assert metadata["experiment_matrix_lane_found"] is True
 
 
 def test_resolve_probe_corpus_file_marks_eval_probe_fallback_when_legacy_train_is_missing(tmp_path: Path) -> None:
