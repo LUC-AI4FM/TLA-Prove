@@ -121,7 +121,7 @@ The corpus decision is now clearer than it was at the start of this audit:
   `205`-row `FormaLLM` benchmark layer;
 - treat
   `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl` as a
-  non-default `2438`-row experiment lane for the broader committed-public
+  non-default `2490`-row experiment lane for the broader committed-public
   AI4FM surface;
 - do not assume the broader committed-public `TLA-Prove` surface is a major new
   data source by itself: it raises the normalized import from `1005` to `1010`,
@@ -130,14 +130,14 @@ The corpus decision is now clearer than it was at the start of this audit:
 
 That makes the next high-yield public-data options:
 
-1. widen the seed-module to prover-candidate funnel beyond the current `98`
-   SANY-clean rows; the new funnel report shows `168` rows already match the
-   current autoprover shape, so the immediate public headroom is the `70`
+1. keep widening the seed-module to prover-candidate funnel beyond the current
+   `150` SANY-clean rows; the new funnel report shows `168` rows already match
+   the current autoprover shape, so the immediate public headroom is the `18`
    shape-ready rows still blocked by SANY rather than by missing operators;
    ChatTLA now materializes those two intermediate lanes directly as
    `ai4fm_public_seed_prover_shape_ready_v1` (`168` rows) and
-   `ai4fm_public_seed_prover_shape_ready_not_sany_v1` (`70` rows);
-2. run verifier-backed experiments on the `2438`-row full-public lane before
+   `ai4fm_public_seed_prover_shape_ready_not_sany_v1` (`18` rows);
+2. run verifier-backed experiments on the `2490`-row full-public lane before
    changing any default training path;
 3. keep Hugging Face publish decisions gated on verified model quality rather
    than corpus size alone.

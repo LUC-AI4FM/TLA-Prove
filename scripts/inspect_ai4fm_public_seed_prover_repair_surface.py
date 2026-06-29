@@ -17,13 +17,13 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from scripts.build_ai4fm_public_seed_prover_candidates import _build_indexes, _validate_with_staged_imports
+from scripts.public_tla_helper_sources import default_existing_helper_sources
 from src.validators.sany_validator import validate_file as validate_sany_file
 from src.validators.sany_validator import validate_string as validate_sany_string
 
 DEFAULT_SOURCE = REPO / "data" / "processed" / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl"
 DEFAULT_SOURCE_SUMMARY = REPO / "data" / "processed" / "ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
 DEFAULT_SEED_MODULES = REPO / "data" / "processed" / "ai4fm_public_seed_tla_modules_v1.jsonl"
-DEFAULT_HELPER_SOURCE = REPO / "data" / "processed" / "formalllm_public_tla_modules_v1.jsonl"
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "ai4fm_public_seed_prover_repair_surface.json"
 MAX_TOP_ITEMS = 12
 MISSING_IMPORT_RE = re.compile(r"Cannot find source file for module ([A-Za-z0-9_]+) imported in module ([A-Za-z0-9_]+)\.")
@@ -274,8 +274,8 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
     helper_paths = list(args.helper_source)
-    if not helper_paths and DEFAULT_HELPER_SOURCE.exists():
-        helper_paths = [DEFAULT_HELPER_SOURCE]
+    if not helper_paths:
+        helper_paths = default_existing_helper_sources()
 
     report = build_report(
         source=args.source,

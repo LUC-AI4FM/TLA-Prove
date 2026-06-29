@@ -244,16 +244,16 @@
       "sha256": "01067043419a8de5562232bdb4baae39788b8b7527b879788b8cb29ac068bf55"
     },
     "ai4fm_public_seed_prover_candidates_v1": {
-      "bytes": 1590829,
+      "bytes": 1727546,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_sany_valid_prover_candidate_corpus",
       "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-      "rows": 144,
-      "sha256": "ce14cecb04df8d55839032dd1c4577ccfa54a967360eeac74221978c1cc446f9",
+      "rows": 150,
+      "sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
       "summary": {
         "dependency_staging": {
-          "attempted_rows": 836,
-          "recovered_rows": 46,
+          "attempted_rows": 840,
+          "recovered_rows": 52,
           "sample_recovered": [
             {
               "module": "AddTwo",
@@ -262,6 +262,21 @@
               "source_path": "specifications/LearnProofs/AddTwo.tla",
               "staged_modules": [
                 "TLAPS"
+              ]
+            },
+            {
+              "module": "Barriers",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/barriers/Barriers.tla",
+              "staged_modules": [
+                "Barrier",
+                "FiniteSetTheorems",
+                "Folds",
+                "Functions",
+                "NaturalsInduction",
+                "TLAPS",
+                "WellFoundedInduction"
               ]
             },
             {
@@ -306,6 +321,20 @@
               "source_path": "test/tla/Bug1682.tla",
               "staged_modules": [
                 "Variants"
+              ]
+            },
+            {
+              "module": "Consensus",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
+              "staged_modules": [
+                "FiniteSetTheorems",
+                "Folds",
+                "Functions",
+                "NaturalsInduction",
+                "TLAPS",
+                "WellFoundedInduction"
               ]
             },
             {
@@ -358,31 +387,13 @@
               "staged_modules": [
                 "Relation"
               ]
-            },
-            {
-              "module": "Echo",
-              "reason": "dependency_staging_recovered",
-              "repo": "tlaplus/tlaplus",
-              "source_path": "tlatools/org.lamport.tlatools/test-model/Echo/Echo.tla",
-              "staged_modules": [
-                "Relation"
-              ]
-            },
-            {
-              "module": "EnvironmentController",
-              "reason": "dependency_staging_recovered",
-              "repo": "tlaplus/Examples",
-              "source_path": "specifications/detector_chan96/EnvironmentController.tla",
-              "staged_modules": [
-                "Age_Channel",
-                "EPFailureDetector"
-              ]
             }
           ]
         },
         "duplicate_modules": {
           "AsyncTerminationDetection": 2,
           "BufferedRandomAccessFile": 3,
+          "Consensus": 2,
           "DieHard": 2,
           "DistributedReplicatedLog": 2,
           "EWD840": 8,
@@ -394,7 +405,7 @@
           "Huang": 2,
           "Lock": 2,
           "NQSpec": 2,
-          "Paxos": 3,
+          "Paxos": 5,
           "Peterson": 3,
           "Prisoners": 2,
           "SingleLaneBridge": 2,
@@ -402,6 +413,7 @@
           "SpanTreeRandom": 2,
           "SpanTreeTest": 2,
           "SyncTerminationDetection": 2,
+          "Voting": 2,
           "YoYoNoPruning": 2,
           "YoYoPruning": 2,
           "aba_asyn_byz": 2,
@@ -413,9 +425,14 @@
           "spanning": 2,
           "test211": 3
         },
-        "generated_at": "2026-06-29T17:15:03.093655+00:00",
-        "jsonl_sha256": "ce14cecb04df8d55839032dd1c4577ccfa54a967360eeac74221978c1cc446f9",
-        "kept_rows": 144,
+        "generated_at": "2026-06-29T18:30:45.977961+00:00",
+        "helper_source_paths": [
+          "data/processed/formalllm_public_tla_modules_v1.jsonl",
+          "data/processed/tlapm_public_tla_modules_v1.jsonl"
+        ],
+        "helper_source_rows": 515,
+        "jsonl_sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
+        "kept_rows": 150,
         "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
         "rows_considered": 2108,
         "sample_not_autoprover_candidate": [
@@ -557,17 +574,22 @@
             "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AdditionalMathOperators.tla"
           },
           {
-            "detail": "Cannot find source file for module SequenceTheorems imported in module AllocatorImplementation_proof.",
+            "detail": "Cannot find source file for module Folds imported in module Functions.",
             "module": "AllocatorImplementation_proof",
             "reason": "sany_invalid",
             "repo": "tlaplus/Examples",
             "source_path": "specifications/allocator/AllocatorImplementation_proof.tla",
             "staged_modules": [
-              "AllocatorImplementation"
+              "AllocatorImplementation",
+              "FiniteSetTheorems",
+              "Functions",
+              "NaturalsInduction",
+              "SchedulingAllocator",
+              "SequenceTheorems",
+              "TLAPS",
+              "WellFoundedInduction"
             ],
-            "unresolved_missing_imports": [
-              "SequenceTheorems"
-            ]
+            "unresolved_missing_imports": []
           },
           {
             "detail": "Cannot find source file for module CSVTests imported in module AllTests.",
@@ -693,8 +715,8 @@
         ],
         "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
         "skipped": {
-          "not_autoprover_candidate": 1621,
-          "sany_invalid": 343
+          "not_autoprover_candidate": 1629,
+          "sany_invalid": 329
         },
         "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
         "source_rows": 2108,
@@ -708,61 +730,54 @@
       "kind": "public_ai4fm_seed_repo_prover_funnel_report",
       "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
       "rows": null,
-      "sha256": "42e192208f0d75d1318933b752351f4e10b063ec25a9c76f43fe774679c180d5"
+      "sha256": "7fc2cac23129bbdef40e05a8ac34d7208ebed5b2d80e341d57631e2159011894"
     },
     "ai4fm_public_seed_prover_recovery_probe_v1": {
-      "bytes": 42040,
+      "bytes": 37935,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_recovery_probe",
       "path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
-      "rows": 24,
-      "sha256": "a521f6f6fbd0d01b4ab23b2b5d2e6af63a4be55597f2e86c2af12f9fc19496cd",
+      "rows": 18,
+      "sha256": "cdce9182aa3bea1bfd136e288f110c2fb01d6c57573781d1567e71957e690dcb",
       "summary": {
         "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-        "generated_at": "2026-06-29T18:09:30.793768+00:00",
+        "generated_at": "2026-06-29T18:35:37.277565+00:00",
         "helper_source_paths": [
-          "data/processed/formalllm_public_tla_modules_v1.jsonl"
+          "data/processed/formalllm_public_tla_modules_v1.jsonl",
+          "data/processed/tlapm_public_tla_modules_v1.jsonl"
         ],
-        "helper_source_rows": 501,
-        "jsonl_sha256": "a521f6f6fbd0d01b4ab23b2b5d2e6af63a4be55597f2e86c2af12f9fc19496cd",
-        "kept_rows": 24,
+        "helper_source_rows": 515,
+        "jsonl_sha256": "cdce9182aa3bea1bfd136e288f110c2fb01d6c57573781d1567e71957e690dcb",
+        "kept_rows": 18,
         "measured_conclusion": "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket.",
         "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
         "probe_status_counts": {
-          "post_stage_non_import_error": 11,
-          "still_missing_imports_after_staging": 13
+          "post_stage_non_import_error": 18
         },
         "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
         "rows_missing_full_source_row": 0,
-        "rows_post_stage_non_import_error": 11,
+        "rows_post_stage_non_import_error": 18,
         "rows_recovered_current_builder": 0,
-        "rows_still_missing_imports_after_staging": 13,
+        "rows_still_missing_imports_after_staging": 0,
         "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
         "status_by_recommended_action": {
-          "expand_public_dependency_surface": {
-            "still_missing_imports_after_staging": 13
-          },
           "stage_cross_repo_seed_helpers": {
-            "post_stage_non_import_error": 1
-          },
-          "stage_same_repo_seed_helpers": {
             "post_stage_non_import_error": 4
           },
+          "stage_same_repo_seed_helpers": {
+            "post_stage_non_import_error": 5
+          },
           "stage_tlaps_standard_module": {
-            "post_stage_non_import_error": 6
+            "post_stage_non_import_error": 9
           }
         },
         "top_final_errors": [
           {
-            "error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
-            "rows": 8
-          },
-          {
-            "error": "***Parse Error***",
+            "error": "line 66, col 24 to line 66, col 36 of module Consensus",
             "rows": 2
           },
           {
-            "error": "Cannot find source file for module FiniteSetTheorems imported in module VoteProof.",
+            "error": "line 309, col 33 to line 309, col 35 of module VoteProof",
             "rows": 2
           },
           {
@@ -771,6 +786,10 @@
           },
           {
             "error": "line 146, col 18 to line 146, col 19 of module BinarySearch",
+            "rows": 1
+          },
+          {
+            "error": "line 138, col 42 to line 138, col 45 of module Quicksort",
             "rows": 1
           },
           {
@@ -786,6 +805,10 @@
             "rows": 1
           },
           {
+            "error": "line 683, col 10 to line 683, col 25 of module FunctionTheorems",
+            "rows": 1
+          },
+          {
             "error": "line 424, col 16 to line 424, col 24 of module EWD687a",
             "rows": 1
           },
@@ -796,16 +819,12 @@
           {
             "error": "line 133, col 6 to line 133, col 11 of module EWD998",
             "rows": 1
-          },
-          {
-            "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
-            "rows": 1
           }
         ],
         "top_repos": [
           {
             "repo": "tlaplus/Examples",
-            "rows": 20
+            "rows": 14
           },
           {
             "repo": "tlaplus/tlaplus",
@@ -816,51 +835,44 @@
             "rows": 1
           }
         ],
-        "top_unresolved_missing_modules": [
-          {
-            "module": "FiniteSetTheorems",
-            "rows": 13
-          }
-        ]
+        "top_unresolved_missing_modules": []
       },
       "summary_path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json"
     },
     "ai4fm_public_seed_prover_repair_queue_v1": {
-      "bytes": 36616,
+      "bytes": 34289,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_repair_queue",
       "path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
-      "rows": 24,
-      "sha256": "674c05032627bb3aea37cb0e389d2b59229b76118692615d6c24e93bfce82edf",
+      "rows": 18,
+      "sha256": "b7dc001571354716f57c7da0735f395da7f16e6c752bc399b813f081bc329c55",
       "summary": {
-        "blocked_on_missing_public_dependency_rows": 13,
-        "generated_at": "2026-06-29T18:09:25.226655+00:00",
+        "blocked_on_missing_public_dependency_rows": 0,
+        "generated_at": "2026-06-29T18:35:27.207828+00:00",
         "helper_source_paths": [
-          "data/processed/formalllm_public_tla_modules_v1.jsonl"
+          "data/processed/formalllm_public_tla_modules_v1.jsonl",
+          "data/processed/tlapm_public_tla_modules_v1.jsonl"
         ],
-        "helper_source_rows": 501,
-        "jsonl_sha256": "674c05032627bb3aea37cb0e389d2b59229b76118692615d6c24e93bfce82edf",
-        "kept_rows": 24,
+        "helper_source_rows": 515,
+        "jsonl_sha256": "b7dc001571354716f57c7da0735f395da7f16e6c752bc399b813f081bc329c55",
+        "kept_rows": 18,
         "missing_import_availability_counts": {
-          "cross_repo_seed_module": 1,
-          "missing_from_seed_surface": 13,
-          "same_repo_seed_module": 4,
-          "tlaps_standard_module": 6
+          "cross_repo_seed_module": 4,
+          "same_repo_seed_module": 5,
+          "tlaps_standard_module": 9
         },
         "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
         "priority_counts": {
-          "p1": 6,
-          "p2": 4,
-          "p3": 1,
-          "p4": 13
+          "p1": 9,
+          "p2": 5,
+          "p3": 4
         },
         "recommended_action_counts": {
-          "expand_public_dependency_surface": 13,
-          "stage_cross_repo_seed_helpers": 1,
-          "stage_same_repo_seed_helpers": 4,
-          "stage_tlaps_standard_module": 6
+          "stage_cross_repo_seed_helpers": 4,
+          "stage_same_repo_seed_helpers": 5,
+          "stage_tlaps_standard_module": 9
         },
-        "recoverable_without_new_source_rows": 11,
+        "recoverable_without_new_source_rows": 18,
         "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
         "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
         "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -869,39 +881,43 @@
             "note": "Highest-leverage rows: missing only the standard TLAPS helper module.",
             "priority": "p1",
             "recommended_action": "stage_tlaps_standard_module",
-            "rows": 6
+            "rows": 9
           },
           {
             "note": "Rows recoverable by staging helper modules already present in the same public repo.",
             "priority": "p2",
             "recommended_action": "stage_same_repo_seed_helpers",
-            "rows": 4
+            "rows": 5
           },
           {
             "note": "Rows recoverable by staging helper modules already visible elsewhere in the public seed surface.",
             "priority": "p3",
             "recommended_action": "stage_cross_repo_seed_helpers",
-            "rows": 1
+            "rows": 4
           },
           {
             "note": "Rows still blocked because at least one required helper module is missing from the current public seed surface.",
             "priority": "p4",
             "recommended_action": "expand_public_dependency_surface",
-            "rows": 13
+            "rows": 0
           }
         ],
         "top_missing_modules": [
           {
-            "module": "FiniteSetTheorems",
-            "rows": 13
-          },
-          {
             "module": "TLAPS",
-            "rows": 6
+            "rows": 9
           },
           {
             "module": "Utils",
             "rows": 2
+          },
+          {
+            "module": "FiniteSetTheorems",
+            "rows": 2
+          },
+          {
+            "module": "Functions",
+            "rows": 1
           },
           {
             "module": "Graphs",
@@ -914,12 +930,16 @@
           {
             "module": "SequenceTheorems",
             "rows": 1
+          },
+          {
+            "module": "NaturalsInduction",
+            "rows": 1
           }
         ],
         "top_repos": [
           {
             "repo": "tlaplus/Examples",
-            "rows": 20
+            "rows": 14
           },
           {
             "repo": "tlaplus/tlaplus",
@@ -934,26 +954,26 @@
       "summary_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json"
     },
     "ai4fm_public_seed_prover_repair_surface": {
-      "bytes": 10497,
+      "bytes": 11512,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_repair_surface_report",
       "path": "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
       "rows": null,
-      "sha256": "8954bf796f7d871f259034206a503dbeb5d1a84a41fba82be4698580d81be8ad"
+      "sha256": "6f595d8c2e0ccf1ed44467e808b22a6e4c73ba01c9f5a59c5e1c612d2a64a87e"
     },
     "ai4fm_public_seed_prover_shape_ready_not_sany_v1": {
-      "bytes": 652409,
+      "bytes": 516621,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_autoprover_shape_repair_target_corpus",
       "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-      "rows": 24,
-      "sha256": "0b250efe7b5e8b51e3cdb1a58daee7fa222101f4c7ea59afbe2dc9bf423e4d71",
+      "rows": 18,
+      "sha256": "ca9fe2c3dccff2fc33878de548f873ba7bc3fd897aed6cbe93c0d7e7f7d9841f",
       "summary": {
         "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "excluded_sany_clean_rows": 144,
-        "generated_at": "2026-06-29T17:19:15.221997+00:00",
-        "jsonl_sha256": "0b250efe7b5e8b51e3cdb1a58daee7fa222101f4c7ea59afbe2dc9bf423e4d71",
-        "kept_rows": 24,
+        "excluded_sany_clean_rows": 150,
+        "generated_at": "2026-06-29T18:35:02.932224+00:00",
+        "jsonl_sha256": "ca9fe2c3dccff2fc33878de548f873ba7bc3fd897aed6cbe93c0d7e7f7d9841f",
+        "kept_rows": 18,
         "out": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
         "schema": "chattla_ai4fm_public_seed_prover_shape_ready_not_sany_v1",
         "shape_ready_source_rows": 168,
@@ -962,7 +982,7 @@
         "top_repos": [
           {
             "repo": "tlaplus/Examples",
-            "rows": 20
+            "rows": 14
           },
           {
             "repo": "tlaplus/tlaplus",
@@ -973,7 +993,7 @@
             "rows": 1
           }
         ],
-        "unique_modules": 18
+        "unique_modules": 16
       },
       "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
     },
@@ -986,7 +1006,7 @@
       "sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
       "summary": {
         "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "generated_at": "2026-06-29T17:19:15.220614+00:00",
+        "generated_at": "2026-06-29T18:35:02.929678+00:00",
         "jsonl_sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
         "kept_rows": 168,
         "out": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
@@ -1912,28 +1932,28 @@
       "summary_path": "data/processed/benchmark_repair_pairs_fc128best.summary.json"
     },
     "chattla_tla_prover_sft_public_all_v1": {
-      "bytes": 13770776,
+      "bytes": 13906451,
       "exists": true,
       "kind": "full_public_ai4fm_expanded_prover_sft_dataset",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-      "rows": 2484,
-      "sha256": "350e3c033f67ce144f49ec831097dbde2098bb24342f8e8d92aa6c1d43e0440a",
+      "rows": 2490,
+      "sha256": "7631a627f62825b99ff6bfd0f715a410b914d8492294ec9264d00ea540437668",
       "summary": {
         "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "formalllm": "data/processed/formalllm_eval_v1.jsonl",
         "formalllm_rows": 205,
-        "generated_at": "2026-06-29T17:25:46.932091+00:00",
-        "jsonl_sha256": "350e3c033f67ce144f49ec831097dbde2098bb24342f8e8d92aa6c1d43e0440a",
+        "generated_at": "2026-06-29T18:35:37.650151+00:00",
+        "jsonl_sha256": "7631a627f62825b99ff6bfd0f715a410b914d8492294ec9264d00ea540437668",
         "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
         "public_import": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
         "public_import_rows": 1010,
         "public_import_weight": 1,
         "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "public_seed_candidates_rows": 144,
+        "public_seed_candidates_rows": 150,
         "public_seed_candidates_weight": 1,
         "seed": 20260627,
-        "total_rows": 2484,
+        "total_rows": 2490,
         "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
@@ -1941,28 +1961,28 @@
       "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json"
     },
     "chattla_tla_prover_sft_public_expanded_v1": {
-      "bytes": 13728985,
+      "bytes": 13864660,
       "exists": true,
       "kind": "public_ai4fm_expanded_prover_sft_dataset",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-      "rows": 2479,
-      "sha256": "73d963cfcca80f9cc0a9f54482064a848e80735e9da67aacc579aec5bab818ae",
+      "rows": 2485,
+      "sha256": "5a98b448d4db524c224664aeff2eff71d548aae2695ea7db0bf7d703068fc365",
       "summary": {
         "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "formalllm": "data/processed/formalllm_eval_v1.jsonl",
         "formalllm_rows": 205,
-        "generated_at": "2026-06-29T17:25:46.940244+00:00",
-        "jsonl_sha256": "73d963cfcca80f9cc0a9f54482064a848e80735e9da67aacc579aec5bab818ae",
+        "generated_at": "2026-06-29T18:35:37.470226+00:00",
+        "jsonl_sha256": "5a98b448d4db524c224664aeff2eff71d548aae2695ea7db0bf7d703068fc365",
         "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
         "public_import": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         "public_import_rows": 1005,
         "public_import_weight": 1,
         "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "public_seed_candidates_rows": 144,
+        "public_seed_candidates_rows": 150,
         "public_seed_candidates_weight": 1,
         "seed": 20260627,
-        "total_rows": 2479,
+        "total_rows": 2485,
         "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
@@ -2627,7 +2647,7 @@
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "51637319a24f48447747ea302f91edb4fa744d20cbbee773a080e2eea29bf9a3"
+      "sha256": "74673f522536b51c30b6ec1e7138f14cf9c95618251f5e2b5aca17182b66de55"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7143,
@@ -2718,6 +2738,28 @@
       },
       "summary_path": "data/processed/tla_prover_repair_train_v1.summary.json"
     },
+    "tlapm_public_tla_modules_v1": {
+      "bytes": 233400,
+      "exists": true,
+      "kind": "public_tlapm_library_helper_module_corpus",
+      "path": "data/processed/tlapm_public_tla_modules_v1.jsonl",
+      "rows": 14,
+      "sha256": "070a5462a3c9ebfc8b0713ea25992af6771967fa95e96eca4fbbf7d6b5cd8cd8",
+      "summary": {
+        "duplicate_modules": {},
+        "generated_at": "2026-06-29T18:30:45.803846+00:00",
+        "jsonl_sha256": "070a5462a3c9ebfc8b0713ea25992af6771967fa95e96eca4fbbf7d6b5cd8cd8",
+        "kept_rows": 14,
+        "library_root": "data/external/tlapm/library",
+        "out": "data/processed/tlapm_public_tla_modules_v1.jsonl",
+        "repo_head_sha": "80172c61842c8dd15524c6f01a70ba91029802f5",
+        "schema": "chattla_tlapm_public_tla_modules_v1",
+        "skipped_missing_module_header": 0,
+        "tla_candidates": 14,
+        "tlapm_root": "data/external/tlapm"
+      },
+      "summary_path": "data/processed/tlapm_public_tla_modules_v1.summary.json"
+    },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
       "exists": true,
@@ -2758,7 +2800,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T18:09:41.741554+00:00",
+  "generated_at": "2026-06-29T18:41:47.955407+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

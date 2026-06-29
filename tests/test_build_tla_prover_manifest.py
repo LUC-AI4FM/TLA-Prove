@@ -229,6 +229,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"kept_rows": 1, "scanned_formalllm_rows": 1, "repair_candidate_rows": 0}),
         encoding="utf-8",
     )
+    _write_jsonl(
+        repo / "data/processed/tlapm_public_tla_modules_v1.jsonl",
+        [{"module": "FiniteSetTheorems", "repo": "tlaplus/tlapm", "source_path": "data/external/tlapm/library/FiniteSetTheorems.tla"}],
+    )
+    (repo / "data/processed/tlapm_public_tla_modules_v1.summary.json").write_text(
+        json.dumps({"kept_rows": 1, "repo_head_sha": "deadbeef"}),
+        encoding="utf-8",
+    )
     _write_jsonl(repo / "data/processed/sany_tlc_pass_sft_v1.jsonl", [{"a": 1}, {"a": 2}])
     _write_jsonl(repo / "data/processed/prover_eval.jsonl", [{"messages": []}])
     _write_jsonl(repo / "data/processed/sany_tlc_pass_eval_v1.jsonl", [{"messages": []}, {"messages": []}])
@@ -274,6 +282,12 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "public_formalllm_prover_surface_report"
     )
     assert manifest["artifacts"]["formalllm_public_prover_surface_v1"]["summary"]["scanned_formalllm_rows"] == 1
+    assert manifest["artifacts"]["tlapm_public_tla_modules_v1"]["exists"] is True
+    assert manifest["artifacts"]["tlapm_public_tla_modules_v1"]["rows"] == 1
+    assert manifest["artifacts"]["tlapm_public_tla_modules_v1"]["kind"] == (
+        "public_tlapm_library_helper_module_corpus"
+    )
+    assert manifest["artifacts"]["tlapm_public_tla_modules_v1"]["summary"]["repo_head_sha"] == "deadbeef"
     assert manifest["artifacts"]["ai4fm_public_seed_prover_repair_queue_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_seed_prover_repair_queue_v1"]["rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_seed_prover_repair_queue_v1"]["kind"] == (

@@ -1,32 +1,30 @@
 {
-  "blocked_on_missing_public_dependency_rows": 13,
-  "generated_at": "2026-06-29T18:09:25.226655+00:00",
+  "blocked_on_missing_public_dependency_rows": 0,
+  "generated_at": "2026-06-29T18:35:27.207828+00:00",
   "helper_source_paths": [
-    "data/processed/formalllm_public_tla_modules_v1.jsonl"
+    "data/processed/formalllm_public_tla_modules_v1.jsonl",
+    "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
-  "helper_source_rows": 501,
-  "jsonl_sha256": "674c05032627bb3aea37cb0e389d2b59229b76118692615d6c24e93bfce82edf",
-  "kept_rows": 24,
+  "helper_source_rows": 515,
+  "jsonl_sha256": "b7dc001571354716f57c7da0735f395da7f16e6c752bc399b813f081bc329c55",
+  "kept_rows": 18,
   "missing_import_availability_counts": {
-    "cross_repo_seed_module": 1,
-    "missing_from_seed_surface": 13,
-    "same_repo_seed_module": 4,
-    "tlaps_standard_module": 6
+    "cross_repo_seed_module": 4,
+    "same_repo_seed_module": 5,
+    "tlaps_standard_module": 9
   },
   "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "priority_counts": {
-    "p1": 6,
-    "p2": 4,
-    "p3": 1,
-    "p4": 13
+    "p1": 9,
+    "p2": 5,
+    "p3": 4
   },
   "recommended_action_counts": {
-    "expand_public_dependency_surface": 13,
-    "stage_cross_repo_seed_helpers": 1,
-    "stage_same_repo_seed_helpers": 4,
-    "stage_tlaps_standard_module": 6
+    "stage_cross_repo_seed_helpers": 4,
+    "stage_same_repo_seed_helpers": 5,
+    "stage_tlaps_standard_module": 9
   },
-  "recoverable_without_new_source_rows": 11,
+  "recoverable_without_new_source_rows": 18,
   "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
   "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -35,39 +33,43 @@
       "note": "Highest-leverage rows: missing only the standard TLAPS helper module.",
       "priority": "p1",
       "recommended_action": "stage_tlaps_standard_module",
-      "rows": 6
+      "rows": 9
     },
     {
       "note": "Rows recoverable by staging helper modules already present in the same public repo.",
       "priority": "p2",
       "recommended_action": "stage_same_repo_seed_helpers",
-      "rows": 4
+      "rows": 5
     },
     {
       "note": "Rows recoverable by staging helper modules already visible elsewhere in the public seed surface.",
       "priority": "p3",
       "recommended_action": "stage_cross_repo_seed_helpers",
-      "rows": 1
+      "rows": 4
     },
     {
       "note": "Rows still blocked because at least one required helper module is missing from the current public seed surface.",
       "priority": "p4",
       "recommended_action": "expand_public_dependency_surface",
-      "rows": 13
+      "rows": 0
     }
   ],
   "top_missing_modules": [
     {
-      "module": "FiniteSetTheorems",
-      "rows": 13
-    },
-    {
       "module": "TLAPS",
-      "rows": 6
+      "rows": 9
     },
     {
       "module": "Utils",
       "rows": 2
+    },
+    {
+      "module": "FiniteSetTheorems",
+      "rows": 2
+    },
+    {
+      "module": "Functions",
+      "rows": 1
     },
     {
       "module": "Graphs",
@@ -80,12 +82,16 @@
     {
       "module": "SequenceTheorems",
       "rows": 1
+    },
+    {
+      "module": "NaturalsInduction",
+      "rows": 1
     }
   ],
   "top_repos": [
     {
       "repo": "tlaplus/Examples",
-      "rows": 20
+      "rows": 14
     },
     {
       "repo": "tlaplus/tlaplus",

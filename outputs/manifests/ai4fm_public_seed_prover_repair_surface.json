@@ -2,7 +2,7 @@
   "by_repo": {
     "top_repair_repos": [
       {
-        "count": 20,
+        "count": 14,
         "name": "tlaplus/Examples"
       },
       {
@@ -17,35 +17,39 @@
   },
   "failure_categories": [
     {
-      "count": 24,
+      "count": 18,
       "name": "missing_import"
     }
   ],
-  "generated_at": "2026-06-29T18:09:19.665213+00:00",
+  "generated_at": "2026-06-29T18:35:16.363228+00:00",
   "missing_imports": {
     "availability_counts": {
-      "cross_repo_seed_module": 1,
-      "missing_from_seed_surface": 13,
-      "same_repo_seed_module": 4,
-      "tlaps_standard_module": 6
+      "cross_repo_seed_module": 4,
+      "same_repo_seed_module": 5,
+      "tlaps_standard_module": 9
     },
-    "rows_recoverable_from_seed_surface_or_tlaps_stub": 11,
-    "rows_with_missing_imports": 24,
+    "rows_recoverable_from_seed_surface_or_tlaps_stub": 18,
+    "rows_with_missing_imports": 18,
     "top_missing_modules": [
-      {
-        "availability": "missing_from_seed_surface",
-        "module": "FiniteSetTheorems",
-        "rows": 13
-      },
       {
         "availability": "tlaps_standard_module",
         "module": "TLAPS",
-        "rows": 6
+        "rows": 9
+      },
+      {
+        "availability": "cross_repo_seed_module",
+        "module": "FiniteSetTheorems",
+        "rows": 2
       },
       {
         "availability": "cross_repo_seed_module",
         "module": "Utils",
         "rows": 2
+      },
+      {
+        "availability": "cross_repo_seed_module",
+        "module": "Functions",
+        "rows": 1
       },
       {
         "availability": "cross_repo_seed_module",
@@ -61,13 +65,18 @@
         "availability": "cross_repo_seed_module",
         "module": "SequenceTheorems",
         "rows": 1
+      },
+      {
+        "availability": "cross_repo_seed_module",
+        "module": "NaturalsInduction",
+        "rows": 1
       }
     ]
   },
   "repair_surface": {
-    "excluded_sany_clean_rows": 144,
-    "rows": 24,
-    "unique_modules": 18,
+    "excluded_sany_clean_rows": 150,
+    "rows": 18,
+    "unique_modules": 16,
     "unique_repos": 3
   },
   "samples": [
@@ -93,42 +102,28 @@
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Barriers.",
-      "initial_missing_imports": [
-        "TLAPS"
-      ],
-      "missing_import_availability": [
-        "missing_from_seed_surface"
-      ],
-      "missing_imports": [
-        "FiniteSetTheorems"
-      ],
-      "module": "Barriers",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/barriers/Barriers.tla",
-      "staged_modules": [
-        "TLAPS"
-      ],
-      "unexpected_valid": false
-    },
-    {
-      "category": "missing_import",
-      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module bcastByz.",
+      "first_error": "line 683, col 10 to line 683, col 25 of module FunctionTheorems",
       "initial_missing_imports": [
         "Functions"
       ],
       "missing_import_availability": [
-        "missing_from_seed_surface"
+        "same_repo_seed_module"
       ],
       "missing_imports": [
-        "FiniteSetTheorems"
+        "Functions"
       ],
       "module": "bcastByz",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/bcastByz/bcastByz.tla",
       "staged_modules": [
+        "FiniteSetTheorems",
+        "Folds",
         "FunctionTheorems",
-        "Functions"
+        "Functions",
+        "NaturalsInduction",
+        "SequenceTheorems",
+        "TLAPS",
+        "WellFoundedInduction"
       ],
       "unexpected_valid": false
     },
@@ -154,12 +149,12 @@
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module BPConProof.",
+      "first_error": "Cannot find source file for module Consensus imported in module VoteProof.",
       "initial_missing_imports": [
         "FiniteSetTheorems"
       ],
       "missing_import_availability": [
-        "missing_from_seed_surface"
+        "cross_repo_seed_module"
       ],
       "missing_imports": [
         "FiniteSetTheorems"
@@ -167,17 +162,26 @@
       "module": "BPConProof",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/byzpaxos/BPConProof.tla",
-      "staged_modules": [],
+      "staged_modules": [
+        "FiniteSetTheorems",
+        "Folds",
+        "Functions",
+        "NaturalsInduction",
+        "PConProof",
+        "TLAPS",
+        "VoteProof",
+        "WellFoundedInduction"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
+      "first_error": "line 186, col 19 to line 186, col 31 of module Consensus",
       "initial_missing_imports": [
         "FiniteSetTheorems"
       ],
       "missing_import_availability": [
-        "missing_from_seed_surface"
+        "cross_repo_seed_module"
       ],
       "missing_imports": [
         "FiniteSetTheorems"
@@ -185,46 +189,38 @@
       "module": "Consensus",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/byzpaxos/Consensus.tla",
-      "staged_modules": [],
+      "staged_modules": [
+        "FiniteSetTheorems",
+        "Folds",
+        "Functions",
+        "NaturalsInduction",
+        "TLAPS",
+        "WellFoundedInduction"
+      ],
       "unexpected_valid": false
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
+      "first_error": "line 66, col 24 to line 66, col 36 of module Consensus",
       "initial_missing_imports": [
         "TLAPS"
       ],
       "missing_import_availability": [
-        "missing_from_seed_surface"
+        "tlaps_standard_module"
       ],
       "missing_imports": [
-        "FiniteSetTheorems"
+        "TLAPS"
       ],
       "module": "Consensus",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/Paxos/Consensus.tla",
       "staged_modules": [
-        "TLAPS"
-      ],
-      "unexpected_valid": false
-    },
-    {
-      "category": "missing_import",
-      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
-      "initial_missing_imports": [
-        "TLAPS"
-      ],
-      "missing_import_availability": [
-        "missing_from_seed_surface"
-      ],
-      "missing_imports": [
-        "FiniteSetTheorems"
-      ],
-      "module": "Consensus",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
-      "staged_modules": [
-        "TLAPS"
+        "FiniteSetTheorems",
+        "Folds",
+        "Functions",
+        "NaturalsInduction",
+        "TLAPS",
+        "WellFoundedInduction"
       ],
       "unexpected_valid": false
     },
@@ -300,22 +296,80 @@
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
+      "first_error": "line 66, col 24 to line 66, col 36 of module Consensus",
       "initial_missing_imports": [
         "TLAPS"
       ],
       "missing_import_availability": [
-        "missing_from_seed_surface"
+        "tlaps_standard_module"
       ],
       "missing_imports": [
-        "FiniteSetTheorems"
+        "TLAPS"
       ],
       "module": "Paxos",
       "repo": "tlaplus/DrTLAPlus",
       "source_path": "Paxos/Paxos.tla",
       "staged_modules": [
         "Consensus",
+        "FiniteSetTheorems",
+        "Folds",
+        "Functions",
+        "NaturalsInduction",
+        "TLAPS",
+        "WellFoundedInduction"
+      ],
+      "unexpected_valid": false
+    },
+    {
+      "category": "missing_import",
+      "first_error": "line 309, col 33 to line 309, col 35 of module VoteProof",
+      "initial_missing_imports": [
         "TLAPS"
+      ],
+      "missing_import_availability": [
+        "tlaps_standard_module"
+      ],
+      "missing_imports": [
+        "TLAPS"
+      ],
+      "module": "PConProof",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/byzpaxos/PConProof.tla",
+      "staged_modules": [
+        "Consensus",
+        "FiniteSetTheorems",
+        "Folds",
+        "Functions",
+        "NaturalsInduction",
+        "TLAPS",
+        "VoteProof",
+        "WellFoundedInduction"
+      ],
+      "unexpected_valid": false
+    },
+    {
+      "category": "missing_import",
+      "first_error": "line 138, col 42 to line 138, col 45 of module Quicksort",
+      "initial_missing_imports": [
+        "TLAPS"
+      ],
+      "missing_import_availability": [
+        "tlaps_standard_module"
+      ],
+      "missing_imports": [
+        "TLAPS"
+      ],
+      "module": "Quicksort",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/LoopInvariance/Quicksort.tla",
+      "staged_modules": [
+        "FiniteSetTheorems",
+        "Folds",
+        "Functions",
+        "NaturalsInduction",
+        "SequenceTheorems",
+        "TLAPS",
+        "WellFoundedInduction"
       ],
       "unexpected_valid": false
     }
@@ -323,30 +377,27 @@
   "schema": "chattla_ai4fm_public_seed_prover_repair_surface_v1",
   "seed_modules": {
     "helper_source_paths": [
-      "data/processed/formalllm_public_tla_modules_v1.jsonl"
+      "data/processed/formalllm_public_tla_modules_v1.jsonl",
+      "data/processed/tlapm_public_tla_modules_v1.jsonl"
     ],
-    "helper_source_rows": 501,
+    "helper_source_rows": 515,
     "path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
     "rows": 2108,
-    "unique_module_names": 1589
+    "unique_module_names": 1596
   },
   "source": {
     "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-    "rows": 24,
+    "rows": 18,
     "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
   },
   "top_first_errors": [
     {
-      "count": 8,
-      "error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus."
+      "count": 2,
+      "error": "line 66, col 24 to line 66, col 36 of module Consensus"
     },
     {
       "count": 2,
-      "error": "Cannot find source file for module FiniteSetTheorems imported in module VoteProof."
-    },
-    {
-      "count": 2,
-      "error": "***Parse Error***"
+      "error": "line 309, col 33 to line 309, col 35 of module VoteProof"
     },
     {
       "count": 1,
@@ -354,11 +405,7 @@
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module FiniteSetTheorems imported in module Barriers."
-    },
-    {
-      "count": 1,
-      "error": "Cannot find source file for module FiniteSetTheorems imported in module bcastByz."
+      "error": "line 683, col 10 to line 683, col 25 of module FunctionTheorems"
     },
     {
       "count": 1,
@@ -366,7 +413,11 @@
     },
     {
       "count": 1,
-      "error": "Cannot find source file for module FiniteSetTheorems imported in module BPConProof."
+      "error": "Cannot find source file for module Consensus imported in module VoteProof."
+    },
+    {
+      "count": 1,
+      "error": "line 186, col 19 to line 186, col 31 of module Consensus"
     },
     {
       "count": 1,
@@ -379,6 +430,10 @@
     {
       "count": 1,
       "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan"
+    },
+    {
+      "count": 1,
+      "error": "line 138, col 42 to line 138, col 45 of module Quicksort"
     },
     {
       "count": 1,

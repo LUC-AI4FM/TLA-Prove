@@ -1,7 +1,7 @@
 {
   "dependency_staging": {
-    "attempted_rows": 836,
-    "recovered_rows": 46,
+    "attempted_rows": 840,
+    "recovered_rows": 52,
     "sample_recovered": [
       {
         "module": "AddTwo",
@@ -10,6 +10,21 @@
         "source_path": "specifications/LearnProofs/AddTwo.tla",
         "staged_modules": [
           "TLAPS"
+        ]
+      },
+      {
+        "module": "Barriers",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/barriers/Barriers.tla",
+        "staged_modules": [
+          "Barrier",
+          "FiniteSetTheorems",
+          "Folds",
+          "Functions",
+          "NaturalsInduction",
+          "TLAPS",
+          "WellFoundedInduction"
         ]
       },
       {
@@ -54,6 +69,20 @@
         "source_path": "test/tla/Bug1682.tla",
         "staged_modules": [
           "Variants"
+        ]
+      },
+      {
+        "module": "Consensus",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
+        "staged_modules": [
+          "FiniteSetTheorems",
+          "Folds",
+          "Functions",
+          "NaturalsInduction",
+          "TLAPS",
+          "WellFoundedInduction"
         ]
       },
       {
@@ -106,31 +135,13 @@
         "staged_modules": [
           "Relation"
         ]
-      },
-      {
-        "module": "Echo",
-        "reason": "dependency_staging_recovered",
-        "repo": "tlaplus/tlaplus",
-        "source_path": "tlatools/org.lamport.tlatools/test-model/Echo/Echo.tla",
-        "staged_modules": [
-          "Relation"
-        ]
-      },
-      {
-        "module": "EnvironmentController",
-        "reason": "dependency_staging_recovered",
-        "repo": "tlaplus/Examples",
-        "source_path": "specifications/detector_chan96/EnvironmentController.tla",
-        "staged_modules": [
-          "Age_Channel",
-          "EPFailureDetector"
-        ]
       }
     ]
   },
   "duplicate_modules": {
     "AsyncTerminationDetection": 2,
     "BufferedRandomAccessFile": 3,
+    "Consensus": 2,
     "DieHard": 2,
     "DistributedReplicatedLog": 2,
     "EWD840": 8,
@@ -142,7 +153,7 @@
     "Huang": 2,
     "Lock": 2,
     "NQSpec": 2,
-    "Paxos": 3,
+    "Paxos": 5,
     "Peterson": 3,
     "Prisoners": 2,
     "SingleLaneBridge": 2,
@@ -150,6 +161,7 @@
     "SpanTreeRandom": 2,
     "SpanTreeTest": 2,
     "SyncTerminationDetection": 2,
+    "Voting": 2,
     "YoYoNoPruning": 2,
     "YoYoPruning": 2,
     "aba_asyn_byz": 2,
@@ -161,9 +173,14 @@
     "spanning": 2,
     "test211": 3
   },
-  "generated_at": "2026-06-29T17:15:03.093655+00:00",
-  "jsonl_sha256": "ce14cecb04df8d55839032dd1c4577ccfa54a967360eeac74221978c1cc446f9",
-  "kept_rows": 144,
+  "generated_at": "2026-06-29T18:30:45.977961+00:00",
+  "helper_source_paths": [
+    "data/processed/formalllm_public_tla_modules_v1.jsonl",
+    "data/processed/tlapm_public_tla_modules_v1.jsonl"
+  ],
+  "helper_source_rows": 515,
+  "jsonl_sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
+  "kept_rows": 150,
   "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
   "rows_considered": 2108,
   "sample_not_autoprover_candidate": [
@@ -305,17 +322,22 @@
       "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AdditionalMathOperators.tla"
     },
     {
-      "detail": "Cannot find source file for module SequenceTheorems imported in module AllocatorImplementation_proof.",
+      "detail": "Cannot find source file for module Folds imported in module Functions.",
       "module": "AllocatorImplementation_proof",
       "reason": "sany_invalid",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/allocator/AllocatorImplementation_proof.tla",
       "staged_modules": [
-        "AllocatorImplementation"
+        "AllocatorImplementation",
+        "FiniteSetTheorems",
+        "Functions",
+        "NaturalsInduction",
+        "SchedulingAllocator",
+        "SequenceTheorems",
+        "TLAPS",
+        "WellFoundedInduction"
       ],
-      "unresolved_missing_imports": [
-        "SequenceTheorems"
-      ]
+      "unresolved_missing_imports": []
     },
     {
       "detail": "Cannot find source file for module CSVTests imported in module AllTests.",
@@ -441,8 +463,8 @@
   ],
   "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
   "skipped": {
-    "not_autoprover_candidate": 1621,
-    "sany_invalid": 343
+    "not_autoprover_candidate": 1629,
+    "sany_invalid": 329
   },
   "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_rows": 2108,

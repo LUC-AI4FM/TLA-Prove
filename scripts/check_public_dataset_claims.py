@@ -42,6 +42,7 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
         "formalllm_public_module_manifest_v1.summary.json": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "formalllm_public_prover_surface_v1.summary.json": "data/processed/formalllm_public_prover_surface_v1.summary.json",
+        "tlapm_public_tla_modules_v1.summary.json": "data/processed/tlapm_public_tla_modules_v1.summary.json",
         "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
         "ai4fm_public_seed_license_surface.json": "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "ai4fm_public_seed_tla_modules_v1.summary.json": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",

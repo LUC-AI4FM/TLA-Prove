@@ -124,18 +124,18 @@ Important interpretation:
     eliminated
 - the remaining public seed repair queue is now materialized directly as
   `data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl`:
-  - `24` remaining shape-ready-but-not-SANY rows total
-  - `11` are recoverable without new source material after transitive helper
-    staging is taken into account
-  - action split: `6` TLAPS-stub-only, `4` same-repo helper staging,
-    `1` cross-repo helper staging, and `13` blocked on missing public
-    dependencies
+  - `18` remaining shape-ready-but-not-SANY rows total
+  - all `18` are recoverable from the current public helper surface after
+    transitive helper staging is taken into account
+  - action split: `9` TLAPS-stub-only, `5` same-repo helper staging, and `4`
+    cross-repo helper staging
 - measured replay against the current public candidate builder is stricter than
   that first-pass queue:
   - `data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl` currently
-    shows `0/24` rows recovered by the existing builder
-  - `13` remain blocked on unresolved imports even after current staging
-  - `11` move past import staging but still fail with non-import SANY errors
+    shows `0/18` rows recovered by the existing builder
+  - `0` remain blocked on unresolved imports after current staging
+  - all `18` now move past import staging but still fail with non-import SANY
+    errors
 - repo-level license provenance across the `11` committed public seed repos is
   mixed:
   - `3` Apache-2.0 repos covering `525` tracked `.tla` files
@@ -222,8 +222,8 @@ path:
 - there is now a matching non-default prover-corpus build on top of that wider
   normalized import:
   - `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl`
-  - `2438` total rows (`1330` baseline prover stack + `1010` full-public
-    normalized import + `98` seed prover-candidate replays)
+  - `2490` total rows (`1330` baseline prover stack + `1010` full-public
+    normalized import + `150` seed prover-candidate replays)
 
 That gives us a clean two-lane setup:
 
@@ -369,8 +369,8 @@ the public prover corpus without relaxing the current `Init` / `Next` / `Spec`
   via:
   `python3 scripts/build_tla_prover_finetune_corpus.py --public-import-weight 1 --public-seed-candidates-weight 1 --out data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl`
   This keeps the current default `chattla_tla_prover_sft_v1` stable while
-  exposing a `2433`-row public-AI4FM expansion lane (`1330` default prover SFT
-  rows + `1005` normalized public import rows + `98` public seed prover-candidate
+  exposing a `2485`-row public-AI4FM expansion lane (`1330` default prover SFT
+  rows + `1005` normalized public import rows + `150` public seed prover-candidate
   replays).
 
 ## Rebuild

@@ -25,8 +25,8 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
 - `metadata/tla_prover_artifacts_v1.json`: top-level manifest for the shipped prover
   corpora and public AI4FM artifacts.
 - `metadata/tla_prover_corpus_preflight.json`: schema preflight plus exact `205/205` `FormaLLM` row
-  coverage verification across the `1330`-row default, `2479`-row expanded, and
-  `2484`-row full-public prover train corpora.
+  coverage verification across the `1330`-row default, `2485`-row expanded, and
+  `2490`-row full-public prover train corpora.
 - `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot (`8` repos,
   `3` corpus-relevant).
 - `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec
@@ -38,6 +38,9 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   audited public `FormaLLM` file surface and the latest full-dataset prover smoke,
   showing which canonical `.tla` files are still skip-only versus TLC-repair
   candidates.
+- `metadata/tlapm_public_tla_modules_v1.summary.json`: checked-in public TLAPM
+  library helper-module summary (`14` modules), including `FiniteSetTheorems`,
+  `NaturalsInduction`, `SequenceTheorems`, `TLAPS`, and `WellFoundedInduction`.
 - `metadata/ai4fm_public_seed_prover_repair_queue_v1.summary.json`: prioritized
   queue for the remaining shape-ready-but-not-SANY public seed rows, including
   which rows are TLAPS-stub-only, helper-stageable from public repos, or still
@@ -72,19 +75,19 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   repair curriculum summary (`19` rows covering `19` of `20` failed fresh-benchmark
   cases; `1` missing gold target).
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public
-  autoprover candidate subset (`144` rows).
+  autoprover candidate subset (`150` rows).
 - `metadata/ai4fm_public_discovery_manifest_v1.summary.json`: live public repo
   discovery manifest (`18` repo records).
 - `metadata/ai4fm_public_dataset_surface.json`: rollup report across the committed
   public AI4FM dataset surface.
 - `metadata/chattla_tla_prover_sft_v1.summary.json`: mixed prover SFT summary.
 - `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default
-  public-AI4FM expanded prover SFT summary (`2479` rows total; `1005` normalized import rows + `144` seed prover-candidate replays on top of the baseline prover stack).
+  public-AI4FM expanded prover SFT summary (`2485` rows total; `1005` normalized import rows + `150` seed prover-candidate replays on top of the baseline prover stack).
 - `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public
-  expanded prover SFT summary (`2484` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).
+  expanded prover SFT summary (`2490` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).
 - `metadata/tla_prover_corpus_experiment_matrix.json`: bounded corpus-lane
-  comparison matrix covering the `1330`-row baseline, `2479`-row expanded lane,
-  `2484`-row full-public lane, and the `144`/`2108` public seed funnel.
+  comparison matrix covering the `1330`-row baseline, `2485`-row expanded lane,
+  `2490`-row full-public lane, and the `150`/`2108` public seed funnel.
 - `metadata/sany_tlc_pass_sft_v1.summary.json`: SANY/TLC-pass SFT summary.
 - `metadata/prover_eval.summary.json`: TLAPS prover eval summary.
 - `metadata/sany_tlc_pass_eval_v1.summary.json`: held-out SANY/TLC-pass eval
@@ -104,10 +107,10 @@ not bundle-local copies of every artifact named there.
 - Mixed prover SFT corpus: `1330` rows (`1053` Diamond SFT + `205` `FormaLLM`
   + `18 * 4` verified TLAPS rows).
 - Preflight coverage proof: exact `205/205` `FormaLLM` rows are present in the
-  default (`1330` rows), expanded (`2479` rows), and full-public (`2484` rows)
+  default (`1330` rows), expanded (`2485` rows), and full-public (`2490` rows)
   prover train corpora.
-- Public-AI4FM expanded prover SFT: `2479` rows total (`1005` normalized public
-  import rows + `144` seed prover-candidate replays on top of the baseline prover
+- Public-AI4FM expanded prover SFT: `2485` rows total (`1005` normalized public
+  import rows + `150` seed prover-candidate replays on top of the baseline prover
   stack).
 - Verified TLAPS traces: `18` rows, raw `299/299` obligations proved.
 - Prover eval: `18` rows, `299/299` gold TLAPS obligations.
@@ -118,13 +121,14 @@ not bundle-local copies of every artifact named there.
   public corpora slice.
 - Public seed repo license surface: `3` Apache-2.0 repos, `3` MIT repos, `2`
   NOASSERTION repos, and `3` unknown-license repos.
-- Public AI4FM seed-module prover candidates: `144` rows out of `2108` usable
+- Public AI4FM seed-module prover candidates: `150` rows out of `2108` usable
   public seed-module rows.
-- Public seed repair queue: `24` rows remaining, with `11` recoverable without
-  new public source material and `13` blocked on missing public helper modules.
+- Public seed repair queue: `18` rows remaining, all recoverable from the
+  current public helper surface (`9` TLAPS-stub-only, `5` same-repo helper
+  staging, `4` cross-repo helper staging).
 - Public seed recovery probe: `0` additional rows recovered by the current
-  builder on that residual queue; `13` are still import-blocked and `11` now fail
-  with post-stage non-import SANY errors.
+  builder on that residual queue; all `18` now fail with post-stage non-import
+  SANY errors after import staging succeeds.
 - Canonical publish readiness gate: blocked, with `20` of `20` latest benchmark rows
   missing every core TLA component.
 - `fc128best` publish readiness gate: blocked, with `20` of `20` rows missing every core component

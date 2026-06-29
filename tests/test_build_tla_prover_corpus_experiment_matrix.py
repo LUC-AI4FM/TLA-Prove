@@ -23,25 +23,25 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     _write(
         tmp_path / "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         {
-            "total_rows": 2433,
+            "total_rows": 2485,
             "base_rows": 1053,
             "formalllm_rows": 205,
             "verified_tlaps_rows": 18,
             "verified_tlaps_weight": 4,
             "public_import_rows": 1005,
-            "public_seed_candidates_rows": 98,
+            "public_seed_candidates_rows": 150,
         },
     )
     _write(
         tmp_path / "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json",
         {
-            "total_rows": 2438,
+            "total_rows": 2490,
             "base_rows": 1053,
             "formalllm_rows": 205,
             "verified_tlaps_rows": 18,
             "verified_tlaps_weight": 4,
             "public_import_rows": 1010,
-            "public_seed_candidates_rows": 98,
+            "public_seed_candidates_rows": 150,
         },
     )
     _write(
@@ -56,8 +56,8 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     _write(
         tmp_path / "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
         {
-            "kept_rows": 70,
-            "unique_modules": 46,
+            "kept_rows": 18,
+            "unique_modules": 16,
             "source_rows": 2108,
             "shape_ready_source_rows": 168,
         },
@@ -69,8 +69,8 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
                 "source_rows": 2108,
                 "shape_ready_rows": 168,
                 "shape_ready_unique_modules": 114,
-                "sany_clean_rows": 98,
-                "shape_ready_but_not_sany_clean_rows": 70,
+                "sany_clean_rows": 150,
+                "shape_ready_but_not_sany_clean_rows": 18,
             }
         },
     )
@@ -111,14 +111,14 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     assert report["publish_baseline_lane"] == "default"
     assert report["lanes"]["default"]["rows"] == 1330
     assert report["lanes"]["default"]["default_publish_lane"] is True
-    assert report["lanes"]["expanded"]["delta_vs_default_rows"] == 1103
+    assert report["lanes"]["expanded"]["delta_vs_default_rows"] == 1155
     assert report["lanes"]["expanded"]["component_rows"]["public_import_rows"] == 1005
-    assert report["lanes"]["full-public"]["delta_vs_default_rows"] == 1108
+    assert report["lanes"]["full-public"]["delta_vs_default_rows"] == 1160
     assert report["lanes"]["shape-ready"]["trainable"] is False
     assert report["lanes"]["shape-ready"]["unique_modules"] == 114
-    assert report["lanes"]["shape-ready-not-sany"]["delta_vs_shape_ready_rows"] == -98
+    assert report["lanes"]["shape-ready-not-sany"]["delta_vs_shape_ready_rows"] == -150
     assert report["comparisons"]["full_public_vs_expanded_extra_rows"] == 5
-    assert report["seed_funnel_snapshot"]["shape_ready_but_not_sany_clean_rows"] == 70
+    assert report["seed_funnel_snapshot"]["shape_ready_but_not_sany_clean_rows"] == 18
     assert report["publish_readiness"]["default_model"]["benchmark_model"] == "chattla:20b"
     assert report["publish_readiness"]["fc128best_model"]["ready_to_publish"] is False
     assert report["named_corpora"]["full-public"].endswith("chattla_tla_prover_sft_public_all_v1.jsonl")
