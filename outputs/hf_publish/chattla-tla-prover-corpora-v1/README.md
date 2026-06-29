@@ -25,8 +25,8 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
 - `metadata/tla_prover_artifacts_v1.json`: top-level manifest for the shipped prover
   corpora and public AI4FM artifacts.
 - `metadata/tla_prover_corpus_preflight.json`: schema preflight plus exact `205/205` `FormaLLM` row
-  coverage verification across the `1330`-row default, `2459`-row expanded, and
-  `2464`-row full-public prover train corpora.
+  coverage verification across the `1330`-row default, `2479`-row expanded, and
+  `2484`-row full-public prover train corpora.
 - `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot (`8` repos,
   `3` corpus-relevant).
 - `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec
@@ -79,12 +79,12 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   public AI4FM dataset surface.
 - `metadata/chattla_tla_prover_sft_v1.summary.json`: mixed prover SFT summary.
 - `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default
-  public-AI4FM expanded prover SFT summary (`2459` rows total; `1005` normalized import rows + `124` seed prover-candidate replays on top of the baseline prover stack).
+  public-AI4FM expanded prover SFT summary (`2479` rows total; `1005` normalized import rows + `144` seed prover-candidate replays on top of the baseline prover stack).
 - `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public
-  expanded prover SFT summary (`2464` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).
+  expanded prover SFT summary (`2484` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).
 - `metadata/tla_prover_corpus_experiment_matrix.json`: bounded corpus-lane
-  comparison matrix covering the `1330`-row baseline, `2459`-row expanded lane,
-  `2464`-row full-public lane, and the `144`/`2108` public seed funnel.
+  comparison matrix covering the `1330`-row baseline, `2479`-row expanded lane,
+  `2484`-row full-public lane, and the `144`/`2108` public seed funnel.
 - `metadata/sany_tlc_pass_sft_v1.summary.json`: SANY/TLC-pass SFT summary.
 - `metadata/prover_eval.summary.json`: TLAPS prover eval summary.
 - `metadata/sany_tlc_pass_eval_v1.summary.json`: held-out SANY/TLC-pass eval
@@ -104,10 +104,10 @@ not bundle-local copies of every artifact named there.
 - Mixed prover SFT corpus: `1330` rows (`1053` Diamond SFT + `205` `FormaLLM`
   + `18 * 4` verified TLAPS rows).
 - Preflight coverage proof: exact `205/205` `FormaLLM` rows are present in the
-  default (`1330` rows), expanded (`2459` rows), and full-public (`2464` rows)
+  default (`1330` rows), expanded (`2479` rows), and full-public (`2484` rows)
   prover train corpora.
-- Public-AI4FM expanded prover SFT: `2459` rows total (`1005` normalized public
-  import rows + `124` seed prover-candidate replays on top of the baseline prover
+- Public-AI4FM expanded prover SFT: `2479` rows total (`1005` normalized public
+  import rows + `144` seed prover-candidate replays on top of the baseline prover
   stack).
 - Verified TLAPS traces: `18` rows, raw `299/299` obligations proved.
 - Prover eval: `18` rows, `299/299` gold TLAPS obligations.
