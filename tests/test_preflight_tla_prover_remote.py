@@ -99,6 +99,7 @@ def test_remote_preflight_accepts_public_sft_fallback_when_local_train_missing(t
         report["resolved_sft_train_file"]
         == "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
     )
+    assert report["resolved_sft_corpus"]["alias"] == "default"
 
 
 def test_remote_preflight_accepts_requested_expanded_sft_train_file(tmp_path: Path, monkeypatch) -> None:
@@ -107,6 +108,7 @@ def test_remote_preflight_accepts_requested_expanded_sft_train_file(tmp_path: Pa
         "configs/accelerate_fsdp.yaml",
         "data/processed/prover_eval.jsonl",
         "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+        "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
         "src/training/train.py",
         "src/training/tlc_eval_callback.py",
@@ -129,6 +131,7 @@ def test_remote_preflight_accepts_requested_expanded_sft_train_file(tmp_path: Pa
         report["resolved_sft_train_file"]
         == "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
     )
+    assert report["resolved_sft_corpus"]["alias"] == "expanded"
 
 
 def test_remote_preflight_accepts_requested_full_public_alias(tmp_path: Path, monkeypatch) -> None:
@@ -137,6 +140,7 @@ def test_remote_preflight_accepts_requested_full_public_alias(tmp_path: Path, mo
         "configs/accelerate_fsdp.yaml",
         "data/processed/prover_eval.jsonl",
         "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+        "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json",
         "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
         "src/training/train.py",
         "src/training/tlc_eval_callback.py",
@@ -156,6 +160,7 @@ def test_remote_preflight_accepts_requested_full_public_alias(tmp_path: Path, mo
         report["resolved_sft_train_file"]
         == "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl"
     )
+    assert report["resolved_sft_corpus"]["alias"] == "full-public"
 
 
 def test_remote_preflight_checks_sft_tools_when_required(tmp_path: Path, monkeypatch) -> None:

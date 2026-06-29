@@ -26,6 +26,8 @@ def test_remote_submit_script_runs_preflight_and_writes_report() -> None:
     assert "--submit-final-proof-verify" in text
     assert "--submit-full-dataset-smoke" in text
     assert "CHATTLA_TLAPM" in text
+    assert "resolved_sft_corpus" in text
+    assert "CHATTLA_TLA_PROVER_CORPUS_LABEL" in text
 
 
 def test_remote_submit_script_captures_qsub_ids_once(tmp_path: Path) -> None:
@@ -85,6 +87,8 @@ fi
     assert report["stage"] == "submitted"
     assert report["repo"] == str(tmp_path)
     assert report["tlapm"] == str(tmp_path / "tlapm")
+    assert report["requested_sft_corpus"] == "default"
+    assert report["resolved_sft_corpus"]["alias"] in {"default", None}
     assert report["known18_job_id"] == "170001.sophia-pbs-01"
     assert report["sft_preflight_job_id"] == "170002.sophia-pbs-01"
     assert report["final_proof_verify_job_id"] == "170003.sophia-pbs-01"
@@ -102,6 +106,11 @@ def test_remote_submit_script_can_select_expanded_sft_corpus_via_flag(tmp_path: 
     qsub = fake_bin / "qsub"
     qsub.write_text("#!/usr/bin/env bash\necho '170001.sophia-pbs-01'\n", encoding="utf-8")
     qsub.chmod(0o755)
+    (tmp_path / "data/processed/tla_prover").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl").write_text(
+        "{}\n",
+        encoding="utf-8",
+    )
 
     captured_train = tmp_path / "captured_train_file"
     fake_preflight = tmp_path / "preflight.py"
@@ -140,6 +149,13 @@ def test_remote_submit_script_can_select_expanded_sft_corpus_via_flag(tmp_path: 
         captured_train.read_text(encoding="utf-8").strip()
         == "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
     )
+    report = json.loads((tmp_path / "outputs/manifests/tla_prover_remote_submission.json").read_text())
+    assert report["requested_sft_corpus"] == "expanded"
+    assert report["resolved_sft_corpus"]["alias"] == "expanded"
+    assert (
+        report["resolved_sft_corpus"]["resolved_train_file"]
+        == "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
+    )
 
 
 def test_remote_submit_script_can_select_full_public_sft_corpus_via_flag(tmp_path: Path) -> None:
@@ -148,6 +164,11 @@ def test_remote_submit_script_can_select_full_public_sft_corpus_via_flag(tmp_pat
     qsub = fake_bin / "qsub"
     qsub.write_text("#!/usr/bin/env bash\necho '170001.sophia-pbs-01'\n", encoding="utf-8")
     qsub.chmod(0o755)
+    (tmp_path / "data/processed/tla_prover").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl").write_text(
+        "{}\n",
+        encoding="utf-8",
+    )
 
     captured_train = tmp_path / "captured_train_file"
     fake_preflight = tmp_path / "preflight.py"
@@ -184,6 +205,13 @@ def test_remote_submit_script_can_select_full_public_sft_corpus_via_flag(tmp_pat
 
     assert (
         captured_train.read_text(encoding="utf-8").strip()
+        == "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl"
+    )
+    report = json.loads((tmp_path / "outputs/manifests/tla_prover_remote_submission.json").read_text())
+    assert report["requested_sft_corpus"] == "full-public"
+    assert report["resolved_sft_corpus"]["alias"] == "full-public"
+    assert (
+        report["resolved_sft_corpus"]["resolved_train_file"]
         == "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl"
     )
 

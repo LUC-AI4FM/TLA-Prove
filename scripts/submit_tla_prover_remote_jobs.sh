@@ -72,6 +72,10 @@ resolve_requested_train_file() {
   python3 "$SCRIPT_REPO/scripts/tla_prover_corpus_paths.py" --resolve-request "$1"
 }
 
+REQUESTED_TRAIN_INPUT="${CHATTLA_TLA_PROVER_TRAIN_FILE:-}"
+if [ -z "$REQUESTED_TRAIN_INPUT" ]; then
+  REQUESTED_TRAIN_INPUT="$SFT_CORPUS"
+fi
 REQUESTED_TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-}"
 if [ -z "$REQUESTED_TRAIN_FILE" ]; then
   REQUESTED_TRAIN_FILE="$(resolve_requested_train_file "$SFT_CORPUS")"
@@ -81,13 +85,14 @@ if [ -n "$REQUESTED_TRAIN_FILE" ]; then
 else
   unset CHATTLA_TLA_PROVER_TRAIN_FILE || true
 fi
+export CHATTLA_TLA_PROVER_CORPUS_LABEL="${SFT_CORPUS:-default}"
 
 write_report() {
   local ok="$1"
   local stage="$2"
   local exit_code="$3"
   local error="$4"
-  python3 - "$REPORT" "$ok" "$stage" "$exit_code" "$error" "$KNOWN18_JOB_ID" "$SFT_PREFLIGHT_JOB_ID" "$FINAL_PROOF_VERIFY_JOB_ID" "$FULL_DATASET_SMOKE_JOB_ID" "$SUBMIT_SFT_PREFLIGHT" "$SUBMIT_FINAL_PROOF_VERIFY" "$SUBMIT_FULL_DATASET_SMOKE" "$REPO" "$HOSTNAME_VALUE" "$TLAPM" <<'PY'
+  python3 - "$REPORT" "$ok" "$stage" "$exit_code" "$error" "$KNOWN18_JOB_ID" "$SFT_PREFLIGHT_JOB_ID" "$FINAL_PROOF_VERIFY_JOB_ID" "$FULL_DATASET_SMOKE_JOB_ID" "$SUBMIT_SFT_PREFLIGHT" "$SUBMIT_FINAL_PROOF_VERIFY" "$SUBMIT_FULL_DATASET_SMOKE" "$REPO" "$HOSTNAME_VALUE" "$TLAPM" "$REQUESTED_TRAIN_INPUT" "$REQUESTED_TRAIN_FILE" "$SCRIPT_REPO" <<'PY'
 import json
 import sys
 from datetime import datetime, timezone
@@ -108,6 +113,18 @@ submit_full_dataset_smoke = sys.argv[12] == "1"
 repo = sys.argv[13]
 hostname = sys.argv[14]
 tlapm = sys.argv[15]
+requested_train_input = sys.argv[16] or None
+requested_train_file = sys.argv[17] or None
+script_repo = sys.argv[18]
+
+repo_path = Path(repo)
+sys.path.insert(0, str(Path(script_repo)))
+from scripts.tla_prover_corpus_paths import resolve_remote_sft_corpus_metadata  # type: ignore
+
+resolved_sft_corpus = resolve_remote_sft_corpus_metadata(
+    repo_path,
+    requested=requested_train_input,
+)
 
 report = {
     "ok": ok,
@@ -118,6 +135,9 @@ report = {
     "exit_code": exit_code,
     "error": error,
     "tlapm": tlapm,
+    "requested_sft_corpus": requested_train_input,
+    "requested_sft_train_file": requested_train_file,
+    "resolved_sft_corpus": resolved_sft_corpus,
     "known18_job_id": known18_job_id,
     "sft_preflight_job_id": sft_preflight_job_id,
     "final_proof_verify_job_id": final_proof_verify_job_id,
