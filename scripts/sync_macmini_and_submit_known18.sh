@@ -104,6 +104,7 @@ FILES=(
   scripts/macmini_tla_prover_autopilot.sh
   scripts/install_macmini_launchagents.sh
   scripts/build_tla_prover_eval_corpus.py
+  scripts/build_tla_prover_corpus_experiment_matrix.py
   scripts/build_sany_tlc_eval_corpus.py
   scripts/build_tla_prover_manifest.py
   scripts/check_tla_prover_pr_ready.py
@@ -130,6 +131,7 @@ FILES=(
   data/processed/sany_tlc_pass_eval_v1.summary.json
   outputs/manifests/sany_tlc_pass_corpus_diagnostic.json
   outputs/manifests/tla_prover_corpus_preflight.json
+  outputs/manifests/tla_prover_corpus_experiment_matrix.json
   outputs/manifests/tla_prover_artifacts_v1.json
 )
 
@@ -152,6 +154,7 @@ python3 scripts/build_tla_prover_eval_corpus.py >/dev/null
 python3 scripts/build_sany_tlc_eval_corpus.py >/dev/null
 python3 scripts/diagnose_sany_tlc_pass_corpus.py >/dev/null
 python3 scripts/preflight_tla_prover_corpora.py >/dev/null
+python3 scripts/build_tla_prover_corpus_experiment_matrix.py >/dev/null
 python3 scripts/build_tla_prover_manifest.py >/dev/null
 
 TRAIN_FILE_TO_SYNC="$LOCAL_PROVER_TRAIN_FILE"

@@ -143,6 +143,10 @@ ARTIFACTS = {
         "path": "outputs/manifests/tla_prover_corpus_preflight.json",
         "kind": "corpus_schema_preflight_report",
     },
+    "tla_prover_corpus_experiment_matrix": {
+        "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+        "kind": "corpus_experiment_matrix_report",
+    },
 }
 
 
@@ -273,6 +277,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
             "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
             "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",
+            "build_tla_prover_corpus_experiment_matrix": (
+                "python3 scripts/build_tla_prover_corpus_experiment_matrix.py"
+            ),
             "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
             "inspect_hf_publish_readiness_fc128best": (
                 "python3 scripts/inspect_hf_publish_readiness.py "

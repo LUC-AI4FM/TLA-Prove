@@ -58,6 +58,9 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   public-AI4FM expanded prover SFT summary (`2433` rows total; `1005` normalized import rows + `98` seed prover-candidate replays on top of the baseline prover stack).
 - `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public
   expanded prover SFT summary (`2438` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).
+- `metadata/tla_prover_corpus_experiment_matrix.json`: bounded corpus-lane
+  comparison matrix covering the `1330`-row baseline, `2433`-row expanded lane,
+  `2438`-row full-public lane, and the `98`/`2108` public seed funnel.
 - `metadata/sany_tlc_pass_sft_v1.summary.json`: SANY/TLC-pass SFT summary.
 - `metadata/prover_eval.summary.json`: TLAPS prover eval summary.
 - `metadata/sany_tlc_pass_eval_v1.summary.json`: held-out SANY/TLC-pass eval

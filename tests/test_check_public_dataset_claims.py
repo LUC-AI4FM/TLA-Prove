@@ -127,6 +127,10 @@ def _write_manifests(repo: Path) -> None:
     _write(repo / "outputs/manifests/tla_prover_artifacts_v1.json", json.dumps({"schema": "artifact"}))
     _write(repo / "outputs/manifests/tla_prover_corpus_preflight.json", json.dumps({"ok": True}))
     _write(
+        repo / "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+        json.dumps({"schema": "chattla_tla_prover_corpus_experiment_matrix_v1"}),
+    )
+    _write(
         repo / "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
         json.dumps({"rows": 18}),
     )
@@ -160,6 +164,7 @@ def _write_manifests(repo: Path) -> None:
         "sany_tlc_pass_sft_v1.summary.json": "data/processed/sany_tlc_pass_sft_v1.summary.json",
         "tla_prover_artifacts_v1.json": "outputs/manifests/tla_prover_artifacts_v1.json",
         "tla_prover_corpus_preflight.json": "outputs/manifests/tla_prover_corpus_preflight.json",
+        "tla_prover_corpus_experiment_matrix.json": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
         "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
     }.items():
         _write_bundle_copy(repo, bundle_name, source_rel)
@@ -233,6 +238,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "- Mixed prover SFT corpus: `1330` rows",
                 "- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n  public-AI4FM expanded prover SFT summary (`2433` rows total; `1005` normalized import rows + `98` seed prover-candidate replays on top of the baseline prover stack).",
                 "- `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public\n  expanded prover SFT summary (`2438` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).",
+                "- `metadata/tla_prover_corpus_experiment_matrix.json`: bounded corpus-lane\n  comparison matrix covering the `1330`-row baseline, `2433`-row expanded lane,\n  `2438`-row full-public lane, and the `98`/`2108` public seed funnel.",
                 "- Public AI4FM normalized import: `1005` rows from the tracked `2350`-row",
                 "  public corpora slice.",
                 "- Public seed repo license surface: `3` Apache-2.0 repos, `3` MIT repos, `2`",

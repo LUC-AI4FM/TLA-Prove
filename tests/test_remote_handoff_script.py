@@ -22,6 +22,7 @@ def test_remote_handoff_script_mentions_required_artifacts_and_dry_run() -> None
     assert "install_handoff_doctor_launchagent.sh" in text
     assert "tla_prover_artifacts_v1.json" in text
     assert "tla_prover_corpus_preflight.json" in text
+    assert "tla_prover_corpus_experiment_matrix.json" in text
     assert "build_tla_prover_eval_corpus.py" in text
     assert "build_sany_tlc_eval_corpus.py" in text
     assert "preflight_tla_prover_corpora.py" in text
@@ -60,6 +61,7 @@ def test_direct_sophia_handoff_script_mentions_required_artifacts_and_dry_run() 
     assert "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl" in text
     assert "tla_prover_artifacts_v1.json" in text
     assert "tla_prover_corpus_preflight.json" in text
+    assert "tla_prover_corpus_experiment_matrix.json" in text
     assert "build_tla_prover_eval_corpus.py" in text
     assert "build_sany_tlc_eval_corpus.py" in text
     assert "preflight_tla_prover_corpora.py" in text
@@ -273,6 +275,7 @@ exit 0
         "scripts/build_sany_tlc_eval_corpus.py",
         "scripts/diagnose_sany_tlc_pass_corpus.py",
         "scripts/preflight_tla_prover_corpora.py",
+        "scripts/build_tla_prover_corpus_experiment_matrix.py",
         "scripts/build_tla_prover_manifest.py",
     ]:
         path = repo / rel
@@ -314,10 +317,11 @@ exit 0
         "data/processed/sany_tlc_pass_sft_v1.summary.json",
         "data/processed/sany_tlc_pass_eval_v1.jsonl",
         "data/processed/sany_tlc_pass_eval_v1.summary.json",
-        "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
-        "outputs/manifests/tla_prover_corpus_preflight.json",
-        "outputs/manifests/tla_prover_artifacts_v1.json",
-    ]:
+            "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
+            "outputs/manifests/tla_prover_corpus_preflight.json",
+            "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+            "outputs/manifests/tla_prover_artifacts_v1.json",
+        ]:
         path = repo / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         if not path.exists():
@@ -365,6 +369,7 @@ def test_direct_sophia_handoff_writes_local_failure_report_on_transport_error(tm
         "scripts/build_sany_tlc_eval_corpus.py",
         "scripts/diagnose_sany_tlc_pass_corpus.py",
         "scripts/preflight_tla_prover_corpora.py",
+        "scripts/build_tla_prover_corpus_experiment_matrix.py",
         "scripts/build_tla_prover_manifest.py",
     ]:
         path = repo / rel
@@ -406,10 +411,11 @@ def test_direct_sophia_handoff_writes_local_failure_report_on_transport_error(tm
         "data/processed/sany_tlc_pass_sft_v1.summary.json",
         "data/processed/sany_tlc_pass_eval_v1.jsonl",
         "data/processed/sany_tlc_pass_eval_v1.summary.json",
-        "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
-        "outputs/manifests/tla_prover_corpus_preflight.json",
-        "outputs/manifests/tla_prover_artifacts_v1.json",
-    ]:
+            "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
+            "outputs/manifests/tla_prover_corpus_preflight.json",
+            "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+            "outputs/manifests/tla_prover_artifacts_v1.json",
+        ]:
         path = repo / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         if not path.exists():
@@ -463,6 +469,7 @@ def test_direct_sophia_handoff_single_session_uses_expect_when_enabled(tmp_path:
         "scripts/build_sany_tlc_eval_corpus.py",
         "scripts/diagnose_sany_tlc_pass_corpus.py",
         "scripts/preflight_tla_prover_corpora.py",
+        "scripts/build_tla_prover_corpus_experiment_matrix.py",
         "scripts/build_tla_prover_manifest.py",
     ]:
         path = repo / rel
@@ -504,10 +511,11 @@ def test_direct_sophia_handoff_single_session_uses_expect_when_enabled(tmp_path:
         "data/processed/sany_tlc_pass_sft_v1.summary.json",
         "data/processed/sany_tlc_pass_eval_v1.jsonl",
         "data/processed/sany_tlc_pass_eval_v1.summary.json",
-        "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
-        "outputs/manifests/tla_prover_corpus_preflight.json",
-        "outputs/manifests/tla_prover_artifacts_v1.json",
-    ]:
+            "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
+            "outputs/manifests/tla_prover_corpus_preflight.json",
+            "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+            "outputs/manifests/tla_prover_artifacts_v1.json",
+        ]:
         path = repo / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         if not path.exists():

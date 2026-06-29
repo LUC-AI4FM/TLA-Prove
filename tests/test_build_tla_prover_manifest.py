@@ -40,6 +40,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"benchmark_model": "chattla:20b-fc128best", "ready_to_publish": False}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/tla_prover_corpus_experiment_matrix.json").write_text(
+        json.dumps({"schema": "chattla_tla_prover_corpus_experiment_matrix_v1", "publish_baseline_lane": "default"}),
+        encoding="utf-8",
+    )
     _write_jsonl(
         repo / "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         [{"messages": []}, {"messages": []}, {"messages": []}, {"messages": []}],
@@ -169,6 +173,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["hf_publish_readiness_fc128best"]["kind"] == (
         "model_hf_publish_readiness_report"
     )
+    assert manifest["artifacts"]["tla_prover_corpus_experiment_matrix"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_corpus_experiment_matrix"]["kind"] == (
+        "corpus_experiment_matrix_report"
+    )
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["rows"] == 4
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["summary"]["duplicate_rows_collapsed"] == 2
@@ -229,6 +237,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["probe_control_planes"] == "python3 scripts/probe_tla_prover_control_planes.py"
     assert manifest["remote_next_steps"]["diagnose_sany_tlc_pass_corpus"] == (
         "python3 scripts/diagnose_sany_tlc_pass_corpus.py"
+    )
+    assert manifest["remote_next_steps"]["build_tla_prover_corpus_experiment_matrix"] == (
+        "python3 scripts/build_tla_prover_corpus_experiment_matrix.py"
     )
     assert manifest["remote_next_steps"]["pr_ready_check"] == "python3 scripts/check_tla_prover_pr_ready.py"
     assert manifest["remote_next_steps"]["build_tla_prover_eval_corpus"] == (
