@@ -67,6 +67,7 @@ PY_COMPILE_FILES = [
     "scripts/status_tla_prover_handoff.py",
     "scripts/doctor_tla_prover_handoff.py",
     "scripts/inspect_hf_publish_readiness.py",
+    "scripts/build_benchmark_repair_pairs.py",
     "scripts/sync_hf_publish_corpora_metadata.py",
     "scripts/upload_v11.py",
 ]
@@ -102,6 +103,7 @@ PYTEST_FILES = [
     "tests/test_inspect_ai4fm_public_dataset_surface.py",
     "tests/test_inspect_ai4fm_public_seed_prover_funnel.py",
     "tests/test_inspect_hf_publish_readiness.py",
+    "tests/test_build_benchmark_repair_pairs.py",
     "tests/test_upload_v11.py",
     "tests/test_doctor_tla_prover_handoff.py",
     "tests/test_publish_hf.py",

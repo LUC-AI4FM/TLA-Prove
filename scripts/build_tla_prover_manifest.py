@@ -101,6 +101,11 @@ ARTIFACTS = {
         "summary": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
         "kind": "public_ai4fm_seed_repo_autoprover_shape_repair_target_corpus",
     },
+    "benchmark_repair_pairs_fc128best": {
+        "path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+        "summary": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
+        "kind": "benchmark_repair_pair_corpus",
+    },
     "ai4fm_public_seed_prover_funnel": {
         "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
         "kind": "public_ai4fm_seed_repo_prover_funnel_report",
@@ -302,6 +307,10 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
             "inspect_hf_publish_readiness_fc128best": (
                 "python3 scripts/inspect_hf_publish_readiness.py "
+                "--benchmark-model chattla:20b-fc128best"
+            ),
+            "build_benchmark_repair_pairs_fc128best": (
+                "python3 scripts/build_benchmark_repair_pairs.py "
                 "--benchmark-model chattla:20b-fc128best"
             ),
             "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",

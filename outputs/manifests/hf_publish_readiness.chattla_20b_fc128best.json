@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 7.967119890318976,
+    "age_hours": 8.154910328918033,
     "avg_struct": 0.8557,
     "fresh_within_hours": 24.0,
     "model": "chattla:20b-fc128best",
@@ -55,7 +55,7 @@
       ]
     }
   },
-  "generated_at": "2026-06-29T12:59:08.420955+00:00",
+  "generated_at": "2026-06-29T13:10:21.926491+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [

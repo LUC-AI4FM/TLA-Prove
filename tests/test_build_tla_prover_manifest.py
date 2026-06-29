@@ -58,6 +58,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"schema": "chattla_tla_prover_corpus_experiment_matrix_v1", "publish_baseline_lane": "default"}),
         encoding="utf-8",
     )
+    _write_jsonl(
+        repo / "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+        [{"repair_id": "BM001::chattla_20b_fc128best", "before_score": 0.0, "after_score": 1.0}],
+    )
+    (repo / "data/processed/benchmark_repair_pairs_fc128best.summary.json").write_text(
+        json.dumps({"rows": 1, "failed_rows_seen": 1, "gold_coverage": {"covered_failed_rows": 1}}),
+        encoding="utf-8",
+    )
     (repo / "outputs/manifests/tla_prover_corpus_preflight.json").write_text(
         json.dumps(
             {
@@ -256,6 +264,12 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
             ],
         }
     }
+    assert manifest["artifacts"]["benchmark_repair_pairs_fc128best"]["exists"] is True
+    assert manifest["artifacts"]["benchmark_repair_pairs_fc128best"]["rows"] == 1
+    assert manifest["artifacts"]["benchmark_repair_pairs_fc128best"]["kind"] == (
+        "benchmark_repair_pair_corpus"
+    )
+    assert manifest["artifacts"]["benchmark_repair_pairs_fc128best"]["summary"]["rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["rows"] == 4
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["summary"]["duplicate_rows_collapsed"] == 2
@@ -388,6 +402,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["inspect_hf_publish_readiness_fc128best"] == (
         "python3 scripts/inspect_hf_publish_readiness.py "
+        "--benchmark-model chattla:20b-fc128best"
+    )
+    assert manifest["remote_next_steps"]["build_benchmark_repair_pairs_fc128best"] == (
+        "python3 scripts/build_benchmark_repair_pairs.py "
         "--benchmark-model chattla:20b-fc128best"
     )
     assert "sft_preflight_pbs" not in manifest["remote_next_steps"]
