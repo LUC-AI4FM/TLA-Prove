@@ -39,6 +39,7 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "ai4fm_org_surface.json": "outputs/manifests/ai4fm_org_surface.json",
         "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
+        "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
         "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
         "ai4fm_public_seed_license_surface.json": "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "ai4fm_public_seed_tla_modules_v1.summary.json": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
@@ -58,6 +59,10 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "chattla_tla_prover_sft_public_expanded_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         "chattla_tla_prover_sft_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
         "formalllm_eval_v1.summary.json": "data/processed/formalllm_eval_v1.summary.json",
+        "hf_publish_readiness.chattla_20b_fc128best.json": (
+            "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json"
+        ),
+        "hf_publish_readiness.json": "outputs/manifests/hf_publish_readiness.json",
         "prover_eval.summary.json": "data/processed/prover_eval.summary.json",
         "sany_tlc_pass_corpus_diagnostic.json": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
         "sany_tlc_pass_eval_v1.summary.json": "data/processed/sany_tlc_pass_eval_v1.summary.json",
@@ -120,6 +125,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     seed_license_surface = _read_json(repo / "outputs/manifests/ai4fm_public_seed_license_surface.json")
     dataset_surface = _read_json(repo / "outputs/manifests/ai4fm_public_dataset_surface.json")
     corpus_preflight = _read_json(repo / "outputs/manifests/tla_prover_corpus_preflight.json")
+    readiness = _read_json(repo / "outputs/manifests/hf_publish_readiness.json")
+    readiness_fc128best = _read_json(repo / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json")
+    repair_pairs_summary = _read_json(repo / "data/processed/benchmark_repair_pairs_fc128best.summary.json")
 
     formalllm_rows = int(formalllm["rows"])
     formalllm_families = int(formalllm["families_seen"])
@@ -163,6 +171,17 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     default_coverage_rows = int(coverage_corpora["chattla_tla_prover_sft_v1.jsonl"]["rows"])
     expanded_coverage_rows = int(coverage_corpora["chattla_tla_prover_sft_public_expanded_v1.jsonl"]["rows"])
     full_public_coverage_rows = int(coverage_corpora["chattla_tla_prover_sft_public_all_v1.jsonl"]["rows"])
+    canonical_blockers = readiness.get("blockers", [])
+    canonical_no_core_rows = int(readiness["failure_surface"]["aggregate"]["rows_with_no_core_components"])
+    fc128best_blockers = readiness_fc128best.get("blockers", [])
+    fc128best_no_core_rows = int(readiness_fc128best["failure_surface"]["aggregate"]["rows_with_no_core_components"])
+    fc128best_placeholder_rows = int(
+        readiness_fc128best["failure_surface"]["red_flags"]["obvious_placeholder_rows"]
+    )
+    repair_pair_rows = int(repair_pairs_summary["rows"])
+    repair_failed_rows_seen = int(repair_pairs_summary["failed_rows_seen"])
+    repair_gold_coverage = int(repair_pairs_summary["gold_coverage"]["covered_failed_rows"])
+    repair_missing_gold = len(repair_pairs_summary["gold_coverage"]["missing_gold_benchmark_ids"])
 
     return {
         "README.md": [
@@ -206,6 +225,12 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             (
                 "The verifier-backed preflight manifest at "
                 "`outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone."
+            ),
+            (
+                "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in "
+                f"`data/processed/benchmark_repair_pairs_fc128best.summary.json`: `{repair_pair_rows}` repair pairs cover "
+                f"`{repair_gold_coverage}/{repair_failed_rows_seen}` failed benchmark rows, leaving only "
+                f"`{repair_pairs_summary['gold_coverage']['missing_gold_benchmark_ids'][0]}` without a public gold target today."
             ),
             (
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: "
@@ -297,6 +322,20 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"- `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance\n"
                 f"  rollup for the `{seed_repo_inputs}` committed public seed repos."
             ),
+            (
+                f"- `metadata/hf_publish_readiness.json`: canonical publish-readiness gate (`{len(canonical_blockers)}`\n"
+                f"  blockers; `{canonical_no_core_rows}` latest benchmark rows still missing every core TLA component)."
+            ),
+            (
+                "- `metadata/hf_publish_readiness.chattla_20b_fc128best.json`: fresh `fc128best`\n"
+                f"  publish-readiness gate (`{len(fc128best_blockers)}` blocker; `{fc128best_no_core_rows}` rows still missing every core component,\n"
+                f"  `{fc128best_placeholder_rows}` with obvious placeholder text)."
+            ),
+            (
+                "- `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived\n"
+                f"  repair curriculum summary (`{repair_pair_rows}` rows covering `{repair_gold_coverage}` of `{repair_failed_rows_seen}` failed fresh-benchmark\n"
+                f"  cases; `{repair_missing_gold}` missing gold target)."
+            ),
             f"- Mixed prover SFT corpus: `{mixed_sft_rows}` rows",
             (
                 f"- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n"
@@ -322,6 +361,18 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             (
                 f"- Public AI4FM seed-module prover candidates: `{candidate_rows}` rows out of `{usable_module_rows}` usable\n"
                 "  public seed-module rows."
+            ),
+            (
+                f"- Canonical publish readiness gate: blocked, with `{canonical_no_core_rows}` of `{canonical_no_core_rows}` latest benchmark rows\n"
+                "  missing every core TLA component."
+            ),
+            (
+                f"- `fc128best` publish readiness gate: blocked, with `{fc128best_no_core_rows}` of `{fc128best_no_core_rows}` rows missing every core component\n"
+                f"  and `{fc128best_placeholder_rows}` obvious-placeholder failures."
+            ),
+            (
+                f"- Benchmark-derived repair curriculum: `{repair_pair_rows}` rows covering `{repair_gold_coverage}` of `{repair_failed_rows_seen}`\n"
+                f"  failed fresh-benchmark cases, with `{repair_missing_gold}` missing gold target."
             ),
             (
                 "The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; "

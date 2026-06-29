@@ -48,6 +48,14 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   module corpus (`2108` rows).
 - `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance
   rollup for the `11` committed public seed repos.
+- `metadata/hf_publish_readiness.json`: canonical publish-readiness gate (`2`
+  blockers; `20` latest benchmark rows still missing every core TLA component).
+- `metadata/hf_publish_readiness.chattla_20b_fc128best.json`: fresh `fc128best`
+  publish-readiness gate (`1` blocker; `20` rows still missing every core component,
+  `8` with obvious placeholder text).
+- `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived
+  repair curriculum summary (`19` rows covering `19` of `20` failed fresh-benchmark
+  cases; `1` missing gold target).
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public
   autoprover candidate subset (`98` rows).
 - `metadata/ai4fm_public_discovery_manifest_v1.summary.json`: live public repo
@@ -97,5 +105,11 @@ not bundle-local copies of every artifact named there.
   NOASSERTION repos, and `3` unknown-license repos.
 - Public AI4FM seed-module prover candidates: `98` rows out of `2108` usable
   public seed-module rows.
+- Canonical publish readiness gate: blocked, with `20` of `20` latest benchmark rows
+  missing every core TLA component.
+- `fc128best` publish readiness gate: blocked, with `20` of `20` rows missing every core component
+  and `8` obvious-placeholder failures.
+- Benchmark-derived repair curriculum: `19` rows covering `19` of `20`
+  failed fresh-benchmark cases, with `1` missing gold target.
 
 Use the metadata files as the source of truth for checksums and replay status.
