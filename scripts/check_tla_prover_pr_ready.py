@@ -41,6 +41,7 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 PY_COMPILE_FILES = [
+    "scripts/check_public_dataset_claims.py",
     "scripts/build_ai4fm_public_seed_file_manifest.py",
     "scripts/build_ai4fm_public_seed_prover_candidates.py",
     "scripts/build_ai4fm_public_seed_tla_modules.py",
@@ -58,6 +59,7 @@ PY_COMPILE_FILES = [
 ]
 
 PYTEST_FILES = [
+    "tests/test_check_public_dataset_claims.py",
     "tests/test_build_ai4fm_public_seed_file_manifest.py",
     "tests/test_build_ai4fm_public_seed_prover_candidates.py",
     "tests/test_build_ai4fm_public_seed_tla_modules.py",
@@ -154,6 +156,7 @@ def scan_files(paths: list[Path]) -> list[dict[str, Any]]:
 def build_commands() -> list[list[str]]:
     return [
         ["python3", "-m", "py_compile", *PY_COMPILE_FILES],
+        ["python3", "scripts/check_public_dataset_claims.py"],
         ["python3", "scripts/status_tla_prover_handoff.py", "--no-live", "--compact"],
         ["python3", "scripts/doctor_tla_prover_handoff.py", "--dry-run", "--no-live", "--compact"],
         ["python3", "-m", "pytest", *PYTEST_FILES, "-q"],
