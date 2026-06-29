@@ -56,7 +56,8 @@ LOCAL_PROVER_TRAIN_FILE="data/processed/tla_prover/chattla_tla_prover_sft_v1.jso
 LOCAL_PROVER_TRAIN_SUMMARY="data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json"
 PUBLIC_PROVER_TRAIN_FILE="outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
 PUBLIC_PROVER_TRAIN_SUMMARY="outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/chattla_tla_prover_sft_v1.summary.json"
-REMOTE_TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-$LOCAL_PROVER_TRAIN_FILE}"
+REQUESTED_TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-}"
+REMOTE_TRAIN_FILE="${REQUESTED_TRAIN_FILE:-$LOCAL_PROVER_TRAIN_FILE}"
 LOCAL_SUBMISSION_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_submission.json"
 MIRROR_FAILURE_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_submission_mirror_failed.json"
 ASKPASS_SCRIPT=""
@@ -276,7 +277,17 @@ python3 scripts/build_tla_prover_manifest.py >/dev/null
 
 TRAIN_FILE_TO_SYNC="$LOCAL_PROVER_TRAIN_FILE"
 TRAIN_SUMMARY_TO_SYNC="$LOCAL_PROVER_TRAIN_SUMMARY"
-if [ -z "${CHATTLA_TLA_PROVER_TRAIN_FILE:-}" ] && [ ! -f "$TRAIN_FILE_TO_SYNC" ] && [ -f "$PUBLIC_PROVER_TRAIN_FILE" ]; then
+if [ -n "$REQUESTED_TRAIN_FILE" ]; then
+  TRAIN_FILE_TO_SYNC="$REQUESTED_TRAIN_FILE"
+  case "$TRAIN_FILE_TO_SYNC" in
+    *.jsonl)
+      TRAIN_SUMMARY_TO_SYNC="${TRAIN_FILE_TO_SYNC%.jsonl}.summary.json"
+      ;;
+    *)
+      TRAIN_SUMMARY_TO_SYNC=""
+      ;;
+  esac
+elif [ ! -f "$TRAIN_FILE_TO_SYNC" ] && [ -f "$PUBLIC_PROVER_TRAIN_FILE" ]; then
   TRAIN_FILE_TO_SYNC="$PUBLIC_PROVER_TRAIN_FILE"
   TRAIN_SUMMARY_TO_SYNC="$PUBLIC_PROVER_TRAIN_SUMMARY"
   REMOTE_TRAIN_FILE="$PUBLIC_PROVER_TRAIN_FILE"
@@ -288,7 +299,7 @@ fi
 
 ALL_FILES=("${FILES[@]}")
 ALL_FILES+=("$TRAIN_FILE_TO_SYNC")
-[ -f "$TRAIN_SUMMARY_TO_SYNC" ] && ALL_FILES+=("$TRAIN_SUMMARY_TO_SYNC")
+[ -n "$TRAIN_SUMMARY_TO_SYNC" ] && [ -f "$TRAIN_SUMMARY_TO_SYNC" ] && ALL_FILES+=("$TRAIN_SUMMARY_TO_SYNC")
 while IFS= read -r module_path; do
   [ -z "$module_path" ] && continue
   ALL_FILES+=("$module_path")
