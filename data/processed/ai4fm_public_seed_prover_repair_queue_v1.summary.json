@@ -1,28 +1,25 @@
 {
   "blocked_on_missing_public_dependency_rows": 4,
-  "generated_at": "2026-06-29T17:01:46.490706+00:00",
-  "jsonl_sha256": "c3dd30e710e450e00aba44ecfd2a74d91f5ae9dbb6137a9b58ae6478a7fc93c8",
-  "kept_rows": 44,
+  "generated_at": "2026-06-29T17:19:31.929760+00:00",
+  "jsonl_sha256": "54315e3a27fb66a301c8b93f6ad253031f1a42a9babe8959c98ea4669895170c",
+  "kept_rows": 24,
   "missing_import_availability_counts": {
-    "cross_repo_seed_module": 18,
     "missing_from_seed_surface": 4,
-    "same_repo_seed_module": 9,
+    "same_repo_seed_module": 7,
     "tlaps_standard_module": 13
   },
   "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "priority_counts": {
     "p1": 13,
-    "p2": 9,
-    "p3": 18,
+    "p2": 7,
     "p4": 4
   },
   "recommended_action_counts": {
     "expand_public_dependency_surface": 4,
-    "stage_cross_repo_seed_helpers": 18,
-    "stage_same_repo_seed_helpers": 9,
+    "stage_same_repo_seed_helpers": 7,
     "stage_tlaps_standard_module": 13
   },
-  "recoverable_without_new_source_rows": 40,
+  "recoverable_without_new_source_rows": 20,
   "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
   "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -37,13 +34,13 @@
       "note": "Rows recoverable by staging helper modules already present in the same public repo.",
       "priority": "p2",
       "recommended_action": "stage_same_repo_seed_helpers",
-      "rows": 9
+      "rows": 7
     },
     {
       "note": "Rows recoverable by staging helper modules already visible elsewhere in the public seed surface.",
       "priority": "p3",
       "recommended_action": "stage_cross_repo_seed_helpers",
-      "rows": 18
+      "rows": 0
     },
     {
       "note": "Rows still blocked because at least one required helper module is missing from the current public seed surface.",
@@ -58,31 +55,11 @@
       "rows": 13
     },
     {
-      "module": "Utils",
-      "rows": 7
-    },
-    {
-      "module": "UndirectedGraphs",
-      "rows": 5
-    },
-    {
-      "module": "SequencesExt",
-      "rows": 4
-    },
-    {
-      "module": "Functions",
-      "rows": 3
-    },
-    {
-      "module": "Graphs",
-      "rows": 2
-    },
-    {
       "module": "Voting",
       "rows": 2
     },
     {
-      "module": "DyadicRationals",
+      "module": "Utils",
       "rows": 2
     },
     {
@@ -90,30 +67,34 @@
       "rows": 2
     },
     {
+      "module": "Functions",
+      "rows": 1
+    },
+    {
+      "module": "Graphs",
+      "rows": 1
+    },
+    {
       "module": "BlockDag",
       "rows": 1
     },
     {
-      "module": "MessagePassing",
+      "module": "SequenceTheorems",
       "rows": 1
     },
     {
-      "module": "SequenceTheorems",
+      "module": "NaturalsInduction",
       "rows": 1
     }
   ],
   "top_repos": [
     {
       "repo": "tlaplus/Examples",
-      "rows": 27
+      "rows": 20
     },
     {
       "repo": "tlaplus/tlaplus",
-      "rows": 12
-    },
-    {
-      "repo": "apalache-mc/apalache",
-      "rows": 4
+      "rows": 3
     },
     {
       "repo": "tlaplus/DrTLAPlus",

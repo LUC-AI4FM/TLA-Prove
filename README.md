@@ -57,7 +57,7 @@ ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spannin
 | `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the committed public corpora | `data/processed/ai4fm_public_tlaprove_import_v1.jsonl` |
 | `TLA-Prove raw import` | 2,350 undeduped ChatTLA-format rows spanning the full tracked public corpora slice | `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` |
 | `tla-dataset-pipeline seed repo files` | 3,140 tracked `.tla` / `.cfg` / `.tlaps` files across the 11 committed public seed repos, including 2,110 `.tla` files | `data/processed/ai4fm_public_seed_file_manifest_v1.jsonl` |
-| `tla-dataset-pipeline seed prover candidates` | 124 SANY-clean prover-candidate rows from 2,108 usable public seed-module rows | `data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl` |
+| `tla-dataset-pipeline seed prover candidates` | 144 SANY-clean prover-candidate rows from 2,108 usable public seed-module rows | `data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl` |
 | `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories | `data/processed/ai4fm_public_discovery_manifest_v1.jsonl` |
 | `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface | `outputs/manifests/ai4fm_public_dataset_surface.json` |
 

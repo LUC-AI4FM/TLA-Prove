@@ -11,8 +11,8 @@
       },
       {
         "repo": "apalache-mc/apalache",
-        "sany_clean_rate": 0.045929,
-        "sany_clean_rows": 22,
+        "sany_clean_rate": 0.05428,
+        "sany_clean_rows": 26,
         "shape_ready_rate": 0.05428,
         "shape_ready_rows": 26,
         "total_rows": 479
@@ -67,8 +67,8 @@
       },
       {
         "repo": "tlaplus/Examples",
-        "sany_clean_rate": 0.125307,
-        "sany_clean_rows": 51,
+        "sany_clean_rate": 0.142506,
+        "sany_clean_rows": 58,
         "shape_ready_rate": 0.191646,
         "shape_ready_rows": 78,
         "total_rows": 407
@@ -83,8 +83,8 @@
       },
       {
         "repo": "tlaplus/tlaplus",
-        "sany_clean_rate": 0.045192,
-        "sany_clean_rows": 47,
+        "sany_clean_rate": 0.053846,
+        "sany_clean_rows": 56,
         "shape_ready_rate": 0.056731,
         "shape_ready_rows": 59,
         "total_rows": 1040
@@ -92,15 +92,15 @@
     ],
     "top_sany_clean_repos": [
       {
-        "count": 51,
+        "count": 58,
         "name": "tlaplus/Examples"
       },
       {
-        "count": 47,
+        "count": 56,
         "name": "tlaplus/tlaplus"
       },
       {
-        "count": 22,
+        "count": 26,
         "name": "apalache-mc/apalache"
       },
       {
@@ -153,18 +153,18 @@
   },
   "candidates": {
     "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-    "rows": 124,
+    "rows": 144,
     "summary_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json"
   },
   "funnel": {
     "not_shape_ready_rows": 1940,
-    "sany_clean_rows": 124,
-    "shape_ready_but_not_sany_clean_rows": 44,
+    "sany_clean_rows": 144,
+    "shape_ready_but_not_sany_clean_rows": 24,
     "shape_ready_rows": 168,
     "shape_ready_unique_modules": 114,
     "source_rows": 2108
   },
-  "generated_at": "2026-06-29T16:15:00.045441+00:00",
+  "generated_at": "2026-06-29T17:19:15.492187+00:00",
   "missing_requirement_counts": {
     "operators": {
       "Init": 1082,
