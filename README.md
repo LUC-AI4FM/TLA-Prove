@@ -40,7 +40,7 @@ huggingface-cli download EricSpencer00/chattla-20b gguf/chattla-20b-v21-Q8_0.ggu
 | Gold    | 9/30 (30%) | Parses + model-checks cleanly |
 
 Evaluated on a 30-spec held-out suite with up to 3 self-correction attempts via TLC feedback.
-The latest public Hugging Face GGUF is currently `gguf/chattla-20b-v21-Q8_0.gguf`; local publish readiness is tracked in `outputs/manifests/hf_publish_readiness.json`.
+The latest public Hugging Face GGUF is currently `gguf/chattla-20b-v21-Q8_0.gguf`; local publish readiness is tracked in `outputs/manifests/hf_publish_readiness.json` for the canonical `chattla:20b` lane and `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` for the current `fc128best` candidate lane.
 
 ---
 

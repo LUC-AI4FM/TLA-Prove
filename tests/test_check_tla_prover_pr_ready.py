@@ -80,6 +80,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
         "outputs/manifests/ai4fm_public_dataset_surface.json",
         "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "outputs/manifests/hf_publish_readiness.json",
+        "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
     ]:
         path = tmp_path / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -92,6 +93,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     assert "outputs/manifests/ai4fm_public_dataset_surface.json" in paths
     assert "outputs/manifests/ai4fm_public_seed_license_surface.json" in paths
     assert "outputs/manifests/hf_publish_readiness.json" in paths
+    assert "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json" in paths
 
 
 def test_readiness_files_can_include_untracked_scripts_but_not_outputs(tmp_path: Path) -> None:
