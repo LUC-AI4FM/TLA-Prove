@@ -13,8 +13,10 @@ without private infrastructure.
 
 ## Verified current counts
 
-These values come from the local inspection report at
+These values come from the checked-in inspection report at
 `outputs/manifests/ai4fm_public_dataset_surface.json`.
+Treat them as the reproducible local snapshot; the live upstream heads
+re-verified below are the current public-source reference.
 
 - `FormaLLM`
   - git head: `e74c2ed`
@@ -40,7 +42,7 @@ We also re-checked the current upstream public repos directly on 2026-06-28:
     `Input/test.json`, and they still sum to `205`: `143` train, `30` val,
     `32` test
 - `tla-dataset-pipeline`
-  - current `main`: `59bd5335f1d2c5ff66badbe98b594f4b064f8703`
+  - current `main`: `4ac5620f7ef425285ca5a8d91304c9b4da5ca56f`
   - seed recipe currently lists `11` repos, `7` org seeds, `9` user seeds, and `5` search queries
   - `dvc.lock` still reports `2628` `pull` files, `227` `parse` input files, and `3979` `parse` output files
 - `ai4fm.cs.luc.edu` live public pages
