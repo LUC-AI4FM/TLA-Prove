@@ -109,6 +109,17 @@ def test_source_specs_cover_all_public_tlaprove_inputs() -> None:
     assert specs["ralph_train"]["kind"] == "ralph"
 
 
+def test_source_specs_can_include_additional_public_jsonl_surface() -> None:
+    specs = source_specs(include_additional_public_jsonl=True)
+
+    assert "toy_train" in specs
+    assert "toy_eval" in specs
+    assert "diamond_gen_communication_protocols" in specs
+    assert "diamond_gen_diamond_generated" in specs
+    assert specs["toy_train"]["kind"] == "messages"
+    assert specs["diamond_gen_communication_protocols"]["kind"] == "holdout"
+
+
 def test_build_import_summary_is_json_serializable(tmp_path: Path) -> None:
     rows, summary = build_import(
         {name: [] for name in source_specs()},
@@ -155,6 +166,48 @@ def test_build_import_can_keep_raw_duplicate_rows() -> None:
     assert summary["kept_rows"] == 2
     assert summary["duplicate_rows_collapsed"] == 0
     assert summary["dedupe_exact_final_spec"] is False
+
+
+def test_build_import_can_include_additional_public_jsonl_surface() -> None:
+    rows, summary = build_import(
+        {
+            "processed_train": [],
+            "diamond_sft_v3": [],
+            "processed_eval": [],
+            "diamond_eval_holdout": [],
+            "ralph_train": [],
+            "ralph_dev": [],
+            "toy_train": [
+                {
+                    "_toy": True,
+                    "messages": _assistant_messages("---- MODULE ToyTrain ----\n====\nSPECIFICATION Spec\n"),
+                }
+            ],
+            "diamond_gen_communication_protocols": [
+                {
+                    "module": "AltBit",
+                    "tier": "gold",
+                    "topic_desc": "Alternating bit protocol.",
+                    "spec": "---- MODULE AltBit ----\nTypeOK == TRUE\n====\n",
+                    "is_diamond": True,
+                    "mutation_caught": True,
+                    "trivial_invariant": False,
+                    "distinct_states": 8,
+                    "invariants_checked": 2,
+                }
+            ],
+        },
+        generated_at="2026-06-28T00:00:00+00:00",
+        include_additional_public_jsonl=True,
+    )
+
+    assert [row["_module"] for row in rows] == ["ToyTrain", "AltBit"]
+    assert rows[0]["_ai4fm_public_corpora"] == ["toy_train"]
+    assert rows[1]["_ai4fm_public_corpora"] == ["diamond_gen_communication_protocols"]
+    assert summary["raw_rows"] == 2
+    assert summary["kept_rows"] == 2
+    assert summary["per_corpus"]["toy_train"]["kept_rows"] == 1
+    assert summary["per_corpus"]["diamond_gen_communication_protocols"]["kept_rows"] == 1
 
 
 def test_write_outputs_accepts_out_of_repo_target(tmp_path: Path) -> None:

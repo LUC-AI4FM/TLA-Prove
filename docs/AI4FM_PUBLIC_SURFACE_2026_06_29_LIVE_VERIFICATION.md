@@ -7,6 +7,8 @@ The current public AI4FM surface still supports ChatTLA's existing split:
 - `FormaLLM` remains the canonical `205`-entry benchmark layer.
 - The older `1800+` wording is still visible in a stale `ARCHITECTURE.md` note,
   but it does not match the current committed public metadata.
+- The public `LUC-AI4FM` org currently exposes `8` repos; `FormaLLM`,
+  `TLA-Prove`, and `tla-dataset-pipeline` are the `3` corpus-relevant ones.
 - The broader public GitHub expansion story is still best represented by the
   larger `TLA-Prove` and seed-repo lanes: `2757` committed public JSONL rows,
   `2110` public seed `.tla` files, `2108` usable seed modules, and `18` live
@@ -45,6 +47,18 @@ The current public AI4FM surface still supports ChatTLA's existing split:
   - current public benchmark surface: `20` benchmark items
   - explicit holdout artifact still present as `30` rows in
     `data/processed/diamond_eval_holdout.jsonl`
+
+### LUC-AI4FM org surface
+
+- Fresh live org snapshot from `python3 scripts/inspect_ai4fm_org_surface.py`:
+  - `8` public repos in `LUC-AI4FM`
+  - `3` corpus-relevant repos: `FormaLLM`, `TLA-Prove`,
+    `tla-dataset-pipeline`
+  - `5` adjacent public repos: `FormaLLM-Reverse`, `paper-parse`, `webpage`,
+    `ralph-tla`, `.github`
+- The strongest currently untracked public corpus-adjacent lane is still the
+  `407` rows across the `13` committed `TLA-Prove` JSONL files outside the
+  tracked import slice (`data/toy/*` + `outputs/diamond_gen/*`).
 
 ### tla-dataset-pipeline discovery / seed lanes
 
@@ -93,6 +107,7 @@ That means the existing ChatTLA wording is still directionally correct:
 ## Commands used
 
 ```bash
+python3 scripts/inspect_ai4fm_org_surface.py
 python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
 python3 scripts/build_ai4fm_public_discovery_manifest.py
 python3 - <<'PY'

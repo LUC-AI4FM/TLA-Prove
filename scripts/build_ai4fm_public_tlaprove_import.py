@@ -26,65 +26,188 @@ MODULE_RE = re.compile(r"(?m)^\s*-+\s*MODULE\s+([A-Za-z0-9_]+)\s*-+")
 URL_TIMEOUT = 60
 
 
-def source_specs() -> OrderedDict[str, dict[str, str]]:
-    return OrderedDict(
-        [
-            (
-                "processed_train",
-                {
-                    "kind": "messages",
-                    "path": "data/processed/train.jsonl",
-                    "url": f"{RAW_ROOT}/data/processed/train.jsonl",
-                    "split": "train",
-                },
-            ),
-            (
-                "diamond_sft_v3",
-                {
-                    "kind": "messages",
-                    "path": "data/processed/diamond_sft_v3.jsonl",
-                    "url": f"{RAW_ROOT}/data/processed/diamond_sft_v3.jsonl",
-                    "split": "train",
-                },
-            ),
-            (
-                "processed_eval",
-                {
-                    "kind": "messages",
-                    "path": "data/processed/eval.jsonl",
-                    "url": f"{RAW_ROOT}/data/processed/eval.jsonl",
-                    "split": "eval",
-                },
-            ),
-            (
-                "diamond_eval_holdout",
-                {
-                    "kind": "holdout",
-                    "path": "data/processed/diamond_eval_holdout.jsonl",
-                    "url": f"{RAW_ROOT}/data/processed/diamond_eval_holdout.jsonl",
-                    "split": "eval",
-                },
-            ),
-            (
-                "ralph_train",
-                {
-                    "kind": "ralph",
-                    "path": "data/frs_tla_ralph_gen/train.jsonl",
-                    "url": f"{RAW_ROOT}/data/frs_tla_ralph_gen/train.jsonl",
-                    "split": "train",
-                },
-            ),
-            (
-                "ralph_dev",
-                {
-                    "kind": "ralph",
-                    "path": "data/frs_tla_ralph_gen/dev.jsonl",
-                    "url": f"{RAW_ROOT}/data/frs_tla_ralph_gen/dev.jsonl",
-                    "split": "eval",
-                },
-            ),
-        ]
-    )
+BASE_SOURCE_SPECS: tuple[tuple[str, dict[str, str]], ...] = (
+    (
+        "processed_train",
+        {
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "url": f"{RAW_ROOT}/data/processed/train.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_sft_v3",
+        {
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "url": f"{RAW_ROOT}/data/processed/diamond_sft_v3.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "processed_eval",
+        {
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "url": f"{RAW_ROOT}/data/processed/eval.jsonl",
+            "split": "eval",
+        },
+    ),
+    (
+        "diamond_eval_holdout",
+        {
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "url": f"{RAW_ROOT}/data/processed/diamond_eval_holdout.jsonl",
+            "split": "eval",
+        },
+    ),
+    (
+        "ralph_train",
+        {
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "url": f"{RAW_ROOT}/data/frs_tla_ralph_gen/train.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "ralph_dev",
+        {
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "url": f"{RAW_ROOT}/data/frs_tla_ralph_gen/dev.jsonl",
+            "split": "eval",
+        },
+    ),
+)
+ADDITIONAL_PUBLIC_SOURCE_SPECS: tuple[tuple[str, dict[str, str]], ...] = (
+    (
+        "toy_train",
+        {
+            "kind": "messages",
+            "path": "data/toy/train.jsonl",
+            "url": f"{RAW_ROOT}/data/toy/train.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "toy_eval",
+        {
+            "kind": "messages",
+            "path": "data/toy/eval.jsonl",
+            "url": f"{RAW_ROOT}/data/toy/eval.jsonl",
+            "split": "eval",
+        },
+    ),
+    (
+        "diamond_gen_communication_protocols",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/communication_protocols.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/communication_protocols.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_concurrency_primitives",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/concurrency_primitives.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/concurrency_primitives.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_consensus_election",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/consensus_election.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/consensus_election.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_data_structures",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/data_structures.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/data_structures.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_diamond_generated",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/diamond_generated.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/diamond_generated.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_memory_caches",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/memory_caches.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/memory_caches.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_mutual_exclusion",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/mutual_exclusion.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/mutual_exclusion.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_puzzles_classical",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/puzzles_classical.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/puzzles_classical.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_scheduling_resources",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/scheduling_resources.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/scheduling_resources.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_transactions_databases",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/transactions_databases.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/transactions_databases.jsonl",
+            "split": "train",
+        },
+    ),
+    (
+        "diamond_gen_workflows_state_machines",
+        {
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/workflows_state_machines.jsonl",
+            "url": f"{RAW_ROOT}/outputs/diamond_gen/workflows_state_machines.jsonl",
+            "split": "train",
+        },
+    ),
+)
+
+
+def source_specs(*, include_additional_public_jsonl: bool = False) -> OrderedDict[str, dict[str, str]]:
+    specs = OrderedDict(BASE_SOURCE_SPECS)
+    if include_additional_public_jsonl:
+        specs.update(OrderedDict(ADDITIONAL_PUBLIC_SOURCE_SPECS))
+    return specs
 
 
 def _load_json_url(url: str) -> Any:
@@ -232,6 +355,7 @@ def build_import(
     repo: dict[str, Any] | None = None,
     generated_at: str | None = None,
     dedupe: bool = True,
+    include_additional_public_jsonl: bool = False,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     generated_at = generated_at or datetime.now(timezone.utc).isoformat()
     kept: list[dict[str, Any]] = []
@@ -239,7 +363,7 @@ def build_import(
     per_corpus: dict[str, dict[str, Any]] = {}
     raw_rows = 0
 
-    for corpus_name, spec in source_specs().items():
+    for corpus_name, spec in source_specs(include_additional_public_jsonl=include_additional_public_jsonl).items():
         rows = source_rows.get(corpus_name, [])
         seen_in_corpus: set[str] = set()
         stats = {
@@ -275,12 +399,13 @@ def build_import(
         "kept_rows": len(kept),
         "duplicate_rows_collapsed": (raw_rows - len(kept)) if dedupe else 0,
         "dedupe_exact_final_spec": dedupe,
+        "include_additional_public_jsonl": include_additional_public_jsonl,
         "per_corpus": per_corpus,
     }
     return kept, summary
 
 
-def load_public_rows() -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]:
+def load_public_rows(*, include_additional_public_jsonl: bool = False) -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]:
     repo_meta = _load_json_url(API_ROOT)
     branch = repo_meta["default_branch"]
     branch_meta = _load_json_url(f"{API_ROOT}/branches/{branch}")
@@ -290,7 +415,10 @@ def load_public_rows() -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]
         "default_branch": branch,
         "head_sha": branch_meta["commit"]["sha"],
     }
-    rows = {name: _load_jsonl_url(spec["url"]) for name, spec in source_specs().items()}
+    rows = {
+        name: _load_jsonl_url(spec["url"])
+        for name, spec in source_specs(include_additional_public_jsonl=include_additional_public_jsonl).items()
+    }
     return rows, repo
 
 
@@ -316,10 +444,22 @@ def main() -> int:
         action="store_true",
         help="Preserve raw public rows instead of collapsing exact final-spec duplicates.",
     )
+    parser.add_argument(
+        "--include-additional-public-jsonl",
+        action="store_true",
+        help="Also ingest the currently excluded public data/toy and outputs/diamond_gen JSONL files.",
+    )
     args = parser.parse_args()
 
-    rows_by_corpus, repo = load_public_rows()
-    rows, summary = build_import(rows_by_corpus, repo=repo, dedupe=not args.keep_duplicates)
+    rows_by_corpus, repo = load_public_rows(
+        include_additional_public_jsonl=args.include_additional_public_jsonl
+    )
+    rows, summary = build_import(
+        rows_by_corpus,
+        repo=repo,
+        dedupe=not args.keep_duplicates,
+        include_additional_public_jsonl=args.include_additional_public_jsonl,
+    )
     print(json.dumps(write_outputs(rows, summary, args.out), indent=2, sort_keys=True))
     return 0
 
