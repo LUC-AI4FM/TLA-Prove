@@ -137,7 +137,7 @@ def run_tlaps_module(
     parsed = parse_tlaps_output(output)
     return ModuleResult(
         module=tla_file.stem,
-        path=str(tla_file),
+        path=f"proofs/{tla_file.name}",
         exit_code=exit_code,
         runtime_seconds=round(elapsed, 3),
         proved=parsed.proved,
@@ -186,6 +186,11 @@ def _repo_relative(path: Path) -> str:
         return str(path)
 
 
+def _public_tool_ref(path: Path | str) -> str:
+    text = str(path)
+    return Path(text).name if text.startswith("/") else text
+
+
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -202,7 +207,7 @@ def write_manifest(*, out_dir: Path, package_path: Path | None, args: argparse.N
         "atomic_proof": _repo_relative(Path(args.atomic_proof)),
         "idempotency_proof": _repo_relative(Path(args.idempotency_proof)),
         "out_dir": _repo_relative(out_dir),
-        "tlapm": str(args.tlapm),
+        "tlapm": _public_tool_ref(args.tlapm),
         "threads": args.threads,
         "timeout": args.timeout,
         "package": str(package_path) if package_path else None,
@@ -307,12 +312,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     summary = summarize_results(results, require_no_asterisk=args.require_no_asterisk)
     summary.update(
         {
-            "tlapm": str(tlapm),
+            "tlapm": _public_tool_ref(tlapm),
             "threads": args.threads,
             "timeout": args.timeout,
-            "base_proof_dir": str(args.base_proof_dir),
+            "base_proof_dir": _repo_relative(Path(args.base_proof_dir)),
             "replacements": {
-                key: str(value) for key, value in _replacement_map(args).items()
+                key: _repo_relative(value) for key, value in _replacement_map(args).items()
             },
         }
     )

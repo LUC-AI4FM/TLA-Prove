@@ -2,7 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from scripts.build_sany_tlc_pass_corpus import DEFAULT_HOLDOUT, DEFAULT_OUT, DEFAULT_SOURCE, build_rows
+from scripts.build_sany_tlc_pass_corpus import DEFAULT_HOLDOUT, DEFAULT_OUT, DEFAULT_SOURCE, build_rows, write_outputs
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -119,6 +119,21 @@ def test_build_rows_is_deterministic(tmp_path: Path) -> None:
     assert rows_a == rows_b
     assert summary_a == summary_b
     assert [row["_module"] for row in rows_a] == ["A", "B"]
+
+
+def test_write_outputs_uses_repo_relative_paths() -> None:
+    repo = Path(__file__).resolve().parents[1]
+    out = repo / "data/processed/sany_tlc_pass_sft_v1.test.jsonl"
+    rows = [{"messages": [{"role": "assistant", "channel": "final", "content": "---- MODULE A ----\n====\n"}]}]
+    summary = {"source": "outputs/diamond_gen/diamond_generated.jsonl", "holdout": "data/processed/diamond_eval_holdout.jsonl"}
+
+    try:
+        final_summary = write_outputs(rows, summary, out)
+        assert final_summary["out"] == "data/processed/sany_tlc_pass_sft_v1.test.jsonl"
+        assert final_summary["summary"] == "data/processed/sany_tlc_pass_sft_v1.test.summary.json"
+    finally:
+        out.unlink(missing_ok=True)
+        out.with_suffix(".summary.json").unlink(missing_ok=True)
 
 
 def test_checked_in_sany_tlc_artifact_matches_builder_output() -> None:

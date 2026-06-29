@@ -14,10 +14,12 @@ mkdir -p outputs/logs outputs/autoprover
 JOBNUM="${PBS_JOBID%%.*}"
 OUT="outputs/autoprover/tlaps_reproduced_final_${JOBNUM}"
 PKG="outputs/autoprover/tlaps_reproduced_final_${JOBNUM}.tar.gz"
-DEST="/grand/EVITA/eric-spencer/chattla_artifacts/prover_final_108_108_repro_${JOBNUM}"
+TLAPM="${CHATTLA_TLAPM:-tlapm}"
+DEST_ROOT="${CHATTLA_STAGE_DIR:-outputs/staged/tla_prover_final_108_108}"
+DEST="${DEST_ROOT}/prover_final_108_108_repro_${JOBNUM}"
 
 python3 scripts/reproduce_final_tlaps_prover.py \
-  --tlapm /grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm \
+  --tlapm "$TLAPM" \
   --out-dir "$OUT" \
   --package "$PKG" \
   --threads 1 \

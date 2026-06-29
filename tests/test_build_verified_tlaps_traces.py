@@ -58,8 +58,53 @@ PROOF
     assert row["proof_module"] == module_text
     assert row["tlaps"]["proved"] == 1
     assert row["verifier"]["threads"] == 1
+    assert row["verifier"]["tlapm"] == "tlapm"
     assert row["source"]["proof_archive_sha256"] == "abc123"
     assert row["raw_log_tail"] == "[INFO]: All 1 obligation proved.\n"
+
+
+def test_build_rows_sanitizes_absolute_paths_in_log_tail(tmp_path: Path) -> None:
+    artifact = tmp_path / "proofs.tar.gz"
+    module_text = """---- MODULE Mini ----
+EXTENDS Naturals, TLAPS
+THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK
+PROOF
+  OBVIOUS
+====
+"""
+    raw_log = (
+        'File "/opt/tlaps/lib/TLAPS.tla", line 1:\n'
+        'File "/tmp/run/proofs/Mini.tla", line 2:\n'
+    )
+    with tarfile.open(artifact, "w:gz") as archive:
+        _add_text(archive, "run/proofs/Mini.tla", module_text)
+        _add_text(archive, "run/raw/Mini.log", raw_log)
+
+    summary = {
+        "no_asterisk": True,
+        "results": [
+            {
+                "module": "Mini",
+                "exit_code": 0,
+                "runtime_seconds": 0.1,
+                "proved": 1,
+                "total": 1,
+                "failed": 0,
+                "timed_out": False,
+                "raw_log": "run/raw/Mini.log",
+            }
+        ],
+    }
+    manifest = {
+        "tlapm": "/tool/tlapm",
+        "threads": 1,
+        "package_sha256": "abc123",
+        "command": "scripts/reproduce_final_tlaps_prover.py",
+    }
+
+    rows = build_rows(artifact, summary, manifest)
+
+    assert rows[0]["raw_log_tail"] == 'File "TLAPS.tla", line 1:\nFile "Mini.tla", line 2:\n'
 
 
 def test_build_rows_rejects_unverified_summary_entries(tmp_path: Path) -> None:

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T21:09:17.133610+00:00",
+  "generated_at": "2026-06-29T02:46:55.441033+00:00",
   "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
   "kept_rows": 30,
   "modules": [
@@ -34,8 +34,8 @@
     "EmailVerification",
     "FencingToken"
   ],
-  "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/sany_tlc_pass_eval_v1.jsonl",
+  "out": "data/processed/sany_tlc_pass_eval_v1.jsonl",
   "skipped_not_verified_pass": 0,
-  "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/diamond_eval_holdout.jsonl",
+  "source": "data/processed/diamond_eval_holdout.jsonl",
   "source_rows": 30
 }

@@ -5,7 +5,7 @@
   "atomic_proof": "outputs/autoprover/tlaps_final_source_preserving_repairs_161630/AtomicRegister_source_preserving_choose.tla",
   "idempotency_proof": "outputs/autoprover/tlaps_final_source_preserving_repairs_161630/IdempotencyKey_firstcall10.tla",
   "out_dir": "outputs/autoprover/tlaps_reproduced_final_160816",
-  "tlapm": "/grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm",
+  "tlapm": "tlapm",
   "threads": 1,
   "timeout": 900,
   "package": "outputs/autoprover/tlaps_reproduced_final_160816.tar.gz",

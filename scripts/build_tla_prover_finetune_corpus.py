@@ -12,6 +12,7 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 DEFAULT_BASE = REPO / "data" / "processed" / "diamond_sft_v3.jsonl"
+DEFAULT_FORMALLLM = REPO / "data" / "processed" / "formalllm_eval_v1.jsonl"
 DEFAULT_VERIFIED = REPO / "data" / "processed" / "tla_prover" / "verified_tlaps_sft_seed.jsonl"
 DEFAULT_OUT = REPO / "data" / "processed" / "tla_prover" / "chattla_tla_prover_sft_v1.jsonl"
 
@@ -23,6 +24,13 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
             if line.strip():
                 rows.append(json.loads(line))
     return rows
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
 
 
 def normalize_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -47,36 +55,51 @@ def _normalize_record(row: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def _sanitize_public_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): _sanitize_public_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_public_value(item) for item in value]
+    if isinstance(value, str) and value.startswith("/"):
+        return Path(value).name
+    return value
+
+
 def _verified_record(row: dict[str, Any]) -> dict[str, Any]:
     return _normalize_record({
         "_tier": "verified_tlaps_proof",
         "_source": "tlaps_reproduced_final_160816",
         "_module": row.get("module"),
         "_verifier": row.get("verifier"),
-        "_source_artifact": row.get("source_artifact"),
+        "_source_artifact": _sanitize_public_value(row.get("source_artifact")),
         "messages": row["messages"],
     })
 
 
 def build_corpus(
     base_path: Path,
+    formalllm_path: Path,
     verified_path: Path,
     *,
     tlaps_weight: int,
     seed: int,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     base_rows = [_normalize_record(row) for row in _load_jsonl(base_path)]
+    formalllm_rows = [_normalize_record(row) for row in _load_jsonl(formalllm_path)]
     verified_rows = [_verified_record(row) for row in _load_jsonl(verified_path)]
 
     combined = list(base_rows)
+    combined.extend(formalllm_rows)
     for _ in range(tlaps_weight):
         combined.extend(dict(row) for row in verified_rows)
 
     random.Random(seed).shuffle(combined)
     summary = {
-        "base": str(base_path),
-        "verified_tlaps": str(verified_path),
+        "base": _display_path(base_path),
+        "formalllm": _display_path(formalllm_path),
+        "verified_tlaps": _display_path(verified_path),
         "base_rows": len(base_rows),
+        "formalllm_rows": len(formalllm_rows),
         "verified_tlaps_rows": len(verified_rows),
         "verified_tlaps_weight": tlaps_weight,
         "total_rows": len(combined),
@@ -90,17 +113,18 @@ def write_outputs(rows: list[dict[str, Any]], summary: dict[str, Any], out: Path
     out.write_text("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n", encoding="utf-8")
     final_summary = dict(summary)
     final_summary["generated_at"] = datetime.now(timezone.utc).isoformat()
-    final_summary["out"] = str(out)
+    final_summary["out"] = _display_path(out)
     final_summary["jsonl_sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
     summary_path = out.with_suffix(".summary.json")
     summary_path.write_text(json.dumps(final_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    final_summary["summary"] = str(summary_path)
+    final_summary["summary"] = _display_path(summary_path)
     return final_summary
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", type=Path, default=DEFAULT_BASE)
+    parser.add_argument("--formalllm", type=Path, default=DEFAULT_FORMALLLM)
     parser.add_argument("--verified", type=Path, default=DEFAULT_VERIFIED)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--tlaps-weight", type=int, default=4)
@@ -109,6 +133,7 @@ def main() -> int:
 
     rows, summary = build_corpus(
         args.base,
+        args.formalllm,
         args.verified,
         tlaps_weight=args.tlaps_weight,
         seed=args.seed,
