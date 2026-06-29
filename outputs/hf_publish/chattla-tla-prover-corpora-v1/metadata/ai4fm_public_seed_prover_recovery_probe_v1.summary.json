@@ -1,41 +1,33 @@
 {
   "final_error_family_counts": {
-    "missing_substitution": 1,
-    "unknown_operator": 2
+    "missing_substitution": 1
   },
   "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-  "generated_at": "2026-06-29T19:45:09.769236+00:00",
+  "generated_at": "2026-06-29T19:57:43.208482+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
   "helper_source_rows": 515,
-  "jsonl_sha256": "f8fbc4ee9d1eada8050cf845d6c52a972b7c6c02e425ee46d6a9befd4557a49a",
-  "kept_rows": 3,
+  "jsonl_sha256": "4280a6e5eadaa557d1189f65b04599a85ddd41226290dd97ecabd25ec698d719",
+  "kept_rows": 1,
   "measured_conclusion": "The current public seed candidate builder only partially closes the remaining repair queue: some rows still fail on missing transitive imports after staging, while the dominant residual bucket is now post-staging non-import SANY failures.",
   "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
   "probe_status_counts": {
-    "post_stage_non_import_error": 3
+    "post_stage_non_import_error": 1
   },
   "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "rows_missing_full_source_row": 0,
-  "rows_post_stage_non_import_error": 3,
+  "rows_post_stage_non_import_error": 1,
   "rows_recovered_current_builder": 0,
   "rows_still_missing_imports_after_staging": 0,
   "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
   "status_by_recommended_action": {
-    "stage_same_repo_seed_helpers": {
-      "post_stage_non_import_error": 2
-    },
     "stage_tlaps_standard_module": {
       "post_stage_non_import_error": 1
     }
   },
   "top_final_error_details": [
-    {
-      "detail": "Unknown operator: `Reduce'.",
-      "rows": 2
-    },
     {
       "detail": "Substitution missing for symbol Value declared at line 4, col 10 to line 4, col 14 of module Consensus",
       "rows": 1
@@ -45,21 +37,9 @@
     {
       "error": "line 543, col 1 to line 543, col 48 of module Paxos",
       "rows": 1
-    },
-    {
-      "error": "line 133, col 6 to line 133, col 11 of module EWD998",
-      "rows": 1
-    },
-    {
-      "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
-      "rows": 1
     }
   ],
   "top_repos": [
-    {
-      "repo": "tlaplus/tlaplus",
-      "rows": 2
-    },
     {
       "repo": "tlaplus/DrTLAPlus",
       "rows": 1

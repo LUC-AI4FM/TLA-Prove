@@ -130,6 +130,15 @@ def _path_overlap(path: str, row_source_path: str) -> set[str]:
     return (_path_tokens(path) & _path_tokens(row_source_path)) - ignored
 
 
+def _shared_prefix_depth(path: str, row_source_path: str) -> int:
+    depth = 0
+    for left, right in zip(Path(path).parts, Path(row_source_path).parts):
+        if left.lower() != right.lower():
+            break
+        depth += 1
+    return depth
+
+
 def _candidate_rank(candidate: dict[str, Any], *, row_repo: str, row_source_path: str) -> tuple[int, str, str]:
     repo = str(candidate.get("repo", ""))
     path = str(candidate.get("source_path", ""))
@@ -146,6 +155,7 @@ def _candidate_rank(candidate: dict[str, Any], *, row_repo: str, row_source_path
         score -= 10
     overlap = _path_overlap(path, row_source_path)
     score += 5 * len(overlap)
+    score += 3 * _shared_prefix_depth(path, row_source_path)
     if Path(path).stem.lower() == Path(row_source_path).stem.lower():
         score += 5
     return score, repo, path

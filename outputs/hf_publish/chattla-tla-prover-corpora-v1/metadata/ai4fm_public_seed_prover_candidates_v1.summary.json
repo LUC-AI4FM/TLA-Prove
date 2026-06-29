@@ -1,7 +1,7 @@
 {
   "dependency_staging": {
     "attempted_rows": 840,
-    "recovered_rows": 67,
+    "recovered_rows": 69,
     "sample_recovered": [
       {
         "module": "AddTwo",
@@ -160,8 +160,8 @@
     "DistributedReplicatedLog": 2,
     "EWD687a": 2,
     "EWD840": 8,
-    "EWD998": 3,
-    "EWD998Chan": 2,
+    "EWD998": 4,
+    "EWD998Chan": 3,
     "Echo": 2,
     "EnvironmentController": 2,
     "Hanoi": 2,
@@ -189,14 +189,14 @@
     "spanning": 2,
     "test211": 3
   },
-  "generated_at": "2026-06-29T19:40:39.811473+00:00",
+  "generated_at": "2026-06-29T19:52:12.870937+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
   "helper_source_rows": 515,
-  "jsonl_sha256": "a74a297c86971cb07f9f7bd231f763433d54b4404e72bcce3046f0b0442cb287",
-  "kept_rows": 165,
+  "jsonl_sha256": "649c4ed278e8523f41ddab11a5f0944f2b8f25c0d7f5e7a557253e5a07ec2f51",
+  "kept_rows": 167,
   "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
   "rows_considered": 2108,
   "sample_not_autoprover_candidate": [
@@ -488,8 +488,8 @@
   ],
   "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
   "skipped": {
-    "not_autoprover_candidate": 1693,
-    "sany_invalid": 250
+    "not_autoprover_candidate": 1696,
+    "sany_invalid": 245
   },
   "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_rows": 2108,

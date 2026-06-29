@@ -2,10 +2,6 @@
   "by_repo": {
     "top_repair_repos": [
       {
-        "count": 2,
-        "name": "tlaplus/tlaplus"
-      },
-      {
         "count": 1,
         "name": "tlaplus/DrTLAPlus"
       }
@@ -13,24 +9,18 @@
   },
   "failure_categories": [
     {
-      "count": 3,
+      "count": 1,
       "name": "missing_import"
     }
   ],
-  "generated_at": "2026-06-29T19:45:05.586209+00:00",
+  "generated_at": "2026-06-29T19:57:39.580911+00:00",
   "missing_imports": {
     "availability_counts": {
-      "same_repo_seed_module": 2,
       "tlaps_standard_module": 1
     },
-    "rows_recoverable_from_seed_surface_or_tlaps_stub": 3,
-    "rows_with_missing_imports": 3,
+    "rows_recoverable_from_seed_surface_or_tlaps_stub": 1,
+    "rows_with_missing_imports": 1,
     "top_missing_modules": [
-      {
-        "availability": "cross_repo_seed_module",
-        "module": "Utils",
-        "rows": 2
-      },
       {
         "availability": "tlaps_standard_module",
         "module": "TLAPS",
@@ -39,62 +29,12 @@
     ]
   },
   "repair_surface": {
-    "excluded_sany_clean_rows": 165,
-    "rows": 3,
-    "unique_modules": 3,
-    "unique_repos": 2
+    "excluded_sany_clean_rows": 167,
+    "rows": 1,
+    "unique_modules": 1,
+    "unique_repos": 1
   },
   "samples": [
-    {
-      "category": "missing_import",
-      "first_error": "line 133, col 6 to line 133, col 11 of module EWD998",
-      "initial_missing_imports": [
-        "Utils"
-      ],
-      "missing_import_availability": [
-        "same_repo_seed_module"
-      ],
-      "missing_imports": [
-        "Utils"
-      ],
-      "module": "EWD998",
-      "repo": "tlaplus/tlaplus",
-      "source_path": "tlatools/org.lamport.tlatools/test-model/EWD998/EWD998.tla",
-      "staged_modules": [
-        "FiniteSetsExt",
-        "Folds",
-        "Functions",
-        "SequencesExt",
-        "Utils"
-      ],
-      "unexpected_valid": false
-    },
-    {
-      "category": "missing_import",
-      "first_error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
-      "initial_missing_imports": [
-        "Utils"
-      ],
-      "missing_import_availability": [
-        "same_repo_seed_module"
-      ],
-      "missing_imports": [
-        "Utils"
-      ],
-      "module": "EWD998Chan",
-      "repo": "tlaplus/tlaplus",
-      "source_path": "tlatools/org.lamport.tlatools/test-model/EWD998/EWD998Chan.tla",
-      "staged_modules": [
-        "AsyncTerminationDetection",
-        "EWD998",
-        "FiniteSetsExt",
-        "Folds",
-        "Functions",
-        "SequencesExt",
-        "Utils"
-      ],
-      "unexpected_valid": false
-    },
     {
       "category": "missing_import",
       "first_error": "line 543, col 1 to line 543, col 48 of module Paxos",
@@ -135,18 +75,10 @@
   },
   "source": {
     "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-    "rows": 3,
+    "rows": 1,
     "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
   },
   "top_first_errors": [
-    {
-      "count": 1,
-      "error": "line 133, col 6 to line 133, col 11 of module EWD998"
-    },
-    {
-      "count": 1,
-      "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan"
-    },
     {
       "count": 1,
       "error": "line 543, col 1 to line 543, col 48 of module Paxos"

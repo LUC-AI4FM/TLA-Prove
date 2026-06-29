@@ -1,27 +1,24 @@
 {
   "blocked_on_missing_public_dependency_rows": 0,
-  "generated_at": "2026-06-29T19:45:07.641666+00:00",
+  "generated_at": "2026-06-29T19:57:41.383548+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
   "helper_source_rows": 515,
-  "jsonl_sha256": "2ff6d639f1481877186c49c48d17aaac133cd381d9e260acd51bd2301b0d5217",
-  "kept_rows": 3,
+  "jsonl_sha256": "c459cd3a1020b11f8829b37bed91740e45b9c291d00e2c95ffc603603ea87746",
+  "kept_rows": 1,
   "missing_import_availability_counts": {
-    "same_repo_seed_module": 2,
     "tlaps_standard_module": 1
   },
   "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "priority_counts": {
-    "p1": 1,
-    "p2": 2
+    "p1": 1
   },
   "recommended_action_counts": {
-    "stage_same_repo_seed_helpers": 2,
     "stage_tlaps_standard_module": 1
   },
-  "recoverable_without_new_source_rows": 3,
+  "recoverable_without_new_source_rows": 1,
   "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
   "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -36,7 +33,7 @@
       "note": "Rows recoverable by staging helper modules already present in the same public repo.",
       "priority": "p2",
       "recommended_action": "stage_same_repo_seed_helpers",
-      "rows": 2
+      "rows": 0
     },
     {
       "note": "Rows recoverable by staging helper modules already visible elsewhere in the public seed surface.",
@@ -53,19 +50,11 @@
   ],
   "top_missing_modules": [
     {
-      "module": "Utils",
-      "rows": 2
-    },
-    {
       "module": "TLAPS",
       "rows": 1
     }
   ],
   "top_repos": [
-    {
-      "repo": "tlaplus/tlaplus",
-      "rows": 2
-    },
     {
       "repo": "tlaplus/DrTLAPlus",
       "rows": 1

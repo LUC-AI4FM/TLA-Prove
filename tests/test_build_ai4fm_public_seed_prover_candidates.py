@@ -455,6 +455,53 @@ def test_build_prover_candidates_prefers_community_utility_helper_when_same_repo
     assert summary["dependency_staging"]["recovered_rows"] == 1
 
 
+def test_build_prover_candidates_breaks_same_repo_ties_by_closer_path_prefix(tmp_path: Path) -> None:
+    source = tmp_path / "seed_modules.jsonl"
+    main = (
+        "---- MODULE CandidateA ----\n"
+        "EXTENDS Utils\n"
+        "VARIABLE x\n"
+        "vars == <<x>>\n"
+        "Init == x = 0\n"
+        "Next == x' = x\n"
+        "Spec == Init /\\ [][Next]_vars\n"
+        "TypeOK == x \\in 0..1\n"
+        "====\n"
+    )
+    helper_good = "---- MODULE Utils ----\nReduce(X) == X\n====\n"
+    helper_bad = "---- MODULE Utils ----\nFoo == 1\n====\n"
+    _write_jsonl(
+        source,
+        [
+            {"repo": "example/alpha", "module": "CandidateA", "source_path": "root/test-model/EWD998/CandidateA.tla", "content": main},
+            {"repo": "example/alpha", "module": "Utils", "source_path": "root/test-model/examples/ewd998/Utils.tla", "content": helper_bad},
+            {"repo": "example/alpha", "module": "Utils", "source_path": "root/test-model/EWD998/Utils.tla", "content": helper_good},
+        ],
+    )
+
+    def fake_validate(content: str, *, module_name: str) -> _Sany:
+        if module_name == "CandidateA":
+            return _Sany(False, ["Cannot find source file for module Utils imported in module CandidateA.", "*** Errors: 1"])
+        return _Sany(True)
+
+    def fake_validate_file(path: Path) -> _Sany:
+        helper_path = path.parent / "Utils.tla"
+        if helper_path.exists() and "Reduce(" in helper_path.read_text(encoding="utf-8"):
+            return _Sany(True)
+        return _Sany(False, ["wrong same-repo tie winner chosen", "*** Errors: 1"])
+
+    rows, summary = build_prover_candidates(
+        source,
+        validate_module=fake_validate,
+        validate_file=fake_validate_file,
+        workers=1,
+    )
+
+    assert [row["module"] for row in rows] == ["CandidateA"]
+    assert rows[0]["dependency_staging"]["staged_modules"] == ["Utils"]
+    assert summary["dependency_staging"]["recovered_rows"] == 1
+
+
 def test_build_prover_candidates_recovers_deep_transitive_import_chain(tmp_path: Path) -> None:
     source = tmp_path / "seed_modules.jsonl"
     main = (
