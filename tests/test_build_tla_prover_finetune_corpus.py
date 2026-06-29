@@ -1,7 +1,11 @@
 import json
 from pathlib import Path
 
-from scripts.build_tla_prover_finetune_corpus import build_corpus, normalize_messages, write_outputs
+from scripts.build_tla_prover_finetune_corpus import (
+    build_corpus,
+    normalize_messages,
+    write_outputs,
+)
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -52,6 +56,55 @@ def test_build_corpus_is_deterministic(tmp_path: Path) -> None:
     assert summary_a == summary_b
 
 
+def test_build_corpus_can_include_public_ai4fm_expansion_rows(tmp_path: Path) -> None:
+    base = tmp_path / "base.jsonl"
+    formalllm = tmp_path / "formalllm.jsonl"
+    verified = tmp_path / "verified.jsonl"
+    public_import = tmp_path / "public_import.jsonl"
+    public_seed = tmp_path / "public_seed.jsonl"
+    _write_jsonl(base, [{"_source": "base", "messages": [{"role": "user", "content": "base"}]}])
+    _write_jsonl(formalllm, [{"_source": "formalllm", "messages": [{"role": "user", "content": "fm"}]}])
+    _write_jsonl(verified, [{"module": "M", "messages": [{"role": "assistant", "content": "proof"}]}])
+    _write_jsonl(
+        public_import,
+        [{"_source": "public_import", "messages": [{"role": "user", "content": "import"}]}],
+    )
+    _write_jsonl(
+        public_seed,
+        [
+            {
+                "module": "SeedProof",
+                "repo": "org/repo",
+                "source_path": "specs/SeedProof.tla",
+                "content": "---- MODULE SeedProof ----\nEXTENDS Naturals\nVARIABLES x\nInit == x = 0\nNext == x' = x + 1\nSpec == Init /\\ [][Next]_<<x>>\nTypeOK == x \\in Nat\n====\n",
+            }
+        ],
+    )
+
+    rows, summary = build_corpus(
+        base,
+        formalllm,
+        verified,
+        tlaps_weight=1,
+        seed=7,
+        public_import_path=public_import,
+        public_import_weight=2,
+        public_seed_candidates_path=public_seed,
+        public_seed_candidates_weight=1,
+    )
+
+    assert summary["public_import_rows"] == 1
+    assert summary["public_import_weight"] == 2
+    assert summary["public_seed_candidates_rows"] == 1
+    assert summary["public_seed_candidates_weight"] == 1
+    assert summary["total_rows"] == 6
+    assert sum(1 for row in rows if row.get("_source") == "public_import") == 2
+    seed_rows = [row for row in rows if row.get("_tier") == "public_seed_prover_candidate_replay"]
+    assert len(seed_rows) == 1
+    assert seed_rows[0]["messages"][-1]["channel"] == "final"
+    assert "SeedProof" in seed_rows[0]["messages"][-1]["content"]
+
+
 def test_build_corpus_summary_uses_repo_relative_paths(tmp_path: Path) -> None:
     repo = Path(__file__).resolve().parents[1]
     out = repo / "data/processed/tla_prover/chattla_tla_prover_sft_v1.test.jsonl"
@@ -64,6 +117,10 @@ def test_build_corpus_summary_uses_repo_relative_paths(tmp_path: Path) -> None:
         "formalllm_rows": 1,
         "verified_tlaps_rows": 1,
         "verified_tlaps_weight": 1,
+        "public_import_rows": 0,
+        "public_import_weight": 0,
+        "public_seed_candidates_rows": 0,
+        "public_seed_candidates_weight": 0,
         "total_rows": 3,
         "seed": 1,
     }

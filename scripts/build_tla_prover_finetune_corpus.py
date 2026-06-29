@@ -14,6 +14,8 @@ REPO = Path(__file__).resolve().parents[1]
 DEFAULT_BASE = REPO / "data" / "processed" / "diamond_sft_v3.jsonl"
 DEFAULT_FORMALLLM = REPO / "data" / "processed" / "formalllm_eval_v1.jsonl"
 DEFAULT_VERIFIED = REPO / "data" / "processed" / "tla_prover" / "verified_tlaps_sft_seed.jsonl"
+DEFAULT_PUBLIC_IMPORT = REPO / "data" / "processed" / "ai4fm_public_tlaprove_import_v1.jsonl"
+DEFAULT_PUBLIC_SEED_CANDIDATES = REPO / "data" / "processed" / "ai4fm_public_seed_prover_candidates_v1.jsonl"
 DEFAULT_OUT = REPO / "data" / "processed" / "tla_prover" / "chattla_tla_prover_sft_v1.jsonl"
 
 
@@ -76,6 +78,43 @@ def _verified_record(row: dict[str, Any]) -> dict[str, Any]:
     })
 
 
+def _public_seed_candidate_record(row: dict[str, Any]) -> dict[str, Any]:
+    module = str(row.get("module") or "RecoveredModule")
+    source_path = row.get("source_path")
+    repo = row.get("repo")
+    content = str(row.get("content") or "").strip()
+    return _normalize_record(
+        {
+            "_tier": "public_seed_prover_candidate_replay",
+            "_source": "ai4fm_public_seed_prover_candidates_v1",
+            "_module": module,
+            "_source_repo": repo,
+            "_source_path": source_path,
+            "messages": [
+                {
+                    "role": "developer",
+                    "content": (
+                        "You are ChatTLA, an expert at writing valid TLA+ modules and proofs. "
+                        "Output only TLA+ code."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Produce the complete TLA+ module for {module}. "
+                        "Preserve a valid module header, operators, and any proof obligations present."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "channel": "final",
+                    "content": content,
+                },
+            ],
+        }
+    )
+
+
 def build_corpus(
     base_path: Path,
     formalllm_path: Path,
@@ -83,15 +122,33 @@ def build_corpus(
     *,
     tlaps_weight: int,
     seed: int,
+    public_import_path: Path | None = None,
+    public_import_weight: int = 0,
+    public_seed_candidates_path: Path | None = None,
+    public_seed_candidates_weight: int = 0,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     base_rows = [_normalize_record(row) for row in _load_jsonl(base_path)]
     formalllm_rows = [_normalize_record(row) for row in _load_jsonl(formalllm_path)]
     verified_rows = [_verified_record(row) for row in _load_jsonl(verified_path)]
+    public_import_rows = (
+        [_normalize_record(row) for row in _load_jsonl(public_import_path)]
+        if public_import_path is not None and public_import_weight > 0
+        else []
+    )
+    public_seed_candidate_rows = (
+        [_public_seed_candidate_record(row) for row in _load_jsonl(public_seed_candidates_path)]
+        if public_seed_candidates_path is not None and public_seed_candidates_weight > 0
+        else []
+    )
 
     combined = list(base_rows)
     combined.extend(formalllm_rows)
     for _ in range(tlaps_weight):
         combined.extend(dict(row) for row in verified_rows)
+    for _ in range(public_import_weight):
+        combined.extend(dict(row) for row in public_import_rows)
+    for _ in range(public_seed_candidates_weight):
+        combined.extend(dict(row) for row in public_seed_candidate_rows)
 
     random.Random(seed).shuffle(combined)
     summary = {
@@ -102,6 +159,14 @@ def build_corpus(
         "formalllm_rows": len(formalllm_rows),
         "verified_tlaps_rows": len(verified_rows),
         "verified_tlaps_weight": tlaps_weight,
+        "public_import": _display_path(public_import_path) if public_import_path is not None else None,
+        "public_import_rows": len(public_import_rows),
+        "public_import_weight": public_import_weight,
+        "public_seed_candidates": (
+            _display_path(public_seed_candidates_path) if public_seed_candidates_path is not None else None
+        ),
+        "public_seed_candidates_rows": len(public_seed_candidate_rows),
+        "public_seed_candidates_weight": public_seed_candidates_weight,
         "total_rows": len(combined),
         "seed": seed,
     }
@@ -126,6 +191,10 @@ def main() -> int:
     parser.add_argument("--base", type=Path, default=DEFAULT_BASE)
     parser.add_argument("--formalllm", type=Path, default=DEFAULT_FORMALLLM)
     parser.add_argument("--verified", type=Path, default=DEFAULT_VERIFIED)
+    parser.add_argument("--public-import", type=Path, default=DEFAULT_PUBLIC_IMPORT)
+    parser.add_argument("--public-import-weight", type=int, default=0)
+    parser.add_argument("--public-seed-candidates", type=Path, default=DEFAULT_PUBLIC_SEED_CANDIDATES)
+    parser.add_argument("--public-seed-candidates-weight", type=int, default=0)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--tlaps-weight", type=int, default=4)
     parser.add_argument("--seed", type=int, default=20260627)
@@ -137,6 +206,10 @@ def main() -> int:
         args.verified,
         tlaps_weight=args.tlaps_weight,
         seed=args.seed,
+        public_import_path=args.public_import,
+        public_import_weight=args.public_import_weight,
+        public_seed_candidates_path=args.public_seed_candidates,
+        public_seed_candidates_weight=args.public_seed_candidates_weight,
     )
     print(json.dumps(write_outputs(rows, summary, args.out), indent=2, sort_keys=True))
     return 0

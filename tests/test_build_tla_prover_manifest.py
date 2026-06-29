@@ -69,6 +69,11 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     _write_jsonl(repo / "data/processed/sany_tlc_pass_sft_v1.jsonl", [{"a": 1}, {"a": 2}])
     _write_jsonl(repo / "data/processed/prover_eval.jsonl", [{"messages": []}])
     _write_jsonl(repo / "data/processed/sany_tlc_pass_eval_v1.jsonl", [{"messages": []}, {"messages": []}])
+    _write_jsonl(repo / "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl", [{"messages": []}] * 5)
+    (repo / "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json").write_text(
+        json.dumps({"total_rows": 5, "public_import_rows": 2, "public_seed_candidates_rows": 1}),
+        encoding="utf-8",
+    )
     (repo / "data/processed/sany_tlc_pass_sft_v1.summary.json").write_text(
         json.dumps({"kept_rows": 2}),
         encoding="utf-8",
@@ -89,6 +94,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["sany_tlc_pass_sft_v1"]["rows"] == 2
     assert manifest["artifacts"]["formalllm_eval_v1"]["rows"] == 3
     assert manifest["artifacts"]["formalllm_eval_v1"]["kind"] == "full_formalllm_prompt_eval_dataset"
+    assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["exists"] is True
+    assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["rows"] == 5
+    assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["summary"]["public_import_rows"] == 2
     assert manifest["artifacts"]["ai4fm_public_dataset_surface"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_dataset_surface"]["kind"] == "public_ai4fm_dataset_surface_report"
     assert manifest["artifacts"]["ai4fm_public_tlaprove_corpora"]["exists"] is True

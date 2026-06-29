@@ -28,6 +28,11 @@ ARTIFACTS = {
         "summary": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
         "kind": "mixed_prover_sft_dataset",
     },
+    "chattla_tla_prover_sft_public_expanded_v1": {
+        "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+        "summary": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
+        "kind": "public_ai4fm_expanded_prover_sft_dataset",
+    },
     "prover_eval_v1": {
         "path": "data/processed/prover_eval.jsonl",
         "summary": "data/processed/prover_eval.summary.json",
