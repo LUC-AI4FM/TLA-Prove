@@ -302,6 +302,31 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
         ),
     )
     _write(
+        tmp_path / "docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md",
+        "\n".join(
+            [
+                "- `FormaLLM` remains the canonical `205`-entry benchmark layer.",
+                "- tracked public training/eval surface: `2350` rows across `6` files",
+                "- full committed public JSONL surface: `2757` rows across `19` files",
+                "- `2110` public `.tla` files",
+                "- `2108` usable module rows",
+                "- `4` of the `5` shipped search queries still return zero repositories",
+            ]
+        ),
+    )
+    _write(
+        tmp_path / "docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md",
+        "\n".join(
+            [
+                "| `data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json` | Current default prover SFT is `1330` rows and already includes the full `205`-row `FormaLLM` layer. |",
+                "| `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json` | Non-default tracked-public expanded lane is `2433` rows: `1330` base stack + `1005` normalized public import + `98` SANY-clean seed candidates. |",
+                "| `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json` | Broader committed-public lane is `2438` rows with `1010` normalized public-import rows. |",
+                "| `outputs/manifests/ai4fm_public_seed_prover_funnel.json` | `2108` usable seed modules -> `168` shape-ready rows -> `98` SANY-clean rows, leaving `70` shape-ready-but-not-SANY-clean rows. |",
+                "| `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` | `chattla:20b-fc128best` has a fresh full benchmark but still `0` SANY / `0` TLC. | Freshness alone does not clear the gate; candidate quality is also non-deployable. |",
+            ]
+        ),
+    )
+    _write(
         tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md",
         "\n".join(
             [
