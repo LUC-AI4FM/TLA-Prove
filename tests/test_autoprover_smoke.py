@@ -860,6 +860,107 @@ TypeOK == /\ \A p \in Procs, r \in Res : alloc[p][r] \in 0..Total[r]
     assert row["status"] == "skeleton_emitted"
 
 
+def test_run_one_retries_small_timeout_case_with_larger_budget(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "RetryTimeout.tla"
+    module_path.write_text(
+        r"""---- MODULE RetryTimeout ----
+EXTENDS Naturals
+VARIABLES msgs, chosen
+vars == << msgs, chosen >>
+Init == /\ msgs = {}
+        /\ chosen = 0
+Next == /\ msgs' = msgs
+        /\ chosen' = chosen
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ msgs \subseteq {0}
+          /\ chosen \in 0..1
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module RetryTimeout"
+
+    class Timeout:
+        inductive = False
+        error = "TLC timed out after 20s (INIT-as-predicate state space too large to enumerate)."
+        cti = None
+
+    class Success:
+        inductive = True
+        error = None
+        cti = None
+
+    calls: list[int] = []
+
+    def fake_check_inductive(_src: str, _inv: str, *, timeout: int):
+        calls.append(timeout)
+        return Timeout() if len(calls) == 1 else Success()
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", fake_check_inductive)
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=20, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+    assert calls == [20, 120]
+
+
+def test_run_one_does_not_retry_large_timeout_case(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "NoRetryTimeout.tla"
+    module_path.write_text(
+        r"""---- MODULE NoRetryTimeout ----
+EXTENDS Naturals
+VARIABLES a, b, c
+vars == << a, b, c >>
+Init == /\ a = 0
+        /\ b = 0
+        /\ c = 0
+Next == /\ a' = a
+        /\ b' = b
+        /\ c' = c
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ a \in 0..1
+          /\ b \in 0..1
+          /\ c \in 0..1
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module NoRetryTimeout"
+
+    class Timeout:
+        inductive = False
+        error = "TLC timed out after 20s (INIT-as-predicate state space too large to enumerate)."
+        cti = None
+
+    calls: list[int] = []
+
+    def fake_check_inductive(_src: str, _inv: str, *, timeout: int):
+        calls.append(timeout)
+        return Timeout()
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", fake_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=20, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "tlc_error"
+    assert calls == [20]
+
+
 def test_run_one_multiline_variables_block_still_checks_missing_direct_domain(
     monkeypatch, tmp_path: Path
 ) -> None:
