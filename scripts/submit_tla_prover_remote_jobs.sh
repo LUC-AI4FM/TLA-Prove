@@ -2,6 +2,7 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_REPO="$REPO"
 SUBMIT_SFT_PREFLIGHT=0
 SUBMIT_FINAL_PROOF_VERIFY=0
 SUBMIT_FULL_DATASET_SMOKE=0
@@ -27,7 +28,7 @@ while [ "$#" -gt 0 ]; do
       ;;
     -h|--help)
       cat <<'EOF'
-Usage: scripts/submit_tla_prover_remote_jobs.sh [--repo PATH] [--sft-corpus default|expanded|PATH] [--submit-sft-preflight] [--submit-final-proof-verify] [--submit-full-dataset-smoke]
+Usage: scripts/submit_tla_prover_remote_jobs.sh [--repo PATH] [--sft-corpus default|expanded|full-public|shape-ready|shape-ready-not-sany|PATH] [--submit-sft-preflight] [--submit-final-proof-verify] [--submit-full-dataset-smoke]
 
 Run remote preflight checks inside a synced Sophia checkout, submit the
 corrected known-18 TLAPS smoke, optionally submit the bounded SFT startup
@@ -50,7 +51,6 @@ mkdir -p outputs/manifests outputs/logs
 REPORT="outputs/manifests/tla_prover_remote_submission.json"
 PREFLIGHT="${CHATTLA_REMOTE_PREFLIGHT:-scripts/preflight_tla_prover_remote.py}"
 TLAPM="${CHATTLA_TLAPM:-tlapm}"
-EXPANDED_TRAIN_FILE="data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
 PBS_ACCOUNT="${CHATTLA_PBS_ACCOUNT:-}"
 PBS_QUEUE="${CHATTLA_PBS_QUEUE:-}"
 PBS_FILESYSTEMS="${CHATTLA_PBS_FILESYSTEMS:-}"
@@ -69,17 +69,7 @@ FINAL_PROOF_VERIFY_JOB_ID=""
 FULL_DATASET_SMOKE_JOB_ID=""
 
 resolve_requested_train_file() {
-  case "$1" in
-    ""|default)
-      printf '%s' ""
-      ;;
-    expanded)
-      printf '%s' "$EXPANDED_TRAIN_FILE"
-      ;;
-    *)
-      printf '%s' "$1"
-      ;;
-  esac
+  python3 "$SCRIPT_REPO/scripts/tla_prover_corpus_paths.py" --resolve-request "$1"
 }
 
 REQUESTED_TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-}"

@@ -142,6 +142,52 @@ def test_remote_submit_script_can_select_expanded_sft_corpus_via_flag(tmp_path: 
     )
 
 
+def test_remote_submit_script_can_select_full_public_sft_corpus_via_flag(tmp_path: Path) -> None:
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    qsub = fake_bin / "qsub"
+    qsub.write_text("#!/usr/bin/env bash\necho '170001.sophia-pbs-01'\n", encoding="utf-8")
+    qsub.chmod(0o755)
+
+    captured_train = tmp_path / "captured_train_file"
+    fake_preflight = tmp_path / "preflight.py"
+    fake_preflight.write_text(
+        "#!/usr/bin/env python3\n"
+        "import os\n"
+        "from pathlib import Path\n"
+        f"Path({str(captured_train)!r}).write_text(os.environ.get('CHATTLA_TLA_PROVER_TRAIN_FILE', ''), encoding='utf-8')\n"
+        "print('{\"ok\": true}')\n",
+        encoding="utf-8",
+    )
+    fake_preflight.chmod(0o755)
+
+    env = os.environ.copy()
+    env["PATH"] = f"{fake_bin}:{env['PATH']}"
+    env["CHATTLA_REMOTE_PREFLIGHT"] = str(fake_preflight)
+
+    subprocess.run(
+        [
+            "bash",
+            str(SCRIPT),
+            "--repo",
+            str(tmp_path),
+            "--submit-sft-preflight",
+            "--sft-corpus",
+            "full-public",
+        ],
+        cwd=REPO,
+        env=env,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    assert (
+        captured_train.read_text(encoding="utf-8").strip()
+        == "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl"
+    )
+
+
 def test_remote_submit_script_writes_failure_report_on_preflight_error(tmp_path: Path) -> None:
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()

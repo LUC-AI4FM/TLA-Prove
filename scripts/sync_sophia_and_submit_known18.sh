@@ -7,6 +7,7 @@ SUBMIT_FINAL_PROOF_VERIFY=0
 SUBMIT_FULL_DATASET_SMOKE=0
 SFT_CORPUS="${CHATTLA_TLA_PROVER_CORPUS:-default}"
 LOCAL_REPO="${CHATTLA_LOCAL_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+SCRIPT_REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --dry-run)
@@ -27,7 +28,7 @@ while [ "$#" -gt 0 ]; do
       ;;
     -h|--help)
       cat <<'EOF'
-Usage: scripts/sync_sophia_and_submit_known18.sh [--dry-run] [--sft-corpus default|expanded|PATH] [--submit-sft-preflight] [--submit-final-proof-verify] [--submit-full-dataset-smoke]
+Usage: scripts/sync_sophia_and_submit_known18.sh [--dry-run] [--sft-corpus default|expanded|full-public|shape-ready|shape-ready-not-sany|PATH] [--submit-sft-preflight] [--submit-final-proof-verify] [--submit-full-dataset-smoke]
 
 Sync TLA prover handoff artifacts directly from this machine to a configured
 Sophia checkout, submit the corrected known-18 TLAPS smoke, and mirror the
@@ -35,7 +36,7 @@ remote submission report back into the local repo.
 
 Options:
   --dry-run                 Print commands without running them.
-  --sft-corpus             Choose the default prover corpus, the named `expanded` corpus, or an explicit JSONL path.
+  --sft-corpus             Choose the default prover corpus, a named public corpus lane, or an explicit JSONL path.
   --submit-sft-preflight    Also submit the bounded 3-step SFT startup preflight.
   --submit-final-proof-verify
                             Also submit the published 108/108 proof-artifact verification.
@@ -60,21 +61,15 @@ REMOTE_REPO="${CHATTLA_REMOTE_REPO:-\$HOME/ChatTLA}"
 REMOTE_TLAPM="${CHATTLA_TLAPM:-tlapm}"
 LOCAL_PROVER_TRAIN_FILE="data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl"
 LOCAL_PROVER_TRAIN_SUMMARY="data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json"
-EXPANDED_PROVER_TRAIN_FILE="data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
 PUBLIC_PROVER_TRAIN_FILE="outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
 PUBLIC_PROVER_TRAIN_SUMMARY="outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/chattla_tla_prover_sft_v1.summary.json"
+resolve_requested_train_file() {
+  python3 "$SCRIPT_REPO/scripts/tla_prover_corpus_paths.py" --resolve-request "$1"
+}
+
 REQUESTED_TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-}"
 if [ -z "$REQUESTED_TRAIN_FILE" ]; then
-  case "$SFT_CORPUS" in
-    ""|default)
-      ;;
-    expanded)
-      REQUESTED_TRAIN_FILE="$EXPANDED_PROVER_TRAIN_FILE"
-      ;;
-    *)
-      REQUESTED_TRAIN_FILE="$SFT_CORPUS"
-      ;;
-  esac
+  REQUESTED_TRAIN_FILE="$(resolve_requested_train_file "$SFT_CORPUS")"
 fi
 REMOTE_TRAIN_FILE="${REQUESTED_TRAIN_FILE:-$LOCAL_PROVER_TRAIN_FILE}"
 LOCAL_SUBMISSION_REPORT="$LOCAL_REPO/outputs/manifests/tla_prover_remote_submission.json"

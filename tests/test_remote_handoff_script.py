@@ -170,6 +170,30 @@ def test_direct_sophia_handoff_dry_run_accepts_expanded_corpus_flag() -> None:
     assert "CHATTLA_TLA_PROVER_TRAIN_FILE" in normalized
 
 
+def test_direct_sophia_handoff_dry_run_accepts_full_public_corpus_flag() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_REMOTE_HOST": "user@remote.example",
+            "CHATTLA_REMOTE_REPO": "~/ChatTLA",
+            "CHATTLA_TLAPM": "/opt/tlaps/bin/tlapm",
+        }
+    )
+    result = subprocess.run(
+        [str(DIRECT_SCRIPT), "--dry-run", "--submit-sft-preflight", "--sft-corpus", "full-public"],
+        cwd=REPO,
+        env=env,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    normalized = result.stdout.replace("\\ ", " ")
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl" in normalized
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json" in normalized
+    assert "CHATTLA_TLA_PROVER_TRAIN_FILE" in normalized
+
+
 def test_direct_sophia_handoff_dry_run_syncs_final_verify_artifacts() -> None:
     env = os.environ.copy()
     env.update(
@@ -607,6 +631,30 @@ def test_remote_handoff_dry_run_accepts_expanded_corpus_flag() -> None:
     normalized = result.stdout.replace("\\ ", " ")
     assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl" in normalized
     assert "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json" in normalized
+
+
+def test_remote_handoff_dry_run_accepts_full_public_corpus_flag() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "CHATTLA_RELAY_HOST": "relay.example",
+            "CHATTLA_REMOTE_HOST": "user@remote.example",
+            "CHATTLA_MAC_KEY": "/tmp/fake-key",
+            "CHATTLA_TLAPM": "/opt/tlaps/bin/tlapm",
+        }
+    )
+    result = subprocess.run(
+        [str(SCRIPT), "--dry-run", "--submit-sft-preflight", "--sft-corpus", "full-public"],
+        cwd=REPO,
+        env=env,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    normalized = result.stdout.replace("\\ ", " ")
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl" in normalized
+    assert "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json" in normalized
     assert "CHATTLA_TLA_PROVER_TRAIN_FILE" in normalized
 
 
