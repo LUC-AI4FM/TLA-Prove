@@ -671,6 +671,155 @@
       "rows": null,
       "sha256": "6ff07f9bfd7e13f964cb82dcaa8f29bf20dd1527cbe33b34f4155d7ec2c3e9cb"
     },
+    "ai4fm_public_seed_prover_recovery_probe_v1": {
+      "bytes": 69362,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_prover_recovery_probe",
+      "path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
+      "rows": 44,
+      "sha256": "467920a7c2afa2b653c5715e0a935c07a844bf43d4fdc52a124087b41ff03862",
+      "summary": {
+        "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "generated_at": "2026-06-29T17:09:14.353422+00:00",
+        "jsonl_sha256": "467920a7c2afa2b653c5715e0a935c07a844bf43d4fdc52a124087b41ff03862",
+        "kept_rows": 44,
+        "measured_conclusion": "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket.",
+        "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
+        "probe_status_counts": {
+          "post_stage_non_import_error": 7,
+          "still_missing_imports_after_staging": 37
+        },
+        "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
+        "rows_missing_full_source_row": 0,
+        "rows_post_stage_non_import_error": 7,
+        "rows_recovered_current_builder": 0,
+        "rows_still_missing_imports_after_staging": 37,
+        "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
+        "status_by_recommended_action": {
+          "expand_public_dependency_surface": {
+            "still_missing_imports_after_staging": 4
+          },
+          "stage_cross_repo_seed_helpers": {
+            "still_missing_imports_after_staging": 18
+          },
+          "stage_same_repo_seed_helpers": {
+            "post_stage_non_import_error": 2,
+            "still_missing_imports_after_staging": 7
+          },
+          "stage_tlaps_standard_module": {
+            "post_stage_non_import_error": 5,
+            "still_missing_imports_after_staging": 8
+          }
+        },
+        "top_final_errors": [
+          {
+            "error": "Cannot find source file for module FiniteSetTheorems imported in module Consensus.",
+            "rows": 7
+          },
+          {
+            "error": "Cannot find source file for module SequencesExt imported in module UndirectedGraphs.",
+            "rows": 5
+          },
+          {
+            "error": "Cannot find source file for module Functions imported in module Utils.",
+            "rows": 3
+          },
+          {
+            "error": "Cannot find source file for module NaturalsInduction imported in module VoteProof.",
+            "rows": 2
+          },
+          {
+            "error": "Cannot find source file for module SequencesExt imported in module DistributedReplicatedLog.",
+            "rows": 2
+          },
+          {
+            "error": "Cannot find source file for module SequencesExt imported in module Huang.",
+            "rows": 2
+          },
+          {
+            "error": "line 342, col 16 to line 342, col 19 of module Bakery",
+            "rows": 1
+          },
+          {
+            "error": "line 146, col 18 to line 146, col 19 of module BinarySearch",
+            "rows": 1
+          },
+          {
+            "error": "line 149, col 14 to line 149, col 15 of module Simple",
+            "rows": 1
+          },
+          {
+            "error": "line 170, col 18 to line 170, col 19 of module SimpleRegular",
+            "rows": 1
+          },
+          {
+            "error": "line 319, col 12 to line 319, col 13 of module VoteProof",
+            "rows": 1
+          },
+          {
+            "error": "line 424, col 16 to line 424, col 24 of module EWD687a",
+            "rows": 1
+          }
+        ],
+        "top_repos": [
+          {
+            "repo": "tlaplus/Examples",
+            "rows": 27
+          },
+          {
+            "repo": "tlaplus/tlaplus",
+            "rows": 12
+          },
+          {
+            "repo": "apalache-mc/apalache",
+            "rows": 4
+          },
+          {
+            "repo": "tlaplus/DrTLAPlus",
+            "rows": 1
+          }
+        ],
+        "top_unresolved_missing_modules": [
+          {
+            "module": "SequencesExt",
+            "rows": 11
+          },
+          {
+            "module": "FiniteSetTheorems",
+            "rows": 10
+          },
+          {
+            "module": "Functions",
+            "rows": 5
+          },
+          {
+            "module": "Utils",
+            "rows": 4
+          },
+          {
+            "module": "NaturalsInduction",
+            "rows": 2
+          },
+          {
+            "module": "SequenceTheorems",
+            "rows": 2
+          },
+          {
+            "module": "Consensus",
+            "rows": 1
+          },
+          {
+            "module": "FiniteSetsExt",
+            "rows": 1
+          },
+          {
+            "module": "Graphs",
+            "rows": 1
+          }
+        ]
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json"
+    },
     "ai4fm_public_seed_prover_repair_queue_v1": {
       "bytes": 55560,
       "exists": true,
@@ -2632,13 +2781,14 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T17:02:15.997714+00:00",
+  "generated_at": "2026-06-29T17:09:36.896528+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
     "build_ai4fm_public_seed_file_manifest": "python3 scripts/build_ai4fm_public_seed_file_manifest.py",
     "build_ai4fm_public_seed_license_manifest": "python3 scripts/build_ai4fm_public_seed_license_manifest.py",
     "build_ai4fm_public_seed_prover_candidates": "python3 scripts/build_ai4fm_public_seed_prover_candidates.py",
+    "build_ai4fm_public_seed_prover_recovery_probe": "python3 scripts/build_ai4fm_public_seed_prover_recovery_probe.py",
     "build_ai4fm_public_seed_prover_repair_queue": "python3 scripts/build_ai4fm_public_seed_prover_repair_queue.py",
     "build_ai4fm_public_seed_prover_shape_corpora": "python3 scripts/build_ai4fm_public_seed_prover_shape_corpora.py",
     "build_ai4fm_public_seed_tla_modules": "python3 scripts/build_ai4fm_public_seed_tla_modules.py",

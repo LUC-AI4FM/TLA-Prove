@@ -55,6 +55,8 @@ data/processed/*
 !data/processed/formalllm_public_prover_surface_v1.summary.json
 !data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl
 !data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json
+!data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl
+!data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json
 !data/processed/ai4fm_public_discovery_manifest_v1.jsonl
 !data/processed/ai4fm_public_discovery_manifest_v1.summary.json
 !data/processed/ai4fm_public_seed_tla_modules_v1.jsonl
