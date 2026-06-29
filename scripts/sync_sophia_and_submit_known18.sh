@@ -208,6 +208,60 @@ Path(sys.argv[1]).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n
 PY
 }
 
+write_local_failure_report() {
+  local stage="$1"
+  local exit_code="$2"
+  local error="$3"
+  mkdir -p "$(dirname "$LOCAL_SUBMISSION_REPORT")"
+  python3 - "$LOCAL_SUBMISSION_REPORT" "$stage" "$exit_code" "$error" "$REMOTE_HOST" "$REMOTE_REPO" "$REMOTE_TLAPM" "$SUBMIT_SFT_PREFLIGHT" "$SUBMIT_FINAL_PROOF_VERIFY" "$SUBMIT_FULL_DATASET_SMOKE" <<'PY'
+import json
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+payload = {
+    "ok": False,
+    "generated_at": datetime.now(timezone.utc).isoformat(),
+    "stage": sys.argv[2],
+    "exit_code": int(sys.argv[3]),
+    "error": sys.argv[4] or None,
+    "remote_host": sys.argv[5],
+    "remote_repo": sys.argv[6],
+    "tlapm": sys.argv[7],
+    "submit_sft_preflight": sys.argv[8] == "1",
+    "submit_final_proof_verify": sys.argv[9] == "1",
+    "submit_full_dataset_smoke": sys.argv[10] == "1",
+    "next_action": "Inspect the local direct-handoff stage failure before retrying the one-time Sophia credential.",
+}
+Path(sys.argv[1]).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+}
+
+run_stage_or_fail() {
+  local stage="$1"
+  shift
+  if [ "$DRY_RUN" = "1" ]; then
+    run "$@"
+    return 0
+  fi
+  local output
+  local rc
+  set +e
+  output="$("$@" 2>&1)"
+  rc=$?
+  set -e
+  if [ "$rc" -ne 0 ]; then
+    write_local_failure_report "$stage" "$rc" "$output"
+    if [ -n "$output" ]; then
+      printf '%s\n' "$output" >&2
+    fi
+    exit "$rc"
+  fi
+  if [ -n "$output" ]; then
+    printf '%s\n' "$output"
+  fi
+}
+
 cd "$LOCAL_REPO"
 setup_askpass
 setup_single_session
@@ -230,10 +284,10 @@ if [ "$SUBMIT_FINAL_PROOF_VERIFY" = "1" ]; then
   ALL_FILES+=("${FINAL_PROOF_VERIFY_FILES[@]}")
 fi
 
-run with_remote_auth "${RSYNC_SSH[@]}" "$REMOTE_HOST" "mkdir -p '$REMOTE_REPO'"
-run with_remote_auth "${RSYNC_SSH[@]}" "$REMOTE_HOST" "cd '$REMOTE_REPO' && mkdir -p scripts data/processed/tla_prover outputs/manifests outputs/logs outputs/autoprover outputs/hf_publish/chattla-tla-prover-108-108/metadata"
+run_stage_or_fail connect_remote_repo with_remote_auth "${RSYNC_SSH[@]}" "$REMOTE_HOST" "mkdir -p '$REMOTE_REPO'"
+run_stage_or_fail prepare_remote_repo with_remote_auth "${RSYNC_SSH[@]}" "$REMOTE_HOST" "cd '$REMOTE_REPO' && mkdir -p scripts data/processed/tla_prover outputs/manifests outputs/logs outputs/autoprover outputs/hf_publish/chattla-tla-prover-108-108/metadata"
 for file in "${ALL_FILES[@]}"; do
-  run with_remote_auth rsync -az --relative -e "$(printf '%q ' "${RSYNC_SSH[@]}")" "$file" "$REMOTE_HOST:$REMOTE_REPO/"
+  run_stage_or_fail sync_artifacts with_remote_auth rsync -az --relative -e "$(printf '%q ' "${RSYNC_SSH[@]}")" "$file" "$REMOTE_HOST:$REMOTE_REPO/"
 done
 
 REMOTE_SUBMIT="cd '$REMOTE_REPO' && CHATTLA_TLAPM='$REMOTE_TLAPM' scripts/submit_tla_prover_remote_jobs.sh"
@@ -246,7 +300,7 @@ fi
 if [ "$SUBMIT_FULL_DATASET_SMOKE" = "1" ]; then
   REMOTE_SUBMIT="$REMOTE_SUBMIT --submit-full-dataset-smoke"
 fi
-run with_remote_auth "${RSYNC_SSH[@]}" "$REMOTE_HOST" "$REMOTE_SUBMIT"
+run_stage_or_fail remote_submit with_remote_auth "${RSYNC_SSH[@]}" "$REMOTE_HOST" "$REMOTE_SUBMIT"
 
 LOCAL_REPORT_DIR="$(dirname "$LOCAL_SUBMISSION_REPORT")"
 run mkdir -p "$LOCAL_REPORT_DIR"
