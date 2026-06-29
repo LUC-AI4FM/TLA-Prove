@@ -11,8 +11,8 @@
       },
       {
         "repo": "apalache-mc/apalache",
-        "sany_clean_rate": 0.039666,
-        "sany_clean_rows": 19,
+        "sany_clean_rate": 0.045929,
+        "sany_clean_rows": 22,
         "shape_ready_rate": 0.05428,
         "shape_ready_rows": 26,
         "total_rows": 479
@@ -67,8 +67,8 @@
       },
       {
         "repo": "tlaplus/Examples",
-        "sany_clean_rate": 0.088452,
-        "sany_clean_rows": 36,
+        "sany_clean_rate": 0.125307,
+        "sany_clean_rows": 51,
         "shape_ready_rate": 0.191646,
         "shape_ready_rows": 78,
         "total_rows": 407
@@ -83,8 +83,8 @@
       },
       {
         "repo": "tlaplus/tlaplus",
-        "sany_clean_rate": 0.0375,
-        "sany_clean_rows": 39,
+        "sany_clean_rate": 0.045192,
+        "sany_clean_rows": 47,
         "shape_ready_rate": 0.056731,
         "shape_ready_rows": 59,
         "total_rows": 1040
@@ -92,15 +92,15 @@
     ],
     "top_sany_clean_repos": [
       {
-        "count": 39,
-        "name": "tlaplus/tlaplus"
-      },
-      {
-        "count": 36,
+        "count": 51,
         "name": "tlaplus/Examples"
       },
       {
-        "count": 19,
+        "count": 47,
+        "name": "tlaplus/tlaplus"
+      },
+      {
+        "count": 22,
         "name": "apalache-mc/apalache"
       },
       {
@@ -153,18 +153,18 @@
   },
   "candidates": {
     "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-    "rows": 98,
+    "rows": 124,
     "summary_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json"
   },
   "funnel": {
     "not_shape_ready_rows": 1940,
-    "sany_clean_rows": 98,
-    "shape_ready_but_not_sany_clean_rows": 70,
+    "sany_clean_rows": 124,
+    "shape_ready_but_not_sany_clean_rows": 44,
     "shape_ready_rows": 168,
     "shape_ready_unique_modules": 114,
     "source_rows": 2108
   },
-  "generated_at": "2026-06-29T11:38:43.695044+00:00",
+  "generated_at": "2026-06-29T16:15:00.045441+00:00",
   "missing_requirement_counts": {
     "operators": {
       "Init": 1082,

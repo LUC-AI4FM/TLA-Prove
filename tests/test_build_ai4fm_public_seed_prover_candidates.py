@@ -13,6 +13,7 @@ class _Sany:
     def __init__(self, valid: bool, errors: list[str] | None = None) -> None:
         self.valid = valid
         self.errors = errors or []
+        self.raw_output = "\n".join(self.errors)
 
 
 def test_build_prover_candidates_keeps_only_sany_valid_autoprover_rows(tmp_path: Path) -> None:
@@ -160,3 +161,50 @@ def test_build_prover_candidates_accepts_nonstandard_dash_count_module_header(tm
 
     assert [row["module"] for row in rows] == ["CandidateA"]
     assert "missing_module_content" not in summary["skipped"]
+
+
+def test_build_prover_candidates_recovers_rows_via_dependency_staging(tmp_path: Path) -> None:
+    source = tmp_path / "seed_modules.jsonl"
+    main = (
+        "---- MODULE CandidateA ----\n"
+        "EXTENDS Helper\n"
+        "VARIABLE x\n"
+        "vars == <<x>>\n"
+        "Init == x = 0\n"
+        "Next == x' = x\n"
+        "Spec == Init /\\ [][Next]_vars\n"
+        "TypeOK == x \\in 0..1\n"
+        "====\n"
+    )
+    helper = "---- MODULE Helper ----\nFoo == 1\n====\n"
+    _write_jsonl(
+        source,
+        [
+            {"repo": "example/alpha", "module": "CandidateA", "source_path": "CandidateA.tla", "content": main},
+            {"repo": "example/alpha", "module": "Helper", "source_path": "Helper.tla", "content": helper},
+        ],
+    )
+
+    def fake_validate(content: str, *, module_name: str) -> _Sany:
+        if module_name == "CandidateA":
+            return _Sany(False, ["Cannot find source file for module Helper imported in module CandidateA.", "*** Errors: 1"])
+        return _Sany(True)
+
+    def fake_validate_file(path: Path) -> _Sany:
+        helper_path = path.parent / "Helper.tla"
+        if helper_path.exists():
+            return _Sany(True)
+        return _Sany(False, ["Cannot find source file for module Helper imported in module CandidateA.", "*** Errors: 1"])
+
+    rows, summary = build_prover_candidates(
+        source,
+        validate_module=fake_validate,
+        validate_file=fake_validate_file,
+        workers=1,
+    )
+
+    assert [row["module"] for row in rows] == ["CandidateA"]
+    assert rows[0]["dependency_staging"]["staged_modules"] == ["Helper"]
+    assert summary["dependency_staging"]["attempted_rows"] == 1
+    assert summary["dependency_staging"]["recovered_rows"] == 1
+    assert summary["dependency_staging"]["sample_recovered"][0]["staged_modules"] == ["Helper"]

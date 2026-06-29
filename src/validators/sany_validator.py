@@ -59,10 +59,11 @@ def validate_file(tla_path: Path, jar: Path = _TLA_TOOLS_JAR) -> SANYResult:
             "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"
         )
 
-    cmd = ["java", "-cp", str(jar), "tla2sany.SANY", str(tla_path)]
+    cmd = ["java", "-cp", str(jar), "tla2sany.SANY", tla_path.name]
     try:
         result = subprocess.run(
             cmd,
+            cwd=str(tla_path.parent),
             capture_output=True,
             text=True,
             timeout=30,

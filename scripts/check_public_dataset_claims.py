@@ -120,6 +120,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     seed_files = _read_json(repo / "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json")
     seed_modules = _read_json(repo / "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json")
     seed_candidates = _read_json(repo / "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json")
+    shape_ready_not_sany = _read_json(
+        repo / "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
+    )
     mixed_sft = _read_json(repo / "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json")
     expanded_sft = _read_json(
         repo / "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json"
@@ -156,6 +159,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     raw_tla_files = int(seed_totals["tla"])
     usable_module_rows = int(seed_modules.get("rows", seed_modules["kept_rows"]))
     candidate_rows = int(seed_candidates["kept_rows"])
+    shape_ready_not_sany_rows = int(
+        shape_ready_not_sany.get("rows", shape_ready_not_sany["kept_rows"])
+    )
     mixed_sft_rows = int(mixed_sft["total_rows"])
     expanded_sft_rows = int(expanded_sft["total_rows"])
     expanded_public_import_rows = int(expanded_sft["public_import_rows"])
@@ -309,7 +315,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             ),
             (
                 "| `outputs/manifests/ai4fm_public_seed_prover_funnel.json` | "
-                f"`{usable_module_rows}` usable seed modules -> `168` shape-ready rows -> `{candidate_rows}` SANY-clean rows, leaving `70` shape-ready-but-not-SANY-clean rows. |"
+                f"`{usable_module_rows}` usable seed modules -> `168` shape-ready rows -> `{candidate_rows}` SANY-clean rows, leaving `{shape_ready_not_sany_rows}` shape-ready-but-not-SANY-clean rows. |"
             ),
             f"| `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` | `chattla:20b-fc128best` has a fresh full benchmark but still `0` SANY / `0` TLC. | Freshness alone does not clear the gate; candidate quality is also non-deployable. |",
         ],

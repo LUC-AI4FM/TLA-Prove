@@ -2,15 +2,15 @@
   "by_repo": {
     "top_repair_repos": [
       {
-        "count": 42,
+        "count": 27,
         "name": "tlaplus/Examples"
       },
       {
-        "count": 20,
+        "count": 12,
         "name": "tlaplus/tlaplus"
       },
       {
-        "count": 7,
+        "count": 4,
         "name": "apalache-mc/apalache"
       },
       {
@@ -21,25 +21,25 @@
   },
   "failure_categories": [
     {
-      "count": 70,
+      "count": 44,
       "name": "missing_import"
     }
   ],
-  "generated_at": "2026-06-29T15:58:03.526589+00:00",
+  "generated_at": "2026-06-29T16:15:29.638871+00:00",
   "missing_imports": {
     "availability_counts": {
       "cross_repo_seed_module": 18,
       "missing_from_seed_surface": 4,
-      "same_repo_seed_module": 29,
-      "tlaps_standard_module": 19
+      "same_repo_seed_module": 9,
+      "tlaps_standard_module": 13
     },
-    "rows_recoverable_from_seed_surface_or_tlaps_stub": 66,
-    "rows_with_missing_imports": 70,
+    "rows_recoverable_from_seed_surface_or_tlaps_stub": 40,
+    "rows_with_missing_imports": 44,
     "top_missing_modules": [
       {
         "availability": "tlaps_standard_module",
         "module": "TLAPS",
-        "rows": 19
+        "rows": 13
       },
       {
         "availability": "cross_repo_seed_module",
@@ -53,32 +53,17 @@
       },
       {
         "availability": "cross_repo_seed_module",
-        "module": "Functions",
-        "rows": 4
-      },
-      {
-        "availability": "cross_repo_seed_module",
         "module": "SequencesExt",
         "rows": 4
       },
       {
+        "availability": "cross_repo_seed_module",
+        "module": "Functions",
+        "rows": 3
+      },
+      {
         "availability": "missing_from_seed_surface",
         "module": "FiniteSetTheorems",
-        "rows": 2
-      },
-      {
-        "availability": "cross_repo_seed_module",
-        "module": "Variants",
-        "rows": 2
-      },
-      {
-        "availability": "cross_repo_seed_module",
-        "module": "Relation",
-        "rows": 2
-      },
-      {
-        "availability": "cross_repo_seed_module",
-        "module": "Age_Channel",
         "rows": 2
       },
       {
@@ -88,37 +73,38 @@
       },
       {
         "availability": "cross_repo_seed_module",
-        "module": "SyncTerminationDetection",
+        "module": "DyadicRationals",
         "rows": 2
       },
       {
         "availability": "cross_repo_seed_module",
-        "module": "Bits",
+        "module": "Voting",
         "rows": 2
+      },
+      {
+        "availability": "cross_repo_seed_module",
+        "module": "MessagePassing",
+        "rows": 1
+      },
+      {
+        "availability": "cross_repo_seed_module",
+        "module": "BlockDag",
+        "rows": 1
+      },
+      {
+        "availability": "missing_from_seed_surface",
+        "module": "SequenceTheorems",
+        "rows": 1
       }
     ]
   },
   "repair_surface": {
-    "excluded_sany_clean_rows": 98,
-    "rows": 70,
-    "unique_modules": 46,
+    "excluded_sany_clean_rows": 124,
+    "rows": 44,
+    "unique_modules": 28,
     "unique_repos": 4
   },
   "samples": [
-    {
-      "category": "missing_import",
-      "first_error": "Cannot find source file for module TLAPS imported in module AddTwo.",
-      "missing_import_availability": [
-        "tlaps_standard_module"
-      ],
-      "missing_imports": [
-        "TLAPS"
-      ],
-      "module": "AddTwo",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/LearnProofs/AddTwo.tla",
-      "unexpected_valid": false
-    },
     {
       "category": "missing_import",
       "first_error": "Cannot find source file for module TLAPS imported in module Bakery.",
@@ -205,20 +191,6 @@
     },
     {
       "category": "missing_import",
-      "first_error": "Cannot find source file for module TLAPS imported in module Boulanger.",
-      "missing_import_availability": [
-        "tlaps_standard_module"
-      ],
-      "missing_imports": [
-        "TLAPS"
-      ],
-      "module": "Boulanger",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/Bakery-Boulangerie/Boulanger.tla",
-      "unexpected_valid": false
-    },
-    {
-      "category": "missing_import",
       "first_error": "Cannot find source file for module FiniteSetTheorems imported in module BPConProof.",
       "missing_import_availability": [
         "missing_from_seed_surface"
@@ -229,20 +201,6 @@
       "module": "BPConProof",
       "repo": "tlaplus/Examples",
       "source_path": "specifications/byzpaxos/BPConProof.tla",
-      "unexpected_valid": false
-    },
-    {
-      "category": "missing_import",
-      "first_error": "Cannot find source file for module Variants imported in module Bug1682.",
-      "missing_import_availability": [
-        "same_repo_seed_module"
-      ],
-      "missing_imports": [
-        "Variants"
-      ],
-      "module": "Bug1682",
-      "repo": "apalache-mc/apalache",
-      "source_path": "test/tla/Bug1682.tla",
       "unexpected_valid": false
     },
     {
@@ -272,6 +230,48 @@
       "repo": "tlaplus/Examples",
       "source_path": "specifications/Paxos/Consensus.tla",
       "unexpected_valid": false
+    },
+    {
+      "category": "missing_import",
+      "first_error": "Cannot find source file for module TLAPS imported in module Consensus.",
+      "missing_import_availability": [
+        "tlaps_standard_module"
+      ],
+      "missing_imports": [
+        "TLAPS"
+      ],
+      "module": "Consensus",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
+      "unexpected_valid": false
+    },
+    {
+      "category": "missing_import",
+      "first_error": "Cannot find source file for module SequencesExt imported in module DistributedReplicatedLog.",
+      "missing_import_availability": [
+        "cross_repo_seed_module"
+      ],
+      "missing_imports": [
+        "SequencesExt"
+      ],
+      "module": "DistributedReplicatedLog",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/FiniteMonotonic/DistributedReplicatedLog.tla",
+      "unexpected_valid": false
+    },
+    {
+      "category": "missing_import",
+      "first_error": "Cannot find source file for module SequencesExt imported in module DistributedReplicatedLog.",
+      "missing_import_availability": [
+        "cross_repo_seed_module"
+      ],
+      "missing_imports": [
+        "SequencesExt"
+      ],
+      "module": "DistributedReplicatedLog",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/examples/FiniteMonotonic/DistributedReplicatedLog.tla",
+      "unexpected_valid": false
     }
   ],
   "schema": "chattla_ai4fm_public_seed_prover_repair_surface_v1",
@@ -282,17 +282,17 @@
   },
   "source": {
     "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-    "rows": 70,
+    "rows": 44,
     "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
   },
   "top_first_errors": [
     {
-      "count": 3,
-      "error": "Cannot find source file for module TLAPS imported in module Consensus."
+      "count": 2,
+      "error": "Cannot find source file for module Functions imported in module bcastByz."
     },
     {
       "count": 2,
-      "error": "Cannot find source file for module Functions imported in module bcastByz."
+      "error": "Cannot find source file for module TLAPS imported in module Consensus."
     },
     {
       "count": 2,
@@ -300,19 +300,7 @@
     },
     {
       "count": 2,
-      "error": "Cannot find source file for module Relation imported in module Echo."
-    },
-    {
-      "count": 2,
-      "error": "Cannot find source file for module Age_Channel imported in module EnvironmentController."
-    },
-    {
-      "count": 2,
       "error": "Cannot find source file for module Graphs imported in module EWD687a."
-    },
-    {
-      "count": 2,
-      "error": "Cannot find source file for module SyncTerminationDetection imported in module EWD840."
     },
     {
       "count": 2,
@@ -320,19 +308,31 @@
     },
     {
       "count": 2,
-      "error": "Cannot find source file for module Functions imported in module EWD998."
-    },
-    {
-      "count": 2,
       "error": "Cannot find source file for module Utils imported in module EWD998Chan."
     },
     {
       "count": 2,
-      "error": "Cannot find source file for module Bits imported in module Hanoi."
+      "error": "Cannot find source file for module DyadicRationals imported in module Huang."
     },
     {
       "count": 2,
-      "error": "Cannot find source file for module DyadicRationals imported in module Huang."
+      "error": "Cannot find source file for module Voting imported in module Paxos."
+    },
+    {
+      "count": 2,
+      "error": "Cannot find source file for module TLAPS imported in module Voting."
+    },
+    {
+      "count": 2,
+      "error": "Cannot find source file for module UndirectedGraphs imported in module YoYoNoPruning."
+    },
+    {
+      "count": 2,
+      "error": "Cannot find source file for module UndirectedGraphs imported in module YoYoPruning."
+    },
+    {
+      "count": 1,
+      "error": "Cannot find source file for module TLAPS imported in module Bakery."
     }
   ],
   "warnings": []
