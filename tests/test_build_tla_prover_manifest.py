@@ -32,6 +32,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"funnel": {"source_rows": 2, "shape_ready_rows": 1, "sany_clean_rows": 1}}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/tla_prover_full_dataset_failure_analysis.json").write_text(
+        json.dumps({"rows": 610, "action_bucket_counts": {"proof_repair": 79}}),
+        encoding="utf-8",
+    )
     (repo / "outputs/manifests/hf_publish_readiness.json").write_text(
         json.dumps(
             {
@@ -314,6 +318,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_seed_prover_funnel"]["kind"] == (
         "public_ai4fm_seed_repo_prover_funnel_report"
     )
+    assert manifest["artifacts"]["tla_prover_full_dataset_failure_analysis"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_full_dataset_failure_analysis"]["kind"] == (
+        "full_dataset_autoprover_failure_analysis_report"
+    )
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["kind"] == (
@@ -431,6 +439,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["build_tla_prover_repair_train_v1"] == (
         "python3 scripts/build_tla_prover_repair_corpus.py"
+    )
+    assert manifest["remote_next_steps"]["build_tla_prover_full_dataset_failure_analysis"] == (
+        "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py"
     )
     assert "sft_preflight_pbs" not in manifest["remote_next_steps"]
     assert "sft_preflight_launch" not in manifest["remote_next_steps"]

@@ -111,3 +111,30 @@ def test_summarize_cli_writes_tlc_error_families(tmp_path: Path) -> None:
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["tlc_error_families"] == {"tlc_error_deadlock": 1}
     assert payload["tlc_error_samples"]["tlc_error_deadlock"][0]["module"] == "DeadlockA"
+
+
+def test_summarize_groups_skip_reason_families_and_timeouts() -> None:
+    rows = [
+        {"module": "A", "module_path": "a/A.tla", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"},
+        {"module": "B", "module_path": "a/B.tla", "status": "skipped", "reason": "sany_parse_or_semantic_invalid"},
+        {"module": "C", "module_path": "a/C.tla", "status": "skipped", "reason": "typeok_uses_unbounded_seq"},
+        {"module": "D", "module_path": "a/D.tla", "status": "skipped", "reason": "typeok_missing_variable_domain_msgs"},
+        {"module": "E", "module_path": "a/E.tla", "status": "skipped", "reason": "typeok_infinite_builtin_domain_head"},
+        {
+            "module": "F",
+            "module_path": "a/F.tla",
+            "status": "tlc_error",
+            "tlc_error": "TLC timed out after 60s (INIT-as-predicate state space too large to enumerate).",
+        },
+    ]
+
+    payload = summarize(rows)
+
+    assert payload["skip_reason_families"] == {
+        "skip_missing_contract_operators": 1,
+        "skip_sany_parse_or_semantic_invalid": 1,
+        "skip_unbounded_sequence_domain": 1,
+        "skip_missing_variable_domain": 1,
+        "skip_infinite_builtin_domain": 1,
+    }
+    assert payload["tlc_error_families"] == {"tlc_error_init_state_space_timeout": 1}

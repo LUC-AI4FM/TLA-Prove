@@ -56,6 +56,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/inspect_hf_publish_readiness.py" in joined
     assert "scripts/build_benchmark_repair_pairs.py" in joined
     assert "scripts/build_tla_prover_repair_corpus.py" in joined
+    assert "scripts/build_tla_prover_full_dataset_failure_analysis.py" in joined
     assert "scripts/sync_hf_publish_corpora_metadata.py" in joined
     assert "scripts/upload_v11.py" in joined
     assert "tests/test_remote_handoff_script.py" in joined
@@ -67,6 +68,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_inspect_hf_publish_readiness.py" in joined
     assert "tests/test_build_benchmark_repair_pairs.py" in joined
     assert "tests/test_build_tla_prover_repair_corpus.py" in joined
+    assert "tests/test_build_tla_prover_full_dataset_failure_analysis.py" in joined
     assert "tests/test_repair_dataset.py" in joined
     assert "tests/test_train_rl_repair.py" in joined
     assert "tests/test_qsub_fc128_artifact_preflight.py" in joined
