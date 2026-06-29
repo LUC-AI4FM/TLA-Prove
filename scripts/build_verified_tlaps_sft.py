@@ -16,6 +16,13 @@ DEVELOPER_PROMPT = (
 )
 
 
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def _iter_proofs_from_tar(path: Path) -> Iterable[tuple[str, str]]:
     with tarfile.open(path, "r:gz") as archive:
         members = [
@@ -39,7 +46,7 @@ def build_rows(artifact: Path, verifier: str) -> list[dict]:
         rows.append(
             {
                 "module": module,
-                "source_artifact": str(artifact),
+                "source_artifact": _display_path(artifact),
                 "verifier": verifier,
                 "messages": [
                     {"role": "developer", "content": DEVELOPER_PROMPT},
@@ -86,8 +93,8 @@ def main() -> int:
     print(
         json.dumps(
             {
-                "artifact": str(args.artifact),
-                "out": str(args.out),
+                "artifact": _display_path(args.artifact),
+                "out": _display_path(args.out),
                 "rows": len(rows),
                 "completion_chars": sum(len(row["completion"]) for row in rows),
             },

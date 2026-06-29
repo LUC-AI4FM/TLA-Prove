@@ -52,7 +52,7 @@ The core command is:
 
 ```bash
 python3 scripts/reproduce_final_tlaps_prover.py \
-  --tlapm /grand/EVITA/eric-spencer/tools/tlaps-1.5.0/bin/tlapm \
+  --tlapm "${CHATTLA_TLAPM:-tlapm}" \
   --out-dir outputs/autoprover/tlaps_reproduced_final_${JOBNUM} \
   --package outputs/autoprover/tlaps_reproduced_final_${JOBNUM}.tar.gz \
   --threads 1 \

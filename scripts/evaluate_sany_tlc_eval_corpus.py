@@ -19,6 +19,13 @@ DEFAULT_CORPUS = REPO / "data" / "processed" / "sany_tlc_pass_eval_v1.jsonl"
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "sany_tlc_pass_eval_replay.json"
 
 
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     rows = []
     with path.open(encoding="utf-8") as handle:
@@ -110,7 +117,7 @@ def replay_corpus(
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "ok": gold_ok and (diamond_ok if require_diamond else True),
-        "corpus": str(corpus),
+        "corpus": _display_path(corpus),
         "rows": len(rows),
         "checked": checked,
         "limit": limit,

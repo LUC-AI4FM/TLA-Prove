@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-27T15:55:09.560446+00:00",
+  "generated_at": "2026-06-29T02:46:55.359794+00:00",
   "invalid_modules": [],
-  "jsonl_sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
+  "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
   "kept_rows": 18,
   "modules": [
     "AtomicCommit",
@@ -25,9 +25,9 @@
   ],
   "obligations_proved": 299,
   "obligations_total": 299,
-  "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/prover_eval.jsonl",
+  "out": "data/processed/prover_eval.jsonl",
   "skipped_invalid": 0,
   "skipped_unverified": 0,
-  "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+  "source": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
   "source_rows": 18
 }

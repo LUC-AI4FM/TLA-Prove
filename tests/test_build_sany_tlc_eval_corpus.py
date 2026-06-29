@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from scripts.build_sany_tlc_eval_corpus import build_rows
+from scripts.build_sany_tlc_eval_corpus import build_rows, write_outputs
 from src.validators.tlc_validator import validate_string
 
 
@@ -65,3 +65,18 @@ def test_chain_replication_holdout_replays_without_deadlock() -> None:
     assert validation.tier == "gold"
     assert validation.semantic.distinct_states > 0
     assert not validation.tlc_violations
+
+
+def test_write_outputs_uses_repo_relative_paths() -> None:
+    repo = Path(__file__).resolve().parents[1]
+    out = repo / "data/processed/sany_tlc_pass_eval_v1.test.jsonl"
+    rows = [{"messages": [{"role": "assistant", "channel": "final", "content": "---- MODULE A ----\n====\n"}]}]
+    summary = {"source": "data/processed/diamond_eval_holdout.jsonl"}
+
+    try:
+        final_summary = write_outputs(rows, summary, out)
+        assert final_summary["out"] == "data/processed/sany_tlc_pass_eval_v1.test.jsonl"
+        assert final_summary["summary"] == "data/processed/sany_tlc_pass_eval_v1.test.summary.json"
+    finally:
+        out.unlink(missing_ok=True)
+        out.with_suffix(".summary.json").unlink(missing_ok=True)

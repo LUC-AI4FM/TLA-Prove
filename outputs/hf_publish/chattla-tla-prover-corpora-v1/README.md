@@ -53,6 +53,8 @@ AI4FM expansion lanes alongside the prover replay evidence.
 
 ## Verification Snapshot
 
+- Mixed prover SFT corpus: `1330` rows (`1053` Diamond SFT + `205` `FormaLLM`
+  + `18 * 4` verified TLAPS rows).
 - Verified TLAPS traces: `18` rows, raw `299/299` obligations proved.
 - Prover eval: `18` rows, `299/299` gold TLAPS obligations.
 - SANY/TLC SFT: `170` rows, no holdout overlap.

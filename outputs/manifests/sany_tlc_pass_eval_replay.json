@@ -1,10 +1,10 @@
 {
   "checked": 30,
-  "corpus": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/sany_tlc_pass_eval_v1.jsonl",
+  "corpus": "data/processed/sany_tlc_pass_eval_v1.jsonl",
   "diamond": 29,
   "diamond_ok": false,
   "failures": [],
-  "generated_at": "2026-06-27T21:09:16.500931+00:00",
+  "generated_at": "2026-06-29T02:47:46.097103+00:00",
   "gold": 30,
   "gold_ok": true,
   "limit": null,
@@ -16,7 +16,7 @@
       "diamond": false,
       "index": 1,
       "module": "AdaptiveMutex",
-      "runtime_seconds": 0.37146329192910343,
+      "runtime_seconds": 0.6907315829303116,
       "semantic": {
         "distinct_states": 82,
         "invariants_checked": 1,
@@ -31,7 +31,7 @@
       "diamond": true,
       "index": 2,
       "module": "AdmissionControl",
-      "runtime_seconds": 0.3327813339419663,
+      "runtime_seconds": 0.6570459168870002,
       "semantic": {
         "distinct_states": 16,
         "invariants_checked": 1,
@@ -46,7 +46,7 @@
       "diamond": true,
       "index": 3,
       "module": "AlternatingBit",
-      "runtime_seconds": 0.347316375002265,
+      "runtime_seconds": 0.36250845808535814,
       "semantic": {
         "distinct_states": 19,
         "invariants_checked": 1,
@@ -61,7 +61,7 @@
       "diamond": true,
       "index": 4,
       "module": "AndersonMutex",
-      "runtime_seconds": 0.3459519579773769,
+      "runtime_seconds": 0.33778345910832286,
       "semantic": {
         "distinct_states": 16,
         "invariants_checked": 1,
@@ -76,7 +76,7 @@
       "diamond": true,
       "index": 5,
       "module": "AravindMutex",
-      "runtime_seconds": 0.3510657079750672,
+      "runtime_seconds": 0.3420214999932796,
       "semantic": {
         "distinct_states": 31,
         "invariants_checked": 1,
@@ -91,7 +91,7 @@
       "diamond": true,
       "index": 6,
       "module": "ArenaAllocator",
-      "runtime_seconds": 0.33559074997901917,
+      "runtime_seconds": 0.32665112521499395,
       "semantic": {
         "distinct_states": 7,
         "invariants_checked": 1,
@@ -106,7 +106,7 @@
       "diamond": true,
       "index": 7,
       "module": "Arp",
-      "runtime_seconds": 0.42309545795433223,
+      "runtime_seconds": 0.3852672080975026,
       "semantic": {
         "distinct_states": 343,
         "invariants_checked": 1,
@@ -121,7 +121,7 @@
       "diamond": true,
       "index": 8,
       "module": "AtomicCommit",
-      "runtime_seconds": 0.3609823340084404,
+      "runtime_seconds": 0.36944891698658466,
       "semantic": {
         "distinct_states": 83,
         "invariants_checked": 1,
@@ -136,7 +136,7 @@
       "diamond": true,
       "index": 9,
       "module": "AtomicRegister",
-      "runtime_seconds": 0.41161229100544006,
+      "runtime_seconds": 0.42571574985049665,
       "semantic": {
         "distinct_states": 153,
         "invariants_checked": 1,
@@ -151,7 +151,7 @@
       "diamond": true,
       "index": 10,
       "module": "BackpressureChannel",
-      "runtime_seconds": 0.32610075001139194,
+      "runtime_seconds": 0.3241519171278924,
       "semantic": {
         "distinct_states": 4,
         "invariants_checked": 1,
@@ -166,7 +166,7 @@
       "diamond": true,
       "index": 11,
       "module": "Bankers",
-      "runtime_seconds": 0.3957102090353146,
+      "runtime_seconds": 0.38181466702371836,
       "semantic": {
         "distinct_states": 25,
         "invariants_checked": 1,
@@ -181,7 +181,7 @@
       "diamond": true,
       "index": 12,
       "module": "BinaryHeap",
-      "runtime_seconds": 0.3346191250020638,
+      "runtime_seconds": 0.32641979097388685,
       "semantic": {
         "distinct_states": 8,
         "invariants_checked": 1,
@@ -196,7 +196,7 @@
       "diamond": true,
       "index": 13,
       "module": "BinarySemaphore",
-      "runtime_seconds": 0.33728249999694526,
+      "runtime_seconds": 0.3239732920192182,
       "semantic": {
         "distinct_states": 13,
         "invariants_checked": 1,
@@ -211,7 +211,7 @@
       "diamond": true,
       "index": 14,
       "module": "BlocksWorld",
-      "runtime_seconds": 0.35375529201701283,
+      "runtime_seconds": 0.34105504187755287,
       "semantic": {
         "distinct_states": 22,
         "invariants_checked": 1,
@@ -226,7 +226,7 @@
       "diamond": true,
       "index": 15,
       "module": "BloomCounter",
-      "runtime_seconds": 0.3423308749916032,
+      "runtime_seconds": 0.3256264999508858,
       "semantic": {
         "distinct_states": 4,
         "invariants_checked": 1,
@@ -241,7 +241,7 @@
       "diamond": true,
       "index": 16,
       "module": "BloomFilter",
-      "runtime_seconds": 0.3355217499192804,
+      "runtime_seconds": 0.31997304200194776,
       "semantic": {
         "distinct_states": 8,
         "invariants_checked": 1,
@@ -256,7 +256,7 @@
       "diamond": true,
       "index": 17,
       "module": "BuddyAllocator",
-      "runtime_seconds": 0.3432134579634294,
+      "runtime_seconds": 0.3309307920280844,
       "semantic": {
         "distinct_states": 6,
         "invariants_checked": 1,
@@ -271,7 +271,7 @@
       "diamond": true,
       "index": 18,
       "module": "BullyElection",
-      "runtime_seconds": 0.34548216708935797,
+      "runtime_seconds": 0.3373930000234395,
       "semantic": {
         "distinct_states": 15,
         "invariants_checked": 1,
@@ -286,7 +286,7 @@
       "diamond": true,
       "index": 19,
       "module": "ByzantineQuorum",
-      "runtime_seconds": 0.37196287501137704,
+      "runtime_seconds": 0.3523610420525074,
       "semantic": {
         "distinct_states": 51,
         "invariants_checked": 1,
@@ -301,7 +301,7 @@
       "diamond": true,
       "index": 20,
       "module": "ChainReplication",
-      "runtime_seconds": 0.33652058301959187,
+      "runtime_seconds": 0.32322841696441174,
       "semantic": {
         "distinct_states": 20,
         "invariants_checked": 1,
@@ -316,7 +316,7 @@
       "diamond": true,
       "index": 21,
       "module": "Channel",
-      "runtime_seconds": 0.3360898330574855,
+      "runtime_seconds": 0.32656958303414285,
       "semantic": {
         "distinct_states": 40,
         "invariants_checked": 1,
@@ -331,7 +331,7 @@
       "diamond": true,
       "index": 22,
       "module": "ChessKingMoves",
-      "runtime_seconds": 0.3448081669630483,
+      "runtime_seconds": 0.3340831669047475,
       "semantic": {
         "distinct_states": 4,
         "invariants_checked": 1,
@@ -346,7 +346,7 @@
       "diamond": true,
       "index": 23,
       "module": "ColoredHats",
-      "runtime_seconds": 0.3386302919825539,
+      "runtime_seconds": 0.32942366716451943,
       "semantic": {
         "distinct_states": 3,
         "invariants_checked": 1,
@@ -361,7 +361,7 @@
       "diamond": true,
       "index": 24,
       "module": "ContentModeration",
-      "runtime_seconds": 0.34218233393039554,
+      "runtime_seconds": 0.32692366698756814,
       "semantic": {
         "distinct_states": 7,
         "invariants_checked": 1,
@@ -376,7 +376,7 @@
       "diamond": true,
       "index": 25,
       "module": "CopyingGc",
-      "runtime_seconds": 0.3420474160229787,
+      "runtime_seconds": 0.32936920900829136,
       "semantic": {
         "distinct_states": 24,
         "invariants_checked": 1,
@@ -391,7 +391,7 @@
       "diamond": true,
       "index": 26,
       "module": "CountDownLatch",
-      "runtime_seconds": 0.3375936249503866,
+      "runtime_seconds": 0.31959754205308855,
       "semantic": {
         "distinct_states": 4,
         "invariants_checked": 1,
@@ -406,7 +406,7 @@
       "diamond": true,
       "index": 27,
       "module": "DistributedLock",
-      "runtime_seconds": 0.34114779194351286,
+      "runtime_seconds": 0.3337911660782993,
       "semantic": {
         "distinct_states": 34,
         "invariants_checked": 1,
@@ -421,7 +421,7 @@
       "diamond": true,
       "index": 28,
       "module": "DocumentApproval",
-      "runtime_seconds": 0.34077841602265835,
+      "runtime_seconds": 0.32783162500709295,
       "semantic": {
         "distinct_states": 8,
         "invariants_checked": 1,
@@ -436,7 +436,7 @@
       "diamond": true,
       "index": 29,
       "module": "EmailVerification",
-      "runtime_seconds": 0.34366133401636034,
+      "runtime_seconds": 0.3383139169309288,
       "semantic": {
         "distinct_states": 27,
         "invariants_checked": 1,
@@ -451,7 +451,7 @@
       "diamond": true,
       "index": 30,
       "module": "FencingToken",
-      "runtime_seconds": 0.3796650000149384,
+      "runtime_seconds": 0.37081549991853535,
       "semantic": {
         "distinct_states": 211,
         "invariants_checked": 1,

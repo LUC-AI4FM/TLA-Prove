@@ -24,10 +24,28 @@ DEFAULT_OUT = REPO / "data" / "processed" / "tla_prover" / "tlaps_verified_autop
 
 _THEOREM_RE = re.compile(r"^\s*THEOREM\s+(.+?)\s*$", re.MULTILINE)
 _END_RE = re.compile(r"^={4,}\s*$", re.MULTILINE)
+_ABS_PATH_RE = re.compile(r"/(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+")
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
 
 
 def _sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _sanitize_path_text(text: str) -> str:
+    return _ABS_PATH_RE.sub(lambda match: Path(match.group(0)).name, text)
+
+
+def _sanitize_tool_path(value: Any) -> Any:
+    if not isinstance(value, str):
+        return value
+    return Path(value).name if value.startswith("/") else value
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -106,12 +124,12 @@ def build_rows(artifact: Path, summary: dict[str, Any], manifest: dict[str, Any]
                 },
                 "verifier": {
                     "name": "TLAPS",
-                    "tlapm": manifest.get("tlapm"),
+                    "tlapm": _sanitize_tool_path(manifest.get("tlapm")),
                     "threads": manifest.get("threads"),
                     "command": manifest.get("command"),
                 },
                 "source": {
-                    "proof_archive": str(artifact),
+                    "proof_archive": _display_path(artifact),
                     "proof_archive_sha256": manifest.get("package_sha256"),
                     "raw_log": result.get("raw_log"),
                 },
@@ -120,7 +138,7 @@ def build_rows(artifact: Path, summary: dict[str, Any], manifest: dict[str, Any]
                     "proof_text_sha256": _sha256_text(proof),
                     "raw_log_sha256": _sha256_text(raw_log) if raw_log else None,
                 },
-                "raw_log_tail": raw_log[-2000:],
+                "raw_log_tail": _sanitize_path_text(raw_log[-2000:]),
             }
         )
     return rows
@@ -132,7 +150,7 @@ def write_outputs(rows: list[dict[str, Any]], out: Path, summary_out: Path, mani
 
     summary = {
         "schema": "tlaps_verified_autoprover_traces_v1_summary",
-        "out": str(out),
+        "out": _display_path(out),
         "rows": len(rows),
         "modules": [row["module"] for row in rows],
         "raw_proved": sum(int(row["tlaps"]["proved"] or 0) for row in rows),

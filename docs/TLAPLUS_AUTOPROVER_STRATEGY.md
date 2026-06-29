@@ -528,10 +528,11 @@ New trainable artifacts:
   contains 18 structured verified proof traces from the all-green `160816`
   archive, raw 299/299 TLAPS obligations, checksum
   `3cb55c1440ca315cee7aef4ac3e360886e2ecce466e1a83dd776ac2da00c000d`.
-- `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl` contains 1125
-  SFT rows: `diamond_sft_v3` plus 4x oversampled verified TLAPS proof rows,
-  normalized to `developer`/`user`/assistant-channel message format, checksum
-  `2aac0c9ed5d3d0b20c580fb74687f63e28c1d916290c64d4924f85525ef24ef0`.
+- `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl` contains 1330
+  SFT rows: `diamond_sft_v3`, the full `205`-row `formalllm_eval_v1`, plus 4x
+  oversampled verified TLAPS proof rows, normalized to
+  `developer`/`user`/assistant-channel message format, checksum
+  `71f90d0d657a89ea78fc13452de521ae132dacb972e349ffecd505cb4ef352fb`.
 - `data/processed/prover_eval.jsonl` contains 18 TLAPS-callback-compatible
   prover eval rows derived from the verified proof traces, 299/299 gold TLAPS
   obligations, checksum
@@ -794,7 +795,7 @@ python3 scripts/preflight_tla_prover_corpora.py
 
 Reports: `outputs/manifests/tla_prover_corpus_preflight.json` and
 `outputs/manifests/sany_tlc_pass_corpus_diagnostic.json`; they currently check
-1125 mixed-prover SFT rows, 18 prover-eval rows, 170 SANY/TLC-pass train rows,
+1330 mixed-prover SFT rows, 18 prover-eval rows, 170 SANY/TLC-pass train rows,
 and 30 held-out SANY/TLC eval rows with no schema or diagnostic errors. The
 remote sync script regenerates the prover eval, SANY/TLC eval, both reports,
 and the manifest before relay handoff.

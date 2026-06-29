@@ -32,6 +32,13 @@ When asked to write a TLA+ spec, follow these rules exactly:
 Reasoning: medium"""
 
 
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def _with_tlc_config(spec: str) -> str:
     if "SPECIFICATION Spec" in spec:
         return spec
@@ -119,8 +126,8 @@ def build_rows(source: Path, holdout: Path) -> tuple[list[dict[str, Any]], dict[
         rows.append(_record(row))
 
     summary = {
-        "source": str(source),
-        "holdout": str(holdout),
+        "source": _display_path(source),
+        "holdout": _display_path(holdout),
         "source_rows": len(source_rows),
         "holdout_modules": len(holdout_modules),
         "kept_rows": len(rows),
@@ -136,11 +143,11 @@ def write_outputs(rows: list[dict[str, Any]], summary: dict[str, Any], out: Path
     out.write_text("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n", encoding="utf-8")
     final_summary = dict(summary)
     final_summary["generated_at"] = datetime.now(timezone.utc).isoformat()
-    final_summary["out"] = str(out)
+    final_summary["out"] = _display_path(out)
     final_summary["jsonl_sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
     summary_path = out.with_suffix(".summary.json")
     summary_path.write_text(json.dumps(final_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    final_summary["summary"] = str(summary_path)
+    final_summary["summary"] = _display_path(summary_path)
     return final_summary
 
 

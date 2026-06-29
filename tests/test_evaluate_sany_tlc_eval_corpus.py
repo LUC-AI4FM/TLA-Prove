@@ -116,3 +116,20 @@ def test_replay_corpus_honors_limit(monkeypatch, tmp_path: Path) -> None:
     assert report["rows"] == 2
     assert report["checked"] == 1
     assert calls == 1
+
+
+def test_replay_corpus_reports_repo_relative_corpus_path(monkeypatch) -> None:
+    repo = Path(__file__).resolve().parents[1]
+    corpus = repo / "data/processed/sany_tlc_pass_eval_v1.test.jsonl"
+    _write(corpus, [_row("A")])
+
+    def fake_validate(_content: str, *, module_name: str, timeout: int):
+        return _Result()
+
+    monkeypatch.setattr(evaluator, "validate_string", fake_validate)
+
+    try:
+        report = evaluator.replay_corpus(corpus=corpus, timeout=10)
+        assert report["corpus"] == "data/processed/sany_tlc_pass_eval_v1.test.jsonl"
+    finally:
+        corpus.unlink(missing_ok=True)

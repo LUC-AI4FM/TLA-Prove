@@ -26,6 +26,23 @@ Use TLAPS syntax and keep the proof checkable by tlapm.
 Reasoning: low"""
 
 
+def _sanitize_public_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): _sanitize_public_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_public_value(item) for item in value]
+    if isinstance(value, str) and value.startswith("/"):
+        return Path(value).name
+    return value
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
+
+
 @dataclass(frozen=True)
 class TheoremSplit:
     preamble: str
@@ -104,8 +121,8 @@ def _record(row: dict[str, Any]) -> dict[str, Any]:
         "_source": "tlaps_verified_autoprover_traces_v1",
         "_module": module,
         "_target_theorem": row.get("target_theorem"),
-        "_source_artifact": row.get("source"),
-        "_verifier": row.get("verifier"),
+        "_source_artifact": _sanitize_public_value(row.get("source")),
+        "_verifier": _sanitize_public_value(row.get("verifier")),
         "_obligations_proved": tlaps.get("proved"),
         "_obligations_total": tlaps.get("total"),
         "_tlaps_exit_code": tlaps.get("exit_code"),
@@ -133,7 +150,7 @@ def build_rows(source: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
             invalid_modules.append(module or "<unknown>")
 
     summary = {
-        "source": str(source),
+        "source": _display_path(source),
         "source_rows": len(source_rows),
         "kept_rows": len(rows),
         "skipped_unverified": skipped_unverified,
@@ -151,11 +168,11 @@ def write_outputs(rows: list[dict[str, Any]], summary: dict[str, Any], out: Path
     out.write_text("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n", encoding="utf-8")
     final_summary = dict(summary)
     final_summary["generated_at"] = datetime.now(timezone.utc).isoformat()
-    final_summary["out"] = str(out)
+    final_summary["out"] = _display_path(out)
     final_summary["jsonl_sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
     summary_path = out.with_suffix(".summary.json")
     summary_path.write_text(json.dumps(final_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    final_summary["summary"] = str(summary_path)
+    final_summary["summary"] = _display_path(summary_path)
     return final_summary
 
 
