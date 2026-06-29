@@ -26,13 +26,13 @@ print(result[0]["generated_text"][-1]["content"])
 
 **GGUF / llama.cpp:**
 ```bash
-huggingface-cli download EricSpencer00/chattla-20b gguf/chattla-20b-v15-Q8_0.gguf --local-dir ./chattla
-./llama-cli -m chattla/gguf/chattla-20b-v15-Q8_0.gguf -n 1024 --temp 0.4
+huggingface-cli download EricSpencer00/chattla-20b gguf/chattla-20b-v21-Q8_0.gguf --local-dir ./chattla
+./llama-cli -m chattla/gguf/chattla-20b-v21-Q8_0.gguf -n 1024 --temp 0.4
 ```
 
 ---
 
-## Benchmark Results (v15)
+## Checked-in Benchmark Snapshot (v15)
 
 | Tier | Rate | Criterion |
 |------|------|-----------|
@@ -40,6 +40,7 @@ huggingface-cli download EricSpencer00/chattla-20b gguf/chattla-20b-v15-Q8_0.ggu
 | Gold    | 9/30 (30%) | Parses + model-checks cleanly |
 
 Evaluated on a 30-spec held-out suite with up to 3 self-correction attempts via TLC feedback.
+The latest public Hugging Face GGUF is currently `gguf/chattla-20b-v21-Q8_0.gguf`; local publish readiness is tracked in `outputs/manifests/hf_publish_readiness.json`.
 
 ---
 
