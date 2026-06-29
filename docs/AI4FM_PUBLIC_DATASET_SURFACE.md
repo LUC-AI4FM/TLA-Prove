@@ -43,10 +43,11 @@ We also re-checked the current upstream public repos directly on 2026-06-28:
   - current `main`: `59bd5335f1d2c5ff66badbe98b594f4b064f8703`
   - seed recipe currently lists `11` repos, `7` org seeds, `9` user seeds, and `5` search queries
   - `dvc.lock` still reports `2628` `pull` files, `227` `parse` input files, and `3979` `parse` output files
-- `ai4fm.cs.luc.edu` public site source
-  - current site repo `main`: `c8a1e0b38b7b9226e70b35975faddfdfefa776b8`
-  - the current site source still describes the evaluation benchmark as `205`
-    TLA+ specifications
+- `ai4fm.cs.luc.edu` live public pages
+  - the current public site still describes the evaluation benchmark as `205`
+    TLA+ specifications on the research landing page and paper pages
+  - the visible public site narrative is aligned with the `205`-entry
+    benchmark layer, not with the stale `1800+` architecture-doc note
 - stale `1800+` note worth not over-trusting
   - `FormaLLM/doc/ARCHITECTURE.md` still says `all_models.json` is metadata for
     `1800+ specifications`
