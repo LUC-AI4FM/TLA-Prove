@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +17,8 @@ from scripts.diagnose_sany_tlc_pass_corpus import diagnose_corpus
 REPO = Path(__file__).resolve().parents[1]
 DEFAULT_PATHS = [
     REPO / "data" / "processed" / "tla_prover" / "chattla_tla_prover_sft_v1.jsonl",
+    REPO / "data" / "processed" / "tla_prover" / "chattla_tla_prover_sft_public_expanded_v1.jsonl",
+    REPO / "data" / "processed" / "tla_prover" / "chattla_tla_prover_sft_public_all_v1.jsonl",
     REPO / "data" / "processed" / "prover_eval.jsonl",
     REPO / "data" / "processed" / "formalllm_eval_v1.jsonl",
     REPO / "data" / "processed" / "ai4fm_public_tlaprove_import_v1.jsonl",
@@ -26,6 +30,12 @@ DEFAULT_PATHS = [
 ALLOWED_ROLES = {"developer", "user", "assistant"}
 ALLOWED_ASSISTANT_CHANNELS = {"analysis", "commentary", "final"}
 MODULE_HEADER_RE = __import__("re").compile(r"(?m)^\s*-+\s*MODULE\s+([A-Za-z_]\w*)")
+FORMALLLM_CORPUS = REPO / "data" / "processed" / "formalllm_eval_v1.jsonl"
+PROVER_TRAIN_CORPUS_NAMES = {
+    "chattla_tla_prover_sft_v1.jsonl",
+    "chattla_tla_prover_sft_public_expanded_v1.jsonl",
+    "chattla_tla_prover_sft_public_all_v1.jsonl",
+}
 
 
 def _display_path(path: Path) -> str:
@@ -119,14 +129,81 @@ def check_jsonl(path: Path, *, max_errors: int = 25) -> dict[str, Any]:
     return {"path": _display_path(path), "ok": not errors and rows > 0, "rows": rows, "errors": errors}
 
 
+def _iter_rows(path: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    with path.open(encoding="utf-8") as handle:
+        for line in handle:
+            if line.strip():
+                rows.append(json.loads(line))
+    return rows
+
+
+def _fingerprint(row: dict[str, Any]) -> str:
+    payload = json.dumps(row, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def inspect_formalllm_coverage(
+    *,
+    formalllm_path: Path,
+    train_paths: list[Path],
+) -> dict[str, Any]:
+    formalllm_rows = _iter_rows(formalllm_path)
+    expected = Counter(_fingerprint(row) for row in formalllm_rows)
+    prompt_ids = {
+        _fingerprint(row): str(row.get("_prompt_id", f"row-{idx+1}"))
+        for idx, row in enumerate(formalllm_rows)
+    }
+    coverage: dict[str, Any] = {
+        "formalllm_path": _display_path(formalllm_path),
+        "formalllm_rows": len(formalllm_rows),
+        "corpora": [],
+    }
+    overall_ok = True
+    for path in train_paths:
+        train_rows = _iter_rows(path)
+        observed = Counter(_fingerprint(row) for row in train_rows)
+        missing = [fingerprint for fingerprint, count in expected.items() if observed[fingerprint] < count]
+        matched_distinct = sum(1 for fingerprint in expected if observed[fingerprint] >= expected[fingerprint])
+        matched_total = sum(min(observed[fingerprint], count) for fingerprint, count in expected.items())
+        extra_occurrences = sum(max(observed[fingerprint] - count, 0) for fingerprint, count in expected.items())
+        item = {
+            "path": _display_path(path),
+            "rows": len(train_rows),
+            "matched_distinct_rows": matched_distinct,
+            "matched_total_occurrences": matched_total,
+            "missing_rows": len(missing),
+            "missing_prompt_ids_sample": [prompt_ids[fingerprint] for fingerprint in missing[:10]],
+            "extra_occurrences_over_formalllm_rows": extra_occurrences,
+            "ok": not missing,
+        }
+        overall_ok = overall_ok and item["ok"]
+        coverage["corpora"].append(item)
+    coverage["ok"] = overall_ok
+    return coverage
+
+
 def build_report(
     paths: list[Path],
     *,
+    formalllm_path: Path = FORMALLLM_CORPUS,
     holdout: Path = REPO / "data" / "processed" / "diamond_eval_holdout.jsonl",
     sany_summary: Path | None = REPO / "data" / "processed" / "sany_tlc_pass_sft_v1.summary.json",
 ) -> dict[str, Any]:
     results = [check_jsonl(path) for path in paths]
     report: dict[str, Any] = {"ok": all(item["ok"] for item in results), "results": results}
+    train_paths = [path for path in paths if path.name in PROVER_TRAIN_CORPUS_NAMES and path.exists()]
+    selected_formalllm_path = next(
+        (path for path in paths if path.name == formalllm_path.name and path.exists()),
+        formalllm_path if formalllm_path.exists() else None,
+    )
+    if selected_formalllm_path is not None and train_paths:
+        coverage = inspect_formalllm_coverage(
+            formalllm_path=selected_formalllm_path,
+            train_paths=train_paths,
+        )
+        report["formalllm_coverage"] = coverage
+        report["ok"] = report["ok"] and coverage["ok"]
     sany_paths = [path for path in paths if path.name == "sany_tlc_pass_sft_v1.jsonl"]
     if sany_paths:
         diagnostic = diagnose_corpus(corpus=sany_paths[0], holdout=holdout, summary=sany_summary)

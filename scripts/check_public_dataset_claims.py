@@ -197,6 +197,10 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"ChatTLA treats the live `{formalllm_rows}`-entry `all_models.json` and `Input/{{train,val,test}}.json` split files as the canonical public FormaLLM surface."
             ),
             (
+                "The verifier-backed preflight manifest at "
+                "`outputs/manifests/tla_prover_corpus_preflight.json` now checks exact `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone."
+            ),
+            (
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: "
                 f"`{_comma(all_public_rows)}` committed `TLA-Prove` JSONL rows, `{_comma(raw_tla_files)}` public seed `.tla` files, "
                 f"and `{_comma(usable_module_rows)}` usable seed modules."
