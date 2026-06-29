@@ -36,15 +36,28 @@ from src.training.publish_hf import (
 
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "hf_publish_readiness.json"
 DEFAULT_BENCHMARK_MAX_AGE_HOURS = 24.0
+DEFAULT_GGUF_SEARCH_DIRS = (
+    _GGUF_DIR,
+    REPO / "outputs" / "gguf_fc128_best",
+)
 _AUTO = object()
 
 
-def _local_gguf_files(gguf_dir: Path) -> list[Path]:
-    return sorted(gguf_dir.glob("chattla-20b-*.gguf"))
+def _local_gguf_files(*gguf_dirs: Path) -> list[Path]:
+    files: list[Path] = []
+    seen: set[Path] = set()
+    for gguf_dir in gguf_dirs:
+        for path in sorted(gguf_dir.glob("chattla-20b-*.gguf")):
+            resolved = path.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            files.append(path)
+    return files
 
 
-def _latest_local_gguf(gguf_dir: Path) -> Path | None:
-    files = _local_gguf_files(gguf_dir)
+def _latest_local_gguf(*gguf_dirs: Path) -> Path | None:
+    files = _local_gguf_files(*gguf_dirs)
     return max(files, key=lambda path: path.stat().st_mtime) if files else None
 
 
@@ -61,6 +74,7 @@ def build_report(
     *,
     repo_id: str = _DEFAULT_REPO,
     gguf_dir: Path = _GGUF_DIR,
+    gguf_search_dirs: tuple[Path, ...] = DEFAULT_GGUF_SEARCH_DIRS,
     merged_model_dir: Path = REPO / "outputs" / "merged_model",
     state_path: Path = _STATE_PATH,
     readme_template: Path = _README_TEMPLATE,
@@ -71,8 +85,9 @@ def build_report(
 ) -> dict[str, Any]:
     state = _load_state() if state_path == _STATE_PATH else json.loads(state_path.read_text(encoding="utf-8"))
     local_last = int(state.get("last_published_version", 0) or 0)
-    local_gguf = _latest_local_gguf(gguf_dir)
-    local_gguf_files = [_display_path(path) or str(path) for path in _local_gguf_files(gguf_dir)]
+    search_dirs = tuple(dict.fromkeys(gguf_search_dirs))
+    local_gguf = _latest_local_gguf(*search_dirs)
+    local_gguf_files = [_display_path(path) or str(path) for path in _local_gguf_files(*search_dirs)]
     merged_model_config = merged_model_dir / "config.json"
     stats = latest_full_benchmark_stats() if benchmark_stats is _AUTO else benchmark_stats
     benchmark_age_hours = None
@@ -124,6 +139,7 @@ def build_report(
         },
         "local": {
             "gguf_dir": _display_path(gguf_dir),
+            "gguf_search_dirs": [_display_path(path) for path in search_dirs],
             "gguf_files": local_gguf_files,
             "latest_gguf": _display_path(local_gguf),
             "merged_model_dir": _display_path(merged_model_dir),

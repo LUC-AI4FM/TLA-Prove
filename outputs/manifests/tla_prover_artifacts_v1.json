@@ -1224,7 +1224,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T04:17:23.739358+00:00",
+  "generated_at": "2026-06-29T04:39:21.091211+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

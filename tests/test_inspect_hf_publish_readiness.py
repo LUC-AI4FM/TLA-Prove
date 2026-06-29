@@ -29,6 +29,7 @@ def test_build_report_detects_remote_state_drift_and_local_blockers(tmp_path: Pa
     report = build_report(
         repo_id="EricSpencer00/chattla-20b",
         gguf_dir=gguf_dir,
+        gguf_search_dirs=(gguf_dir,),
         merged_model_dir=merged_model_dir,
         state_path=state_path,
         readme_template=readme,
@@ -48,6 +49,43 @@ def test_build_report_detects_remote_state_drift_and_local_blockers(tmp_path: Pa
     assert report["next_publish_version"] == 22
     assert "local publish state v15 lags remote GGUF state v21" in report["warnings"]
     assert "hf_publish_state note is stale relative to last_published_version" in report["warnings"]
+
+
+def test_build_report_accepts_local_gguf_from_fallback_dir(tmp_path: Path) -> None:
+    state_path = tmp_path / "hf_publish_state.json"
+    _write(
+        state_path,
+        json.dumps(
+            {
+                "last_published_version": 21,
+                "last_repo": "EricSpencer00/chattla-20b",
+                "note": "aligned",
+            }
+        ),
+    )
+    gguf_dir = tmp_path / "outputs" / "gguf"
+    fallback_dir = tmp_path / "outputs" / "gguf_fc128_best"
+    _write(fallback_dir / "chattla-20b-Q8_0.gguf", "placeholder gguf")
+    readme = tmp_path / "outputs" / "hf_readme" / "README.md"
+    _write(readme, "# README\n")
+
+    report = build_report(
+        repo_id="EricSpencer00/chattla-20b",
+        gguf_dir=gguf_dir,
+        gguf_search_dirs=(gguf_dir, fallback_dir),
+        state_path=state_path,
+        readme_template=readme,
+        benchmark_max_age_hours=24,
+        fetch_remote_paths=lambda _repo: [
+            "gguf/chattla-20b-v21-Q8_0.gguf",
+        ],
+        benchmark_stats=None,
+        now_fn=lambda: 0,
+    )
+
+    assert "local GGUF artifact missing under outputs/gguf" not in report["blockers"]
+    assert report["local"]["latest_gguf"] == str(fallback_dir / "chattla-20b-Q8_0.gguf")
+    assert str(fallback_dir / "chattla-20b-Q8_0.gguf") in report["local"]["gguf_files"]
 
 
 def test_sync_state_to_remote_updates_local_counter(tmp_path: Path) -> None:

@@ -46,7 +46,7 @@ The latest public Hugging Face GGUF is currently `gguf/chattla-20b-v21-Q8_0.gguf
 
 ## Public Datasets
 
-ChatTLA currently uses six public AI4FM-aligned corpus layers:
+ChatTLA currently uses seven public AI4FM-aligned corpus layers:
 
 | Layer | Current public surface | Local artifact |
 |------|-------------------------|----------------|
@@ -76,7 +76,7 @@ python3 scripts/check_tla_prover_pr_ready.py --include-untracked-scripts
 The `TLA-Prove` report captures the stable public JSONL corpora already committed in GitHub, and the normalized import turns that public surface into a deduplicated ChatTLA-format corpus.
 The discovery manifest needs a local checkout of `LUC-AI4FM/tla-dataset-pipeline`; override it with `--pipeline-repo <path>` if your checkout is not at `/tmp/LUC-AI4FM-tla-dataset-pipeline`.
 The seed file manifest records the committed public seed-repo file surface directly from GitHub trees. The dataset surface report records the broader DVC-backed counts, while the discovery manifest records what the public seed/search recipe currently materializes. The manifest build, corpus preflight, and PR-ready check are the compact local gates for the checked-in public artifact surface.
-The seed prover-candidate corpus is the first stricter bridge from the 2,110 public `.tla` modules into the current prover lane: it keeps only modules that pass SANY and already match the Phase-1 `Init`/`Next`/`Spec`/`TypeOK` autoprover contract.
+The seed prover-candidate corpus is the first stricter bridge from the 2,110 public `.tla` files / 2,108 usable module rows into the current prover lane: it keeps only modules that pass SANY and already match the Phase-1 `Init`/`Next`/`Spec`/`TypeOK` autoprover contract.
 
 ---
 
