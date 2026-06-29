@@ -71,5 +71,7 @@ def test_verify_published_tlaps_proof_artifact_runs_on_synthetic_tarball(tmp_pat
     assert summary["raw_proved"] == 1
     assert summary["raw_total"] == 1
     assert summary["matches_expected_summary"] is True
+    assert summary["results"][0]["path"] == "proofs/Example.tla"
     assert manifest["expected_matches"] is True
     assert manifest["tarball"] == str(tarball)
+    assert manifest["tlapm"] == "tlapm"

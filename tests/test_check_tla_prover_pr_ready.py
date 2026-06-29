@@ -54,6 +54,27 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_build_ai4fm_public_seed_tla_modules.py" in joined
 
 
+def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None:
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+    (tmp_path / "tracked.py").write_text("print('ok')\n", encoding="utf-8")
+    subprocess.run(["git", "add", "tracked.py"], cwd=tmp_path, check=True)
+
+    for rel in [
+        "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
+        "outputs/autoprover/tlaps_verify_published_161016/summary.json",
+        "outputs/manifests/ai4fm_public_dataset_surface.json",
+    ]:
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}\n", encoding="utf-8")
+
+    paths = {path.relative_to(tmp_path).as_posix() for path in readiness_files(tmp_path)}
+
+    assert "outputs/autoprover/tlaps_verify_published_161016/manifest.json" in paths
+    assert "outputs/autoprover/tlaps_verify_published_161016/summary.json" in paths
+    assert "outputs/manifests/ai4fm_public_dataset_surface.json" in paths
+
+
 def test_readiness_files_can_include_untracked_scripts_but_not_outputs(tmp_path: Path) -> None:
     subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
     tracked = tmp_path / "scripts" / "tracked.py"
