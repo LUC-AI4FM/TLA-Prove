@@ -68,6 +68,14 @@ def _write_manifests(repo: Path) -> None:
         json.dumps({"kept_rows": 98}),
     )
     _write(
+        repo / "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json",
+        json.dumps({"kept_rows": 168, "unique_modules": 114}),
+    )
+    _write(
+        repo / "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
+        json.dumps({"kept_rows": 70, "excluded_sany_clean_rows": 98}),
+    )
+    _write(
         repo / "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
         json.dumps({"total_rows": 1330}),
     )
@@ -135,6 +143,8 @@ def _write_manifests(repo: Path) -> None:
         "ai4fm_public_seed_license_surface.json": "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "ai4fm_public_seed_tla_modules_v1.summary.json": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
         "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
+        "ai4fm_public_seed_prover_shape_ready_v1.summary.json": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json",
+        "ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         "ai4fm_public_tlaprove_import_all_public_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json",
         "ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json",

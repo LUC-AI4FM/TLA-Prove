@@ -456,6 +456,97 @@
       "rows": null,
       "sha256": "26b1040d90eb70509daa32ee5d7ada41ed84c7752b917b59f6e121d17c401999"
     },
+    "ai4fm_public_seed_prover_shape_ready_not_sany_v1": {
+      "bytes": 1213893,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_autoprover_shape_repair_target_corpus",
+      "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
+      "rows": 70,
+      "sha256": "dfa65676340c8c53acb2a93669662da1278dd2ce7e7cb9c8f7dc45578f7feb38",
+      "summary": {
+        "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "excluded_sany_clean_rows": 98,
+        "generated_at": "2026-06-29T11:46:23.524987+00:00",
+        "jsonl_sha256": "dfa65676340c8c53acb2a93669662da1278dd2ce7e7cb9c8f7dc45578f7feb38",
+        "kept_rows": 70,
+        "out": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
+        "schema": "chattla_ai4fm_public_seed_prover_shape_ready_not_sany_v1",
+        "shape_ready_source_rows": 168,
+        "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "source_rows": 2108,
+        "top_repos": [
+          {
+            "repo": "tlaplus/Examples",
+            "rows": 42
+          },
+          {
+            "repo": "tlaplus/tlaplus",
+            "rows": 20
+          },
+          {
+            "repo": "apalache-mc/apalache",
+            "rows": 7
+          },
+          {
+            "repo": "tlaplus/DrTLAPlus",
+            "rows": 1
+          }
+        ],
+        "unique_modules": 46
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
+    },
+    "ai4fm_public_seed_prover_shape_ready_v1": {
+      "bytes": 2239108,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_autoprover_shape_corpus",
+      "path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
+      "rows": 168,
+      "sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
+      "summary": {
+        "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "generated_at": "2026-06-29T11:46:23.523610+00:00",
+        "jsonl_sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
+        "kept_rows": 168,
+        "out": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
+        "schema": "chattla_ai4fm_public_seed_prover_shape_ready_v1",
+        "shape_ready_source_rows": 168,
+        "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "source_rows": 2108,
+        "top_repos": [
+          {
+            "repo": "tlaplus/Examples",
+            "rows": 78
+          },
+          {
+            "repo": "tlaplus/tlaplus",
+            "rows": 59
+          },
+          {
+            "repo": "apalache-mc/apalache",
+            "rows": 26
+          },
+          {
+            "repo": "tlaplus/DrTLAPlus",
+            "rows": 2
+          },
+          {
+            "repo": "microsoft/CCF",
+            "rows": 1
+          },
+          {
+            "repo": "Azure/azure-cosmos-tla",
+            "rows": 1
+          },
+          {
+            "repo": "pingcap/tla-plus",
+            "rows": 1
+          }
+        ],
+        "unique_modules": 114
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json"
+    },
     "ai4fm_public_seed_tla_modules_v1": {
       "bytes": 15187743,
       "exists": true,
@@ -1460,7 +1551,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T11:24:47.444204+00:00",
+        "generated_at": "2026-06-29T11:39:57.630139+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -1500,7 +1591,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "073609e3af220537d4a237fc14a507aa866434e5958c0d90d5bc633a4e3b443f"
+      "sha256": "ea5ef80110803891d8542cb274f9ec6d1a804587a3c23795dcb65c38f27b5be1"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -1510,7 +1601,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T11:24:47.507735+00:00",
+        "generated_at": "2026-06-29T11:39:57.691769+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1751,7 +1842,7 @@
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "852e71d85a3b7463f3d720e00a117e30b246c41153e41aced118fe02ab19dab1"
+      "sha256": "05aae88bca32044dec4b582217d8ea338ac296256e75b6d1d5eb3ba3667af9e5"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -1793,13 +1884,14 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T11:39:09.999866+00:00",
+  "generated_at": "2026-06-29T11:47:25.068340+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
     "build_ai4fm_public_seed_file_manifest": "python3 scripts/build_ai4fm_public_seed_file_manifest.py",
     "build_ai4fm_public_seed_license_manifest": "python3 scripts/build_ai4fm_public_seed_license_manifest.py",
     "build_ai4fm_public_seed_prover_candidates": "python3 scripts/build_ai4fm_public_seed_prover_candidates.py",
+    "build_ai4fm_public_seed_prover_shape_corpora": "python3 scripts/build_ai4fm_public_seed_prover_shape_corpora.py",
     "build_ai4fm_public_seed_tla_modules": "python3 scripts/build_ai4fm_public_seed_tla_modules.py",
     "build_ai4fm_public_tlaprove_import": "python3 scripts/build_ai4fm_public_tlaprove_import.py",
     "build_ai4fm_public_tlaprove_import_all_public": "python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
