@@ -13,6 +13,7 @@ def test_remote_submit_script_runs_preflight_and_writes_report() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
 
     assert "preflight_tla_prover_remote.py" in text
+    assert "--sft-corpus" in text
     assert 'qsub_submit "$PBS_SELECT_KNOWN18" "$PBS_WALLTIME_KNOWN18" scripts/qsub_autoprover_known18_corrected_smoke.pbs' in text
     assert 'qsub_submit "$PBS_SELECT_SFT" "$PBS_WALLTIME_SFT" scripts/qsub_sophia_tla_prover_sft_preflight.pbs' in text
     assert 'qsub_submit "$PBS_SELECT_FINAL_VERIFY" "$PBS_WALLTIME_FINAL_VERIFY" scripts/qsub_verify_published_tlaps_proof_artifact.pbs' in text
@@ -93,6 +94,52 @@ fi
     assert report["final_proof_verify_qsub_log"] == "outputs/logs/tla_prover_final_proof_verify_qsub.log"
     assert report["full_dataset_smoke_qsub_log"] == "outputs/logs/tla_prover_full_dataset_smoke_qsub.log"
     assert qsub_count.read_text(encoding="utf-8").strip() == "4"
+
+
+def test_remote_submit_script_can_select_expanded_sft_corpus_via_flag(tmp_path: Path) -> None:
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    qsub = fake_bin / "qsub"
+    qsub.write_text("#!/usr/bin/env bash\necho '170001.sophia-pbs-01'\n", encoding="utf-8")
+    qsub.chmod(0o755)
+
+    captured_train = tmp_path / "captured_train_file"
+    fake_preflight = tmp_path / "preflight.py"
+    fake_preflight.write_text(
+        "#!/usr/bin/env python3\n"
+        "import os\n"
+        "from pathlib import Path\n"
+        f"Path({str(captured_train)!r}).write_text(os.environ.get('CHATTLA_TLA_PROVER_TRAIN_FILE', ''), encoding='utf-8')\n"
+        "print('{\"ok\": true}')\n",
+        encoding="utf-8",
+    )
+    fake_preflight.chmod(0o755)
+
+    env = os.environ.copy()
+    env["PATH"] = f"{fake_bin}:{env['PATH']}"
+    env["CHATTLA_REMOTE_PREFLIGHT"] = str(fake_preflight)
+
+    subprocess.run(
+        [
+            "bash",
+            str(SCRIPT),
+            "--repo",
+            str(tmp_path),
+            "--submit-sft-preflight",
+            "--sft-corpus",
+            "expanded",
+        ],
+        cwd=REPO,
+        env=env,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    assert (
+        captured_train.read_text(encoding="utf-8").strip()
+        == "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
+    )
 
 
 def test_remote_submit_script_writes_failure_report_on_preflight_error(tmp_path: Path) -> None:

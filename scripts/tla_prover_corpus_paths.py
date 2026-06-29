@@ -9,6 +9,7 @@ DEFAULT_LOCAL_SFT_TRAIN = "data/processed/tla_prover/chattla_tla_prover_sft_v1.j
 DEFAULT_PUBLIC_SFT_TRAIN = (
     "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
 )
+EXPANDED_LOCAL_SFT_TRAIN = "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
 
 
 def _exists(repo: Path, rel_path: str) -> bool:

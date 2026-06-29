@@ -5,10 +5,15 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SUBMIT_SFT_PREFLIGHT=0
 SUBMIT_FINAL_PROOF_VERIFY=0
 SUBMIT_FULL_DATASET_SMOKE=0
+SFT_CORPUS="${CHATTLA_TLA_PROVER_CORPUS:-default}"
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --repo)
       REPO="$2"
+      shift
+      ;;
+    --sft-corpus)
+      SFT_CORPUS="$2"
       shift
       ;;
     --submit-sft-preflight|--submit-all)
@@ -22,7 +27,7 @@ while [ "$#" -gt 0 ]; do
       ;;
     -h|--help)
       cat <<'EOF'
-Usage: scripts/submit_tla_prover_remote_jobs.sh [--repo PATH] [--submit-sft-preflight] [--submit-final-proof-verify] [--submit-full-dataset-smoke]
+Usage: scripts/submit_tla_prover_remote_jobs.sh [--repo PATH] [--sft-corpus default|expanded|PATH] [--submit-sft-preflight] [--submit-final-proof-verify] [--submit-full-dataset-smoke]
 
 Run remote preflight checks inside a synced Sophia checkout, submit the
 corrected known-18 TLAPS smoke, optionally submit the bounded SFT startup
@@ -45,6 +50,7 @@ mkdir -p outputs/manifests outputs/logs
 REPORT="outputs/manifests/tla_prover_remote_submission.json"
 PREFLIGHT="${CHATTLA_REMOTE_PREFLIGHT:-scripts/preflight_tla_prover_remote.py}"
 TLAPM="${CHATTLA_TLAPM:-tlapm}"
+EXPANDED_TRAIN_FILE="data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
 PBS_ACCOUNT="${CHATTLA_PBS_ACCOUNT:-}"
 PBS_QUEUE="${CHATTLA_PBS_QUEUE:-}"
 PBS_FILESYSTEMS="${CHATTLA_PBS_FILESYSTEMS:-}"
@@ -61,6 +67,30 @@ KNOWN18_JOB_ID=""
 SFT_PREFLIGHT_JOB_ID=""
 FINAL_PROOF_VERIFY_JOB_ID=""
 FULL_DATASET_SMOKE_JOB_ID=""
+
+resolve_requested_train_file() {
+  case "$1" in
+    ""|default)
+      printf '%s' ""
+      ;;
+    expanded)
+      printf '%s' "$EXPANDED_TRAIN_FILE"
+      ;;
+    *)
+      printf '%s' "$1"
+      ;;
+  esac
+}
+
+REQUESTED_TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-}"
+if [ -z "$REQUESTED_TRAIN_FILE" ]; then
+  REQUESTED_TRAIN_FILE="$(resolve_requested_train_file "$SFT_CORPUS")"
+fi
+if [ -n "$REQUESTED_TRAIN_FILE" ]; then
+  export CHATTLA_TLA_PROVER_TRAIN_FILE="$REQUESTED_TRAIN_FILE"
+else
+  unset CHATTLA_TLA_PROVER_TRAIN_FILE || true
+fi
 
 write_report() {
   local ok="$1"
