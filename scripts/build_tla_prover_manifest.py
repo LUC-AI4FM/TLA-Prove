@@ -150,6 +150,8 @@ ARTIFACTS = {
 }
 
 REPORT_EXCERPT_KEYS = {
+    "hf_publish_readiness": ("ready_to_publish", "blockers", "failure_surface"),
+    "hf_publish_readiness_fc128best": ("ready_to_publish", "blockers", "failure_surface"),
     "tla_prover_corpus_preflight": ("formalllm_coverage",),
 }
 

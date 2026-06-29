@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 5.487866718437936,
+    "age_hours": 7.967119890318976,
     "avg_struct": 0.8557,
     "fresh_within_hours": 24.0,
     "model": "chattla:20b-fc128best",
@@ -14,7 +14,48 @@
   "blockers": [
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
-  "generated_at": "2026-06-29T10:30:20.775360+00:00",
+  "failure_surface": {
+    "aggregate": {
+      "rows_with_all_core_components": 0,
+      "rows_with_any_core_component": 0,
+      "rows_with_no_core_components": 20
+    },
+    "core_component_failures": {
+      "missing_init_level_ok_rows": 20,
+      "missing_init_present_rows": 20,
+      "missing_invariants_declared_rows": 20,
+      "missing_next_level_ok_rows": 20,
+      "missing_next_present_rows": 20,
+      "missing_tlc_depth1_ok_rows": 20
+    },
+    "planning": {
+      "plan_unused_rows": 20,
+      "plan_used_rows": 0
+    },
+    "red_flags": {
+      "duplicate_variables_rows": 2,
+      "obvious_placeholder_rows": 8,
+      "pseudo_tla_token_rows": 14
+    },
+    "rows": 20,
+    "sample_benchmark_ids": {
+      "no_core_components": [
+        "BM001",
+        "BM002",
+        "BM003",
+        "BM004",
+        "BM005"
+      ],
+      "obvious_placeholder_rows": [
+        "BM001",
+        "BM002",
+        "BM003",
+        "BM007",
+        "BM011"
+      ]
+    }
+  },
+  "generated_at": "2026-06-29T12:59:08.420955+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [

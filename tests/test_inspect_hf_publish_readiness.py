@@ -3,6 +3,7 @@ from pathlib import Path
 
 from scripts.inspect_hf_publish_readiness import (
     DEFAULT_OUT,
+    build_failure_surface,
     build_report,
     default_out_path_for_benchmark_model,
     sync_state_to_remote,
@@ -116,6 +117,17 @@ def test_build_report_blocks_degenerate_zero_pass_full_benchmark(tmp_path: Path)
     _write(gguf_dir / "chattla-20b-Q8_0.gguf", "placeholder gguf")
     readme = tmp_path / "outputs" / "hf_readme" / "README.md"
     _write(readme, "# README\n")
+    benchmark_csv = tmp_path / "benchmark_results_fc128best_full_20260628_235102.csv"
+    _write(
+        benchmark_csv,
+        "\n".join(
+            [
+                "model,benchmark_id,name,domain,difficulty,sany_pass,tlc_pass,structural_score,tlc_tier,runtime_s,generated_spec,init_present,next_present,init_level_ok,next_level_ok,invariants_declared,tlc_depth1_ok,partial_credit,expected_invariant_overlap,plan_used",
+                'chattla:20b-fc128best,BM001,Mutual Exclusion,scheduling,2,0,0,0.8,bronze,30.0,"---- MODULE A ----\nVARIABLES x, x\nNext == ...\n====",0,0,0,0,0,0,0.0,0,0',
+            ]
+        )
+        + "\n",
+    )
 
     report = build_report(
         repo_id="EricSpencer00/chattla-20b",
@@ -133,7 +145,7 @@ def test_build_report_blocks_degenerate_zero_pass_full_benchmark(tmp_path: Path)
             "tlc": 0,
             "avg_struct": 0.8557,
             "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
-            "source_path": str(tmp_path / "benchmark_results_fc128best_full_20260628_235102.csv"),
+            "source_path": str(benchmark_csv),
             "mtime": 0,
         },
         now_fn=lambda: 3600,
@@ -144,6 +156,38 @@ def test_build_report_blocks_degenerate_zero_pass_full_benchmark(tmp_path: Path)
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
         in report["blockers"]
     )
+    assert report["failure_surface"]["rows"] == 1
+    assert report["failure_surface"]["aggregate"]["rows_with_all_core_components"] == 0
+
+
+def test_build_failure_surface_summarizes_missing_components_and_red_flags(tmp_path: Path) -> None:
+    csv_path = tmp_path / "benchmark_results_fc128best_full.csv"
+    _write(
+        csv_path,
+        "\n".join(
+            [
+                "model,benchmark_id,name,domain,difficulty,sany_pass,tlc_pass,structural_score,tlc_tier,runtime_s,generated_spec,init_present,next_present,init_level_ok,next_level_ok,invariants_declared,tlc_depth1_ok,partial_credit,expected_invariant_overlap,plan_used",
+                'chattla:20b-fc128best,BM001,Mutual Exclusion,scheduling,2,0,0,0.8,bronze,30.0,"---- MODULE A ----\nVARIABLES x, x\nInit == TRUE\nNext == ...\n(* placeholder *)\n====",0,0,0,0,0,0,0.0,0,0',
+                'chattla:20b-fc128best,BM002,Queue,storage,2,0,0,0.9,bronze,31.0,"---- MODULE B ----\nVARIABLES q\nInit == TRUE\nNext == \\E x : x #= 1\n====",1,0,1,0,0,0,0.1,0,1',
+                'chattla:20b-fc128best,BM003,Commit,transaction,3,0,0,0.7,bronze,32.0,"---- MODULE C ----\nCONSTDEF Foo == 1\n====",0,0,0,0,0,0,0.0,0,0',
+            ]
+        )
+        + "\n",
+    )
+
+    surface = build_failure_surface(csv_path, benchmark_model="chattla:20b-fc128best")
+
+    assert surface["rows"] == 3
+    assert surface["aggregate"]["rows_with_any_core_component"] == 1
+    assert surface["aggregate"]["rows_with_all_core_components"] == 0
+    assert surface["aggregate"]["rows_with_no_core_components"] == 2
+    assert surface["core_component_failures"]["missing_init_present_rows"] == 2
+    assert surface["core_component_failures"]["missing_next_present_rows"] == 3
+    assert surface["red_flags"]["obvious_placeholder_rows"] == 1
+    assert surface["red_flags"]["duplicate_variables_rows"] == 1
+    assert surface["red_flags"]["pseudo_tla_token_rows"] == 2
+    assert surface["planning"]["plan_used_rows"] == 1
+    assert surface["sample_benchmark_ids"]["no_core_components"] == ["BM001", "BM003"]
 
 
 def test_build_report_requests_specific_benchmark_model(tmp_path: Path, monkeypatch) -> None:

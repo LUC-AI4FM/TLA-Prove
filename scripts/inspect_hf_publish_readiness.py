@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import re
 import sys
@@ -44,6 +45,22 @@ DEFAULT_GGUF_SEARCH_DIRS = (
     REPO / "outputs" / "gguf_fc128_best",
 )
 _AUTO = object()
+_CORE_COMPONENT_FIELDS = (
+    "init_present",
+    "next_present",
+    "init_level_ok",
+    "next_level_ok",
+    "invariants_declared",
+    "tlc_depth1_ok",
+)
+_RED_FLAG_PATTERNS = {
+    "obvious_placeholder_rows": re.compile(r"\.\.\.|placeholder|omitted|todo|etc\.", re.IGNORECASE),
+    "duplicate_variables_rows": re.compile(r"\bVARIABLES\b[^\n]*\b(\w+)\b[^\n]*\b\1\b"),
+    "pseudo_tla_token_rows": re.compile(
+        r"\bforall\b|\bexists\b|\bwhere\b|\bconstdef\b|#=|subsete\[\?\]|RemoveAt\(|SeqFromList|SeqSubseq",
+        re.IGNORECASE,
+    ),
+}
 
 
 def default_out_path_for_benchmark_model(benchmark_model: str | None) -> Path:
@@ -83,6 +100,78 @@ def _display_path(path: Path | None) -> str | None:
         return str(path)
 
 
+def _load_selected_benchmark_rows(source_path: Path, benchmark_model: str | None) -> list[dict[str, str]]:
+    with source_path.open(encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    if benchmark_model is None:
+        return rows
+    return [row for row in rows if str(row.get("model", "")).strip() == benchmark_model]
+
+
+def _is_truthy_csv(value: object) -> bool:
+    return str(value).strip() in ("1", "True", "true", "yes")
+
+
+def build_failure_surface(source_path: Path, *, benchmark_model: str | None = None) -> dict[str, Any]:
+    rows = _load_selected_benchmark_rows(source_path, benchmark_model)
+    red_flag_counts = {name: 0 for name in _RED_FLAG_PATTERNS}
+    component_failures = {f"missing_{field}_rows": 0 for field in _CORE_COMPONENT_FIELDS}
+    rows_with_any_core_component = 0
+    rows_with_all_core_components = 0
+    rows_with_no_core_components = 0
+    plan_used_rows = 0
+    sample_no_core_components: list[str] = []
+    sample_placeholder_rows: list[str] = []
+
+    for row in rows:
+        benchmark_id = str(row.get("benchmark_id", "")).strip()
+        component_truths = {field: _is_truthy_csv(row.get(field, "")) for field in _CORE_COMPONENT_FIELDS}
+        component_true_count = sum(1 for ok in component_truths.values() if ok)
+        if component_true_count > 0:
+            rows_with_any_core_component += 1
+        if component_true_count == len(_CORE_COMPONENT_FIELDS):
+            rows_with_all_core_components += 1
+        if component_true_count == 0:
+            rows_with_no_core_components += 1
+            if benchmark_id and len(sample_no_core_components) < 5:
+                sample_no_core_components.append(benchmark_id)
+        for field, ok in component_truths.items():
+            if not ok:
+                component_failures[f"missing_{field}_rows"] += 1
+
+        if _is_truthy_csv(row.get("plan_used", "")):
+            plan_used_rows += 1
+
+        spec = str(row.get("generated_spec", ""))
+        row_has_placeholder = False
+        for name, pattern in _RED_FLAG_PATTERNS.items():
+            if pattern.search(spec):
+                red_flag_counts[name] += 1
+                if name == "obvious_placeholder_rows":
+                    row_has_placeholder = True
+        if row_has_placeholder and benchmark_id and len(sample_placeholder_rows) < 5:
+            sample_placeholder_rows.append(benchmark_id)
+
+    return {
+        "rows": len(rows),
+        "aggregate": {
+            "rows_with_any_core_component": rows_with_any_core_component,
+            "rows_with_all_core_components": rows_with_all_core_components,
+            "rows_with_no_core_components": rows_with_no_core_components,
+        },
+        "core_component_failures": component_failures,
+        "red_flags": red_flag_counts,
+        "planning": {
+            "plan_used_rows": plan_used_rows,
+            "plan_unused_rows": max(0, len(rows) - plan_used_rows),
+        },
+        "sample_benchmark_ids": {
+            "no_core_components": sample_no_core_components,
+            "obvious_placeholder_rows": sample_placeholder_rows,
+        },
+    }
+
+
 def build_report(
     *,
     repo_id: str = _DEFAULT_REPO,
@@ -114,6 +203,15 @@ def build_report(
     benchmark_age_hours = None
     if stats is not None:
         benchmark_age_hours = (now_fn() - float(stats["mtime"])) / 3600.0
+    failure_surface = None
+    if stats is not None:
+        try:
+            failure_surface = build_failure_surface(
+                Path(str(stats["source_path"])),
+                benchmark_model=benchmark_model,
+            )
+        except (OSError, csv.Error):
+            failure_surface = None
 
     remote_paths = fetch_remote_paths(repo_id) if fetch_remote_paths else None
     remote_last = max_published_version(remote_paths or [])
@@ -177,6 +275,7 @@ def build_report(
             "age_hours": benchmark_age_hours,
             "fresh_within_hours": benchmark_max_age_hours,
         },
+        "failure_surface": failure_surface,
         "remote": {
             "gguf_files": [path for path in (remote_paths or []) if path.startswith("gguf/")],
             "latest_published_version": remote_last,

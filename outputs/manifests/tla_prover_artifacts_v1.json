@@ -1520,20 +1520,109 @@
       "summary_path": "data/processed/formalllm_eval_v1.summary.json"
     },
     "hf_publish_readiness": {
-      "bytes": 2078,
+      "bytes": 2964,
       "exists": true,
       "kind": "model_hf_publish_readiness_report",
       "path": "outputs/manifests/hf_publish_readiness.json",
+      "report_excerpt": {
+        "blockers": [
+          "latest full benchmark is stale at 1405.0h (limit 24.0h)",
+          "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+        ],
+        "failure_surface": {
+          "aggregate": {
+            "rows_with_all_core_components": 0,
+            "rows_with_any_core_component": 0,
+            "rows_with_no_core_components": 20
+          },
+          "core_component_failures": {
+            "missing_init_level_ok_rows": 20,
+            "missing_init_present_rows": 20,
+            "missing_invariants_declared_rows": 20,
+            "missing_next_level_ok_rows": 20,
+            "missing_next_present_rows": 20,
+            "missing_tlc_depth1_ok_rows": 20
+          },
+          "planning": {
+            "plan_unused_rows": 20,
+            "plan_used_rows": 0
+          },
+          "red_flags": {
+            "duplicate_variables_rows": 1,
+            "obvious_placeholder_rows": 0,
+            "pseudo_tla_token_rows": 1
+          },
+          "rows": 20,
+          "sample_benchmark_ids": {
+            "no_core_components": [
+              "BM001",
+              "BM002",
+              "BM003",
+              "BM004",
+              "BM005"
+            ],
+            "obvious_placeholder_rows": []
+          }
+        },
+        "ready_to_publish": false
+      },
       "rows": null,
-      "sha256": "9b7637b803b9b276c085d98d6f71834244f758ffcbe6a0abfa6d94161f9f3d49"
+      "sha256": "0f35749e94d122e6427643976777c8e2ceab4ec711415344e597cb800698d2d8"
     },
     "hf_publish_readiness_fc128best": {
-      "bytes": 2077,
+      "bytes": 3056,
       "exists": true,
       "kind": "model_hf_publish_readiness_report",
       "path": "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+      "report_excerpt": {
+        "blockers": [
+          "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+        ],
+        "failure_surface": {
+          "aggregate": {
+            "rows_with_all_core_components": 0,
+            "rows_with_any_core_component": 0,
+            "rows_with_no_core_components": 20
+          },
+          "core_component_failures": {
+            "missing_init_level_ok_rows": 20,
+            "missing_init_present_rows": 20,
+            "missing_invariants_declared_rows": 20,
+            "missing_next_level_ok_rows": 20,
+            "missing_next_present_rows": 20,
+            "missing_tlc_depth1_ok_rows": 20
+          },
+          "planning": {
+            "plan_unused_rows": 20,
+            "plan_used_rows": 0
+          },
+          "red_flags": {
+            "duplicate_variables_rows": 2,
+            "obvious_placeholder_rows": 8,
+            "pseudo_tla_token_rows": 14
+          },
+          "rows": 20,
+          "sample_benchmark_ids": {
+            "no_core_components": [
+              "BM001",
+              "BM002",
+              "BM003",
+              "BM004",
+              "BM005"
+            ],
+            "obvious_placeholder_rows": [
+              "BM001",
+              "BM002",
+              "BM003",
+              "BM007",
+              "BM011"
+            ]
+          }
+        },
+        "ready_to_publish": false
+      },
       "rows": null,
-      "sha256": "50936343db5f203402e1073d51914fccd2403f82791add42fbadc52814bede23"
+      "sha256": "3b7f969b72dcb11ef2337b0ab91c9ce56f56945addae4a2f959c4c7e6abc1a72"
     },
     "known18_module_list": {
       "bytes": 1194,
@@ -1551,7 +1640,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T12:53:07.753568+00:00",
+        "generated_at": "2026-06-29T13:01:02.855035+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -1591,7 +1680,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "a41d0ea7f1e1af21e96d96cd027fd6f3442c4d4a61bc9718c9c6a124e86df809"
+      "sha256": "ea75f24d588427cbc6c743937b627e06b7d8a69cca0c35495c0ee7d0946513b3"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -1601,7 +1690,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T12:53:07.816949+00:00",
+        "generated_at": "2026-06-29T13:01:02.917259+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1837,12 +1926,12 @@
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_experiment_matrix": {
-      "bytes": 5496,
+      "bytes": 5495,
       "exists": true,
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "5c172109e87276bb5c408b203d877a4aa0ae96f90ed497828963b0914a19a38c"
+      "sha256": "b119a1d0cc393f0e810bcea5310a6d6beb545df7d655798548cb30e6db1df20e"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7142,
@@ -1889,7 +1978,7 @@
         }
       },
       "rows": null,
-      "sha256": "f42203f7328bfaed8b185296869bb63ec05d92997d7a25ab691241e7b1a63ae9"
+      "sha256": "e611603f337a42e677af27e257affb7080167e31392284a6f9423f73f4e50012"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -1931,7 +2020,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T12:53:08.452788+00:00",
+  "generated_at": "2026-06-29T13:01:03.551887+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
