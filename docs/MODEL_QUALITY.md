@@ -44,6 +44,9 @@ Public model: [EricSpencer00/chattla-20b](https://huggingface.co/EricSpencer00/c
   `data/processed/benchmark_repair_pairs_fc128best.jsonl` into the default
   Ralph repair dataset, so the current blocked publish lane feeds directly into
   the repair loop.
+- For a reproducible tracked training input instead of ad hoc CLI mixing, run
+  `python3 scripts/build_tla_prover_repair_corpus.py` and then train from
+  `data/processed/tla_prover_repair_train_v1.jsonl`.
 - For Hub releases: ensure `HF_TOKEN` is in `.env`; `python -m src.training.publish_hf --dry-run` is a real deployability preflight:
   - it still computes the next version even when `huggingface_hub` is not installed locally;
   - it exits nonzero when the current candidate would be blocked from a real publish.

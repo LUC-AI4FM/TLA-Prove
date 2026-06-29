@@ -108,6 +108,13 @@ if [ -f outputs/benchmark_results/benchmark_results_fc128best_full_20260628_2351
         }
 fi
 
+echo "[$(ts)] Phase 2c: Building merged repair-training corpus..." | tee -a "$LOG"
+.venv/bin/python -u scripts/build_tla_prover_repair_corpus.py \
+    2>&1 | tee -a "$LOG" || {
+        echo "[$(ts)] Repair-training corpus build FAILED" | tee -a "$LOG"
+        exit 1
+    }
+
 # ─── Phase 3: Unload Ollama, free VRAM ──────────────────────────────────
 echo "[$(ts)] Unloading Ollama models for GRPO training..." | tee -a "$LOG"
 curl -s http://localhost:11434/api/generate -d '{"model":"chattla:20b-repair","keep_alive":0}' > /dev/null 2>&1 || true
@@ -119,6 +126,7 @@ echo "[$(ts)] Phase 4: Repair GRPO round 3 (continue from R1, 175 steps)..." | t
 .venv/bin/python -u -m scripts.train_rl_repair \
     --model ${CHATTLA_MODEL_DIR:-$REPO/outputs}/merged_model_repair \
     --output-dir outputs/checkpoints_rl_repair_r3 \
+    --trajectory-file data/processed/tla_prover_repair_train_v1.jsonl \
     --max-steps 175 \
     --num-generations 4 \
     --max-completion-length 384 \
@@ -126,13 +134,13 @@ echo "[$(ts)] Phase 4: Repair GRPO round 3 (continue from R1, 175 steps)..." | t
     --min-before-score 0.02 \
     --max-before-score 0.80 \
     --difficulty all \
-    --include-benchmark-repair-pairs \
     --save-steps 25 \
     2>&1 | tee -a "$LOG" || {
         echo "[$(ts)] Repair GRPO r3 failed at 4x384 — retrying at 2x384" | tee -a "$LOG"
         .venv/bin/python -u -m scripts.train_rl_repair \
             --model ${CHATTLA_MODEL_DIR:-$REPO/outputs}/merged_model_repair \
             --output-dir outputs/checkpoints_rl_repair_r3 \
+            --trajectory-file data/processed/tla_prover_repair_train_v1.jsonl \
             --max-steps 175 \
             --num-generations 2 \
             --max-completion-length 384 \
@@ -140,7 +148,6 @@ echo "[$(ts)] Phase 4: Repair GRPO round 3 (continue from R1, 175 steps)..." | t
             --min-before-score 0.02 \
             --max-before-score 0.80 \
             --difficulty all \
-            --include-benchmark-repair-pairs \
             --save-steps 25 \
             2>&1 | tee -a "$LOG" || {
                 echo "[$(ts)] Repair GRPO r3 FAILED" | tee -a "$LOG"

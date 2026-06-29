@@ -72,6 +72,7 @@ the full-spec GRPO / next-candidate path. The repair loop can now consume the
 fresh benchmark failures directly via:
 
 - `python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best`
+- `python3 scripts/build_tla_prover_repair_corpus.py`
 - `python3 -m scripts.train_rl_repair --include-benchmark-repair-pairs`
 
 Any future comparison should record the exact Ollama tag used and should

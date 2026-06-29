@@ -28,6 +28,7 @@ Run:
     python -m scripts.train_rl_repair --smoke           # 2-step sanity check
     python -m scripts.train_rl_repair --max-steps 300   # full run (~16h)
     python -m scripts.train_rl_repair --difficulty easy  # SANY-only curriculum
+    python -m scripts.train_rl_repair --trajectory-file data/processed/tla_prover_repair_train_v1.jsonl
 """
 
 from __future__ import annotations

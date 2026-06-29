@@ -66,6 +66,21 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"rows": 1, "failed_rows_seen": 1, "gold_coverage": {"covered_failed_rows": 1}}),
         encoding="utf-8",
     )
+    _write_jsonl(
+        repo / "data/processed/tla_prover_repair_train_v1.jsonl",
+        [
+            {
+                "repair_id": "repair-train-1",
+                "before_score": 0.1,
+                "after_score": 1.0,
+                "source_file": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+            }
+        ],
+    )
+    (repo / "data/processed/tla_prover_repair_train_v1.summary.json").write_text(
+        json.dumps({"rows": 1, "kept_rows_by_source": {"benchmark.jsonl": 1}}),
+        encoding="utf-8",
+    )
     (repo / "outputs/manifests/tla_prover_corpus_preflight.json").write_text(
         json.dumps(
             {
@@ -270,6 +285,12 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "benchmark_repair_pair_corpus"
     )
     assert manifest["artifacts"]["benchmark_repair_pairs_fc128best"]["summary"]["rows"] == 1
+    assert manifest["artifacts"]["tla_prover_repair_train_v1"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_repair_train_v1"]["rows"] == 1
+    assert manifest["artifacts"]["tla_prover_repair_train_v1"]["kind"] == (
+        "merged_tla_prover_repair_training_corpus"
+    )
+    assert manifest["artifacts"]["tla_prover_repair_train_v1"]["summary"]["rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["rows"] == 4
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["summary"]["duplicate_rows_collapsed"] == 2
@@ -407,6 +428,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["build_benchmark_repair_pairs_fc128best"] == (
         "python3 scripts/build_benchmark_repair_pairs.py "
         "--benchmark-model chattla:20b-fc128best"
+    )
+    assert manifest["remote_next_steps"]["build_tla_prover_repair_train_v1"] == (
+        "python3 scripts/build_tla_prover_repair_corpus.py"
     )
     assert "sft_preflight_pbs" not in manifest["remote_next_steps"]
     assert "sft_preflight_launch" not in manifest["remote_next_steps"]
