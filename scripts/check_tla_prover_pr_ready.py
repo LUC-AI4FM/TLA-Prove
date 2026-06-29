@@ -32,6 +32,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
     "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",
+    "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
 )
 
 SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -54,6 +55,7 @@ PY_COMPILE_FILES = [
     "scripts/build_ai4fm_public_seed_tla_modules.py",
     "scripts/build_ai4fm_public_tlaprove_import.py",
     "scripts/build_ai4fm_public_discovery_manifest.py",
+    "scripts/build_tla_prover_corpus_experiment_matrix.py",
     "scripts/check_tla_prover_pr_ready.py",
     "scripts/inspect_ai4fm_org_surface.py",
     "scripts/inspect_ai4fm_public_dataset_surface.py",
@@ -92,6 +94,7 @@ PYTEST_FILES = [
     "tests/test_submit_tla_prover_remote_jobs.py",
     "tests/test_qsub_sft_preflight.py",
     "tests/test_qsub_fc128_artifact_preflight.py",
+    "tests/test_build_tla_prover_corpus_experiment_matrix.py",
     "tests/test_build_tla_prover_manifest.py",
     "tests/test_prover_diagnostic_fallbacks.py",
     "tests/test_train_prover_defaults.py",

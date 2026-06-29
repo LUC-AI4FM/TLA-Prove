@@ -64,6 +64,9 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "sany_tlc_pass_sft_v1.summary.json": "data/processed/sany_tlc_pass_sft_v1.summary.json",
         "tla_prover_artifacts_v1.json": "outputs/manifests/tla_prover_artifacts_v1.json",
         "tla_prover_corpus_preflight.json": "outputs/manifests/tla_prover_corpus_preflight.json",
+        "tla_prover_corpus_experiment_matrix.json": (
+            "outputs/manifests/tla_prover_corpus_experiment_matrix.json"
+        ),
         "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
     }
 
@@ -288,6 +291,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"- `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public\n"
                 f"  expanded prover SFT summary (`{full_public_expanded_sft_rows}` rows total; "
                 f"`{full_public_expanded_public_import_rows}` normalized full-public import rows on top of the baseline prover stack)."
+            ),
+            (
+                f"- `metadata/tla_prover_corpus_experiment_matrix.json`: bounded corpus-lane\n"
+                f"  comparison matrix covering the `{mixed_sft_rows}`-row baseline, `{expanded_sft_rows}`-row expanded lane,\n"
+                f"  `{full_public_expanded_sft_rows}`-row full-public lane, and the `{candidate_rows}`/`{usable_module_rows}` public seed funnel."
             ),
             f"- Public AI4FM normalized import: `{normalized_rows}` rows from the tracked `{raw_rows}`-row",
             "  public corpora slice.",
