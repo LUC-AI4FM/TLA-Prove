@@ -252,6 +252,10 @@ def test_publish_dry_run_does_not_require_huggingface_hub(tmp_path: Path, monkey
     )
     monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
     monkeypatch.setattr(
+        "src.training.publish_hf._load_state",
+        lambda: {"last_published_version": 15},
+    )
+    monkeypatch.setattr(
         "src.training.publish_hf.fetch_remote_paths_via_http",
         lambda repo_id: [
             "gguf/chattla-20b-v20-Q8_0.gguf",
@@ -309,6 +313,52 @@ def test_publish_dry_run_uses_http_fallback_for_remote_version(tmp_path: Path, m
     )
 
     assert result == 22
+
+
+def test_publish_aborts_when_remote_version_state_is_unavailable(tmp_path: Path, monkeypatch) -> None:
+    gguf_dir = tmp_path / "gguf"
+    gguf_dir.mkdir()
+    (gguf_dir / "chattla-20b-Q8_0.gguf").write_text("gguf", encoding="utf-8")
+
+    class _BrokenHfApi:
+        upload_calls = 0
+
+        def __init__(self, token=None) -> None:
+            self.token = token
+
+        def list_repo_files(self, *, repo_id: str, repo_type: str) -> list[str]:
+            raise RuntimeError("network down")
+
+        def upload_file(self, **_kwargs) -> None:
+            type(self).upload_calls += 1
+
+    monkeypatch.setitem(sys.modules, "huggingface_hub", types.SimpleNamespace(HfApi=_BrokenHfApi))
+    monkeypatch.setattr("src.training.publish_hf.fetch_remote_paths_via_http", lambda repo_id: None)
+    monkeypatch.setattr(
+        "src.training.publish_hf.latest_full_benchmark_stats",
+        lambda: {
+            "source_csv": "benchmark_results_good_full.csv",
+            "source_path": str(tmp_path / "benchmark_results_good_full.csv"),
+            "mtime": 1000.0,
+            "n": 20,
+            "sany": 10,
+            "tlc": 8,
+            "avg_struct": 0.91,
+        },
+    )
+    monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
+    monkeypatch.setenv("HF_TOKEN", "test-token")
+
+    result = publish(
+        repo_id="EricSpencer00/chattla-20b",
+        dry_run=False,
+        gguf_dir=gguf_dir,
+        merged_model_dir=tmp_path / "merged_model",
+        require_fresh_full_benchmark_hours=24.0,
+    )
+
+    assert result is None
+    assert _BrokenHfApi.upload_calls == 0
 
 
 def test_publish_dry_run_returns_none_when_readiness_is_blocked(tmp_path: Path, monkeypatch) -> None:
