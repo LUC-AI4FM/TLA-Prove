@@ -56,6 +56,7 @@ PY_COMPILE_FILES = [
     "scripts/status_tla_prover_handoff.py",
     "scripts/doctor_tla_prover_handoff.py",
     "scripts/inspect_hf_publish_readiness.py",
+    "scripts/upload_v11.py",
 ]
 
 PYTEST_FILES = [
@@ -79,6 +80,7 @@ PYTEST_FILES = [
     "tests/test_build_tla_prover_manifest.py",
     "tests/test_inspect_ai4fm_public_dataset_surface.py",
     "tests/test_inspect_hf_publish_readiness.py",
+    "tests/test_upload_v11.py",
     "tests/test_doctor_tla_prover_handoff.py",
     "tests/test_publish_hf.py",
 ]
