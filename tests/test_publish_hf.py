@@ -1,8 +1,14 @@
+import sys
+import types
+from pathlib import Path
+
 from src.training.publish_hf import (
     _patch_readme,
     fetch_remote_repo_paths,
     max_published_version,
     next_version_for_publish,
+    publish,
+    publish_readiness_blockers,
 )
 
 
@@ -126,3 +132,71 @@ def test_patch_readme_repairs_stale_gguf_filename_when_title_is_current() -> Non
 
     assert "chattla-20b-v21-Q8_0.gguf   # Quantised GGUF for Ollama / llama.cpp" in patched
     assert "v15" not in patched
+
+
+def test_publish_readiness_blockers_reject_zero_pass_full_benchmark() -> None:
+    blockers = publish_readiness_blockers(
+        gguf_present=True,
+        readme_present=True,
+        stats={
+            "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
+            "mtime": 1000.0,
+            "n": 20,
+            "sany": 0,
+            "tlc": 0,
+            "avg_struct": 0.85,
+        },
+        benchmark_max_age_hours=24.0,
+        now=1000.0,
+    )
+
+    assert blockers == [
+        "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+    ]
+
+
+def test_publish_aborts_before_upload_when_readiness_is_blocked(tmp_path: Path, monkeypatch) -> None:
+    gguf_dir = tmp_path / "gguf"
+    gguf_dir.mkdir()
+    (gguf_dir / "chattla-20b-Q8_0.gguf").write_text("gguf", encoding="utf-8")
+    readme = tmp_path / "README.md"
+    readme.write_text("# card\n", encoding="utf-8")
+
+    class _FakeHfApi:
+        upload_calls = 0
+
+        def __init__(self, token=None) -> None:
+            self.token = token
+
+        def list_repo_files(self, *, repo_id: str, repo_type: str) -> list[str]:
+            return []
+
+        def upload_file(self, **_kwargs) -> None:
+            type(self).upload_calls += 1
+
+    monkeypatch.setitem(sys.modules, "huggingface_hub", types.SimpleNamespace(HfApi=_FakeHfApi))
+    monkeypatch.setattr(
+        "src.training.publish_hf.latest_full_benchmark_stats",
+        lambda: {
+            "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
+            "source_path": str(tmp_path / "benchmark_results_fc128best_full_20260628_235102.csv"),
+            "mtime": 1000.0,
+            "n": 20,
+            "sany": 0,
+            "tlc": 0,
+            "avg_struct": 0.85,
+        },
+    )
+    monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
+    monkeypatch.setenv("HF_TOKEN", "test-token")
+
+    result = publish(
+        repo_id="EricSpencer00/chattla-20b",
+        dry_run=False,
+        gguf_dir=gguf_dir,
+        merged_model_dir=tmp_path / "merged_model",
+        require_fresh_full_benchmark_hours=24.0,
+    )
+
+    assert result is None
+    assert _FakeHfApi.upload_calls == 0

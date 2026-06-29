@@ -162,6 +162,38 @@ def full_benchmark_fresh_enough(max_age_hours: float) -> tuple[bool, str]:
     return True, f"full benchmark OK ({stats['source_csv']}, {age_h:.1f}h old)"
 
 
+def publish_readiness_blockers(
+    *,
+    gguf_present: bool,
+    readme_present: bool,
+    stats: dict | None,
+    benchmark_max_age_hours: float | None,
+    now: float | None = None,
+) -> list[str]:
+    blockers: list[str] = []
+    clock = time.time() if now is None else now
+
+    if not gguf_present:
+        blockers.append("local GGUF artifact missing under outputs/gguf")
+    if stats is None:
+        blockers.append("no full benchmark CSV found")
+    else:
+        if benchmark_max_age_hours is not None and benchmark_max_age_hours > 0:
+            age_h = (clock - float(stats["mtime"])) / 3600.0
+            if age_h > benchmark_max_age_hours:
+                blockers.append(
+                    f"latest full benchmark is stale at {age_h:.1f}h "
+                    f"(limit {benchmark_max_age_hours:.1f}h)"
+                )
+        if int(stats.get("sany", 0) or 0) == 0 and int(stats.get("tlc", 0) or 0) == 0:
+            blockers.append(
+                "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+            )
+    if not readme_present:
+        blockers.append("outputs/hf_readme/README.md missing")
+    return blockers
+
+
 def _patch_readme(text: str, version: int, stats: dict | None) -> str:
     """Update public card version markers and optionally refresh benchmark summary."""
     current_match = _README_TITLE_VERSION_RE.search(text)
@@ -281,11 +313,20 @@ def publish(
 
     ok_fresh, fresh_msg = full_benchmark_fresh_enough(require_fresh_full_benchmark_hours or 0)
     print(f"[publish_hf] Benchmark freshness: {fresh_msg}")
-    if not ok_fresh:
+    stats = latest_full_benchmark_stats()
+    blockers = publish_readiness_blockers(
+        gguf_present=gguf_local.is_file(),
+        readme_present=_README_TEMPLATE.is_file(),
+        stats=stats,
+        benchmark_max_age_hours=require_fresh_full_benchmark_hours,
+    )
+    if blockers:
         if dry_run:
-            print("[publish_hf] WARN: would abort real publish — stale/missing full benchmark", file=sys.stderr)
+            for blocker in blockers:
+                print(f"[publish_hf] WARN: would abort real publish — {blocker}", file=sys.stderr)
         else:
-            print(f"[publish_hf] ABORT: {fresh_msg}", file=sys.stderr)
+            for blocker in blockers:
+                print(f"[publish_hf] ABORT: {blocker}", file=sys.stderr)
             return None
 
     if dry_run:
@@ -324,7 +365,6 @@ def publish(
         Path(mf_tmp).unlink(missing_ok=True)
 
     if not skip_readme and _README_TEMPLATE.is_file():
-        stats = latest_full_benchmark_stats()
         raw = _README_TEMPLATE.read_text(encoding="utf-8")
         patched = _patch_readme(raw, new_ver, stats)
         with tempfile.NamedTemporaryFile("w", suffix="README.md", delete=False, encoding="utf-8") as tf:
