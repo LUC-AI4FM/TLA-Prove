@@ -1,0 +1,13 @@
+{
+  "benchmark_model": "chattla:20b-fc128best",
+  "failed_rows_seen": 20,
+  "gold_coverage": {
+    "covered_failed_rows": 19,
+    "missing_gold_benchmark_ids": [
+      "BM020"
+    ]
+  },
+  "rows": 19,
+  "schema": "chattla_benchmark_repair_pairs_summary_v1",
+  "source_csv": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv"
+}

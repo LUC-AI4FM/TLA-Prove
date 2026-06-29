@@ -120,7 +120,49 @@ def _write_manifests(repo: Path) -> None:
         ),
     )
     _write(repo / "data/processed/ai4fm_public_discovery_manifest_v1.summary.json", json.dumps({"rows": 18}))
+    _write(
+        repo / "data/processed/benchmark_repair_pairs_fc128best.summary.json",
+        json.dumps(
+            {
+                "rows": 19,
+                "failed_rows_seen": 20,
+                "gold_coverage": {
+                    "covered_failed_rows": 19,
+                    "missing_gold_benchmark_ids": ["BM020"],
+                },
+            }
+        ),
+    )
     _write(repo / "data/processed/prover_eval.summary.json", json.dumps({"kept_rows": 18}))
+    _write(
+        repo / "outputs/manifests/hf_publish_readiness.json",
+        json.dumps(
+            {
+                "blockers": [
+                    "latest full benchmark is stale at 1405.2h (limit 24.0h)",
+                    "latest full benchmark has zero SANY and zero TLC passes; do not publish this model",
+                ],
+                "failure_surface": {
+                    "aggregate": {"rows_with_no_core_components": 20},
+                    "red_flags": {"obvious_placeholder_rows": 0},
+                },
+            }
+        ),
+    )
+    _write(
+        repo / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        json.dumps(
+            {
+                "blockers": [
+                    "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+                ],
+                "failure_surface": {
+                    "aggregate": {"rows_with_no_core_components": 20},
+                    "red_flags": {"obvious_placeholder_rows": 8},
+                },
+            }
+        ),
+    )
     _write(repo / "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json", json.dumps({"ok": True}))
     _write(repo / "data/processed/sany_tlc_pass_eval_v1.summary.json", json.dumps({"kept_rows": 30}))
     _write(repo / "data/processed/sany_tlc_pass_sft_v1.summary.json", json.dumps({"kept_rows": 170}))
@@ -180,6 +222,7 @@ def _write_manifests(repo: Path) -> None:
         "ai4fm_org_surface.json": "outputs/manifests/ai4fm_org_surface.json",
         "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
+        "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
         "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
         "ai4fm_public_seed_license_surface.json": "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "ai4fm_public_seed_tla_modules_v1.summary.json": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
@@ -195,6 +238,8 @@ def _write_manifests(repo: Path) -> None:
         "chattla_tla_prover_sft_public_expanded_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         "chattla_tla_prover_sft_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
         "formalllm_eval_v1.summary.json": "data/processed/formalllm_eval_v1.summary.json",
+        "hf_publish_readiness.chattla_20b_fc128best.json": "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        "hf_publish_readiness.json": "outputs/manifests/hf_publish_readiness.json",
         "prover_eval.summary.json": "data/processed/prover_eval.summary.json",
         "sany_tlc_pass_corpus_diagnostic.json": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
         "sany_tlc_pass_eval_v1.summary.json": "data/processed/sany_tlc_pass_eval_v1.summary.json",
@@ -224,6 +269,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface |",
                 "The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface.",
                 "The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone.",
+                "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `19` repair pairs cover `19/20` failed benchmark rows, leaving only `BM020` without a public gold target today.",
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules.",
                 "Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown.",
                 "Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.",
@@ -276,6 +322,14 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "  module corpus (`2108` rows).",
                 "- `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance",
                 "  rollup for the `11` committed public seed repos.",
+                "- `metadata/hf_publish_readiness.json`: canonical publish-readiness gate (`2`",
+                "  blockers; `20` latest benchmark rows still missing every core TLA component).",
+                "- `metadata/hf_publish_readiness.chattla_20b_fc128best.json`: fresh `fc128best`",
+                "  publish-readiness gate (`1` blocker; `20` rows still missing every core component,",
+                "  `8` with obvious placeholder text).",
+                "- `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived",
+                "  repair curriculum summary (`19` rows covering `19` of `20` failed fresh-benchmark",
+                "  cases; `1` missing gold target).",
                 "- Mixed prover SFT corpus: `1330` rows",
                 "- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n  public-AI4FM expanded prover SFT summary (`2433` rows total; `1005` normalized import rows + `98` seed prover-candidate replays on top of the baseline prover stack).",
                 "- `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public\n  expanded prover SFT summary (`2438` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).",
@@ -286,6 +340,12 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "  NOASSERTION repos, and `3` unknown-license repos.",
                 "- Public AI4FM seed-module prover candidates: `98` rows out of `2108` usable",
                 "  public seed-module rows.",
+                "- Canonical publish readiness gate: blocked, with `20` of `20` latest benchmark rows",
+                "  missing every core TLA component.",
+                "- `fc128best` publish readiness gate: blocked, with `20` of `20` rows missing every core component",
+                "  and `8` obvious-placeholder failures.",
+                "- Benchmark-derived repair curriculum: `19` rows covering `19` of `20`",
+                "  failed fresh-benchmark cases, with `1` missing gold target.",
                 "The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; they are not yet mixed into `data/train/chattla_tla_prover_sft_v1.jsonl`.",
             ]
         ),
