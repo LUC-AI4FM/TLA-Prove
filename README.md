@@ -46,7 +46,7 @@ The latest public Hugging Face GGUF is currently `gguf/chattla-20b-v21-Q8_0.gguf
 
 ## Public Datasets
 
-ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:
+ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:
 
 | Layer | Current public surface | Local artifact |
 |------|-------------------------|----------------|

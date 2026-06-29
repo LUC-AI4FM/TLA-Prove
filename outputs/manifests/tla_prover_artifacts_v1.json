@@ -1017,7 +1017,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T10:45:26.597580+00:00",
+        "generated_at": "2026-06-29T10:48:18.004901+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -1057,7 +1057,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "ebb936d78245149587e0164671c88a0266f0733a27677220d8e1c5f592dd58f8"
+      "sha256": "69f4de3489cac8f779f95a05dd6bee682d751423c5c3c7db213ba375bd51777d"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -1067,7 +1067,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T10:45:26.659095+00:00",
+        "generated_at": "2026-06-29T10:48:18.066841+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1308,7 +1308,7 @@
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "aeff8a7afbccdea576f20b14af9e9fa23fce1adc9f92c6c81ef2e32f89f5b2b9"
+      "sha256": "23fcbd460ea38254a28edb610d739b9b26612a3eb8ec9bccc479a6fc370ae6d2"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -1350,7 +1350,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T10:45:26.905493+00:00",
+  "generated_at": "2026-06-29T10:48:18.312235+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
