@@ -177,11 +177,19 @@ echo "===== Convert to GGUF ====="
 
 echo
 echo "===== Publish dry-run ====="
+set +e
 "$PY" -m src.training.publish_hf \
   --dry-run \
   --gguf-dir "$GGUF_OUT" \
   --merged-model-dir "$MERGED_OUT" \
   --require-fresh-full-benchmark-hours 24
+PUBLISH_RC=$?
+set -e
+if [ "$PUBLISH_RC" -ne 0 ]; then
+  echo "[note] publish dry-run reported blockers (exit $PUBLISH_RC); best-artifact preflight remains useful for merged/GGUF outputs"
+else
+  echo "[note] publish dry-run passed"
+fi
 
 echo
 echo "===== best artifact preflight done ====="
