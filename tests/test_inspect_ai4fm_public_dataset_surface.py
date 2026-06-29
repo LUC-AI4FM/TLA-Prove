@@ -108,6 +108,10 @@ def test_build_report_summarizes_formalllm_and_pipeline_surface(tmp_path: Path) 
         formalllm_input_root=formalllm_repo / "Input",
         formalllm_architecture_doc=formalllm_repo / "doc" / "ARCHITECTURE.md",
         pipeline_repo=pipeline,
+        remote_head_resolver=lambda url: {
+            "https://github.com/LUC-AI4FM/FormaLLM.git": "formalllm-head",
+            "https://github.com/LUC-AI4FM/tla-dataset-pipeline.git": "pipeline-head",
+        }.get(url),
     )
 
     assert report["formalllm"]["canonical_entries"] == 2
@@ -121,6 +125,10 @@ def test_build_report_summarizes_formalllm_and_pipeline_surface(tmp_path: Path) 
     assert report["pipeline"]["parse_input"]["nfiles"] == 227
     assert report["pipeline"]["parse_output"]["nfiles"] == 3979
     assert report["pipeline"]["seed_config_counts"] == {"repos": 3, "orgs": 2, "users": 1, "queries": 2}
+    assert report["public_sources"]["live_remote_heads"] == {
+        "formalllm_repo": "formalllm-head",
+        "pipeline_repo": "pipeline-head",
+    }
     assert report["warnings"] == [
         "FormaLLM architecture metadata claim differs from current canonical_entries."
     ]

@@ -5,9 +5,10 @@ from the deduped FormaLLM TLAPS corpus.
 Output: data/processed/tla_prover/prover_chunks.jsonl  (raw chunks, pre-roundtrip)
         Each row: {preamble, statement, proof, source_file, theorem_line}
 
-The next stage (roundtrip_prover_sft.py) takes this file, runs each chunk
-through tlapm in a synthetic module, drops the ones that don't verify, and
-emits prover_train.jsonl / prover_eval.jsonl in harmony format.
+The next stages (`roundtrip_prover_sft.py` then `emit_prover_harmony.py`)
+take this file, run each chunk through tlapm in a synthetic module, drop the
+ones that don't verify, and emit legacy chunk-pipeline training/eval artifacts
+under `data/processed/tla_prover/`.
 
 Chunking strategy
 -----------------

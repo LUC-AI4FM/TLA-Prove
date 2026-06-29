@@ -23,7 +23,7 @@
     "tla_files": 410,
     "unique_models": 191
   },
-  "generated_at": "2026-06-29T03:56:29.136562+00:00",
+  "generated_at": "2026-06-29T08:34:42.828058+00:00",
   "integration_recommendation": {
     "formalllm_role": "canonical prompt/spec supervised corpus",
     "pipeline_role": "broader public extraction/parsing discovery surface",
@@ -58,6 +58,10 @@
   },
   "public_sources": {
     "formalllm_repo": "https://github.com/LUC-AI4FM/FormaLLM",
+    "live_remote_heads": {
+      "formalllm_repo": "b159f5df093e7ed71f4793bba99459b97a2bb23d",
+      "pipeline_repo": "4ac5620f7ef425285ca5a8d91304c9b4da5ca56f"
+    },
     "pipeline_dvc_lock": "https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock",
     "pipeline_repo": "https://github.com/LUC-AI4FM/tla-dataset-pipeline"
   },
