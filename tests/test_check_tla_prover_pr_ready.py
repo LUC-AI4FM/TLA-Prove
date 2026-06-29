@@ -59,6 +59,8 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_inspect_ai4fm_public_seed_prover_funnel.py" in joined
     assert "tests/test_inspect_hf_publish_readiness.py" in joined
     assert "tests/test_build_benchmark_repair_pairs.py" in joined
+    assert "tests/test_repair_dataset.py" in joined
+    assert "tests/test_train_rl_repair.py" in joined
     assert "tests/test_qsub_fc128_artifact_preflight.py" in joined
     assert "tests/test_build_tla_prover_corpus_experiment_matrix.py" in joined
     assert "tests/test_prover_diagnostic_fallbacks.py" in joined

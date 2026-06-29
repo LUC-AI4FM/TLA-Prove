@@ -68,6 +68,12 @@ or bad candidate model, not with a TLC/SANY environment regression.
 ## Next Move
 
 Do not publish `fc128best`. Treat it as a rejected candidate and continue from
-the full-spec GRPO / next-candidate path. Any future comparison should record
-the exact Ollama tag used and should benchmark a canonically registered model
-tag if the result is meant to speak for `chattla:20b`.
+the full-spec GRPO / next-candidate path. The repair loop can now consume the
+fresh benchmark failures directly via:
+
+- `python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best`
+- `python3 -m scripts.train_rl_repair --include-benchmark-repair-pairs`
+
+Any future comparison should record the exact Ollama tag used and should
+benchmark a canonically registered model tag if the result is meant to speak
+for `chattla:20b`.
