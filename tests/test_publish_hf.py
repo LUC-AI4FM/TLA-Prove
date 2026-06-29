@@ -200,3 +200,34 @@ def test_publish_aborts_before_upload_when_readiness_is_blocked(tmp_path: Path, 
 
     assert result is None
     assert _FakeHfApi.upload_calls == 0
+
+
+def test_publish_dry_run_does_not_require_huggingface_hub(tmp_path: Path, monkeypatch) -> None:
+    gguf_dir = tmp_path / "gguf"
+    gguf_dir.mkdir()
+    (gguf_dir / "chattla-20b-Q8_0.gguf").write_text("gguf", encoding="utf-8")
+
+    monkeypatch.setattr("src.training.publish_hf._load_hf_api_class", lambda required: None)
+    monkeypatch.setattr(
+        "src.training.publish_hf.latest_full_benchmark_stats",
+        lambda: {
+            "source_csv": "benchmark_results_good_full.csv",
+            "source_path": str(tmp_path / "benchmark_results_good_full.csv"),
+            "mtime": 1000.0,
+            "n": 20,
+            "sany": 10,
+            "tlc": 8,
+            "avg_struct": 0.91,
+        },
+    )
+    monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
+
+    result = publish(
+        repo_id="EricSpencer00/chattla-20b",
+        dry_run=True,
+        gguf_dir=gguf_dir,
+        merged_model_dir=tmp_path / "merged_model",
+        require_fresh_full_benchmark_hours=24.0,
+    )
+
+    assert result == 22

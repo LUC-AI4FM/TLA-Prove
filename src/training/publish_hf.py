@@ -45,6 +45,16 @@ _GGUF_VERSION_RE = re.compile(r"^gguf/chattla-20b-v(\d+)-[A-Za-z0-9_]+\.gguf$")
 _README_TITLE_VERSION_RE = re.compile(r"^# ChatTLA-20b \(v(\d+)\)$", re.MULTILINE)
 
 
+def _load_hf_api_class(required: bool):
+    try:
+        from huggingface_hub import HfApi
+    except ImportError:
+        if required:
+            print("[publish_hf] ERROR: pip install huggingface_hub", file=sys.stderr)
+        return None
+    return HfApi
+
+
 def _load_state() -> dict:
     if _STATE_PATH.exists():
         try:
@@ -253,10 +263,8 @@ def publish(
     """
     Upload artifacts. Returns new version number on success, None on skip/failure.
     """
-    try:
-        from huggingface_hub import HfApi
-    except ImportError:
-        print("[publish_hf] ERROR: pip install huggingface_hub", file=sys.stderr)
+    HfApi = _load_hf_api_class(required=not dry_run)
+    if HfApi is None and not dry_run:
         return None
 
     local_gguf_dir = Path(gguf_dir or os.environ.get("CHATTLA_GGUF_DIR") or _GGUF_DIR)
@@ -268,14 +276,15 @@ def publish(
 
     state = _load_state()
     last = int(state.get("last_published_version", _INITIAL_VERSION))
-    api = HfApi(token=os.environ.get("HF_TOKEN") or None)
+    api = HfApi(token=os.environ.get("HF_TOKEN") or None) if HfApi is not None else None
     remote_paths: list[str] | None = None
     remote_last: int | None = None
-    try:
-        remote_paths = fetch_remote_repo_paths(api, repo_id)
-        remote_last = max_published_version(remote_paths)
-    except Exception as exc:
-        print(f"[publish_hf] WARN: could not inspect remote repo version state: {exc}", file=sys.stderr)
+    if api is not None:
+        try:
+            remote_paths = fetch_remote_repo_paths(api, repo_id)
+            remote_last = max_published_version(remote_paths)
+        except Exception as exc:
+            print(f"[publish_hf] WARN: could not inspect remote repo version state: {exc}", file=sys.stderr)
 
     new_ver, remote_last = next_version_for_publish(
         local_last=last,
