@@ -986,6 +986,12 @@ def _tlapm_path() -> str | None:
     return str(bundled) if bundled.exists() else None
 
 
+def _should_retry_inductive_timeout(src: str, error: str | None) -> bool:
+    if not error or not error.startswith("TLC timed out after"):
+        return False
+    return len(_declared_variables(src)) <= 2
+
+
 def progress_summary(
     rows: list[dict],
     *,
@@ -1054,6 +1060,9 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
         return row
 
     ind = check_inductive(src, "TypeOK", timeout=tlc_timeout)
+    if _should_retry_inductive_timeout(src, ind.error):
+        retry_timeout = max(tlc_timeout * 6, 120)
+        ind = check_inductive(src, "TypeOK", timeout=retry_timeout)
     row["tlc_inductive"] = ind.inductive
     row["tlc_error"] = ind.error
     row["cti_preview"] = (ind.cti or "")[:600]
