@@ -19,6 +19,15 @@ DEFAULT_OUT = REPO / "outputs" / "manifests" / "sany_tlc_pass_corpus_diagnostic.
 MODULE_RE = re.compile(r"----\s+MODULE\s+([A-Za-z_][A-Za-z0-9_]*)\s+----")
 
 
+def _display_path(path: Path | None) -> str | None:
+    if path is None:
+        return None
+    try:
+        return str(path.resolve().relative_to(REPO.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
@@ -110,9 +119,9 @@ def diagnose_corpus(*, corpus: Path, holdout: Path, summary: Path | None = DEFAU
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "ok": ok,
-        "corpus": str(corpus),
-        "holdout": str(holdout),
-        "summary": str(summary) if summary else None,
+        "corpus": _display_path(corpus),
+        "holdout": _display_path(holdout),
+        "summary": _display_path(summary),
         "rows": len(rows),
         "modules": sorted(modules),
         "jsonl_sha256": _sha256(corpus),

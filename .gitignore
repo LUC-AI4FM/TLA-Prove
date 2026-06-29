@@ -50,6 +50,8 @@ data/processed/*
 !data/processed/formalllm_eval_v1.summary.json
 !data/processed/ai4fm_public_discovery_manifest_v1.jsonl
 !data/processed/ai4fm_public_discovery_manifest_v1.summary.json
+!data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl
+!data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json
 
 # Keep these data files
 !data/benchmarks/

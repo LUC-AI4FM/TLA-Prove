@@ -34,6 +34,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
 
     assert "python3 -m py_compile" in joined
     assert "scripts/build_ai4fm_public_seed_file_manifest.py" in joined
+    assert "scripts/build_ai4fm_public_seed_prover_candidates.py" in joined
     assert "scripts/build_ai4fm_public_seed_tla_modules.py" in joined
     assert "scripts/build_ai4fm_public_tlaprove_import.py" in joined
     assert "scripts/build_ai4fm_public_discovery_manifest.py" in joined
@@ -49,6 +50,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_build_tla_prover_manifest.py" in joined
     assert "tests/test_build_ai4fm_public_tlaprove_import.py" in joined
     assert "tests/test_build_ai4fm_public_seed_file_manifest.py" in joined
+    assert "tests/test_build_ai4fm_public_seed_prover_candidates.py" in joined
     assert "tests/test_build_ai4fm_public_seed_tla_modules.py" in joined
 
 

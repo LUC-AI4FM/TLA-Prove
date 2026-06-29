@@ -44,6 +44,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"kept_rows": 1, "duplicate_modules": {}}),
         encoding="utf-8",
     )
+    _write_jsonl(
+        repo / "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        [{"module": "SpecA", "repo": "a/b", "source_path": "SpecA.tla", "content": "---- MODULE SpecA ----\n====\n"}],
+    )
+    (repo / "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json").write_text(
+        json.dumps({"kept_rows": 1, "skipped": {"sany_invalid": 2}}),
+        encoding="utf-8",
+    )
     _write_jsonl(repo / "data/processed/ai4fm_public_discovery_manifest_v1.jsonl", [{"repo": "a/b"}])
     (repo / "data/processed/ai4fm_public_discovery_manifest_v1.summary.json").write_text(
         json.dumps({"unique_repo_records": 1}),
@@ -88,6 +96,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["kind"] == (
         "public_ai4fm_seed_repo_tla_module_corpus"
     )
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_candidates_v1"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_candidates_v1"]["rows"] == 1
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_candidates_v1"]["summary"]["skipped"]["sany_invalid"] == 2
     assert manifest["artifacts"]["ai4fm_public_discovery_manifest_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_discovery_manifest_v1"]["rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_discovery_manifest_v1"]["kind"] == "public_ai4fm_repo_discovery_manifest"
@@ -145,6 +156,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["build_ai4fm_public_seed_tla_modules"] == (
         "python3 scripts/build_ai4fm_public_seed_tla_modules.py"
+    )
+    assert manifest["remote_next_steps"]["build_ai4fm_public_seed_prover_candidates"] == (
+        "python3 scripts/build_ai4fm_public_seed_prover_candidates.py"
     )
     assert manifest["remote_next_steps"]["build_ai4fm_public_discovery_manifest"] == (
         "python3 scripts/build_ai4fm_public_discovery_manifest.py"

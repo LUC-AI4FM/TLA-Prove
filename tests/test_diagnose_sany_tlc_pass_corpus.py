@@ -51,6 +51,8 @@ def test_diagnose_corpus_accepts_strong_sany_tlc_rows(tmp_path: Path) -> None:
     assert result["duplicate_modules"] == []
     assert result["holdout_overlap"] == []
     assert result["module_header_mismatches"] == []
+    assert result["corpus"] == str(corpus)
+    assert result["holdout"] == str(holdout)
 
 
 def test_diagnose_corpus_flags_leakage_and_weak_rows(tmp_path: Path) -> None:
@@ -106,3 +108,4 @@ def test_diagnose_cli_writes_report(tmp_path: Path) -> None:
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["ok"] is True
     assert payload["rows"] == 1
+    assert payload["summary"] == str(tmp_path / "missing.summary.json")

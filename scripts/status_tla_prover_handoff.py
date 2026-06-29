@@ -12,6 +12,13 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 
 
+def _display_path(path: Path, repo: Path = REPO) -> str:
+    try:
+        return str(path.resolve().relative_to(repo.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def _read_json(path: Path) -> dict[str, Any] | None:
     if not path.exists():
         return None
@@ -98,7 +105,7 @@ def _parse_tailscale(text: str | None) -> dict[str, Any]:
 
 def _report_state(path: Path) -> dict[str, Any]:
     data = _read_json(path)
-    return {"exists": data is not None, "path": str(path), "data": data}
+    return {"exists": data is not None, "path": _display_path(path), "data": data}
 
 
 def _merged_report_state(primary: Path, supplement: Path) -> dict[str, Any]:
@@ -127,7 +134,7 @@ def _merged_report_state(primary: Path, supplement: Path) -> dict[str, Any]:
             merged[key] = value
     state = dict(primary_state)
     state["data"] = merged
-    state["supplemental_path"] = str(supplement)
+    state["supplemental_path"] = _display_path(supplement)
     state["supplement_exists"] = supplement_state.get("exists", False)
     return state
 
@@ -160,7 +167,7 @@ def _derive_full_dataset_progress(
         limit=0,
     )
     payload = progress_summary(rows, job_id=full_smoke_job_id, discovered_paths=discovered_paths)
-    payload["source"] = str(jsonl_path)
+    payload["source"] = _display_path(jsonl_path, repo)
     return payload
 
 
@@ -291,7 +298,7 @@ def build_status(
     return {
         "state": state,
         "next_action": next_action,
-        "repo": str(repo),
+        "repo": _display_path(repo, repo),
         "launchagent": launchagent,
         "doctor_launchagent": _parse_launchctl(doctor_launchctl_text),
         "mini": _parse_tailscale(tailscale_text),
@@ -308,7 +315,7 @@ def build_status(
             "decision": decision,
             "full_dataset_progress": {
                 "exists": full_dataset_progress_data is not None,
-                "path": str(repo / "outputs" / "manifests" / "tla_prover_full_dataset_progress.json"),
+                "path": _display_path(repo / "outputs" / "manifests" / "tla_prover_full_dataset_progress.json", repo),
                 "data": full_dataset_progress_data,
             },
             "submission_mirror_failed": submission_mirror_failed,
