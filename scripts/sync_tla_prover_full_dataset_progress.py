@@ -18,14 +18,24 @@ def _load_rows(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+def _display_path(path: str | Path, repo: Path = REPO) -> str:
+    candidate = Path(path)
+    try:
+        return str(candidate.resolve().relative_to(repo.resolve()))
+    except ValueError:
+        return str(candidate)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, default=REPO)
     parser.add_argument("jsonl", type=Path)
     parser.add_argument("--job-id")
     parser.add_argument("--module-list", action="append", type=Path, default=[])
     parser.add_argument("--glob", action="append", dest="globs")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
+    repo = args.repo.resolve()
 
     if args.module_list:
         discovered_paths = _discover_from_module_lists(args.module_list, limit=0)
@@ -34,7 +44,11 @@ def main() -> int:
 
     rows = _load_rows(args.jsonl)
     payload = progress_summary(rows, job_id=args.job_id, discovered_paths=discovered_paths)
-    payload["source"] = str(args.jsonl)
+    for key in ("last_completed_module_path", "next_module_path"):
+        value = payload.get(key)
+        if value:
+            payload[key] = _display_path(value, repo)
+    payload["source"] = _display_path(args.jsonl, repo)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload, indent=2))

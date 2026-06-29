@@ -291,3 +291,68 @@ def test_evaluator_cli_records_full_dataset_summary_when_supplied(tmp_path: Path
     assert "Do not launch SFT" in payload["next_action"]
     assert payload["full_dataset_training_evidence_rows"] == 23
     assert payload["full_dataset_error_rows"] == 116
+
+
+def test_evaluator_cli_sanitizes_repo_relative_summary_paths(tmp_path: Path) -> None:
+    repo_like = tmp_path / "repo"
+    autoprover = repo_like / "outputs" / "autoprover"
+    autoprover.mkdir(parents=True, exist_ok=True)
+    known18_path = autoprover / "known18_corrected_smoke_170001.summary.json"
+    known18_path.write_text(
+        json.dumps(
+            {
+                "rows": 18,
+                "statuses": {"tlaps_partial": 18},
+                "tlaps_checked": 18,
+                "tlaps_total_obligations": 180,
+                "tlaps_proved_obligations": 150,
+                "tlaps_failed_obligations": 30,
+            }
+        ),
+        encoding="utf-8",
+    )
+    full_dataset_path = autoprover / "full_dataset_smoke_170004.summary.json"
+    full_dataset_path.write_text(
+        json.dumps(
+            {
+                "job": "170004",
+                "rows": 610,
+                "statuses": {
+                    "skipped": 498,
+                    "tlaps_partial": 79,
+                    "not_inductive": 21,
+                    "tlc_error": 12,
+                },
+                "tlaps_proved": 0,
+                "tlaps_partial": 79,
+                "tlaps_unproved": 0,
+                "tlaps_parse_error": 0,
+            }
+        ),
+        encoding="utf-8",
+    )
+    out = repo_like / "outputs" / "manifests" / "decision.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    subprocess.run(
+        [
+            "python3",
+            str(SCRIPT),
+            "--repo",
+            str(repo_like),
+            "--summary",
+            str(known18_path.relative_to(repo_like)),
+            "--full-dataset-summary",
+            str(full_dataset_path.relative_to(repo_like)),
+            "--out",
+            str(out.relative_to(repo_like)),
+        ],
+        cwd=repo_like,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["summary_path"] == "outputs/autoprover/known18_corrected_smoke_170001.summary.json"
+    assert payload["full_dataset_summary_path"] == "outputs/autoprover/full_dataset_smoke_170004.summary.json"
