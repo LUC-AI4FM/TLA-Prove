@@ -5,6 +5,7 @@ from pathlib import Path
 from src.training.publish_hf import (
     _patch_readme,
     fetch_remote_repo_paths,
+    main,
     max_published_version,
     next_version_for_publish,
     publish,
@@ -231,3 +232,41 @@ def test_publish_dry_run_does_not_require_huggingface_hub(tmp_path: Path, monkey
     )
 
     assert result == 22
+
+
+def test_publish_dry_run_returns_none_when_readiness_is_blocked(tmp_path: Path, monkeypatch) -> None:
+    gguf_dir = tmp_path / "gguf"
+    gguf_dir.mkdir()
+    (gguf_dir / "chattla-20b-Q8_0.gguf").write_text("gguf", encoding="utf-8")
+
+    monkeypatch.setattr("src.training.publish_hf._load_hf_api_class", lambda required: None)
+    monkeypatch.setattr(
+        "src.training.publish_hf.latest_full_benchmark_stats",
+        lambda: {
+            "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
+            "source_path": str(tmp_path / "benchmark_results_fc128best_full_20260628_235102.csv"),
+            "mtime": 1000.0,
+            "n": 20,
+            "sany": 0,
+            "tlc": 0,
+            "avg_struct": 0.85,
+        },
+    )
+    monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
+
+    result = publish(
+        repo_id="EricSpencer00/chattla-20b",
+        dry_run=True,
+        gguf_dir=gguf_dir,
+        merged_model_dir=tmp_path / "merged_model",
+        require_fresh_full_benchmark_hours=24.0,
+    )
+
+    assert result is None
+
+
+def test_main_returns_nonzero_for_blocked_dry_run(monkeypatch) -> None:
+    monkeypatch.setattr("src.training.publish_hf.publish", lambda **kwargs: None)
+    monkeypatch.setattr(sys, "argv", ["publish_hf.py", "--dry-run"])
+
+    assert main() == 1
