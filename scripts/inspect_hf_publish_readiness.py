@@ -27,6 +27,7 @@ from src.training.publish_hf import (
     _STATE_PATH,
     _load_state,
     _save_state,
+    default_benchmark_model,
     fetch_remote_repo_paths,
     fetch_remote_paths_via_http,
     latest_full_benchmark_stats,
@@ -80,6 +81,7 @@ def build_report(
     state_path: Path = _STATE_PATH,
     readme_template: Path = _README_TEMPLATE,
     benchmark_max_age_hours: float = DEFAULT_BENCHMARK_MAX_AGE_HOURS,
+    benchmark_model: str | None = None,
     fetch_remote_paths: Callable[[str], list[str] | None] | None = None,
     benchmark_stats: object = _AUTO,
     now_fn: Callable[[], float] = time.time,
@@ -90,7 +92,14 @@ def build_report(
     local_gguf = _latest_local_gguf(*search_dirs)
     local_gguf_files = [_display_path(path) or str(path) for path in _local_gguf_files(*search_dirs)]
     merged_model_config = merged_model_dir / "config.json"
-    stats = latest_full_benchmark_stats() if benchmark_stats is _AUTO else benchmark_stats
+    if benchmark_stats is _AUTO:
+        stats = (
+            latest_full_benchmark_stats()
+            if benchmark_model is None
+            else latest_full_benchmark_stats(benchmark_model=benchmark_model)
+        )
+    else:
+        stats = benchmark_stats
     benchmark_age_hours = None
     if stats is not None:
         benchmark_age_hours = (now_fn() - float(stats["mtime"])) / 3600.0
@@ -122,6 +131,7 @@ def build_report(
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repo_id": repo_id,
+        "benchmark_model": benchmark_model,
         "ready_to_publish": not blockers,
         "blockers": blockers,
         "warnings": warnings,
@@ -146,6 +156,7 @@ def build_report(
         "benchmark": None
         if stats is None
         else {
+            "model": stats.get("model", benchmark_model),
             "source_csv": stats["source_csv"],
             "source_path": _display_path(Path(str(stats["source_path"]))),
             "rows": stats["n"],
@@ -191,6 +202,7 @@ def main() -> int:
     parser.add_argument("--repo-id", default=_DEFAULT_REPO)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--benchmark-max-age-hours", type=float, default=DEFAULT_BENCHMARK_MAX_AGE_HOURS)
+    parser.add_argument("--benchmark-model", default=default_benchmark_model())
     parser.add_argument("--sync-state", action="store_true")
     args = parser.parse_args()
 
@@ -204,6 +216,7 @@ def main() -> int:
     report = build_report(
         repo_id=args.repo_id,
         benchmark_max_age_hours=args.benchmark_max_age_hours,
+        benchmark_model=args.benchmark_model,
         fetch_remote_paths=remote_fetcher,
     )
     if args.sync_state:
@@ -212,6 +225,7 @@ def main() -> int:
             report = build_report(
                 repo_id=args.repo_id,
                 benchmark_max_age_hours=args.benchmark_max_age_hours,
+                benchmark_model=args.benchmark_model,
                 fetch_remote_paths=remote_fetcher,
             )
             report["state_synced"] = True

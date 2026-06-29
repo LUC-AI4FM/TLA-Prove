@@ -42,3 +42,4 @@ Public model: [EricSpencer00/chattla-20b](https://huggingface.co/EricSpencer00/c
 - For Hub releases: ensure `HF_TOKEN` is in `.env`; `python -m src.training.publish_hf --dry-run` is a real deployability preflight:
   - it still computes the next version even when `huggingface_hub` is not installed locally;
   - it exits nonzero when the current candidate would be blocked from a real publish.
+  - pass `--benchmark-model <ollama-tag>` when the local artifact is a named candidate such as `chattla:20b-fc128best`; otherwise the default readiness lane is canonical `chattla:20b`.

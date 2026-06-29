@@ -134,6 +134,54 @@ def test_build_report_blocks_degenerate_zero_pass_full_benchmark(tmp_path: Path)
     )
 
 
+def test_build_report_requests_specific_benchmark_model(tmp_path: Path, monkeypatch) -> None:
+    state_path = tmp_path / "hf_publish_state.json"
+    _write(
+        state_path,
+        json.dumps(
+            {
+                "last_published_version": 21,
+                "last_repo": "EricSpencer00/chattla-20b",
+                "note": "aligned",
+            }
+        ),
+    )
+    gguf_dir = tmp_path / "outputs" / "gguf"
+    _write(gguf_dir / "chattla-20b-Q8_0.gguf", "placeholder gguf")
+    readme = tmp_path / "outputs" / "hf_readme" / "README.md"
+    _write(readme, "# README\n")
+
+    seen: list[str | None] = []
+
+    monkeypatch.setattr(
+        "scripts.inspect_hf_publish_readiness.latest_full_benchmark_stats",
+        lambda benchmark_model=None: seen.append(benchmark_model) or {
+            "n": 20,
+            "sany": 6,
+            "tlc": 3,
+            "avg_struct": 0.9,
+            "source_csv": "benchmark_results_rl_c128_full_20260324_190446.csv",
+            "source_path": str(tmp_path / "benchmark_results_rl_c128_full_20260324_190446.csv"),
+            "mtime": 0,
+            "model": benchmark_model,
+        },
+    )
+
+    report = build_report(
+        repo_id="EricSpencer00/chattla-20b",
+        gguf_dir=gguf_dir,
+        gguf_search_dirs=(gguf_dir,),
+        state_path=state_path,
+        readme_template=readme,
+        benchmark_max_age_hours=0,
+        fetch_remote_paths=lambda _repo: ["gguf/chattla-20b-v21-Q8_0.gguf"],
+        benchmark_model="chattla:20b",
+    )
+
+    assert seen == ["chattla:20b"]
+    assert report["benchmark"]["model"] == "chattla:20b"
+
+
 def test_sync_state_to_remote_updates_local_counter(tmp_path: Path) -> None:
     state_path = tmp_path / "hf_publish_state.json"
     _write(

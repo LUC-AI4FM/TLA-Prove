@@ -117,6 +117,7 @@ echo "===== Publish dry-run ====="
 set +e
 "$PY" -m src.training.publish_hf \
   --dry-run \
+  --benchmark-model "chattla:20b" \
   --require-fresh-full-benchmark-hours 24
 PUBLISH_RC=$?
 set -e

@@ -46,6 +46,31 @@ _GGUF_VERSION_RE = re.compile(r"^gguf/chattla-20b-v(\d+)-[A-Za-z0-9_]+\.gguf$")
 _README_TITLE_VERSION_RE = re.compile(r"^# ChatTLA-20b \(v(\d+)\)$", re.MULTILINE)
 
 
+def default_benchmark_model() -> str:
+    return os.environ.get("CHATTLA_BENCHMARK_MODEL") or os.environ.get("CHATTLA_MODEL") or "chattla:20b"
+
+
+def _resolve_local_gguf_path(*, quant: str, gguf_dir: Path | None) -> Path | None:
+    if gguf_dir is not None:
+        candidate = gguf_dir / f"chattla-20b-{quant}.gguf"
+        return candidate if candidate.is_file() else None
+
+    search_dirs = (
+        Path(os.environ.get("CHATTLA_GGUF_DIR")) if os.environ.get("CHATTLA_GGUF_DIR") else _GGUF_DIR,
+        _REPO_ROOT / "outputs" / "gguf_fc128_best",
+    )
+    seen: set[Path] = set()
+    for base in search_dirs:
+        resolved = base.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        candidate = base / f"chattla-20b-{quant}.gguf"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 def _load_hf_api_class(required: bool):
     try:
         from huggingface_hub import HfApi
@@ -127,7 +152,7 @@ def fetch_remote_paths_via_http(repo_id: str) -> list[str] | None:
     return paths or None
 
 
-def latest_full_benchmark_stats() -> dict | None:
+def latest_full_benchmark_stats(benchmark_model: str | None = None) -> dict | None:
     """Parse newest outputs/benchmark_results_*_full_*.csv or outputs/benchmark_results/benchmark_results_*_full_*.csv for SANY/TLC rates."""
     pattern = "benchmark_results_*_full_*.csv"
     
@@ -144,22 +169,37 @@ def latest_full_benchmark_stats() -> dict | None:
                 rows = list(csv.DictReader(f))
             if not rows:
                 continue
-            n = len(rows)
+            selected_rows = rows
+            if benchmark_model is not None:
+                selected_rows = [
+                    row for row in rows
+                    if str(row.get("model", "")).strip() == benchmark_model
+                ]
+                if not selected_rows:
+                    continue
+            n = len(selected_rows)
 
             def _ok(row: dict, key: str) -> bool:
                 v = row.get(key, "")
                 return str(v).strip() in ("1", "True", "true", "yes")
 
-            sany = sum(1 for r in rows if _ok(r, "sany_pass"))
-            tlc = sum(1 for r in rows if _ok(r, "tlc_pass"))
+            sany = sum(1 for r in selected_rows if _ok(r, "sany_pass"))
+            tlc = sum(1 for r in selected_rows if _ok(r, "tlc_pass"))
             structs = []
-            for r in rows:
+            for r in selected_rows:
                 try:
                     structs.append(float(r.get("structural_score", 0) or 0))
                 except (TypeError, ValueError):
                     pass
             avg_s = sum(structs) / len(structs) if structs else 0.0
             st = path.stat()
+            models = sorted(
+                {
+                    str(row.get("model", "")).strip()
+                    for row in selected_rows
+                    if str(row.get("model", "")).strip()
+                }
+            )
             return {
                 "n": n,
                 "sany": sany,
@@ -167,6 +207,7 @@ def latest_full_benchmark_stats() -> dict | None:
                 "avg_struct": avg_s,
                 "source_csv": str(path.name),
                 "source_path": str(path),
+                "model": benchmark_model if benchmark_model is not None else (models[0] if len(models) == 1 else None),
                 "mtime": st.st_mtime,
             }
         except (OSError, csv.Error):
@@ -174,11 +215,17 @@ def latest_full_benchmark_stats() -> dict | None:
     return None
 
 
-def full_benchmark_fresh_enough(max_age_hours: float) -> tuple[bool, str]:
+def _load_benchmark_stats_for_model(benchmark_model: str | None) -> dict | None:
+    if benchmark_model is None:
+        return latest_full_benchmark_stats()
+    return latest_full_benchmark_stats(benchmark_model=benchmark_model)
+
+
+def full_benchmark_fresh_enough(max_age_hours: float, *, benchmark_model: str | None = None) -> tuple[bool, str]:
     """Require a parsed full-suite CSV newer than max_age_hours (wall clock)."""
     if max_age_hours is None or max_age_hours <= 0:
         return True, "no freshness requirement"
-    stats = latest_full_benchmark_stats()
+    stats = _load_benchmark_stats_for_model(benchmark_model)
     if not stats:
         return False, "no outputs/benchmark_results_*_full_*.csv found — run full benchmark first"
     age_h = (time.time() - stats["mtime"]) / 3600.0
@@ -277,6 +324,7 @@ def publish(
     upload_merged_model: bool = False,
     gguf_dir: Path | str | None = None,
     merged_model_dir: Path | str | None = None,
+    benchmark_model: str | None = None,
 ) -> int | None:
     """
     Upload artifacts. Returns new version number on success, None on skip/failure.
@@ -285,11 +333,19 @@ def publish(
     if HfApi is None and not dry_run:
         return None
 
-    local_gguf_dir = Path(gguf_dir or os.environ.get("CHATTLA_GGUF_DIR") or _GGUF_DIR)
+    explicit_gguf_dir = Path(gguf_dir) if gguf_dir is not None else None
+    local_gguf_dir = explicit_gguf_dir or Path(os.environ.get("CHATTLA_GGUF_DIR") or _GGUF_DIR)
     local_merged_model_dir = Path(merged_model_dir or os.environ.get("CHATTLA_MERGED_MODEL_DIR") or _MERGED_MODEL_DIR)
-    gguf_local = local_gguf_dir / f"chattla-20b-{quant}.gguf"
-    if not gguf_local.is_file():
-        print(f"[publish_hf] ERROR: GGUF not found: {gguf_local}", file=sys.stderr)
+    gguf_local = _resolve_local_gguf_path(quant=quant, gguf_dir=explicit_gguf_dir)
+    if gguf_local is None:
+        if explicit_gguf_dir is not None:
+            detail = str(explicit_gguf_dir / f"chattla-20b-{quant}.gguf")
+        else:
+            detail = (
+                f"{_GGUF_DIR / f'chattla-20b-{quant}.gguf'} or "
+                f"{(_REPO_ROOT / 'outputs' / 'gguf_fc128_best' / f'chattla-20b-{quant}.gguf')}"
+            )
+        print(f"[publish_hf] ERROR: GGUF not found: {detail}", file=sys.stderr)
         return None
 
     state = _load_state()
@@ -348,9 +404,12 @@ def publish(
 
     print(f"[publish_hf] Repo={repo_id} version=v{new_ver} file={path_in_repo}")
 
-    ok_fresh, fresh_msg = full_benchmark_fresh_enough(require_fresh_full_benchmark_hours or 0)
+    ok_fresh, fresh_msg = full_benchmark_fresh_enough(
+        require_fresh_full_benchmark_hours or 0,
+        benchmark_model=benchmark_model,
+    )
     print(f"[publish_hf] Benchmark freshness: {fresh_msg}")
-    stats = latest_full_benchmark_stats()
+    stats = _load_benchmark_stats_for_model(benchmark_model)
     blockers = publish_readiness_blockers(
         gguf_present=gguf_local.is_file(),
         readme_present=_README_TEMPLATE.is_file(),
@@ -471,6 +530,11 @@ def main() -> int:
         action="store_true",
         help="Also upload outputs/merged_model/ to merged_bf16/ (~40GB+; slow)",
     )
+    parser.add_argument(
+        "--benchmark-model",
+        default=default_benchmark_model(),
+        help="Only consider full benchmark CSV rows for this benchmark model tag when gating publish readiness.",
+    )
     parser.add_argument("--gguf-dir", default=None,
                         help="Directory containing chattla-20b-{quant}.gguf (default: outputs/gguf or CHATTLA_GGUF_DIR)")
     parser.add_argument("--merged-model-dir", default=None,
@@ -502,6 +566,7 @@ def main() -> int:
         upload_merged_model=args.upload_merged_model,
         gguf_dir=Path(args.gguf_dir) if args.gguf_dir else None,
         merged_model_dir=Path(args.merged_model_dir) if args.merged_model_dir else None,
+        benchmark_model=args.benchmark_model,
     )
     if args.dry_run:
         return 0 if v is not None else 1

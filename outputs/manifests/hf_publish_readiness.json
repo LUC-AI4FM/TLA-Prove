@@ -1,18 +1,21 @@
 {
   "benchmark": {
-    "age_hours": 0.05444799111949073,
-    "avg_struct": 0.8557,
+    "age_hours": 1402.313904665841,
+    "avg_struct": 0.70575,
     "fresh_within_hours": 24.0,
+    "model": "chattla:20b",
     "rows": 20,
     "sany": 0,
-    "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
-    "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv",
+    "source_csv": "benchmark_results_v14_full_20260404.csv",
+    "source_path": "outputs/benchmark_results_v14_full_20260404.csv",
     "tlc": 0
   },
+  "benchmark_model": "chattla:20b",
   "blockers": [
+    "latest full benchmark is stale at 1402.3h (limit 24.0h)",
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
-  "generated_at": "2026-06-29T05:04:21.324869+00:00",
+  "generated_at": "2026-06-29T10:16:29.481720+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [
