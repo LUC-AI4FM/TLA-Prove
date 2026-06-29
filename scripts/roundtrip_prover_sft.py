@@ -4,7 +4,7 @@ synthetic .tla module and running tlapm on it.
 
 Strategy
 --------
-For each chunk in data/processed/tla_prover/prover_chunks.jsonl:
+For each chunk in data/processed/legacy_tla_prover_chunks/prover_chunks.jsonl:
   1. Build synthetic = preamble + statement + proof + "===="
   2. Rename the MODULE to a unique name (so it doesn't collide with the
      original file in the same directory).
@@ -15,8 +15,10 @@ For each chunk in data/processed/tla_prover/prover_chunks.jsonl:
 
 Output
 ------
-data/processed/tla_prover/prover_chunks_verified.jsonl  — chunks that round-tripped
-data/processed/tla_prover/prover_chunks_failed.jsonl    — chunks that didn't (with reason)
+data/processed/legacy_tla_prover_chunks/prover_chunks_verified.jsonl
+    — chunks that round-tripped
+data/processed/legacy_tla_prover_chunks/prover_chunks_failed.jsonl
+    — chunks that didn't (with reason)
 
 Usage
 -----
@@ -39,9 +41,9 @@ sys.path.insert(0, str(REPO))
 
 from src.validators.tlaps_validator import validate_file  # noqa: E402
 
-CHUNKS_IN = REPO / "data" / "processed" / "tla_prover" / "prover_chunks.jsonl"
-OUT_VERIFIED = REPO / "data" / "processed" / "tla_prover" / "prover_chunks_verified.jsonl"
-OUT_FAILED = REPO / "data" / "processed" / "tla_prover" / "prover_chunks_failed.jsonl"
+CHUNKS_IN = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks.jsonl"
+OUT_VERIFIED = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks_verified.jsonl"
+OUT_FAILED = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks_failed.jsonl"
 
 MODULE_RE = re.compile(r"MODULE\s+(\w+)")
 

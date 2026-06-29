@@ -36,6 +36,8 @@ AI4FM expansion lanes alongside the prover replay evidence.
   import layer (`1005` rows).
 - `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed
   file manifest (`3140` tracked files, `2110` `.tla` files, `2108` usable module rows).
+- `metadata/ai4fm_public_seed_tla_modules_v1.summary.json`: usable public `.tla`
+  module corpus (`2108` rows).
 - `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance
   rollup for the `11` committed public seed repos.
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public

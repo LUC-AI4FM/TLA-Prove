@@ -2,9 +2,9 @@
 emit_prover_harmony.py — Convert verified prover chunks into harmony-format
 JSONL train/eval splits ready for SFTTrainer.
 
-Input:  data/processed/tla_prover/prover_chunks_verified.jsonl
-Output: data/processed/tla_prover/prover_chunks_train.jsonl
-        data/processed/tla_prover/prover_chunks_eval.jsonl
+Input:  data/processed/legacy_tla_prover_chunks/prover_chunks_verified.jsonl
+Output: data/processed/legacy_tla_prover_chunks/prover_chunks_train.jsonl
+        data/processed/legacy_tla_prover_chunks/prover_chunks_eval.jsonl
 
 Format matches the existing spec-gen dataset (developer/user/assistant with
 channel field), but these legacy chunk outputs are kept separate from the
@@ -22,9 +22,9 @@ from collections import defaultdict
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-IN = REPO / "data" / "processed" / "tla_prover" / "prover_chunks_verified.jsonl"
-OUT_TRAIN = REPO / "data" / "processed" / "tla_prover" / "prover_chunks_train.jsonl"
-OUT_EVAL = REPO / "data" / "processed" / "tla_prover" / "prover_chunks_eval.jsonl"
+IN = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks_verified.jsonl"
+OUT_TRAIN = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks_train.jsonl"
+OUT_EVAL = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks_eval.jsonl"
 
 DEVELOPER_PROMPT = """You are ChatTLA-Prover, an expert at writing TLAPS proofs for TLA+ theorems.
 You will be given a TLA+ module containing definitions, an Init/Next/Spec, and a THEOREM (or LEMMA) statement at the end.
