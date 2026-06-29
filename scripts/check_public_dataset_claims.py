@@ -119,6 +119,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     org_surface = _read_json(repo / "outputs/manifests/ai4fm_org_surface.json")
     seed_license_surface = _read_json(repo / "outputs/manifests/ai4fm_public_seed_license_surface.json")
     dataset_surface = _read_json(repo / "outputs/manifests/ai4fm_public_dataset_surface.json")
+    corpus_preflight = _read_json(repo / "outputs/manifests/tla_prover_corpus_preflight.json")
 
     formalllm_rows = int(formalllm["rows"])
     formalllm_families = int(formalllm["families_seen"])
@@ -156,6 +157,12 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     unknown_repos = int(license_repo_counts.get("UNKNOWN", 0))
     pull_files = int(dataset_surface["pipeline"]["pull"]["nfiles"])
     parsed_artifacts = int(dataset_surface["pipeline"]["parse_output"]["nfiles"])
+    formalllm_coverage = corpus_preflight["formalllm_coverage"]
+    coverage_rows = int(formalllm_coverage["formalllm_rows"])
+    coverage_corpora = {Path(corpus["path"]).name: corpus for corpus in formalllm_coverage["corpora"]}
+    default_coverage_rows = int(coverage_corpora["chattla_tla_prover_sft_v1.jsonl"]["rows"])
+    expanded_coverage_rows = int(coverage_corpora["chattla_tla_prover_sft_public_expanded_v1.jsonl"]["rows"])
+    full_public_coverage_rows = int(coverage_corpora["chattla_tla_prover_sft_public_all_v1.jsonl"]["rows"])
 
     return {
         "README.md": [
@@ -198,7 +205,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             ),
             (
                 "The verifier-backed preflight manifest at "
-                "`outputs/manifests/tla_prover_corpus_preflight.json` now checks exact `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone."
+                "`outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone."
             ),
             (
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: "
@@ -251,6 +258,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             "This bundle ships prover corpora plus metadata summaries for the broader public AI4FM expansion lanes.",
             f"- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
             f"  layer (`{formalllm_rows}` rows).",
+            (
+                f"- `metadata/tla_prover_corpus_preflight.json`: schema preflight plus exact `{coverage_rows}/{coverage_rows}` `FormaLLM` row\n"
+                f"  coverage verification across the `{default_coverage_rows}`-row default, `{expanded_coverage_rows}`-row expanded, and\n"
+                f"  `{full_public_coverage_rows}`-row full-public prover train corpora."
+            ),
             (
                 f"- `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot "
                 f"(`{org_public_repo_count}` repos,\n"

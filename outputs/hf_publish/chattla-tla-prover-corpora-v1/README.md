@@ -24,8 +24,9 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
 
 - `metadata/tla_prover_artifacts_v1.json`: top-level manifest for the shipped prover
   corpora and public AI4FM artifacts.
-- `metadata/tla_prover_corpus_preflight.json`: schema preflight across the
-  checked-in prover corpora.
+- `metadata/tla_prover_corpus_preflight.json`: schema preflight plus exact `205/205` `FormaLLM` row
+  coverage verification across the `1330`-row default, `2433`-row expanded, and
+  `2438`-row full-public prover train corpora.
 - `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot (`8` repos,
   `3` corpus-relevant).
 - `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec
@@ -79,6 +80,9 @@ not bundle-local copies of every artifact named there.
 
 - Mixed prover SFT corpus: `1330` rows (`1053` Diamond SFT + `205` `FormaLLM`
   + `18 * 4` verified TLAPS rows).
+- Preflight coverage proof: exact `205/205` `FormaLLM` rows are present in the
+  default (`1330` rows), expanded (`2433` rows), and full-public (`2438` rows)
+  prover train corpora.
 - Public-AI4FM expanded prover SFT: `2433` rows total (`1005` normalized public
   import rows + `98` seed prover-candidate replays on top of the baseline prover
   stack).

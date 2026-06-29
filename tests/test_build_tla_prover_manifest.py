@@ -44,6 +44,36 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"schema": "chattla_tla_prover_corpus_experiment_matrix_v1", "publish_baseline_lane": "default"}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/tla_prover_corpus_preflight.json").write_text(
+        json.dumps(
+            {
+                "ok": True,
+                "formalllm_coverage": {
+                    "ok": True,
+                    "formalllm_rows": 3,
+                    "corpora": [
+                        {
+                            "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+                            "rows": 5,
+                            "matched_distinct_rows": 3,
+                            "matched_total_occurrences": 3,
+                            "missing_rows": 0,
+                            "ok": True,
+                        },
+                        {
+                            "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+                            "rows": 6,
+                            "matched_distinct_rows": 3,
+                            "matched_total_occurrences": 3,
+                            "missing_rows": 0,
+                            "ok": True,
+                        },
+                    ],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
     _write_jsonl(
         repo / "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         [{"messages": []}, {"messages": []}, {"messages": []}, {"messages": []}],
@@ -177,6 +207,31 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["tla_prover_corpus_experiment_matrix"]["kind"] == (
         "corpus_experiment_matrix_report"
     )
+    assert manifest["artifacts"]["tla_prover_corpus_preflight"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_corpus_preflight"]["report_excerpt"] == {
+        "formalllm_coverage": {
+            "ok": True,
+            "formalllm_rows": 3,
+            "corpora": [
+                {
+                    "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+                    "rows": 5,
+                    "matched_distinct_rows": 3,
+                    "matched_total_occurrences": 3,
+                    "missing_rows": 0,
+                    "ok": True,
+                },
+                {
+                    "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+                    "rows": 6,
+                    "matched_distinct_rows": 3,
+                    "matched_total_occurrences": 3,
+                    "missing_rows": 0,
+                    "ok": True,
+                },
+            ],
+        }
+    }
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["rows"] == 4
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_v1"]["summary"]["duplicate_rows_collapsed"] == 2

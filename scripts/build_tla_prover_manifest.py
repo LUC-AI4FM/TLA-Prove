@@ -149,6 +149,10 @@ ARTIFACTS = {
     },
 }
 
+REPORT_EXCERPT_KEYS = {
+    "tla_prover_corpus_preflight": ("formalllm_coverage",),
+}
+
 
 def _sha256(path: Path) -> str | None:
     if not path.exists():
@@ -173,6 +177,14 @@ def _read_summary(path: Path) -> dict[str, Any] | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _read_report_excerpt(path: Path, keys: tuple[str, ...]) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    excerpt = {key: payload[key] for key in keys if key in payload}
+    return excerpt or None
+
+
 def _sanitize_summary(value: Any, repo: Path) -> Any:
     if isinstance(value, dict):
         return {key: _sanitize_summary(item, repo) for key, item in value.items()}
@@ -186,7 +198,7 @@ def _sanitize_summary(value: Any, repo: Path) -> Any:
     return value
 
 
-def _artifact(repo: Path, spec: dict[str, str]) -> dict[str, Any]:
+def _artifact(name: str, repo: Path, spec: dict[str, str]) -> dict[str, Any]:
     path = repo / spec["path"]
     summary_path = repo / spec["summary"] if "summary" in spec else None
     item: dict[str, Any] = {
@@ -200,6 +212,11 @@ def _artifact(repo: Path, spec: dict[str, str]) -> dict[str, Any]:
     if summary_path is not None:
         item["summary_path"] = str(summary_path.relative_to(repo))
         item["summary"] = _sanitize_summary(_read_summary(summary_path), repo)
+    report_excerpt_keys = REPORT_EXCERPT_KEYS.get(name)
+    if report_excerpt_keys is not None:
+        report_excerpt = _read_report_excerpt(path, report_excerpt_keys)
+        if report_excerpt is not None:
+            item["report_excerpt"] = _sanitize_summary(report_excerpt, repo)
     return item
 
 
@@ -208,7 +225,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
         "schema": "chattla_tla_prover_artifacts_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repo": ".",
-        "artifacts": {name: _artifact(repo, spec) for name, spec in ARTIFACTS.items()},
+        "artifacts": {name: _artifact(name, repo, spec) for name, spec in ARTIFACTS.items()},
         "remote_next_steps": {
             "known18_pbs": "scripts/qsub_autoprover_known18_corrected_smoke.pbs",
             "known18_launch": "qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs",
