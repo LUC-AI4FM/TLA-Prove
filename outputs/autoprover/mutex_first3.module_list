@@ -1,3 +1,0 @@
-outputs/diamond_gen/mutual_exclusion_work/MutexWithTimeout.tla
-outputs/diamond_gen/mutual_exclusion_work/FairMutex.tla
-outputs/diamond_gen/mutual_exclusion_work/PriorityCeilingMutex.tla

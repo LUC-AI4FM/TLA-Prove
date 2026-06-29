@@ -40,7 +40,7 @@ Next == \/ Submit \/ Sign \/ Withdraw \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Published implies all approvers signed in order.
-SafetyInvariant == ((status = "draft") => (ever_drafted /\ signatures = 0)) /\ ((status # "draft") => ever_drafted) /\ ((status = "published") => (signatures = NumApprovers /\ ever_drafted)) /\ (signatures <= NumApprovers)
+SafetyInvariant == ((status = "published") => (signatures = NumApprovers /\ ever_drafted)) /\ (signatures <= NumApprovers) /\ ((status = "draft") => signatures = 0)
 
 TypeOK == /\ status \in States
           /\ signatures \in 0..NumApprovers

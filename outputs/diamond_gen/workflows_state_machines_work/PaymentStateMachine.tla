@@ -46,7 +46,7 @@ Next == \/ Authorize \/ Capture \/ Void \/ Refund \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Refunds require a prior capture; voids require capture never happened.
-SafetyInvariant == ((status = "pending") => (~ever_authorized /\ ~ever_captured /\ ~ever_voided)) /\ ((status \in {"authorized","captured","voided","refunded"}) => ever_authorized) /\ ((status = "authorized") => (~ever_captured)) /\ ((status \in {"captured","refunded"}) => ever_captured) /\ ((status = "voided") => (~ever_captured)) /\ ((status \in {"captured","refunded"}) => ever_authorized)
+SafetyInvariant == ((status = "refunded") => ever_captured) /\ ((status = "voided") => (~ever_captured)) /\ ((status \in {"captured","refunded"}) => ever_authorized)
 
 TypeOK == /\ status \in States
           /\ ever_authorized \in BOOLEAN

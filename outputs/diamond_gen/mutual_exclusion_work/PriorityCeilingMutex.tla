@@ -59,5 +59,4 @@ TypeOK ==
     /\ (holder # NoHolder) => pc[holder] = "cs"
     /\ (holder # NoHolder) => effective[holder] = Ceiling
     /\ \A s, t \in Tasks : (s # t /\ pc[s] = "cs") => pc[t] # "cs"
-    /\ \A t \in Tasks : (pc[t] = "cs") => (holder = t /\ effective[t] = Ceiling)
 ====

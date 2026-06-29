@@ -18,8 +18,8 @@ binary-vs-diamond experiment as a PBS job.
 ## Step 1 — sync FRS from my workstation (only if FRS isn't on Polaris yet)
 On MY WORKSTATION (not Polaris), I will run:
     rsync -av --exclude=outputs/ --exclude=.git/ --exclude='*.gguf' \
-      /path/to/FormalRewardSignal/ \
-      <<<USER>>>@polaris.alcf.anl.gov:<<<FRS_PATH>>>/
+      /home/REDACTED-USER/FormalRewardSignal/ \
+      ericspencer@polaris.alcf.anl.gov:<<<FRS_PATH>>>/
 Alternatively, the 500-train / 50-dev dataset alone is on GitHub at
 https://github.com/LUC-AI4FM/ChatTLA/tree/claude/elated-hugle-8806ef/data/frs_tla_ralph_gen
 and can be cloned instead if FRS hasn't been published to GitHub yet.

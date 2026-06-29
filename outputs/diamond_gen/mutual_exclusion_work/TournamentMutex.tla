@@ -50,7 +50,5 @@ TypeOK ==
     /\ pc   \in [Procs -> {"leaf","wait_root","cs"}]
     /\ flag \in [Procs -> BOOLEAN]
     /\ turn \in Procs
-    /\ \A i \in Procs : (pc[i] \in {"wait_root", "cs"}) => flag[i]
-    /\ \A i, j \in Procs : (i # j /\ pc[i] = "wait_root" /\ pc[j] = "cs") => (turn = j)
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

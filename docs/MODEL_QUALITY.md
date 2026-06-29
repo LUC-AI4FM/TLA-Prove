@@ -39,17 +39,4 @@ Public model: [EricSpencer00/chattla-20b](https://huggingface.co/EricSpencer00/c
   `python -m src.training.dataset_builder --sany-only --include-augmented --include-description-sft --bugfix-oversample 2`  
   (omit `--no-silver-augmented` / `--no-augmented-best-per-prompt` unless you want the old behavior)
 - Run a **full** benchmark (`python -m src.inference.benchmark ...` without `--limit`) before claiming a win on TLC.
-- When training against repair corpora, `python -m scripts.train_rl_repair --include-benchmark-repair-pairs`
-  now mixes the benchmark-derived `fc128best` failures from
-  `data/processed/benchmark_repair_pairs_fc128best.jsonl` into the default
-  Ralph repair dataset, so the current blocked publish lane feeds directly into
-  the repair loop.
-- For a reproducible tracked training input instead of ad hoc CLI mixing, run
-  `python3 scripts/build_tla_prover_repair_corpus.py` and then train from
-  `data/processed/tla_prover_repair_train_v1.jsonl`. The builder will use the
-  short Ralph corpus, the long-Ralph latest corpus, and the benchmark repair
-  corpus when those local files exist.
-- For Hub releases: ensure `HF_TOKEN` is in `.env`; `python -m src.training.publish_hf --dry-run` is a real deployability preflight:
-  - it still computes the next version even when `huggingface_hub` is not installed locally;
-  - it exits nonzero when the current candidate would be blocked from a real publish.
-  - pass `--benchmark-model <ollama-tag>` when the local artifact is a named candidate such as `chattla:20b-fc128best`; otherwise the default readiness lane is canonical `chattla:20b`.
+- For Hub releases: ensure `HF_TOKEN` is in `.env`; optional `python -m src.training.publish_hf --dry-run` to see next version.

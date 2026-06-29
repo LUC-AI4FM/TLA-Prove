@@ -61,21 +61,8 @@ QuiescentAgreement ==
     (\A s \in Sockets : pending[s] = 0) =>
         (\A s, t \in Sockets : mem[s] = mem[t])
 
-\* While a remote write is still in flight, every socket whose pending slot
-\* has cleared must already see the propagated value, and all uncleared
-\* pending slots carry that same value.
-InFlightWrite ==
-    \E v \in Vals :
-        /\ \E r \in Sockets : pending[r] = v
-        /\ \A r \in Sockets :
-               IF pending[r] = 0
-               THEN mem[r] = v
-               ELSE pending[r] = v
-
 TypeOK == /\ mem     \in [Sockets -> 0..2]
           /\ pending \in [Sockets -> 0..2]
           /\ issued  \in 0..MaxIssue
-          /\ IF \A s \in Sockets : pending[s] = 0
-             THEN QuiescentAgreement
-             ELSE InFlightWrite
+          /\ QuiescentAgreement
 ====

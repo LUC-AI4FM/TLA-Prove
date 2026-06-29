@@ -59,11 +59,10 @@ def validate_file(tla_path: Path, jar: Path = _TLA_TOOLS_JAR) -> SANYResult:
             "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"
         )
 
-    cmd = ["java", "-cp", str(jar), "tla2sany.SANY", tla_path.name]
+    cmd = ["java", "-cp", str(jar), "tla2sany.SANY", str(tla_path)]
     try:
         result = subprocess.run(
             cmd,
-            cwd=str(tla_path.parent),
             capture_output=True,
             text=True,
             timeout=30,
@@ -120,28 +119,11 @@ def _parse_errors(output: str) -> list[str]:
     Skip the version banner line (e.g., "****** SANY2 Version ...").
     """
     errors: list[str] = []
-    seen: set[str] = set()
-    in_error_block = False
     for line in output.splitlines():
         stripped = line.strip()
         # Skip the SANY version banner
         if re.match(r"^\*+\s*SANY", stripped):
             continue
-        if not stripped:
-            continue
-        if stripped.startswith("Fatal errors while parsing") or stripped.startswith("Semantic errors"):
-            in_error_block = True
-            continue
-        if stripped.startswith("Parsing file ") or stripped == "Labels added.":
-            continue
-        if stripped.startswith("In module "):
-            continue
         if stripped.startswith("***") or re.match(r"^\s*Error", stripped, re.IGNORECASE):
-            if stripped not in seen:
-                errors.append(stripped)
-                seen.add(stripped)
-            continue
-        if in_error_block and stripped not in seen:
             errors.append(stripped)
-            seen.add(stripped)
     return errors

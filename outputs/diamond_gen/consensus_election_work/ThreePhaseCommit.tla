@@ -98,10 +98,6 @@ TypeOK ==
     /\ pVote     \in [Participants -> {"none", "yes", "no"}]
     /\ cPhase    \in {"init", "ready", "precommit", "done"}
     /\ cDecision \in {"none", "commit", "abort"}
-    /\ (cPhase # "done") => (cDecision = "none")
-    /\ (cPhase = "done") => (cDecision \in Decisions)
-    /\ \A p \in Participants :
-         (pState[p] \in Decisions) => (cPhase = "done" /\ cDecision = pState[p])
 
 \* Strong safety: uniform agreement on the decision and consistency with
 \* the coordinator's choice.

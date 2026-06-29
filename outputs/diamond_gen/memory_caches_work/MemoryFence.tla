@@ -18,9 +18,6 @@ VARIABLES sb,         \* sb[t] = sequence of pending stores for thread t
 
 vars == << sb, fenced, issued >>
 
-BufVals == 1..1
-Bufs == UNION { [1..n -> BufVals] : n \in 0..2 }
-
 Init == /\ sb     = [t \in Threads |-> << >>]
         /\ fenced = [t \in Threads |-> TRUE]
         /\ issued = [t \in Threads |-> 0]
@@ -71,7 +68,7 @@ FenceImpliesDrained ==
 \* Buffer is bounded.
 Bounded == \A t \in Threads : Len(sb[t]) \in 0..2
 
-TypeOK == /\ sb     \in [Threads -> Bufs]
+TypeOK == /\ sb     \in [Threads -> Seq(1..1)]
           /\ fenced \in [Threads -> BOOLEAN]
           /\ issued \in [Threads -> 0..MaxIssue]
           /\ FenceImpliesDrained

@@ -1,3 +1,0 @@
-outputs/diamond_gen/mutual_exclusion_work/AdaptiveMutex.tla
-outputs/diamond_gen/mutual_exclusion_work/RecursiveMutex.tla
-outputs/diamond_gen/mutual_exclusion_work/TestAndSetMutex.tla

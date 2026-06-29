@@ -23,7 +23,6 @@ Why this works as an RL signal:
 from __future__ import annotations
 
 import re
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -52,26 +51,6 @@ Output rules:
 Reasoning: medium\
 """
 
-_TLA_DIRECT_DEVELOPER_PROMPT = """\
-You are ChatTLA, an expert at writing TLA+ specifications. The user will give
-you an existing TLA+ module that defines the variables, the initial state, the
-type invariant, and a natural-language description of the system's intended
-behavior. Your job is to write only the `Next` operator so that the resulting
-module type-checks and TLC accepts it as a valid step relation.
-
-Output rules:
-  - Your first output characters must be `Next ==`.
-  - Emit only TLA+ code for the `Next ==` operator definition and any helper
-    sub-actions it directly references.
-  - Do not include analysis, prose, markdown fences, `<think>` blocks, a
-    `MODULE` header, `Spec ==`, invariants, or `====`.
-  - Every disjunct in `Next` must specify ALL variables: either prime them
-    (x' = ...) or use UNCHANGED <<x>>.
-  - Use ASCII operators only (`/\\`, `\\/`, `\\in`, `->`, `|->`), never
-    Unicode.
-Reasoning: none\
-"""
-
 
 @dataclass
 class TLATrainExample:
@@ -81,18 +60,10 @@ class TLATrainExample:
     nl: str
 
 
-def _direct_prompt_enabled() -> bool:
-    return os.environ.get("CHATTLA_ACTION_PROMPT_MODE", "").lower() in {
-        "direct",
-        "direct_only",
-        "no_analysis",
-    }
-
-
-def _build_user_message(ex: ActionExample, *, direct: bool = False) -> str:
+def _build_user_message(ex: ActionExample) -> str:
     h = ex.harness
     nl_clean = re.sub(r"\s+", " ", (ex.nl_description or "")).strip()[:600]
-    msg = (
+    return (
         f"System description:\n{nl_clean}\n\n"
         f"Existing module (everything up to but not including `Next`):\n"
         f"```tla\n{h.prefix}\n```\n\n"
@@ -102,9 +73,6 @@ def _build_user_message(ex: ActionExample, *, direct: bool = False) -> str:
         f"specifies all of the module's variables (either primed or via "
         f"UNCHANGED)."
     )
-    if direct:
-        msg += "\n\nBegin immediately with `Next ==` and do not write analysis."
-    return msg
 
 
 def load_tla_action_prompts(
@@ -117,13 +85,10 @@ def load_tla_action_prompts(
     through as a dataset column.
     """
     out: list[TLATrainExample] = []
-    direct = _direct_prompt_enabled()
-    developer_prompt = _TLA_DIRECT_DEVELOPER_PROMPT if direct else _TLA_DEVELOPER_PROMPT
-    prompt_role = "developer" if direct else "system"
     for ex in iter_action_examples(corpus_path):
         prompt = [
-            {"role": prompt_role, "content": developer_prompt},
-            {"role": "user",   "content": _build_user_message(ex, direct=direct)},
+            {"role": "system", "content": _TLA_DEVELOPER_PROMPT},
+            {"role": "user",   "content": _build_user_message(ex)},
         ]
         out.append(TLATrainExample(
             prompt_id=ex.prompt_id,

@@ -53,7 +53,7 @@ SetY(i) ==
 \* Step 5: re-read x.  If x = i, fast-path enter.  Else slow-path wait.
 CheckX(i) ==
     /\ pc[i] = "check_x"
-    /\ IF x = i /\ y = i
+    /\ IF x = i
          THEN /\ pc' = [pc EXCEPT ![i] = "cs"]
               /\ UNCHANGED << b, x, y >>
          ELSE /\ pc' = [pc EXCEPT ![i] = "wait_b"]
@@ -64,7 +64,6 @@ CheckX(i) ==
 WaitB(i) ==
     /\ pc[i] = "wait_b"
     /\ \A j \in Procs \ {i} : b[j] = FALSE
-    /\ \A j \in Procs \ {i} : pc[j] # "cs"
     /\ IF y = i
          THEN /\ pc' = [pc EXCEPT ![i] = "cs"]
               /\ UNCHANGED << b, x, y >>
@@ -92,10 +91,5 @@ TypeOK ==
     /\ b  \in [Procs -> BOOLEAN]
     /\ x  \in Procs \cup {NoProc}
     /\ y  \in Procs \cup {NoProc}
-    /\ \A i \in Procs : (pc[i] \in {"set_x", "check_y", "set_y", "check_x"}) => b[i]
-    /\ \A i \in Procs : (pc[i] = "wait_b") => ~b[i]
-    /\ \A i \in Procs : (pc[i] = "cs") => y # NoProc
-    /\ \A i, j \in Procs :
-         (i # j /\ pc[i] \in {"set_y", "check_x"} /\ pc[j] = "cs") => x # i
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

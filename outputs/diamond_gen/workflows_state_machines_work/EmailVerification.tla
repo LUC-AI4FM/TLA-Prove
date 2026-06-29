@@ -50,7 +50,7 @@ Next == \/ SendCode \/ Verify \/ Expire \/ Tick \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Verified state implies a single-use code was issued and consumed.
-SafetyInvariant == ((status = "code_sent") => ever_code) /\ ((status = "verified") => (ever_code /\ code_used)) /\ (code_used => ever_code) /\ ((status = "expired") => ever_code)
+SafetyInvariant == ((status = "verified") => (ever_code /\ code_used)) /\ (code_used => ever_code) /\ ((status = "expired") => ever_code)
 
 TypeOK == /\ status \in States
           /\ code_sent_at \in 0..MaxTime

@@ -98,23 +98,6 @@ if len(in_band) < 300:
 MERGED_PAIRS=$(wc -l < data/processed/ralph_repair_pairs.jsonl)
 echo "[$(ts)] Phase 2 complete: $MERGED_PAIRS merged pairs" | tee -a "$LOG"
 
-if [ -f outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv ]; then
-    echo "[$(ts)] Phase 2b: Rebuilding benchmark-derived repair pairs..." | tee -a "$LOG"
-    .venv/bin/python -u scripts/build_benchmark_repair_pairs.py \
-        --benchmark-model chattla:20b-fc128best \
-        2>&1 | tee -a "$LOG" || {
-            echo "[$(ts)] Benchmark repair-pair rebuild FAILED" | tee -a "$LOG"
-            exit 1
-        }
-fi
-
-echo "[$(ts)] Phase 2c: Building merged repair-training corpus..." | tee -a "$LOG"
-.venv/bin/python -u scripts/build_tla_prover_repair_corpus.py \
-    2>&1 | tee -a "$LOG" || {
-        echo "[$(ts)] Repair-training corpus build FAILED" | tee -a "$LOG"
-        exit 1
-    }
-
 # ─── Phase 3: Unload Ollama, free VRAM ──────────────────────────────────
 echo "[$(ts)] Unloading Ollama models for GRPO training..." | tee -a "$LOG"
 curl -s http://localhost:11434/api/generate -d '{"model":"chattla:20b-repair","keep_alive":0}' > /dev/null 2>&1 || true
@@ -126,7 +109,6 @@ echo "[$(ts)] Phase 4: Repair GRPO round 3 (continue from R1, 175 steps)..." | t
 .venv/bin/python -u -m scripts.train_rl_repair \
     --model ${CHATTLA_MODEL_DIR:-$REPO/outputs}/merged_model_repair \
     --output-dir outputs/checkpoints_rl_repair_r3 \
-    --trajectory-file data/processed/tla_prover_repair_train_v1.jsonl \
     --max-steps 175 \
     --num-generations 4 \
     --max-completion-length 384 \
@@ -140,7 +122,6 @@ echo "[$(ts)] Phase 4: Repair GRPO round 3 (continue from R1, 175 steps)..." | t
         .venv/bin/python -u -m scripts.train_rl_repair \
             --model ${CHATTLA_MODEL_DIR:-$REPO/outputs}/merged_model_repair \
             --output-dir outputs/checkpoints_rl_repair_r3 \
-            --trajectory-file data/processed/tla_prover_repair_train_v1.jsonl \
             --max-steps 175 \
             --num-generations 2 \
             --max-completion-length 384 \

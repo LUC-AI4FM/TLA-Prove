@@ -1,7 +1,7 @@
 """
 ingest_formalllm.py — Seed corpus ingestion from the FormaLLM submodule.
 
-FormaLLM (https://github.com/LUC-AI4FM/FormaLLM) is our Tier-1 seed dataset.
+FormaLLM (https://github.com/LUC-FMitF/FormaLLM) is our Tier-1 seed dataset.
 It contains 205 MIT-licensed, curated TLA+ specs in the directory structure:
 
     data/FormaLLM/data/<SpecFamily>/

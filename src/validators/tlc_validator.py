@@ -52,7 +52,6 @@ class SemanticInfo:
     action_coverage: float = 0.0         # 0.0–1.0; 1.0 = all actions reachable
     total_actions: int = 0
     dead_actions: list[str] = field(default_factory=list)  # action names with 0 states
-    coverage_observed: bool = False      # TRUE when TLC printed coverage rows
     # State space
     distinct_states: int = 0
     total_states: int = 0
@@ -60,10 +59,6 @@ class SemanticInfo:
     invariant_names: list[str] = field(default_factory=list)
     invariants_checked: int = 0          # how many INVARIANTs TLC actually checked
     trivial_invariant: bool = False      # TRUE if invariant is vacuously true (e.g. TRUE, TypeOK on empty state)
-    # Temporal/liveness properties checked by TLC via PROPERTY/PROPERTIES cfg.
-    property_names: list[str] = field(default_factory=list)
-    properties_checked: int = 0
-    properties_declared: bool = False
     # Mutation test: did weakening the spec change TLC's outcome?
     mutation_tested: bool = False
     mutation_caught: bool = False        # TRUE = invariant caught the mutation → semantically meaningful
@@ -155,7 +150,6 @@ def validate_file(
             tla_text = tla_path.read_text(encoding="utf-8", errors="replace")
             mod_match = re.search(r"MODULE\s+(\w+)", tla_text)
             mod_name = mod_match.group(1) if mod_match else "Temp"
-            _populate_property_verdicts(bronze_semantic, tla_text, "")
             _populate_component_verdicts(
                 bronze_semantic, tla_text, "", mod_name, jar,
                 full_tlc_passed=False, run_depth1=False,
@@ -183,7 +177,6 @@ def validate_file(
             try:
                 mod_match = re.search(r"MODULE\s+(\w+)", tla_content)
                 mod_name = mod_match.group(1) if mod_match else "Temp"
-                _populate_property_verdicts(silver_semantic, tla_content, "")
                 _populate_component_verdicts(
                     silver_semantic, tla_content, "", mod_name, jar,
                     full_tlc_passed=False, run_depth1=False,
@@ -205,7 +198,6 @@ def validate_file(
     cmd = [
         "java", "-cp", str(jar),
         "tlc2.TLC",
-        "-coverage", "1",
         "-config", str(cfg_path),
         str(tla_path),
     ]
@@ -249,7 +241,6 @@ def validate_file(
                 )
             except Exception:
                 pass  # semantic analysis is best-effort
-        _populate_property_verdicts(semantic, tla_text, cfg_text)
         try:
             _populate_component_verdicts(
                 semantic, tla_text, cfg_text, mod_name, jar,
@@ -275,7 +266,6 @@ def validate_file(
             cfg_text_to = cfg_path.read_text(encoding="utf-8", errors="replace") if cfg_path else ""
             mod_match = re.search(r"MODULE\s+(\w+)", tla_text)
             mod_name = mod_match.group(1) if mod_match else "Temp"
-            _populate_property_verdicts(timeout_semantic, tla_text, cfg_text_to)
             _populate_component_verdicts(
                 timeout_semantic, tla_text, cfg_text_to, mod_name, jar,
                 full_tlc_passed=False, run_depth1=True,
@@ -375,8 +365,6 @@ def _parse_violations(output: str) -> list[str]:
     for line in output.splitlines():
         stripped = line.strip()
         # Skip harmless / success lines
-        if re.search(r"^Warning:", stripped, re.IGNORECASE):
-            continue
         if re.search(r"(Warning.*garbage collector|Warning.*UseParallelGC)", stripped, re.IGNORECASE):
             continue
         if re.search(r"no error has been found", stripped, re.IGNORECASE):
@@ -388,7 +376,7 @@ def _parse_violations(output: str) -> list[str]:
     return violations
 
 
-def _parse_coverage(output: str) -> tuple[int, list[str], int, bool]:
+def _parse_coverage(output: str) -> tuple[int, list[str], int]:
     """Parse TLC coverage stats to find dead actions.
 
     TLC prints lines like:
@@ -399,18 +387,16 @@ def _parse_coverage(output: str) -> tuple[int, list[str], int, bool]:
     The format is <name ...>: distinct:total
     An action with 0:0 or 0:N is dead (unreachable from Init via Next).
 
-    Returns (total_actions, dead_action_names, distinct_states, coverage_observed).
+    Returns (total_actions, dead_action_names, distinct_states).
     """
     total_actions = 0
     dead: list[str] = []
     distinct_states = 0
-    coverage_observed = False
 
     for line in output.splitlines():
         # Match coverage lines: <ActionName line ...>: N:M
         m = re.match(r"<(\w+)\s+line\s+\d+.*?>:\s*(\d+):(\d+)", line.strip())
         if m:
-            coverage_observed = True
             name, distinct_str, total_str = m.group(1), m.group(2), m.group(3)
             if name in ("Init",):
                 continue  # Init is always covered
@@ -426,7 +412,7 @@ def _parse_coverage(output: str) -> tuple[int, list[str], int, bool]:
     if all_distinct:
         distinct_states = int(all_distinct[-1])
 
-    return total_actions, dead, distinct_states, coverage_observed
+    return total_actions, dead, distinct_states
 
 
 def _parse_state_counts(output: str) -> tuple[int, int]:
@@ -459,110 +445,6 @@ def _extract_invariant_names(tla_content: str, cfg_content: str = "") -> list[st
     return names
 
 
-def _definition_blocks(tla_content: str) -> dict[str, str]:
-    """Return top-level operator definition bodies keyed by operator name."""
-    blocks: dict[str, list[str]] = {}
-    current_name = ""
-    current_lines: list[str] = []
-
-    for line in tla_content.splitlines():
-        m = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?:\([^)]*\))?\s*==\s*(.*)", line)
-        if m:
-            if current_name:
-                blocks[current_name] = current_lines
-            current_name = m.group(1)
-            current_lines = [m.group(2)]
-            continue
-        if current_name:
-            if line.strip() == "====":
-                blocks[current_name] = current_lines
-                current_name = ""
-                current_lines = []
-            else:
-                current_lines.append(line)
-
-    if current_name:
-        blocks[current_name] = current_lines
-    return {name: "\n".join(lines).strip() for name, lines in blocks.items()}
-
-
-def _extract_cfg_property_names(cfg_content: str = "") -> list[str]:
-    """Find property names that TLC is instructed to check via cfg."""
-    names: list[str] = []
-    for m in re.finditer(r"^\s*(?:PROPERTY|PROPERTIES)\s+(.+)$", cfg_content, re.MULTILINE):
-        for name in re.split(r"\s+", m.group(1).strip()):
-            if name and not name.startswith("\\*"):
-                names.append(name)
-    return _dedupe(names)
-
-
-def _extract_declared_property_names(tla_content: str) -> list[str]:
-    """Find source operators that look like temporal/liveness properties."""
-    names: list[str] = []
-    excluded = {
-        "Init", "Next", "Spec", "TypeOK", "vars", "Terminating",
-    }
-    for name, body in _definition_blocks(tla_content).items():
-        if name in excluded:
-            continue
-        if _looks_like_temporal_property(name, body):
-            names.append(name)
-    return _dedupe(names)
-
-
-def _extract_property_names(tla_content: str, cfg_content: str = "") -> list[str]:
-    """Find property names mentioned either in cfg or source definitions."""
-    return _dedupe(
-        _extract_cfg_property_names(cfg_content)
-        + _extract_declared_property_names(tla_content)
-    )
-
-
-def _extract_static_action_names(tla_content: str) -> list[str]:
-    """Best-effort action names referenced by Next when TLC coverage is unavailable."""
-    blocks = _definition_blocks(tla_content)
-    next_body = blocks.get("Next", "")
-    if not next_body:
-        return []
-
-    excluded = {
-        "Init", "Next", "Spec", "TypeOK", "vars", "Safety", "Invariant",
-    }
-    action_like = [
-        name for name, body in blocks.items()
-        if name not in excluded and _looks_like_action(body)
-    ]
-    referenced = [
-        name for name in action_like
-        if re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}\s*(?:\(|\b)", next_body)
-    ]
-    return _dedupe(referenced)
-
-
-def _looks_like_action(body: str) -> bool:
-    return bool(re.search(r"\bUNCHANGED\b|[A-Za-z_][A-Za-z0-9_]*\s*'", body))
-
-
-def _looks_like_temporal_property(name: str, body: str) -> bool:
-    lowered = name.lower()
-    temporal_name = re.search(
-        r"(live|liveness|eventual|eventually|progress|fair|starv|wait|terminate)",
-        lowered,
-    )
-    temporal_body = re.search(r"((?<!<)<>\s*(?!>)|\[\]\s*|~>|\\leadsto\b|\b[WS]F_)", body)
-    return bool(temporal_name or temporal_body) and bool(temporal_body)
-
-
-def _dedupe(names: list[str]) -> list[str]:
-    out: list[str] = []
-    seen: set[str] = set()
-    for name in names:
-        if name not in seen:
-            seen.add(name)
-            out.append(name)
-    return out
-
-
 def _check_trivial_invariant(tla_content: str, inv_names: list[str]) -> bool:
     """Detect obviously trivial invariants (e.g. 'TypeOK == TRUE')."""
     for name in inv_names:
@@ -573,18 +455,6 @@ def _check_trivial_invariant(tla_content: str, inv_names: list[str]) -> bool:
             if body in ("TRUE", "True", "true"):
                 return True
     return False
-
-
-def _populate_property_verdicts(
-    semantic: SemanticInfo,
-    tla_content: str,
-    cfg_content: str,
-) -> None:
-    checked = _extract_cfg_property_names(cfg_content)
-    declared = _extract_declared_property_names(tla_content)
-    semantic.property_names = _dedupe(checked + declared)
-    semantic.properties_checked = len(checked)
-    semantic.properties_declared = bool(checked or declared)
 
 
 def _mutation_test(
@@ -733,13 +603,9 @@ def compute_semantic_info(
     info = SemanticInfo()
 
     # 1. Coverage / reachability
-    total_actions, dead_actions, distinct_states, coverage_observed = _parse_coverage(tlc_output)
-    if not coverage_observed:
-        total_actions = len(_extract_static_action_names(tla_content))
-        dead_actions = []
+    total_actions, dead_actions, distinct_states = _parse_coverage(tlc_output)
     info.total_actions = total_actions
     info.dead_actions = dead_actions
-    info.coverage_observed = coverage_observed
     info.action_coverage = (
         (total_actions - len(dead_actions)) / total_actions
         if total_actions > 0 else 0.0
@@ -752,7 +618,6 @@ def compute_semantic_info(
     info.invariant_names = _extract_invariant_names(tla_content, cfg_content)
     info.invariants_checked = len(info.invariant_names)
     info.trivial_invariant = _check_trivial_invariant(tla_content, info.invariant_names)
-    _populate_property_verdicts(info, tla_content, cfg_content)
 
     # 4. Mutation test (only for gold specs — silver/bronze already failed)
     if run_mutation and info.invariants_checked > 0 and not info.trivial_invariant:
@@ -778,7 +643,7 @@ def _extract_constant_names(tla_content: str) -> list[str]:
     in_const_block = False
 
     for line in tla_content.splitlines():
-        stripped = re.split(r"\\\*", line, maxsplit=1)[0].strip()
+        stripped = line.strip()
         if stripped.startswith("\\*") or stripped.startswith("(*"):
             continue
 
@@ -802,11 +667,7 @@ def _extract_constant_names(tla_content: str) -> list[str]:
 
         if in_const_block:
             # Continuation line of a multiline CONSTANT block
-            if not stripped:
-                continue
-            if stripped.startswith("(*"):
-                continue
-            if re.match(r"^(VARIABLE|VARIABLES|ASSUME|----)", stripped):
+            if not stripped or re.match(r"^(VARIABLE|ASSUME|----)", stripped):
                 in_const_block = False
                 continue
             for part in stripped.split(","):
@@ -836,18 +697,6 @@ def _infer_constant_type(name: str, tla_content: str) -> str:
     if re.search(rf"\b\d+\s*\.\.\s*{re.escape(name)}\b", tla_content):
         return f"CONSTANT {name} = 3"
 
-    # Pattern: Name \in Nat/Int/... → numeric
-    if re.search(rf"\b{re.escape(name)}\s*\\in\s+(Nat|Int|Integers)\b", tla_content):
-        return f"CONSTANT {name} = 3"
-
-    # Pattern: Name \in SomeSet → singleton/model value drawn from another set
-    if re.search(rf"\b{re.escape(name)}\s*\\in\s+[A-Za-z_]\w*\b", tla_content):
-        return f"CONSTANT {name} = v1"
-
-    # Pattern: {Name} literal → singleton/model value
-    if re.search(rf"\{{\s*{re.escape(name)}\s*\}}", tla_content):
-        return f"CONSTANT {name} = v1"
-
     # Pattern: \\in Name (used as a set to iterate over) → model value set
     if re.search(rf"\\in\s+{re.escape(name)}\b", tla_content):
         # Check if it's used with Cardinality or as a function domain
@@ -858,7 +707,7 @@ def _infer_constant_type(name: str, tla_content: str) -> str:
     # Pattern: Name matches known set-of-actors names
     if re.match(r"^(Proc|Process|Node|Server|Client|Participant|"
                 r"Thread|Worker|Acceptor|Proposer|Learner|Replica|"
-                r"Philosopher|Fork|Jug|Ingredient|Offer|Symbol)s?$", name):
+                r"Philosopher|Fork)s?$", name):
         return f"CONSTANT {name} = {{v1, v2, v3}}"
 
     # Pattern: Name matches known coordinator/singleton
@@ -910,7 +759,7 @@ def _autogenerate_cfg(tla_content: str) -> Optional[str]:
         lines.append("INIT Init")
         lines.append("NEXT Next")
 
-    # If Spec/properties include fairness (WF_ or SF_), disable deadlock checking
+    # If Spec includes fairness (WF_ or SF_), disable deadlock checking
     # since fair specs deliberately allow stuttering/termination.
     if has_spec and re.search(r"\b[WS]F_", tla_content):
         lines.append("CHECK_DEADLOCK FALSE")
@@ -929,10 +778,6 @@ def _autogenerate_cfg(tla_content: str) -> Optional[str]:
             invariants.append(name)
     if invariants:
         lines.append("INVARIANT " + " ".join(invariants))
-
-    properties = _extract_declared_property_names(tla_content)
-    if properties:
-        lines.append("PROPERTY " + " ".join(properties))
 
     # Auto-assign CONSTANT values using context-aware type inference.
     const_names = _extract_constant_names(tla_content)

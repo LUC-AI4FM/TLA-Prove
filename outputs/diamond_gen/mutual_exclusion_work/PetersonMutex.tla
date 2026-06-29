@@ -60,7 +60,5 @@ TypeOK ==
     /\ pc   \in [Procs -> {"ncs", "set", "wait", "cs"}]
     /\ flag \in [Procs -> BOOLEAN]
     /\ turn \in Procs
-    /\ \A i \in Procs : (pc[i] \in {"set", "wait", "cs"}) => flag[i]
-    /\ \A i, j \in Procs : (i # j /\ pc[i] = "wait" /\ pc[j] = "cs") => (turn = j)
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

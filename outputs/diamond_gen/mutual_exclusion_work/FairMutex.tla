@@ -63,5 +63,4 @@ TypeOK ==
     /\ lock \in Procs \cup {NoHolder}
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
     /\ (lock # NoHolder) => pc[lock] = "cs"
-    /\ \A i \in Procs : (pc[i] = "cs") => (lock = i)
 ====

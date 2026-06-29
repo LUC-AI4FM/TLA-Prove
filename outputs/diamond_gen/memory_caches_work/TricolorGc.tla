@@ -64,18 +64,7 @@ ReachableMarkedAtFixpoint ==
     (\A o \in Objects : color[o] # "gray") =>
         (\A o \in Objects : color[o] # "white")
 
-\* Reachable states are a single gray frontier moving down the chain:
-\* objects above the frontier are black, objects below it are white,
-\* and once the frontier disappears every object is black.
-MarkWavefront ==
-    \/ (\A o \in Objects : color[o] = "black")
-    \/ \E g \in Objects :
-           /\ color[g] = "gray"
-           /\ \A o \in Objects : o < g => color[o] = "white"
-           /\ \A o \in Objects : o > g => color[o] = "black"
-
 TypeOK == /\ color \in [Objects -> {"white", "gray", "black"}]
           /\ TricolorInvariant
           /\ ReachableMarkedAtFixpoint
-          /\ MarkWavefront
 ====

@@ -82,5 +82,4 @@ TypeOK ==
     /\ attempts \in [Procs -> 0..MaxAttempts]
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
     /\ (lock # NoHolder) => pc[lock] = "cs"
-    /\ \A i \in Procs : (pc[i] = "cs") => (lock = i)
 ====

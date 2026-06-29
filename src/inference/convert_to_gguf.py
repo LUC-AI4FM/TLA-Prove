@@ -110,16 +110,10 @@ PARAMETER stop "<|return|>"
 
 def ensure_llama_cpp() -> Path:
     """Clone or update llama.cpp to get the conversion script."""
-    offline = os.environ.get("CHATTLA_LLAMA_CPP_OFFLINE", "").strip().lower() in {"1", "true", "yes"}
     if _LLAMA_CPP_DIR.exists():
-        if offline:
-            print("[convert_gguf] Using existing llama.cpp checkout (offline mode)")
-        else:
-            print("[convert_gguf] Updating llama.cpp...")
-            subprocess.run(["git", "-C", str(_LLAMA_CPP_DIR), "pull", "--quiet"], check=True)
+        print("[convert_gguf] Updating llama.cpp...")
+        subprocess.run(["git", "-C", str(_LLAMA_CPP_DIR), "pull", "--quiet"], check=True)
     else:
-        if offline:
-            raise FileNotFoundError(f"llama.cpp not found at {_LLAMA_CPP_DIR} and offline mode is enabled")
         print("[convert_gguf] Cloning llama.cpp...")
         subprocess.run([
             "git", "clone", "--depth=1",
@@ -134,26 +128,12 @@ def ensure_llama_cpp() -> Path:
     if not convert_script.exists():
         raise FileNotFoundError(f"convert script not found in {_LLAMA_CPP_DIR}")
 
-    if offline:
-        for package in ("gguf", "sentencepiece"):
-            try:
-                __import__(package)
-            except ImportError as exc:
-                raise RuntimeError(
-                    f"{package} is required for GGUF conversion in offline mode"
-                ) from exc
-    else:
-        # Install llama.cpp Python dependencies
-        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "gguf", "sentencepiece"], check=True)
+    # Install llama.cpp Python dependencies
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "gguf", "sentencepiece"], check=True)
     return convert_script
 
 
-def convert_to_gguf(
-    quant: str = "Q8_0",
-    merged_model_dir: Path | None = None,
-    gguf_name: str | None = None,
-    gguf_out_dir: Path | None = None,
-) -> Path:
+def convert_to_gguf(quant: str = "Q8_0", merged_model_dir: Path | None = None, gguf_name: str | None = None) -> Path:
     """
     Convert the merged HuggingFace model to GGUF.
 
@@ -174,11 +154,10 @@ def convert_to_gguf(
         sys.exit(1)
 
     convert_script = ensure_llama_cpp()
-    out_dir = Path(gguf_out_dir or os.environ.get("CHATTLA_GGUF_OUT_DIR") or _GGUF_OUT_DIR)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    _GGUF_OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     name = gguf_name or "chattla-20b"
-    gguf_path = out_dir / f"{name}-{quant}.gguf"
+    gguf_path = _GGUF_OUT_DIR / f"{name}-{quant}.gguf"
 
     print(f"[convert_gguf] Converting to GGUF ({quant})...")
     # llama.cpp convert script expects a limited set of outtypes; map our
@@ -221,14 +200,8 @@ def register_with_ollama(gguf_path: Path, model_name: str = "chattla:20b") -> No
 
 
 def main(quant: str = "Q8_0", register: bool = True, model_name: str = "chattla:20b",
-         merged_model_dir: Path | None = None, gguf_name: str | None = None,
-         gguf_out_dir: Path | None = None) -> None:
-    gguf_path = convert_to_gguf(
-        quant=quant,
-        merged_model_dir=merged_model_dir,
-        gguf_name=gguf_name,
-        gguf_out_dir=gguf_out_dir,
-    )
+         merged_model_dir: Path | None = None, gguf_name: str | None = None) -> None:
+    gguf_path = convert_to_gguf(quant=quant, merged_model_dir=merged_model_dir, gguf_name=gguf_name)
 
     if register:
         register_with_ollama(gguf_path, model_name=model_name)
@@ -247,8 +220,6 @@ if __name__ == "__main__":
     parser.add_argument("--gguf-name",          default=None,
                         help="GGUF filename base (default: chattla-20b). "
                              "Produces {gguf_name}-{quant}.gguf.")
-    parser.add_argument("--gguf-dir",           default=None,
-                        help="Directory for GGUF output (default: outputs/gguf or CHATTLA_GGUF_OUT_DIR).")
     args = parser.parse_args()
 
     main(
@@ -257,5 +228,4 @@ if __name__ == "__main__":
         model_name=args.model_name,
         merged_model_dir=Path(args.merged_model) if args.merged_model else None,
         gguf_name=args.gguf_name,
-        gguf_out_dir=Path(args.gguf_dir) if args.gguf_dir else None,
     )

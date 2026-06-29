@@ -4,7 +4,7 @@ synthetic .tla module and running tlapm on it.
 
 Strategy
 --------
-For each chunk in data/processed/legacy_tla_prover_chunks/prover_chunks.jsonl:
+For each chunk in data/processed/prover_chunks.jsonl:
   1. Build synthetic = preamble + statement + proof + "===="
   2. Rename the MODULE to a unique name (so it doesn't collide with the
      original file in the same directory).
@@ -15,10 +15,8 @@ For each chunk in data/processed/legacy_tla_prover_chunks/prover_chunks.jsonl:
 
 Output
 ------
-data/processed/legacy_tla_prover_chunks/prover_chunks_verified.jsonl
-    — chunks that round-tripped
-data/processed/legacy_tla_prover_chunks/prover_chunks_failed.jsonl
-    — chunks that didn't (with reason)
+data/processed/prover_chunks_verified.jsonl  — chunks that round-tripped
+data/processed/prover_chunks_failed.jsonl    — chunks that didn't (with reason)
 
 Usage
 -----
@@ -41,9 +39,9 @@ sys.path.insert(0, str(REPO))
 
 from src.validators.tlaps_validator import validate_file  # noqa: E402
 
-CHUNKS_IN = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks.jsonl"
-OUT_VERIFIED = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks_verified.jsonl"
-OUT_FAILED = REPO / "data" / "processed" / "legacy_tla_prover_chunks" / "prover_chunks_failed.jsonl"
+CHUNKS_IN = REPO / "data" / "processed" / "prover_chunks.jsonl"
+OUT_VERIFIED = REPO / "data" / "processed" / "prover_chunks_verified.jsonl"
+OUT_FAILED = REPO / "data" / "processed" / "prover_chunks_failed.jsonl"
 
 MODULE_RE = re.compile(r"MODULE\s+(\w+)")
 
@@ -126,8 +124,6 @@ def main() -> None:
         total_sum = sum(v["_roundtrip"].get("total", 0) for v in verified)
         print(f"           {proved_sum}/{total_sum} obligations across verified chunks")
 
-    OUT_VERIFIED.parent.mkdir(parents=True, exist_ok=True)
-    OUT_FAILED.parent.mkdir(parents=True, exist_ok=True)
     OUT_VERIFIED.write_text("\n".join(json.dumps(v) for v in verified) + ("\n" if verified else ""))
     OUT_FAILED.write_text("\n".join(json.dumps(v) for v in failed) + ("\n" if failed else ""))
     print(f"[roundtrip] wrote {OUT_VERIFIED} ({len(verified)})")

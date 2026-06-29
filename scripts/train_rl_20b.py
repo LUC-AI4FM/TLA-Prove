@@ -66,44 +66,14 @@ def main() -> None:
                         "completion length and quality, not from temperature noise.")
     parser.add_argument("--logging-steps", type=int, default=1)
     parser.add_argument("--save-steps", type=int, default=25)
-    parser.add_argument("--sample-log-path", default=None,
-                        help="Optional JSONL path for raw completion samples from reward calls.")
-    parser.add_argument("--sample-log-every", type=int, default=1,
-                        help="Log samples every N reward calls when --sample-log-path is set.")
-    parser.add_argument("--sample-log-limit", type=int, default=8,
-                        help="Number of completions to record per sampled reward call.")
-    parser.add_argument("--force-final-channel", action="store_true",
-                        help="Pre-format chat prompts so generation starts in the Harmony final channel.")
-    parser.add_argument("--chat-template-reasoning-effort", default=None,
-                        help="Optional reasoning_effort kwarg when pre-formatting prompts.")
-    parser.add_argument(
-        "--resume-from-checkpoint",
-        default=None,
-        help="Path to a checkpoint directory to resume GRPO training from.",
-    )
-    parser.add_argument(
-        "--adapter-checkpoint",
-        default=None,
-        help=(
-            "Path to a PEFT adapter checkpoint to warm-start from while creating "
-            "a fresh optimizer and LR scheduler. Do not combine with "
-            "--resume-from-checkpoint."
-        ),
-    )
     parser.add_argument("--smoke", action="store_true",
                         help="2 steps, no checkpoint, sanity-check the wiring.")
     args = parser.parse_args()
-    if args.resume_from_checkpoint and args.adapter_checkpoint:
-        parser.error("--adapter-checkpoint cannot be combined with --resume-from-checkpoint")
-    if args.sample_log_path:
-        os.environ["CHATTLA_SAMPLE_LOG_PATH"] = args.sample_log_path
-        os.environ["CHATTLA_SAMPLE_LOG_EVERY"] = str(max(1, args.sample_log_every))
-        os.environ["CHATTLA_SAMPLE_LOG_LIMIT"] = str(max(1, args.sample_log_limit))
 
     import torch
     import yaml
     from datasets import Dataset
-    from peft import LoraConfig, PeftModel
+    from peft import LoraConfig
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from trl import GRPOConfig, GRPOTrainer
 
@@ -121,6 +91,16 @@ def main() -> None:
     if not examples:
         sys.exit(f"No usable harnesses in {args.corpus}.")
     print(f"[rl-20b] loaded {len(examples)} harnesses")
+
+    train_ds = Dataset.from_list([
+        {
+            "prompt": ex.prompt,
+            "harness_prefix": ex.harness.prefix,
+            "harness_suffix": ex.harness.suffix,
+            "harness_module": ex.harness.module_name,
+        }
+        for ex in examples
+    ])
 
     # ── LoRA config ─────────────────────────────────────────────────────
     lora_cfg_path = _REPO_ROOT / "src" / "training" / "lora_config.yaml"
@@ -145,59 +125,12 @@ def main() -> None:
         tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "left"
 
-    dataset_rows = []
-    if args.force_final_channel:
-        channel_suffix = "<|channel|>final<|message|>"
-        template_kwargs = {"add_generation_prompt": True}
-        if args.chat_template_reasoning_effort:
-            template_kwargs["reasoning_effort"] = args.chat_template_reasoning_effort
-        for ex in examples:
-            prompt = tokenizer.apply_chat_template(
-                ex.prompt,
-                tokenize=False,
-                **template_kwargs,
-            ) + channel_suffix
-            dataset_rows.append({
-                "prompt_id": ex.prompt_id,
-                "prompt": prompt,
-                "harness_prefix": ex.harness.prefix,
-                "harness_suffix": ex.harness.suffix,
-                "harness_module": ex.harness.module_name,
-            })
-        print(
-            "[rl-20b] prompts pre-formatted with final-channel suffix "
-            f"and reasoning_effort={args.chat_template_reasoning_effort!r}"
-        )
-    else:
-        dataset_rows = [
-            {
-                "prompt_id": ex.prompt_id,
-                "prompt": ex.prompt,
-                "harness_prefix": ex.harness.prefix,
-                "harness_suffix": ex.harness.suffix,
-                "harness_module": ex.harness.module_name,
-            }
-            for ex in examples
-        ]
-    train_ds = Dataset.from_list(dataset_rows)
-
     model = AutoModelForCausalLM.from_pretrained(
         args.model,
         dtype=torch.bfloat16,
         device_map="auto",
     )
     model.config.use_cache = False
-
-    trainer_peft_config = peft_config
-    if args.adapter_checkpoint:
-        print(f"[rl-20b] warm-starting trainable adapter from {args.adapter_checkpoint} ...")
-        model = PeftModel.from_pretrained(
-            model,
-            args.adapter_checkpoint,
-            is_trainable=True,
-        )
-        model.config.use_cache = False
-        trainer_peft_config = None
 
     # ── GRPO config ─────────────────────────────────────────────────────
     gen_batch_size = args.per_device_batch_size * args.num_generations
@@ -255,7 +188,7 @@ def main() -> None:
         args=config,
         train_dataset=train_ds,
         reward_funcs=[per_action_tlc_reward],
-        peft_config=trainer_peft_config,
+        peft_config=peft_config,
     )
 
     total_params = sum(p.numel() for p in model.parameters())
@@ -266,10 +199,7 @@ def main() -> None:
           f"{args.num_generations} gens/prompt, "
           f"lr={args.learning_rate}, beta={args.beta}")
 
-    if args.resume_from_checkpoint:
-        print(f"[rl-20b] resuming from {args.resume_from_checkpoint} ...")
-
-    trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
+    trainer.train()
     trainer.save_model(args.output_dir)
     print(f"[rl-20b] done -> {args.output_dir}")
 

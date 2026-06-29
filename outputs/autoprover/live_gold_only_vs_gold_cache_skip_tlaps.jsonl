@@ -1,6 +1,0 @@
-{"module_path": "outputs/materialized_tla/gold/CircularBuffer.tla", "module": "CircularBuffer", "target": "Spec => []TypeOK", "status": "skeleton_emitted", "tlc_inductive": true, "tlc_error": null, "cti_preview": "", "skeleton_chars": 250, "proof_module_chars": 1016, "runtime_seconds": 0.513}
-{"module_path": "outputs/materialized_tla/gold/DistLock.tla", "module": "DistLock", "target": "Spec => []TypeOK", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"}
-{"module_path": "outputs/materialized_tla/gold/PetersonsAlgorithm.tla", "module": "PetersonsAlgorithm", "target": "Spec => []TypeOK", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"}
-{"module_path": "outputs/materialized_tla/gold/PrimaryBackup.tla", "module": "PrimaryBackup", "target": "Spec => []TypeOK", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"}
-{"module_path": "outputs/materialized_tla/gold/RaftLeaderElection.tla", "module": "RaftLeaderElection", "target": "Spec => []TypeOK", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"}
-{"module_path": "outputs/materialized_tla/gold/SimpleCommit.tla", "module": "SimpleCommit", "target": "Spec => []TypeOK", "status": "skipped", "reason": "missing_init_next_spec_typeok_vars"}

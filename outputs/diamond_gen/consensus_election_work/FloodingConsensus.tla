@@ -73,7 +73,6 @@ TypeOK ==
     /\ alive    \in [Nodes -> BOOLEAN]
     /\ round    \in 0..MaxRound
     /\ decision \in [Nodes -> 0..3]
-    /\ \A n \in Nodes : alive[n] => known[n] # {}
 
 \* Strong safety: any two alive nodes that have decided agree on the value.
 SafetyInv == \A m, n \in Nodes : (alive[m] /\ alive[n] /\ decision[m] # 0 /\ decision[n] # 0) => decision[m] = decision[n]

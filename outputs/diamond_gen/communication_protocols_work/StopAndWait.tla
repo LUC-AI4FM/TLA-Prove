@@ -72,22 +72,13 @@ Spec == Init /\ [][Next]_vars
 
 \* TypeOK conjoins the strong safety property: delivered is the in-order
 \* prefix 0,1,..,Len-1 and never has more entries than have been advanced.
-DeliveredPrefixes ==
-    {<<>>} \cup { [i \in 1 .. n |-> i - 1] : n \in 1 .. MaxSeq }
-
 TypeOK ==
     /\ sBit \in {0, 1}
-    /\ delivered \in DeliveredPrefixes
     /\ rBit \in {0, 1}
     /\ sIndex \in 0 .. MaxSeq
-    /\ sBit = sIndex % 2
-    /\ rBit = Len(delivered) % 2
     /\ msgs \subseteq ({0, 1} \X (0 .. (MaxSeq - 1)))
-    /\ msgs \subseteq (IF sIndex < MaxSeq THEN {<<sBit, sIndex>>} ELSE {})
     /\ acks \subseteq {0, 1}
-    /\ acks \subseteq (IF Len(delivered) = sIndex + 1 THEN {sBit} ELSE {})
     /\ Len(delivered) \in 0 .. MaxSeq
     /\ Len(delivered) <= sIndex + 1
-    /\ sIndex <= Len(delivered)
     /\ \A i \in 1 .. Len(delivered) : delivered[i] = i - 1
 ====

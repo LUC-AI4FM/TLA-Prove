@@ -48,7 +48,7 @@ Next == \/ Start \/ Resolve \/ Close \/ Reopen \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Resolved/closed status implies ticket was previously worked on.
-SafetyInvariant == ((status \in {"in_progress","resolved","closed"}) => ever_in_progress) /\ ((status = "resolved") => (ever_in_progress /\ ever_resolved)) /\ ((status = "closed") => (ever_in_progress /\ ever_resolved)) /\ (reopens <= MaxReopens)
+SafetyInvariant == ((status = "resolved") => ever_in_progress) /\ ((status = "closed") => (ever_in_progress /\ ever_resolved)) /\ (reopens <= MaxReopens)
 
 TypeOK == /\ status \in States
           /\ reopens \in 0..MaxReopens

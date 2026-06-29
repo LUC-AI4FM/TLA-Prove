@@ -28,10 +28,7 @@ from __future__ import annotations
 
 import os
 import re
-import json
-import threading
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 from typing import Any
 
 from src.postprocess import strip_reasoning_artifacts
@@ -45,8 +42,6 @@ from src.validators.per_action_tlc import ActionHarness, validate_action
 _NEXT_RE = re.compile(r"(Next\s*==.*?)(?=^[A-Z]\w*\s*==|\Z)", re.MULTILINE | re.DOTALL)
 _TLC_TIMEOUT_S = int(os.environ.get("CHATTLA_REWARD_TLC_TIMEOUT", "20"))
 _REWARD_WORKERS = int(os.environ.get("CHATTLA_REWARD_WORKERS", "4"))
-_SAMPLE_LOG_LOCK = threading.Lock()
-_SAMPLE_LOG_CALL = 0
 
 
 def _completion_text(comp: Any) -> str:
@@ -126,7 +121,6 @@ def _grade_one(harness: ActionHarness, completion_text: str) -> float:
 def per_action_tlc_reward(
     prompts: list[Any] | None = None,
     completions: list[Any] | None = None,
-    prompt_id: list[str] | None = None,
     harness_prefix: list[str] | None = None,
     harness_suffix: list[str] | None = None,
     harness_module: list[str] | None = None,
@@ -158,7 +152,6 @@ def per_action_tlc_reward(
     prefixes = _col(harness_prefix)
     suffixes = _col(harness_suffix)
     modules  = _col(harness_module)
-    prompt_ids = _col(prompt_id)
 
     harnesses = [
         ActionHarness(module_name=m, prefix=p, suffix=s, gold_next="")
@@ -178,44 +171,4 @@ def per_action_tlc_reward(
                 rewards[i] = fut.result(timeout=_TLC_TIMEOUT_S + 10)
             except Exception:
                 rewards[i] = 0.0
-    _maybe_log_samples(prompt_ids, modules, texts, rewards)
     return rewards
-
-
-def _maybe_log_samples(
-    prompt_ids: list[str],
-    modules: list[str],
-    texts: list[str],
-    rewards: list[float],
-) -> None:
-    log_path = os.environ.get("CHATTLA_SAMPLE_LOG_PATH")
-    if not log_path:
-        return
-    every = max(1, int(os.environ.get("CHATTLA_SAMPLE_LOG_EVERY", "1")))
-    limit = max(1, int(os.environ.get("CHATTLA_SAMPLE_LOG_LIMIT", "8")))
-    global _SAMPLE_LOG_CALL
-    with _SAMPLE_LOG_LOCK:
-        _SAMPLE_LOG_CALL += 1
-        call_id = _SAMPLE_LOG_CALL
-    if call_id % every != 0:
-        return
-
-    path = Path(log_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    rows = []
-    for i, text in enumerate(texts[:limit]):
-        body = _extract_next_body(text)
-        rows.append({
-            "reward_call": call_id,
-            "sample_index": i,
-            "prompt_id": prompt_ids[i] if i < len(prompt_ids) else "",
-            "harness_module": modules[i] if i < len(modules) else "",
-            "reward": rewards[i] if i < len(rewards) else None,
-            "raw_chars": len(text),
-            "extracted_next_chars": len(body or ""),
-            "raw_completion": text,
-            "extracted_next": body,
-        })
-    with path.open("a") as f:
-        for row in rows:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")

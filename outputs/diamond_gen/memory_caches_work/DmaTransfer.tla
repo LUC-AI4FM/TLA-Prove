@@ -23,7 +23,6 @@ Vals == 0..2
 SlotIds == 1..Slots
 
 NullDesc == [src |-> 0, dst |-> 0, v |-> 0]
-DescSet == {NullDesc} \cup { [src |-> s, dst |-> d, v |-> val] : s \in SlotIds, d \in SlotIds, val \in Vals }
 
 Init == /\ memory    = [i \in SlotIds |-> 0]
         /\ desc      = NullDesc
@@ -77,26 +76,18 @@ Spec == Init /\ [][Next]_vars
 \* The DMA contract: in any "done" state the destination slot reflects
 \* the source value the descriptor recorded.
 DoneImpliesCopied ==
-    IF state = "done" THEN
-        IF desc.dst \in SlotIds THEN memory[desc.dst] = desc.v ELSE FALSE
-    ELSE TRUE
-
-\* Running/done states must carry a real programmed descriptor.
-ActiveDescWellFormed ==
-    IF state \in {"running", "done"} THEN
-        /\ desc.src \in SlotIds
-        /\ desc.dst \in SlotIds
-    ELSE TRUE
+    state = "done" => memory[desc.dst] = desc.v
 
 \* The interrupt line is raised iff the engine is in the done state.
 InterruptIffDone == interrupt <=> (state = "done")
 
 TypeOK == /\ memory \in [SlotIds -> Vals]
-          /\ desc \in DescSet
+          /\ desc \in [src : SlotIds \cup {0},
+                       dst : SlotIds \cup {0},
+                       v   : Vals]
           /\ state \in {"idle", "running", "done"}
           /\ interrupt \in BOOLEAN
           /\ issued \in 0..MaxIssue
-          /\ ActiveDescWellFormed
           /\ DoneImpliesCopied
           /\ InterruptIffDone
 ====

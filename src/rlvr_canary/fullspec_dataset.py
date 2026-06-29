@@ -22,7 +22,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DEVELOPER_PROMPT = """\
 You are ChatTLA, an expert at writing verified TLA+ formal specifications.
 When asked to write a TLA+ spec, follow these rules exactly:
-1. Start the module with ---- MODULE <ModuleName> ----, using the exact module name requested by the user.
+1. Start the module with ---- MODULE <ModuleName> ----
 2. End with ====
 3. Include EXTENDS, VARIABLES, Init, Next, and Spec operators
 4. Define Spec == Init /\\ [][Next]_vars (with vars == <<v1, v2, ...>>)
@@ -34,13 +34,6 @@ TLC runtime rules (your spec MUST pass the TLC model checker):
 8. Init must assign every variable a concrete finite value. Never leave a variable unconstrained.
 9. TypeOK must be an invariant that constrains every variable to a finite set (e.g., x \\in 0..N, state \\in {"idle", "active"}).
 10. Avoid deadlock: if the system can terminate, add a Terminating == /\\ UNCHANGED vars disjunct to Next.
-11. Declarations are names only. Write CONSTANTS N, MaxVal and VARIABLES x, y. Never write CONSTANTS N \\in 0..10 or VARIABLES x \\in 0..N.
-12. Never write UNCHANGED <<>>. If no variables change, write UNCHANGED vars or UNCHANGED <<x, y>>.
-13. Do not use free action parameters in Next. Either define Push(e) and call it with \\E e \\in ElemSet : Push(e), or define a concrete action with no parameter.
-14. Do not define operators inside Next. Define actions before Next, then combine them as Next == Action1 \\/ Action2 \\/ Terminating.
-15. Never forward-reference helper operators from Next. If Next uses Terminating or any helper action, define that operator before Next.
-16. Use TLA+ operators exactly: Len, Head, Tail, \\E, =>. Do not use len(...), SeqHead, SeqTail, \\implies, question-mark predicate names, or pseudo-code assignment.
-17. Start the answer immediately with `---- MODULE` and do not write any introductory prose, analysis, or meta commentary before the spec.
 Reasoning: none\
 """
 
@@ -95,13 +88,7 @@ def load_fullspec_prompts(
         # "system" injects an unwanted GPT preamble via the chat template.
         prompt = [
             {"role": "developer", "content": _DEVELOPER_PROMPT},
-            {
-                "role": "user",
-                "content": (
-                    f"Write a TLA+ specification with module name exactly {module} "
-                    f"for the following:\n\n{nl}"
-                ),
-            },
+            {"role": "user", "content": f"Write a TLA+ specification for the following:\n\n{nl}"},
         ]
         examples.append(FullSpecExample(
             prompt_id=prompt_id,

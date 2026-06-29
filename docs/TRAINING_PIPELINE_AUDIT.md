@@ -80,15 +80,14 @@ python -m src.training.merge_lora
 python -m src.inference.convert_to_gguf --quant Q8_0
 
 # Hub (after GGUF exists)
-python -m src.training.publish_hf --dry-run                # inspect next version + publish blockers
+HF_TOKEN=... python -m src.training.publish_hf --dry-run   # inspect
 HF_TOKEN=... python -m src.training.publish_hf
 ```
 
 ## 8. Implemented follow-ups
 
 - **DPO:** `train.py --dpo-after` runs `train_dpo.run_after_sft` on **gold** rows in `dpo_pairs.jsonl` (≥2 rows). The RL loop adds `--dpo-after` automatically when enough gold pairs exist. Requires working `trl` + `rich>=14` (see `requirements.txt`).
-- **Publish gate:** `publish_hf --require-fresh-full-benchmark-hours N` aborts if there is no `outputs/benchmark_results_*_full_*.csv` or the newest is older than *N* hours. It also blocks a candidate whose freshest full benchmark has `0` SANY and `0` TLC passes. RL loop: set `CHATTLA_PUBLISH_REQUIRE_BENCHMARK_HOURS`.
-- **Dry-run semantics:** `publish_hf --dry-run` is a preflight, not a no-op. It now returns a nonzero exit code when a real publish would be blocked, so scripts can fail fast on non-deployable candidates.
+- **Publish gate:** `publish_hf --require-fresh-full-benchmark-hours N` aborts if there is no `outputs/benchmark_results_*_full_*.csv` or the newest is older than *N* hours. RL loop: set `CHATTLA_PUBLISH_REQUIRE_BENCHMARK_HOURS`.
 - **Merged weights on Hub:** `publish_hf --upload-merged-model` uploads `outputs/merged_model/` → `merged_bf16/` (~40GB+). RL loop: `CHATTLA_HF_UPLOAD_MERGED=1`.
 
 **Bootstrap:** `./scripts/launch_rl.sh setup` (or `start`) creates `.venv`, installs `requirements.txt`, and loads `.env`. The RL tmux session prepends `.venv/bin` to `PATH` and sources `.env` before `python3 scripts/rl_loop.py`.

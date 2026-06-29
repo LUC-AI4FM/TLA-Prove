@@ -216,17 +216,26 @@ class TLAPSEvalCallback(TrainerCallback):
                 pad_token_id=self.tokenizer.pad_token_id,
             )
             new_tokens = outputs[0][inputs["input_ids"].shape[1]:]
-            text = self.tokenizer.decode(new_tokens, skip_special_tokens=False)
+            text = self.tokenizer.decode(new_tokens, skip_special_tokens=True)
         except Exception as exc:
             print(f"[TLAPSEvalCallback] generation error: {exc}")
             return ""
 
-        # Channel-aware extraction of the `final` channel (the proof). Replaces
-        # the old `text.index("final")` heuristic, which split on the word
-        # "final" in analysis prose ("the final theorem") and leaked reasoning
-        # into the proof. An empty string means no usable `final` channel.
-        from src.harmony_extract import extract_final_channel
-        return extract_final_channel(text).proof
+        # Strip harmony tags, <think> blocks, and markdown fences via the
+        # canonical normalizer (Unicode op replacement also applies — useful
+        # for proof bullets that quote ∧/∨).
+        try:
+            from src.postprocess import strip_reasoning_artifacts, NormalizationReport
+            text = strip_reasoning_artifacts(text, NormalizationReport())
+        except Exception:
+            pass
+        # Strip harmony "analysis" channel prose. Channels render inline as
+        # `analysis...final...`, so peel off everything up to and including
+        # "final" before extracting the first <n> bullet.
+        if "final" in text:
+            text = text[text.index("final") + len("final"):]
+        m = re.search(r"(<\d+>.*)", text, re.DOTALL)
+        return m.group(1).strip() if m else text.strip()
 
     def _build_synthetic(self, preamble_plus_stmt: str, proof: str) -> tuple[str, str]:
         body = preamble_plus_stmt + "\n" + proof

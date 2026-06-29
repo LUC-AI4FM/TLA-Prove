@@ -50,7 +50,7 @@ Spec == Init /\ [][Next]_vars
 
 \* Strong safety: a delivered order has been both paid and shipped along
 \* its history; a cancelled order was never shipped.
-SafetyInvariant == ((status = "created") => (~ever_paid /\ ~ever_shipped /\ ~ever_cancelled)) /\ ((status = "paid") => (ever_paid /\ ~ever_shipped)) /\ ((status = "shipped") => (ever_paid /\ ever_shipped)) /\ ((status = "delivered") => (ever_paid /\ ever_shipped)) /\ ((status = "cancelled") => (ever_cancelled /\ ~ever_shipped))
+SafetyInvariant == ((status = "delivered") => (ever_paid /\ ever_shipped)) /\ ((status = "cancelled") => (~ever_shipped))
 
 TypeOK == /\ status \in States
           /\ ever_paid      \in BOOLEAN

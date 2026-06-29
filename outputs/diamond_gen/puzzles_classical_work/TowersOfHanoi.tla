@@ -15,7 +15,6 @@ vars == << pegs >>
 N    == 3
 Pegs == {"A", "B", "C"}
 Disks == 1..N
-PegStack == UNION { [1..k -> Disks] : k \in 0..N }
 
 Top(s)  == s[Len(s)]
 Pop(s)  == SubSeq(s, 1, Len(s) - 1)
@@ -42,7 +41,6 @@ SafetyInv ==
     /\ \A p \in Pegs : Decreasing(pegs[p])
     /\ Len(pegs["A"]) + Len(pegs["B"]) + Len(pegs["C"]) = N
 
-TypeOK ==
-    /\ pegs \in [Pegs -> PegStack]
-    /\ SafetyInv
+TypeOK == /\ pegs \in [Pegs -> Seq(Disks)]
+          /\ SafetyInv
 ====

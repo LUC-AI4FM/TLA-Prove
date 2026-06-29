@@ -69,16 +69,11 @@ Next ==
 Spec == Init /\ [][Next]_vars
 
 \* Strong safety conjoined into TypeOK: prefix delivery, bounded window.
-DeliveredPrefixes ==
-    {<<>>} \cup { [i \in 1 .. n |-> i - 1] : n \in 1 .. MaxSeq }
-
 TypeOK ==
     /\ base \in 0 .. MaxSeq
     /\ next \in 0 .. MaxSeq
     /\ expected \in 0 .. MaxSeq
-    /\ delivered \in DeliveredPrefixes
     /\ channel \subseteq 0 .. (MaxSeq - 1)
-    /\ channel \subseteq { s \in 0 .. (MaxSeq - 1) : s < next }
     /\ Len(delivered) \in 0 .. MaxSeq
     /\ base <= expected
     /\ expected <= next

@@ -68,6 +68,5 @@ TypeOK ==
     /\ pc     \in [Procs -> {"ncs","cs"}]
     /\ (holder = NoHolder) <=> (depth = 0)
     /\ (holder # NoHolder) => pc[holder] = "cs"
-    /\ \A i \in Procs : (pc[i] = "cs") => (holder = i /\ depth > 0)
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

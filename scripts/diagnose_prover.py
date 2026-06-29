@@ -23,11 +23,10 @@ from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
 
 from src.validators.tlaps_validator import validate_string
-from src.harmony_extract import extract_final_channel
-from scripts.tla_prover_corpus_paths import resolve_probe_corpus_file
 
 ADAPTER = REPO / "outputs" / "checkpoints_prover" / "checkpoint-48"
 BASE_MODEL = "openai/gpt-oss-20b"
+TRAIN_JSONL = REPO / "data" / "processed" / "prover_train.jsonl"
 EVAL_JSONL = REPO / "data" / "processed" / "prover_eval.jsonl"
 REPORT = REPO / "outputs" / "prover_diagnose.json"
 
@@ -71,6 +70,15 @@ def build_synthetic(preamble_plus_stmt: str, proof: str) -> tuple[str, str]:
     return body, new_name
 
 
+def strip_to_proof(text: str) -> str:
+    """Mirror of what TLAPSEvalCallback does: strip analysis channel, take from
+    first <n> bullet."""
+    if "final" in text:
+        text = text[text.index("final") + len("final"):]
+    m = re.search(r"(<\d+>.*)", text, re.DOTALL)
+    return m.group(1).strip() if m else text.strip()
+
+
 @torch.no_grad()
 def generate(model, tokenizer, example: dict, max_new_tokens: int = 1024) -> tuple[str, str]:
     """Return (raw_text, extracted_proof)."""
@@ -85,8 +93,8 @@ def generate(model, tokenizer, example: dict, max_new_tokens: int = 1024) -> tup
         pad_token_id=tokenizer.pad_token_id,
     )
     new = out[0][inputs["input_ids"].shape[1]:]
-    raw = tokenizer.decode(new, skip_special_tokens=False)
-    return raw, extract_final_channel(raw).proof
+    raw = tokenizer.decode(new, skip_special_tokens=True)
+    return raw, strip_to_proof(raw)
 
 
 def run_one(model, tokenizer, example: dict, tag: str) -> dict:
@@ -132,15 +140,7 @@ def run_one(model, tokenizer, example: dict, tag: str) -> dict:
 def main():
     model, tokenizer = load_model()
 
-    train_path, using_probe_fallback = resolve_probe_corpus_file(REPO)
-    train_path = REPO / train_path
-    if using_probe_fallback:
-        print(
-            "[diagnose] prover_train.jsonl missing; using "
-            f"{train_path.name} "
-            "as the training-like probe corpus."
-        )
-    train_rows = [json.loads(l) for l in train_path.open()]
+    train_rows = [json.loads(l) for l in TRAIN_JSONL.open()]
     eval_rows = [json.loads(l) for l in EVAL_JSONL.open()]
 
     # Memorization sanity: take 2 train examples

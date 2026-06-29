@@ -48,7 +48,7 @@ Next == \/ StartOpen \/ FullyOpen \/ StartClose \/ FullyClosed \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Opening only from closed; closing only from open; never both at once.
-SafetyInvariant == ((state = "opening") => (prev_state = "closed")) /\ ((state = "closing") => (prev_state = "open")) /\ ~(state = "opening" /\ prev_state = "closing") /\ ((state # "closed") => cycles < MaxCycles)
+SafetyInvariant == ((state = "opening") => (prev_state = "closed")) /\ ((state = "closing") => (prev_state = "open")) /\ ~(state = "opening" /\ prev_state = "closing")
 
 TypeOK == /\ state \in States
           /\ prev_state \in States

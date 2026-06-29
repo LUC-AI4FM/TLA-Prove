@@ -58,9 +58,5 @@ PoolInv ==
   /\ inflight \cap done   = {}
   /\ (queued \cup inflight \cup done) = Tasks
 
-TypeOK ==
-    /\ queued \subseteq Tasks
-    /\ inflight \subseteq Tasks
-    /\ done \subseteq Tasks
-    /\ PoolInv
+TypeOK == /\ queued \subseteq Tasks /\ inflight \subseteq Tasks /\ done \subseteq Tasks /\ PoolInv
 ====

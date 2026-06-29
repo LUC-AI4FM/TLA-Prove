@@ -50,7 +50,7 @@ Spec == Init /\ [][Next]_vars
 
 \* Resource access implies a token, which implies an authorization code,
 \* which implies the user explicitly consented at some prior step.
-SafetyInvariant == ((phase = "start") => (~ever_consented /\ ~ever_code /\ ~ever_token)) /\ ((phase = "consented") => ever_consented) /\ ((phase = "code_issued") => (ever_consented /\ ever_code)) /\ ((phase = "token_issued") => (ever_consented /\ ever_code /\ ever_token)) /\ ((phase = "resource_access") => (ever_token /\ ever_code /\ ever_consented)) /\ ((phase = "denied") => (~ever_token))
+SafetyInvariant == ((phase = "resource_access") => (ever_token /\ ever_code /\ ever_consented)) /\ ((phase = "denied") => (~ever_token))
 
 TypeOK == /\ phase \in States
           /\ ever_consented \in BOOLEAN

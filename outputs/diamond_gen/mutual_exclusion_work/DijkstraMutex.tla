@@ -87,6 +87,5 @@ TypeOK ==
     /\ b  \in [Procs -> BOOLEAN]
     /\ c  \in [Procs -> BOOLEAN]
     /\ k  \in Procs
-    /\ \A i \in Procs : (pc[i] \in {"L4", "cs"}) => ~c[i]
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

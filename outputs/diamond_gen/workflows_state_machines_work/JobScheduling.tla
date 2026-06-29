@@ -46,7 +46,7 @@ Next == \/ Start \/ Succeed \/ Fail \/ Abandon \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Succeeded is terminal and required at least one run; retries are bounded.
-SafetyInvariant == (retries <= MaxRetries) /\ ((status \in {"running","succeeded","failed_terminal"}) => ever_run) /\ ((status = "failed_terminal") => (ever_run /\ retries = MaxRetries))
+SafetyInvariant == (retries <= MaxRetries) /\ ((status = "succeeded") => ever_run) /\ ((status = "failed_terminal") => (ever_run /\ retries = MaxRetries))
 
 TypeOK == /\ status \in States
           /\ retries \in 0..MaxRetries

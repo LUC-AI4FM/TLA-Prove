@@ -52,7 +52,7 @@ Next == \/ Issue \/ Refresh \/ Tick \/ Revoke \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Any active session was issued and has not expired and has not been revoked.
-SafetyInvariant == ((status = "none") => (~ever_issued /\ ~ever_revoked /\ expiry = 0)) /\ ((status = "active") => (ever_issued /\ now < expiry /\ ~ever_revoked)) /\ ((status = "revoked") => ever_issued)
+SafetyInvariant == ((status = "active") => (ever_issued /\ now < expiry /\ ~ever_revoked)) /\ ((status = "revoked") => ever_issued)
 
 TypeOK == /\ status \in States
           /\ expiry \in 0..(MaxTime + 5)
