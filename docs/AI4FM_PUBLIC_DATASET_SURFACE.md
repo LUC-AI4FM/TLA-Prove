@@ -23,7 +23,8 @@ Treat them as the reproducible local snapshot; the live upstream heads
 re-verified below are the current public-source reference.
 The broader public FormaLLM file surface is also materialized directly in
 `data/processed/formalllm_public_module_manifest_v1.jsonl` with a summary beside
-it.
+it. A prover-facing join against the latest full-dataset smoke now lives at
+`data/processed/formalllm_public_prover_surface_v1.jsonl`.
 
 - `FormaLLM`
   - git head: `e74c2ed`
@@ -94,6 +95,12 @@ Important interpretation:
   `_clean.tla` files align one-for-one with the canonical benchmark rows; the
   canonical `data/*/tla/*.tla` tree itself is `410` files once those clean
   modules are paired with their non-clean variants
+- the current full-dataset prover smoke does **not** yet justify mixing that
+  broader canonical tree into prover training:
+  - `410` canonical `.tla` rows were scanned
+  - `403` were skipped
+  - `7` were TLC-repair candidates
+  - `0` reached TLAPS-partial or inductiveness evidence in that lane
 - the local `1005` normalized `ai4fm_public_tlaprove_import_v1` rows and `98`
   `ai4fm_public_seed_prover_candidates_v1` rows are ChatTLA-derived downstream
   corpora, not counts published by the two upstream repos above
