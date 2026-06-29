@@ -122,6 +122,18 @@ This is the clearest currently committed GitHub lane above the 205-entry
 `FormaLLM` layer: even before the broader DVC-backed crawl, the seed repos
 already expose a multi-thousand-file public formal-spec surface.
 
+ChatTLA now has a direct builder for turning that manifest into a usable public
+`.tla` corpus:
+
+- command:
+  `python3 scripts/build_ai4fm_public_seed_tla_modules.py`
+- default output:
+  `data/processed/ai4fm_public_seed_tla_modules_v1.jsonl`
+
+This is the bridge from the file-level AI4FM seed surface to a concrete module
+dataset we can inspect, sample, and feed into later normalization or verifier
+work.
+
 ## How ChatTLA should use them
 
 - Treat `FormaLLM` as the canonical public prompt/spec supervision layer.
@@ -133,6 +145,8 @@ already expose a multi-thousand-file public formal-spec surface.
   we want to preserve oversampling and duplicate examples exactly as committed.
 - Treat `ai4fm_public_seed_file_manifest_v1` as the public GitHub file-level
   expansion lane already committed in the pipeline seed repos.
+- Treat `ai4fm_public_seed_tla_modules_v1` as the usable raw public `.tla`
+  module corpus derived from that seed-file lane.
 - Treat `ai4fm_public_discovery_manifest_v1` as the public repo-level discovery
   lane we can ingest directly today.
 - Treat `tla-dataset-pipeline` DVC counts as the broader public parsing lane.
@@ -147,6 +161,7 @@ already expose a multi-thousand-file public formal-spec surface.
 python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
 python3 scripts/build_ai4fm_public_tlaprove_import.py
 python3 scripts/build_ai4fm_public_seed_file_manifest.py
+python3 scripts/build_ai4fm_public_seed_tla_modules.py
 python3 scripts/inspect_ai4fm_public_dataset_surface.py
 python3 scripts/build_ai4fm_public_discovery_manifest.py
 python3 scripts/build_tla_prover_manifest.py
