@@ -299,3 +299,30 @@ TypeOK == /\ seq \in 0..MaxMsgs
     assert expr is not None
     assert r"/\ seq \in 0..MaxMsgs" in expr
     assert r"/\ broadcast \in (UNION { [1..n -> (1..(MaxMsgs + 1))] : n \in 0..MaxMsgs })" in expr
+
+
+def test_enumerable_type_bound_expr_rewrites_nested_pointwise_function_domains() -> None:
+    module_src = r"""---- MODULE NestedPointwise ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME N \in 2..3
+Procs == 0..(N-1)
+Res == {0, 1}
+Total == [r \in Res |-> 2]
+VARIABLES alloc, available
+vars == << alloc, available >>
+Init == /\ alloc = [p \in Procs |-> [r \in Res |-> 0]]
+        /\ available = Total
+Next == /\ alloc' = alloc
+        /\ available' = available
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ \A p \in Procs, r \in Res : alloc[p][r] \in 0..Total[r]
+          /\ \A r \in Res : available[r] \in 0..Total[r]
+====
+"""
+
+    expr = inductiveness._enumerable_type_bound_expr(module_src)
+
+    assert expr is not None
+    assert r"/\ alloc \in [Procs -> [Res -> 0..(2)]]" in expr
+    assert r"/\ available \in [Res -> 0..(2)]" in expr

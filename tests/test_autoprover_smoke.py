@@ -815,6 +815,51 @@ TypeOK == /\ seq \in 0..MaxMsgs
     assert row["status"] == "skeleton_emitted"
 
 
+def test_run_one_accepts_nested_function_domain_inferred_from_pointwise_bounds(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "NestedPointwise.tla"
+    module_path.write_text(
+        r"""---- MODULE NestedPointwise ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME N \in 2..3
+Procs == 0..(N-1)
+Res == {0, 1}
+Total == [r \in Res |-> 2]
+VARIABLES alloc, available
+vars == << alloc, available >>
+Init == /\ alloc = [p \in Procs |-> [r \in Res |-> 0]]
+        /\ available = Total
+Next == /\ alloc' = alloc
+        /\ available' = available
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ \A p \in Procs, r \in Res : alloc[p][r] \in 0..Total[r]
+          /\ \A r \in Res : available[r] \in 0..Total[r]
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module NestedPointwise"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
 def test_run_one_multiline_variables_block_still_checks_missing_direct_domain(
     monkeypatch, tmp_path: Path
 ) -> None:

@@ -507,40 +507,108 @@ def _expand_helper_conjuncts(
     return expanded
 
 
-def _pointwise_function_domain_clauses(clause: str, variables: list[str]) -> list[str]:
+def _simple_function_definition(expr: str) -> tuple[str, str, str] | None:
+    match = re.fullmatch(r"\[\s*([A-Za-z_]\w*)\s+\\in\s+(.+?)\s+\|->\s+(.+)\s*\]", _normalize_expr(expr))
+    if not match:
+        return None
+    return (
+        match.group(1),
+        _normalize_expr(match.group(2)),
+        _normalize_expr(match.group(3)),
+    )
+
+
+def _simplify_binder_indexed_expr(
+    expr: str, binder_domains: dict[str, str], defs: dict[str, str]
+) -> str:
+    simplified = _normalize_expr(expr)
+    changed = True
+    while changed:
+        changed = False
+        for name, definition in defs.items():
+            parsed = _simple_function_definition(definition)
+            if parsed is None:
+                continue
+            formal, domain, body = parsed
+            pattern = rf"\b{re.escape(name)}\[\s*([A-Za-z_]\w*)\s*\]"
+
+            def replace_named(match: re.Match[str]) -> str:
+                nonlocal changed
+                actual = match.group(1)
+                if binder_domains.get(actual) != domain:
+                    return match.group(0)
+                changed = True
+                return f"({body})"
+
+            simplified = re.sub(pattern, replace_named, simplified)
+
+        literal_match = re.search(
+            r"\(\[\s*([A-Za-z_]\w*)\s+\\in\s+(.+?)\s+\|->\s+(.+?)\s*\]\)\[\s*([A-Za-z_]\w*)\s*\]",
+            simplified,
+        )
+        if literal_match:
+            formal = literal_match.group(1)
+            domain = _normalize_expr(literal_match.group(2))
+            body = _normalize_expr(literal_match.group(3))
+            actual = literal_match.group(4)
+            if binder_domains.get(actual) == domain:
+                simplified = (
+                    simplified[: literal_match.start()]
+                    + f"({body})"
+                    + simplified[literal_match.end() :]
+                )
+                changed = True
+    return _normalize_expr(simplified)
+
+
+def _pointwise_function_domain_clauses(
+    clause: str, variables: list[str], defs: dict[str, str]
+) -> list[str]:
     normalized = clause.strip()
     match = re.match(
-        rf"^\s*/\\\s*\\A\s+([A-Za-z_]\w*)\s+\\in\s+(.+?)\s*:\s*(.+)$",
+        rf"^\s*/\\\s*\\A\s+(.+?)\s*:\s*(.+)$",
         normalized,
         re.DOTALL,
     )
     if not match:
         return []
-    domain = _normalize_expr(match.group(2))
-    body = match.group(3)
+    binders: list[str] = []
+    binder_domains: dict[str, str] = {}
+    for part in _split_top_level(match.group(1), ","):
+        binder_match = re.match(r"^\s*([A-Za-z_]\w*)\s+\\in\s+(.+?)\s*$", part)
+        if not binder_match:
+            return []
+        binder = binder_match.group(1)
+        binders.append(binder)
+        binder_domains[binder] = _normalize_expr(binder_match.group(2))
+    body = match.group(2)
     conjuncts = [part.strip() for part in _split_top_level(body, "/\\") if part.strip()]
     results: list[str] = []
-    binder = match.group(1)
+    access_suffix = "".join(rf"\[\s*{re.escape(binder)}\s*\]" for binder in binders)
     for variable in variables:
         for conjunct in conjuncts:
             body_match = re.match(
-                rf"^{re.escape(variable)}\[{binder}\]\s*\\in\s*(.+)$",
+                rf"^{re.escape(variable)}{access_suffix}\s*\\in\s*(.+)$",
                 conjunct,
                 re.DOTALL,
             )
             if body_match:
-                rng = _normalize_expr(body_match.group(1))
-                results.append(f"/\\ {variable} \\in [{domain} -> {rng}]")
+                rng = _simplify_binder_indexed_expr(body_match.group(1), binder_domains, defs)
+                nested = rng
+                for binder in reversed(binders):
+                    nested = f"[{binder_domains[binder]} -> {nested}]"
+                results.append(f"/\\ {variable} \\in {nested}")
                 break
     return results
 
 
 def _augment_with_pointwise_function_domains(module_src: str, clauses: list[str]) -> list[str]:
     declared = _declared_variables(module_src)
+    defs = _simple_definitions(module_src)
     augmented = list(clauses)
     seen = set(augmented)
     for clause in clauses:
-        for rewritten in _pointwise_function_domain_clauses(clause, declared):
+        for rewritten in _pointwise_function_domain_clauses(clause, declared, defs):
             if rewritten not in seen:
                 augmented.append(rewritten)
                 seen.add(rewritten)
