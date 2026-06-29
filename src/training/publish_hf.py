@@ -42,6 +42,7 @@ _DEFAULT_REPO = "EricSpencer00/chattla-20b"
 # Match public model card v11; first automated publish becomes v12 unless overridden.
 _INITIAL_VERSION = 11
 _GGUF_VERSION_RE = re.compile(r"^gguf/chattla-20b-v(\d+)-[A-Za-z0-9_]+\.gguf$")
+_README_TITLE_VERSION_RE = re.compile(r"^# ChatTLA-20b \(v(\d+)\)$", re.MULTILINE)
 
 
 def _load_state() -> dict:
@@ -162,13 +163,31 @@ def full_benchmark_fresh_enough(max_age_hours: float) -> tuple[bool, str]:
 
 
 def _patch_readme(text: str, version: int, stats: dict | None) -> str:
-    """Bump visible v(N-1) → v{version} and optionally refresh benchmark summary line."""
-    prev = version - 1
-    text = re.sub(rf"\(v{prev}\)", f"(v{version})", text)
-    text = re.sub(rf"\bv{prev}\b", f"v{version}", text)
+    """Update public card version markers and optionally refresh benchmark summary."""
+    current_match = _README_TITLE_VERSION_RE.search(text)
+    current_version = int(current_match.group(1)) if current_match else version - 1
+    if current_version != version:
+        text = _README_TITLE_VERSION_RE.sub(f"# ChatTLA-20b (v{version})", text, count=1)
+        text = re.sub(
+            r"^## Benchmark Results \(v\d+",
+            f"## Benchmark Results (v{version}",
+            text,
+            count=1,
+            flags=re.MULTILINE,
+        )
     text = re.sub(
-        rf"ChatTLA-20b \(v{version}\) \(v{version}\)",
-        f"ChatTLA-20b (v{version})",
+        r"gguf/chattla-20b-v\d+-",
+        f"gguf/chattla-20b-v{version}-",
+        text,
+    )
+    text = re.sub(
+        r"chattla/gguf/chattla-20b-v\d+-",
+        f"chattla/gguf/chattla-20b-v{version}-",
+        text,
+    )
+    text = re.sub(
+        r"chattla-20b-v\d+-Q8_0\.gguf",
+        f"chattla-20b-v{version}-Q8_0.gguf",
         text,
     )
 
