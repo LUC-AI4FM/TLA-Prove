@@ -1,5 +1,536 @@
 {
   "artifacts": {
+    "ai4fm_public_dataset_surface": {
+      "bytes": 1614,
+      "exists": true,
+      "kind": "public_ai4fm_dataset_surface_report",
+      "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
+      "rows": null,
+      "sha256": "6284e74d08c5832177b0d8e4a90c8d97b4fa12091b69c8f8ed0d3327e44fcbd7"
+    },
+    "ai4fm_public_discovery_manifest_v1": {
+      "bytes": 7034,
+      "exists": true,
+      "kind": "public_ai4fm_repo_discovery_manifest",
+      "path": "data/processed/ai4fm_public_discovery_manifest_v1.jsonl",
+      "rows": 18,
+      "sha256": "09cc07e9ff2f748931a1c6a8bc184a15367047f6ae0489816e78ba8e9edf0e6e",
+      "summary": {
+        "configured_org_inputs": 7,
+        "configured_user_inputs": 9,
+        "dvc_surface": {
+          "parse_input": {
+            "nfiles": 227,
+            "path": "data/raw",
+            "size": 618486
+          },
+          "parse_output": {
+            "nfiles": 3979,
+            "path": "data/parsed",
+            "size": 22773073
+          },
+          "pull": {
+            "nfiles": 2628,
+            "path": "data/raw",
+            "size": 12034995
+          }
+        },
+        "generated_at": "2026-06-28T22:01:56.671351+00:00",
+        "notes": [
+          "This manifest reflects the pipeline's public seed repo list plus live repository search queries.",
+          "Configured org/user seed lists are preserved for auditability, but the pipeline's checked-in loader currently ignores them.",
+          "The larger DVC-backed raw and parsed corpora are not reproduced here; this artifact captures the public discovery layer only."
+        ],
+        "operational_seed_mode": "repos_only",
+        "pipeline_git_head": "59bd533",
+        "pipeline_repo": "LUC-AI4FM-tla-dataset-pipeline",
+        "query_results_by_query": {
+          "\"EXTENDS\" \"VARIABLES\" extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "\"\\\\* PlusCal\" extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "TLAPS extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "extension:cfg tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "extension:tla": {
+            "repository_count": 7,
+            "returned": 7
+          }
+        },
+        "search_limit": 100,
+        "search_queries": 5,
+        "seed_repo_inputs": 11,
+        "source_schema": "data_contracts/schemas/source_record.schema.json",
+        "unique_repo_records": 18,
+        "zero_result_queries": [
+          "extension:cfg tla",
+          "\"\\\\* PlusCal\" extension:tla",
+          "\"EXTENDS\" \"VARIABLES\" extension:tla",
+          "TLAPS extension:tla"
+        ]
+      },
+      "summary_path": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json"
+    },
+    "ai4fm_public_seed_file_manifest_v1": {
+      "bytes": 1804397,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_file_manifest",
+      "path": "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
+      "rows": 3140,
+      "sha256": "78a3743b8214d4569840e11c6208cce4b0b83edd97942f695a73a1e2f4e148d2",
+      "summary": {
+        "configured_org_inputs": 7,
+        "configured_user_inputs": 9,
+        "generated_at": "2026-06-28T22:53:20.468204+00:00",
+        "jsonl_sha256": "78a3743b8214d4569840e11c6208cce4b0b83edd97942f695a73a1e2f4e148d2",
+        "kept_rows": 3140,
+        "notes": [
+          "This artifact materializes the committed public seed-repo lane from tla-dataset-pipeline.",
+          "Counts reflect .tla, .cfg, and .tlaps files visible in the current GitHub default-branch trees."
+        ],
+        "out": "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
+        "per_repo": {
+          "Azure/azure-cosmos-tla": {
+            "counts": {
+              "all": 3,
+              "cfg": 0,
+              "tla": 3,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "a8357c9c0a8d0ed710c68a64bc3a9ed0dc860a8a"
+          },
+          "apalache-mc/apalache": {
+            "counts": {
+              "all": 608,
+              "cfg": 128,
+              "tla": 480,
+              "tlaps": 0
+            },
+            "default_branch": "main",
+            "repo_head_sha": "cf765e0400097cf4744d2fd658264cc56b94436e"
+          },
+          "atomix/atomix-tlaplus": {
+            "counts": {
+              "all": 6,
+              "cfg": 0,
+              "tla": 6,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "8770160427b184630c4eaeb253e84911c9cc378b"
+          },
+          "microsoft/CCF": {
+            "counts": {
+              "all": 38,
+              "cfg": 16,
+              "tla": 22,
+              "tlaps": 0
+            },
+            "default_branch": "main",
+            "repo_head_sha": "6b9afd455ec5adc7e2020b02906d287675791328"
+          },
+          "pingcap/tla-plus": {
+            "counts": {
+              "all": 41,
+              "cfg": 18,
+              "tla": 23,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "8ae629ddf9f5ad8efc763bff93e3e43ce0a3585d"
+          },
+          "tendermint/spec": {
+            "counts": {
+              "all": 51,
+              "cfg": 0,
+              "tla": 51,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "9d5734e21479dfc9c308f5630678c800d85a2067"
+          },
+          "tlaplus/CommunityModules": {
+            "counts": {
+              "all": 95,
+              "cfg": 22,
+              "tla": 73,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "a20cc8eb2ee6e7140848ca511040cf283e9d7256"
+          },
+          "tlaplus/DrTLAPlus": {
+            "counts": {
+              "all": 2,
+              "cfg": 0,
+              "tla": 2,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "b74cff5f3616c7a4beb5416203c292e818e87b5a"
+          },
+          "tlaplus/Examples": {
+            "counts": {
+              "all": 634,
+              "cfg": 226,
+              "tla": 408,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "47b0e2cc0268836b89f5ce451f38e5df5f1cf773"
+          },
+          "tlaplus/ValidationTestSuite": {
+            "counts": {
+              "all": 2,
+              "cfg": 0,
+              "tla": 2,
+              "tlaps": 0
+            },
+            "default_branch": "main",
+            "repo_head_sha": "19944506c0e0bd20a1341e8a0aa4da8fe0b0382f"
+          },
+          "tlaplus/tlaplus": {
+            "counts": {
+              "all": 1660,
+              "cfg": 620,
+              "tla": 1040,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "4ba7d8811289fb8e95dac4d5e554c05216ba3100"
+          }
+        },
+        "pipeline_repo": "LUC-AI4FM-tla-dataset-pipeline",
+        "schema": "chattla_ai4fm_public_seed_file_manifest_v1",
+        "seed_repo_inputs": 11,
+        "totals": {
+          "all": 3140,
+          "cfg": 1030,
+          "tla": 2110,
+          "tlaps": 0
+        },
+        "tracked_extensions": [
+          ".cfg",
+          ".tla",
+          ".tlaps"
+        ]
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json"
+    },
+    "ai4fm_public_seed_prover_candidates_v1": {
+      "bytes": 1025215,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_sany_valid_prover_candidate_corpus",
+      "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+      "rows": 98,
+      "sha256": "3e1d0ca62ca52ec460d5431680202f8775b6cf4f9084ee92c45a2211b64804b9",
+      "summary": {
+        "duplicate_modules": {
+          "AsyncTerminationDetection": 2,
+          "BufferedRandomAccessFile": 3,
+          "DieHard": 2,
+          "EWD840": 6,
+          "NQSpec": 2,
+          "Paxos": 2,
+          "Prisoners": 2,
+          "SingleLaneBridge": 2,
+          "SpanTree": 2,
+          "SpanTreeRandom": 2,
+          "SpanTreeTest": 2,
+          "SyncTerminationDetection": 2,
+          "aba_asyn_byz": 2,
+          "ast": 2,
+          "bcastFolklore": 2,
+          "cf1s_folklore": 2,
+          "nbacg_guer01": 2,
+          "spanning": 2,
+          "test211": 3
+        },
+        "generated_at": "2026-06-29T01:23:23.419857+00:00",
+        "jsonl_sha256": "3e1d0ca62ca52ec460d5431680202f8775b6cf4f9084ee92c45a2211b64804b9",
+        "kept_rows": 98,
+        "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "rows_considered": 2108,
+        "sample_not_autoprover_candidate": [
+          {
+            "module": "__apalache_folds",
+            "reason": "not_autoprover_candidate",
+            "repo": "apalache-mc/apalache",
+            "source_path": "src/tla/__apalache_folds.tla"
+          },
+          {
+            "module": "__apalache_internal",
+            "reason": "not_autoprover_candidate",
+            "repo": "apalache-mc/apalache",
+            "source_path": "src/tla/__apalache_internal.tla"
+          },
+          {
+            "module": "_JsonTrace",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_JsonTrace.tla"
+          },
+          {
+            "module": "_Possible",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_Possible.tla"
+          },
+          {
+            "module": "_TLCTrace",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTrace.tla"
+          },
+          {
+            "module": "A",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/coverage/A.tla"
+          },
+          {
+            "module": "ABCorrectness",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/SpecifyingSystems/TLC/ABCorrectness.tla"
+          },
+          {
+            "module": "ABCorrectness",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/examples/SpecifyingSystems/TLC/ABCorrectness.tla"
+          },
+          {
+            "module": "ACP_SB",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/acp/ACP_SB.tla"
+          },
+          {
+            "module": "ACP_SB",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_SB.tla"
+          },
+          {
+            "module": "ActionComposition",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/cdot/ActionComposition.tla"
+          },
+          {
+            "module": "ActionCompositionDistributive",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/cdot/ActionCompositionDistributive.tla"
+          }
+        ],
+        "sample_sany_invalid": [
+          {
+            "detail": "*** Errors: 1",
+            "module": "_DotTrace",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_DotTrace.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "_TLAPlusCounterExample",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLAPlusCounterExample.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "_TLCActionTrace",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCActionTrace.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "_TLCTESpec",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTESpec.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "_TLCTracePlain",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTracePlain.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "abs",
+            "reason": "sany_invalid",
+            "repo": "microsoft/CCF",
+            "source_path": "tla/consensus/abs.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "AbstractComponentsModule",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AbstractComponentsModule.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/acp/ACP_NB.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_NB.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB_TLC",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/acp/ACP_NB_TLC.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB_TLC",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/examples/acp/ACP_NB_TLC.tla"
+          },
+          {
+            "detail": "*** Errors: 1",
+            "module": "ACP_NB_WRONG_TLC",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/acp/ACP_NB_WRONG_TLC.tla"
+          }
+        ],
+        "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
+        "skipped": {
+          "missing_module_content": 11,
+          "not_autoprover_candidate": 998,
+          "sany_invalid": 1001
+        },
+        "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "source_rows": 2108,
+        "workers": 8
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json"
+    },
+    "ai4fm_public_seed_tla_modules_v1": {
+      "bytes": null,
+      "exists": false,
+      "kind": "public_ai4fm_seed_repo_tla_module_corpus",
+      "path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+      "rows": null,
+      "sha256": null,
+      "summary": null,
+      "summary_path": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json"
+    },
+    "ai4fm_public_tlaprove_corpora": {
+      "bytes": 6198,
+      "exists": true,
+      "kind": "public_ai4fm_tlaprove_corpora_report",
+      "path": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+      "rows": null,
+      "sha256": "d8727a3fc5adc6995ee595918135e455898774d4fe8ccbc22f004a690cfb1554"
+    },
+    "ai4fm_public_tlaprove_import_v1": {
+      "bytes": 5028704,
+      "exists": true,
+      "kind": "normalized_public_ai4fm_tlaprove_import",
+      "path": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
+      "rows": 1005,
+      "sha256": "7cd42c185b48460392815f34942a6fd41f6f60b2c1c04214a1b90297059398ca",
+      "summary": {
+        "duplicate_rows_collapsed": 1345,
+        "generated_at": "2026-06-28T22:31:47.829566+00:00",
+        "jsonl_sha256": "7cd42c185b48460392815f34942a6fd41f6f60b2c1c04214a1b90297059398ca",
+        "kept_rows": 1005,
+        "out": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
+        "per_corpus": {
+          "diamond_eval_holdout": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 30,
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "raw_rows": 30,
+            "split": "eval",
+            "unique_canonical_finals": 30
+          },
+          "diamond_sft_v3": {
+            "duplicate_rows_collapsed": 883,
+            "kept_rows": 170,
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "raw_rows": 1053,
+            "split": "train",
+            "unique_canonical_finals": 455
+          },
+          "processed_eval": {
+            "duplicate_rows_collapsed": 3,
+            "kept_rows": 1,
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "raw_rows": 4,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "processed_train": {
+            "duplicate_rows_collapsed": 428,
+            "kept_rows": 285,
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "raw_rows": 713,
+            "split": "train",
+            "unique_canonical_finals": 285
+          },
+          "ralph_dev": {
+            "duplicate_rows_collapsed": 2,
+            "kept_rows": 48,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "raw_rows": 50,
+            "split": "eval",
+            "unique_canonical_finals": 50
+          },
+          "ralph_train": {
+            "duplicate_rows_collapsed": 29,
+            "kept_rows": 471,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "raw_rows": 500,
+            "split": "train",
+            "unique_canonical_finals": 499
+          }
+        },
+        "raw_rows": 2350,
+        "repo": {
+          "default_branch": "main",
+          "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+          "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+          "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+        },
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+      },
+      "summary_path": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json"
+    },
     "chattla_tla_prover_sft_v1": {
       "bytes": 5056374,
       "exists": true,
@@ -8,18 +539,48 @@
       "rows": 1125,
       "sha256": "2aac0c9ed5d3d0b20c580fb74687f63e28c1d916290c64d4924f85525ef24ef0",
       "summary": {
-        "base": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/diamond_sft_v3.jsonl",
+        "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "generated_at": "2026-06-27T14:10:07.242606+00:00",
         "jsonl_sha256": "2aac0c9ed5d3d0b20c580fb74687f63e28c1d916290c64d4924f85525ef24ef0",
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "out": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
         "seed": 20260627,
         "total_rows": 1125,
-        "verified_tlaps": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
+        "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
       },
       "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json"
+    },
+    "formalllm_eval_v1": {
+      "bytes": 2064473,
+      "exists": true,
+      "kind": "full_formalllm_prompt_eval_dataset",
+      "path": "data/processed/formalllm_eval_v1.jsonl",
+      "rows": 205,
+      "sha256": "7d2f18a3c5a267b8fb94af26ec4c94c980201ce5b27ab46e40428a8379026769",
+      "summary": {
+        "duplicate_modules": [
+          "Consensus",
+          "MC",
+          "MCConsensus",
+          "MCPaxos",
+          "MCVoting",
+          "Paxos",
+          "TLAPS",
+          "TwoPhase",
+          "Voting"
+        ],
+        "families_seen": 71,
+        "generated_at": "2026-06-28T22:01:26.491011+00:00",
+        "jsonl_sha256": "7d2f18a3c5a267b8fb94af26ec4c94c980201ce5b27ab46e40428a8379026769",
+        "out": "data/processed/formalllm_eval_v1.jsonl",
+        "rows": 205,
+        "skipped_missing_files": [],
+        "source_root": "data/FormaLLM/data",
+        "unique_modules": 191
+      },
+      "summary_path": "data/processed/formalllm_eval_v1.summary.json"
     },
     "known18_module_list": {
       "bytes": 1194,
@@ -37,7 +598,7 @@
       "rows": 18,
       "sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
       "summary": {
-        "generated_at": "2026-06-27T21:04:30.596076+00:00",
+        "generated_at": "2026-06-29T01:24:58.400079+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97",
         "kept_rows": 18,
@@ -63,21 +624,21 @@
         ],
         "obligations_proved": 299,
         "obligations_total": 299,
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/prover_eval.jsonl",
+        "out": "data/processed/prover_eval.jsonl",
         "skipped_invalid": 0,
         "skipped_unverified": 0,
-        "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+        "source": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
         "source_rows": 18
       },
       "summary_path": "data/processed/prover_eval.summary.json"
     },
     "sany_tlc_pass_corpus_diagnostic": {
-      "bytes": 4230,
+      "bytes": 4125,
       "exists": true,
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "488549733684c9920e75f458cbcf8a9fa8e844fdecbcea8bcfd523a8ed65213d"
+      "sha256": "503466cd989f054622adcd067dfb61402b5ddb633b0e8c675e96a13ba4388829"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -87,7 +648,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-27T21:09:17.133610+00:00",
+        "generated_at": "2026-06-29T01:24:58.472517+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -122,9 +683,9 @@
           "EmailVerification",
           "FencingToken"
         ],
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/sany_tlc_pass_eval_v1.jsonl",
+        "out": "data/processed/sany_tlc_pass_eval_v1.jsonl",
         "skipped_not_verified_pass": 0,
-        "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/diamond_eval_holdout.jsonl",
+        "source": "data/processed/diamond_eval_holdout.jsonl",
         "source_rows": 30
       },
       "summary_path": "data/processed/sany_tlc_pass_eval_v1.summary.json"
@@ -138,7 +699,7 @@
       "sha256": "c72006c0ac5933cfdaee82c15b456dd58f18d8af70cd6f3c82950f7abe14af51",
       "summary": {
         "generated_at": "2026-06-27T15:46:52.001460+00:00",
-        "holdout": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/diamond_eval_holdout.jsonl",
+        "holdout": "data/processed/diamond_eval_holdout.jsonl",
         "holdout_modules": 30,
         "jsonl_sha256": "c72006c0ac5933cfdaee82c15b456dd58f18d8af70cd6f3c82950f7abe14af51",
         "kept_rows": 170,
@@ -314,21 +875,21 @@
           "WriteBuffer",
           "WriteThroughCache"
         ],
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/sany_tlc_pass_sft_v1.jsonl",
+        "out": "data/processed/sany_tlc_pass_sft_v1.jsonl",
         "skipped_holdout": 30,
         "skipped_not_verified_pass": 0,
-        "source": "/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/diamond_gen/diamond_generated.jsonl",
+        "source": "outputs/diamond_gen/diamond_generated.jsonl",
         "source_rows": 200
       },
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_preflight": {
-      "bytes": 5327,
+      "bytes": 5492,
       "exists": true,
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
       "rows": null,
-      "sha256": "e81a47d1479ba3cb7434505219d7a13f2593a16f1783527475e715f33f436171"
+      "sha256": "d4fd9621633b269269016b50dc4818dfecaeaa882e912c670a407ea688ee1dc7"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 104115,
@@ -360,7 +921,7 @@
           "VotingMajority",
           "WitnessReplication"
         ],
-        "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+        "out": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
         "proof_archive_sha256": "20ca68ea4caf304b42d5b45fbaeadefc55eb0a17fd1fd9991db27ed741a5d46c",
         "raw_proved": 299,
         "raw_total": 299,
@@ -370,18 +931,30 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-27T21:09:31.290810+00:00",
+  "generated_at": "2026-06-29T01:24:58.712159+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
+    "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
+    "build_ai4fm_public_seed_file_manifest": "python3 scripts/build_ai4fm_public_seed_file_manifest.py",
+    "build_ai4fm_public_seed_prover_candidates": "python3 scripts/build_ai4fm_public_seed_prover_candidates.py",
+    "build_ai4fm_public_seed_tla_modules": "python3 scripts/build_ai4fm_public_seed_tla_modules.py",
+    "build_ai4fm_public_tlaprove_import": "python3 scripts/build_ai4fm_public_tlaprove_import.py",
+    "build_ai4fm_public_tlaprove_import_raw": "python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+    "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
     "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
     "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
+    "collect_direct_results": "scripts/collect_tla_prover_direct_results.sh",
     "collect_remote_results": "scripts/collect_tla_prover_remote_results.sh",
     "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",
     "evaluate_remote_results": "python3 scripts/evaluate_tla_prover_remote_results.py",
+    "final_proof_verify_launch": "cd ~/ChatTLA && qsub scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
+    "final_proof_verify_pbs": "scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
     "handoff_doctor": "python3 scripts/doctor_tla_prover_handoff.py --dry-run --live",
     "handoff_doctor_compact": "python3 scripts/doctor_tla_prover_handoff.py --dry-run --no-live --compact",
     "handoff_status": "python3 scripts/status_tla_prover_handoff.py --live",
     "handoff_status_compact": "python3 scripts/status_tla_prover_handoff.py --no-live --compact",
+    "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
+    "inspect_ai4fm_public_tlaprove_corpora": "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py",
     "install_laptop_handoff_doctor_launchagent": "scripts/install_handoff_doctor_launchagent.sh --interval 300",
     "install_laptop_wait_handoff_launchagent": "CHATTLA_RELAY_HOST=<user@relay-host> scripts/install_wait_handoff_launchagent.sh",
     "known18_launch": "cd ~/ChatTLA && qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs",
@@ -403,6 +976,6 @@
     "wait_for_macmini_then_handoff": "scripts/wait_for_macmini_and_handoff_known18.sh --submit-sft-preflight",
     "watch_remote_results": "scripts/watch_tla_prover_remote_results.sh"
   },
-  "repo": "/Users/eric/GitHub/ChatTLA/ChatTLA",
+  "repo": ".",
   "schema": "chattla_tla_prover_artifacts_v1"
 }
