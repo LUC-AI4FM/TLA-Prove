@@ -58,7 +58,10 @@ The current public AI4FM surface still supports ChatTLA's existing split:
     `ralph-tla`, `.github`
 - The strongest currently untracked public corpus-adjacent lane is still the
   `407` rows across the `13` committed `TLA-Prove` JSONL files outside the
-  tracked import slice (`data/toy/*` + `outputs/diamond_gen/*`).
+  tracked import slice (`data/toy/*` + `outputs/diamond_gen/*`). The new
+  opt-in importer path materializes that broader committed surface as `2757`
+  raw rows or `1010` deduped rows, which is only `5` unique normalized rows
+  beyond the existing tracked `1005`-row import lane.
 
 ### tla-dataset-pipeline discovery / seed lanes
 

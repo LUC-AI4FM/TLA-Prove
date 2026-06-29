@@ -20,6 +20,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"aggregate": {"total_public_jsonl_rows": 2350}}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/ai4fm_org_surface.json").write_text(
+        json.dumps({"public_repo_count": 8, "summary": {"corpus_relevant_repo_count": 3}}),
+        encoding="utf-8",
+    )
     (repo / "outputs/manifests/ai4fm_public_seed_license_surface.json").write_text(
         json.dumps({"license_summary": {"repo_counts": {"MIT": 1, "UNKNOWN": 1}}}),
         encoding="utf-8",
@@ -46,6 +50,22 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     (repo / "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json").write_text(
         json.dumps({"kept_rows": 5, "duplicate_rows_collapsed": 0, "dedupe_exact_final_spec": False}),
+        encoding="utf-8",
+    )
+    _write_jsonl(
+        repo / "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+        [{"messages": []}] * 6,
+    )
+    (repo / "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json").write_text(
+        json.dumps({"kept_rows": 6, "duplicate_rows_collapsed": 3, "include_additional_public_jsonl": True}),
+        encoding="utf-8",
+    )
+    _write_jsonl(
+        repo / "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
+        [{"messages": []}] * 9,
+    )
+    (repo / "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json").write_text(
+        json.dumps({"kept_rows": 9, "duplicate_rows_collapsed": 0, "dedupe_exact_final_spec": False, "include_additional_public_jsonl": True}),
         encoding="utf-8",
     )
     _write_jsonl(
@@ -113,6 +133,8 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_dataset_surface"]["kind"] == "public_ai4fm_dataset_surface_report"
     assert manifest["artifacts"]["ai4fm_public_tlaprove_corpora"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_corpora"]["kind"] == "public_ai4fm_tlaprove_corpora_report"
+    assert manifest["artifacts"]["ai4fm_org_surface"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_org_surface"]["kind"] == "public_ai4fm_org_surface_report"
     assert manifest["artifacts"]["hf_publish_readiness"]["exists"] is True
     assert manifest["artifacts"]["hf_publish_readiness"]["kind"] == "model_hf_publish_readiness_report"
     assert manifest["artifacts"]["hf_publish_readiness_fc128best"]["exists"] is True
@@ -125,6 +147,12 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_raw_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_raw_v1"]["rows"] == 5
     assert manifest["artifacts"]["ai4fm_public_tlaprove_import_raw_v1"]["summary"]["dedupe_exact_final_spec"] is False
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_all_public_v1"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_all_public_v1"]["rows"] == 6
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_all_public_v1"]["summary"]["include_additional_public_jsonl"] is True
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_all_public_raw_v1"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_all_public_raw_v1"]["rows"] == 9
+    assert manifest["artifacts"]["ai4fm_public_tlaprove_import_all_public_raw_v1"]["summary"]["dedupe_exact_final_spec"] is False
     assert manifest["artifacts"]["ai4fm_public_seed_file_manifest_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_seed_file_manifest_v1"]["rows"] == 2
     assert manifest["artifacts"]["ai4fm_public_seed_file_manifest_v1"]["summary"]["totals"]["tla"] == 1
@@ -176,6 +204,19 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["build_ai4fm_public_tlaprove_import_raw"] == (
         "python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates "
         "--out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl"
+    )
+    assert manifest["remote_next_steps"]["build_ai4fm_public_tlaprove_import_all_public"] == (
+        "python3 scripts/build_ai4fm_public_tlaprove_import.py "
+        "--include-additional-public-jsonl "
+        "--out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl"
+    )
+    assert manifest["remote_next_steps"]["build_ai4fm_public_tlaprove_import_all_public_raw"] == (
+        "python3 scripts/build_ai4fm_public_tlaprove_import.py "
+        "--include-additional-public-jsonl --keep-duplicates "
+        "--out data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl"
+    )
+    assert manifest["remote_next_steps"]["inspect_ai4fm_org_surface"] == (
+        "python3 scripts/inspect_ai4fm_org_surface.py"
     )
     assert manifest["remote_next_steps"]["build_ai4fm_public_seed_file_manifest"] == (
         "python3 scripts/build_ai4fm_public_seed_file_manifest.py"

@@ -26,11 +26,17 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   corpora and public AI4FM artifacts.
 - `metadata/tla_prover_corpus_preflight.json`: schema preflight across the
   checked-in prover corpora.
+- `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot (`8` repos,
+  `3` corpus-relevant).
 - `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec
   layer (`205` rows).
 - `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus
   report (`2350` tracked training/eval rows within a `2757`-row committed public
   JSONL surface).
+- `metadata/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json`: raw
+  full-public import summary (`2757` undeduped rows).
+- `metadata/ai4fm_public_tlaprove_import_all_public_v1.summary.json`: normalized
+  full-public import layer (`1010` rows).
 - `metadata/ai4fm_public_tlaprove_import_raw_v1.summary.json`: raw tracked-corpora
   import summary (`2350` undeduped rows).
 - `metadata/ai4fm_public_tlaprove_import_v1.summary.json`: normalized public AI4FM
