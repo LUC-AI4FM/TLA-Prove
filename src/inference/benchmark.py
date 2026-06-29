@@ -82,12 +82,14 @@ _CSV_FIELDS = [
 ]
 
 
-def score_structural(spec: str, expected_invariants: list[str]) -> float:
+def score_structural(spec: str, expected_invariants: list[str], *, parse_ok: bool = True) -> float:
     """
     Heuristic structural rubric — 0.0 to 1.0.
     Checks for: module delimiters, EXTENDS, VARIABLES, Init, Next, Spec,
     TypeOK, and at least one expected invariant name.
     """
+    if not parse_ok:
+        return 0.0
     checks = [
         bool(re.search(r"----\s*MODULE", spec)),
         bool(re.search(r"====", spec)),
@@ -150,7 +152,12 @@ def _run_single_attempt(
         tier = tlc_result.tier
         semantic = tlc_result.semantic
 
-    structural = score_structural(spec, problem.get("expected_invariants", []))
+    parse_ok = bool(tlc_result.tier in ("silver", "gold")) if 'tlc_result' in locals() else bool(semantic)
+    structural = score_structural(
+        spec,
+        problem.get("expected_invariants", []),
+        parse_ok=parse_ok,
+    )
 
     # How many of the benchmark's expected invariants does the generated spec name?
     expected_invs = problem.get("expected_invariants", []) or []
