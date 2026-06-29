@@ -125,7 +125,44 @@ def _write_manifests(repo: Path) -> None:
     _write(repo / "data/processed/sany_tlc_pass_eval_v1.summary.json", json.dumps({"kept_rows": 30}))
     _write(repo / "data/processed/sany_tlc_pass_sft_v1.summary.json", json.dumps({"kept_rows": 170}))
     _write(repo / "outputs/manifests/tla_prover_artifacts_v1.json", json.dumps({"schema": "artifact"}))
-    _write(repo / "outputs/manifests/tla_prover_corpus_preflight.json", json.dumps({"ok": True}))
+    _write(
+        repo / "outputs/manifests/tla_prover_corpus_preflight.json",
+        json.dumps(
+            {
+                "ok": True,
+                "formalllm_coverage": {
+                    "ok": True,
+                    "formalllm_rows": 205,
+                    "corpora": [
+                        {
+                            "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+                            "rows": 1330,
+                            "matched_distinct_rows": 205,
+                            "matched_total_occurrences": 205,
+                            "missing_rows": 0,
+                            "ok": True,
+                        },
+                        {
+                            "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+                            "rows": 2433,
+                            "matched_distinct_rows": 205,
+                            "matched_total_occurrences": 205,
+                            "missing_rows": 0,
+                            "ok": True,
+                        },
+                        {
+                            "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+                            "rows": 2438,
+                            "matched_distinct_rows": 205,
+                            "matched_total_occurrences": 205,
+                            "missing_rows": 0,
+                            "ok": True,
+                        },
+                    ],
+                },
+            }
+        ),
+    )
     _write(
         repo / "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
         json.dumps({"schema": "chattla_tla_prover_corpus_experiment_matrix_v1"}),
@@ -186,7 +223,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "| `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories |",
                 "| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface |",
                 "The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface.",
-                "The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_preflight.json` now checks exact `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone.",
+                "The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone.",
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules.",
                 "Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown.",
                 "Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.",
@@ -221,6 +258,9 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "- `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot (`8` repos,\n  `3` corpus-relevant).",
                 "- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
                 "  layer (`205` rows).",
+                "- `metadata/tla_prover_corpus_preflight.json`: schema preflight plus exact `205/205` `FormaLLM` row",
+                "  coverage verification across the `1330`-row default, `2433`-row expanded, and",
+                "  `2438`-row full-public prover train corpora.",
                 "- `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus",
                 "  report (`2350` tracked training/eval rows within a `2757`-row committed public",
                 "  JSONL surface).",
