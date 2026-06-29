@@ -64,7 +64,7 @@ Important interpretation:
   corpora, not counts published by the two upstream repos above
 - the older `1800+` language appears to describe an earlier or broader internal
   surface, not the current committed public benchmark layer
-- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: `2350` committed `TLA-Prove` JSONL rows, `2110` public seed `.tla` files, or `2108` usable seed modules, not the canonical `205`-entry `FormaLLM` benchmark
+- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: `2757` committed `TLA-Prove` JSONL rows, `2110` public seed `.tla` files, or `2108` usable seed modules, not the canonical `205`-entry `FormaLLM` benchmark
 - our local public-seed lane is now reconciled:
   - `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public
     seed `.tla` files
@@ -85,15 +85,24 @@ ChatTLA now also tracks the stable public corpora already committed in
 
 - report artifact: `outputs/manifests/ai4fm_public_tlaprove_corpora.json`
 - repo head at inspection time: `d1b5142422cfab2ce9a2eba9522d6221776378d6`
-- public JSONL rows across the tracked corpora: `2350`
+- public JSONL rows across the tracked training/eval corpora: `2350`
+- full committed public JSONL surface: `2757` rows across `19` files
+- additional committed public JSONL rows outside the tracked corpora: `407`
+  rows across `13` files (`7` rows under `data/toy/*` and `400` rows under
+  `outputs/diamond_gen/*`)
 - largest single corpus: `data/processed/diamond_sft_v3.jsonl` with `1053` rows
 - base processed train corpus: `data/processed/train.jsonl` with `713` rows
 - Ralph-generated expansion: `500` train rows and `50` dev rows
 - prompt/topic expansion metadata: `200` topics across `10` batches
+- public benchmark surface: `20` benchmark items and `13` non-null benchmark
+  module mappings; the upstream `README.md` still mentions a `30-spec`
+  held-out suite
 
-This is the best public AI4FM surface ChatTLA can ingest today without DVC or
-private infrastructure because the JSONL corpora are committed directly in the
-repository, not only referenced through workflow state.
+The tracked `2350`-row slice is the stable public training/eval stack ChatTLA
+ingests today without DVC or private infrastructure. The broader `2757`-row
+committed surface is still valuable as an audit target, but it currently
+includes toy and diamond-generation outputs that are not part of the tracked
+import lane.
 
 ChatTLA now materializes that public corpus stack as:
 
@@ -102,7 +111,7 @@ ChatTLA now materializes that public corpus stack as:
 
 Current live import summary:
 
-- `2350` raw public rows across the committed corpora
+- `2350` raw public rows across the tracked corpora
 - `1005` kept ChatTLA-format rows after normalization and exact final-spec dedupe
 - `1345` duplicate rows collapsed
 - kept rows by corpus:
@@ -113,14 +122,18 @@ Current live import summary:
   - `48` from `data/frs_tla_ralph_gen/dev.jsonl`
   - `1` from `data/processed/eval.jsonl`
 
-If we want the full public GitHub row surface instead of the normalized,
-deduped import, ChatTLA can now materialize the raw public stack directly:
+If we want the full raw tracked-corpora row surface instead of the normalized,
+deduped import, ChatTLA can now materialize that tracked public stack directly:
 
 - command:
   `python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl`
-- expected scale from the current public repo surface:
-  - `2350` raw public rows from `LUC-AI4FM/TLA-Prove`
+- expected scale from the current tracked corpora surface:
+  - `2350` raw public rows from the tracked `LUC-AI4FM/TLA-Prove` corpora
   - plus the separate `205`-row `FormaLLM` canonical corpus
+
+The current importer does not yet materialize every committed public JSONL file
+from `TLA-Prove`; it intentionally excludes `data/toy/*` and
+`outputs/diamond_gen/*` from the tracked import lane.
 
 That gives us a clean two-lane setup:
 

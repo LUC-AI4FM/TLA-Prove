@@ -30,7 +30,8 @@ AI4FM expansion lanes alongside the prover replay evidence.
 - `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec
   layer (`205` rows).
 - `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus
-  report.
+  report (`2350` tracked training/eval rows within a `2757`-row committed public
+  JSONL surface).
 - `metadata/ai4fm_public_tlaprove_import_v1.summary.json`: normalized public AI4FM
   import layer (`1005` rows).
 - `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed
@@ -60,7 +61,8 @@ AI4FM expansion lanes alongside the prover replay evidence.
 - SANY/TLC SFT: `170` rows, no holdout overlap.
 - SANY/TLC held-out replay: `30` checked, `30` TLC-gold, `29` Diamond.
 - `FormaLLM`: `205` canonical prompt/spec rows across `71` families.
-- Public AI4FM normalized import: `1005` rows.
+- Public AI4FM normalized import: `1005` rows from the tracked `2350`-row
+  public corpora slice.
 - Public AI4FM seed-module prover candidates: `98` rows out of `2108` usable
   public seed-module rows.
 
