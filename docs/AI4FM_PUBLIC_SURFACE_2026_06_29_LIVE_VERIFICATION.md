@@ -137,6 +137,9 @@ That makes the next high-yield public-data options:
 3. keep Hugging Face publish decisions gated on verified model quality rather
    than corpus size alone.
 
+See also:
+`docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md`.
+
 ## Commands used
 
 ```bash
