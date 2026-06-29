@@ -1,0 +1,106 @@
+{
+  "auxiliary_cfg_files": 27,
+  "auxiliary_tla_files": 93,
+  "canonical_cfg_files": 136,
+  "canonical_clean_tla_files": 205,
+  "canonical_tree_tla_files": 410,
+  "canonical_variant_tla_files": 205,
+  "category_counts": {
+    "auxiliary_cfg": 27,
+    "auxiliary_tla": 93,
+    "canonical_cfg": 136,
+    "canonical_clean_tla": 205,
+    "canonical_variant_tla": 205
+  },
+  "family_counts_top": [
+    {
+      "family": "SpecifyingSystems",
+      "rows": 89
+    },
+    {
+      "family": "ewd998",
+      "rows": 47
+    },
+    {
+      "family": "MisraReachability",
+      "rows": 24
+    },
+    {
+      "family": "FiniteMonotonic",
+      "rows": 17
+    },
+    {
+      "family": "lamport_mutex",
+      "rows": 17
+    },
+    {
+      "family": "KeyValueStore",
+      "rows": 16
+    },
+    {
+      "family": "PaxosHowToWinATuringAward",
+      "rows": 16
+    },
+    {
+      "family": "ewd840",
+      "rows": 16
+    },
+    {
+      "family": "Paxos",
+      "rows": 15
+    },
+    {
+      "family": "byihive",
+      "rows": 15
+    },
+    {
+      "family": "YoYo",
+      "rows": 13
+    },
+    {
+      "family": "acp",
+      "rows": 13
+    },
+    {
+      "family": "LoopInvariance",
+      "rows": 12
+    },
+    {
+      "family": "allocator",
+      "rows": 12
+    },
+    {
+      "family": "byzpaxos",
+      "rows": 12
+    },
+    {
+      "family": "transaction_commit",
+      "rows": 12
+    },
+    {
+      "family": "CarTalkPuzzle",
+      "rows": 11
+    },
+    {
+      "family": "Bakery-Boulangerie",
+      "rows": 10
+    },
+    {
+      "family": "N-Queens",
+      "rows": 10
+    },
+    {
+      "family": "SpanningTree",
+      "rows": 10
+    }
+  ],
+  "formalllm_git_head": "e74c2ed",
+  "generated_at": "2026-06-29T16:39:14.557892+00:00",
+  "jsonl_sha256": "497d707dcd6253804e9efc21aa167883f1c60bec43a6cc84890c03304d97a77c",
+  "kept_rows": 666,
+  "out": "data/processed/formalllm_public_module_manifest_v1.jsonl",
+  "repo_cfg_files": 163,
+  "repo_tla_files": 503,
+  "schema": "chattla_formalllm_public_module_manifest_v1",
+  "source_root": "data/FormaLLM/data"
+}

@@ -48,6 +48,11 @@ ARTIFACTS = {
         "summary": "data/processed/formalllm_eval_v1.summary.json",
         "kind": "full_formalllm_prompt_eval_dataset",
     },
+    "formalllm_public_module_manifest_v1": {
+        "path": "data/processed/formalllm_public_module_manifest_v1.jsonl",
+        "summary": "data/processed/formalllm_public_module_manifest_v1.summary.json",
+        "kind": "public_formalllm_repo_file_module_manifest",
+    },
     "ai4fm_public_tlaprove_import_v1": {
         "path": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         "summary": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
@@ -263,6 +268,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "probe_control_planes": "python3 scripts/probe_tla_prover_control_planes.py",
             "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
             "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
+            "build_formalllm_public_module_manifest": (
+                "python3 scripts/build_formalllm_public_module_manifest.py"
+            ),
             "inspect_ai4fm_public_tlaprove_corpora": (
                 "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py"
             ),

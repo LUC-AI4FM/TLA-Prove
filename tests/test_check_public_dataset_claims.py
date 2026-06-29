@@ -23,6 +23,10 @@ def _write_manifests(repo: Path) -> None:
         json.dumps({"rows": 205, "families_seen": 71}),
     )
     _write(
+        repo / "data/processed/formalllm_public_module_manifest_v1.summary.json",
+        json.dumps({"kept_rows": 666, "repo_tla_files": 503, "canonical_clean_tla_files": 205}),
+    )
+    _write(
         repo / "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         json.dumps(
             {
@@ -236,6 +240,7 @@ def _write_manifests(repo: Path) -> None:
         "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
         "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
+        "formalllm_public_module_manifest_v1.summary.json": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
         "ai4fm_public_seed_license_surface.json": "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "ai4fm_public_seed_tla_modules_v1.summary.json": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
