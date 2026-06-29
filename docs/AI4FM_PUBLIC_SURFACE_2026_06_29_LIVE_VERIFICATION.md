@@ -129,6 +129,9 @@ That makes the next high-yield public-data options:
    SANY-clean rows; the new funnel report shows `168` rows already match the
    current autoprover shape, so the immediate public headroom is the `70`
    shape-ready rows still blocked by SANY rather than by missing operators;
+   ChatTLA now materializes those two intermediate lanes directly as
+   `ai4fm_public_seed_prover_shape_ready_v1` (`168` rows) and
+   `ai4fm_public_seed_prover_shape_ready_not_sany_v1` (`70` rows);
 2. run verifier-backed experiments on the `2438`-row full-public lane before
    changing any default training path;
 3. keep Hugging Face publish decisions gated on verified model quality rather

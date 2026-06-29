@@ -1,0 +1,31 @@
+{
+  "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+  "excluded_sany_clean_rows": 98,
+  "generated_at": "2026-06-29T11:46:23.524987+00:00",
+  "jsonl_sha256": "dfa65676340c8c53acb2a93669662da1278dd2ce7e7cb9c8f7dc45578f7feb38",
+  "kept_rows": 70,
+  "out": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
+  "schema": "chattla_ai4fm_public_seed_prover_shape_ready_not_sany_v1",
+  "shape_ready_source_rows": 168,
+  "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+  "source_rows": 2108,
+  "top_repos": [
+    {
+      "repo": "tlaplus/Examples",
+      "rows": 42
+    },
+    {
+      "repo": "tlaplus/tlaplus",
+      "rows": 20
+    },
+    {
+      "repo": "apalache-mc/apalache",
+      "rows": 7
+    },
+    {
+      "repo": "tlaplus/DrTLAPlus",
+      "rows": 1
+    }
+  ],
+  "unique_modules": 46
+}

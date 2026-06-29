@@ -280,6 +280,23 @@ Current reconciled live summary:
     `994` rows missing all four required operators plus the `vars` / temporal
     spec shape
 
+ChatTLA now also materializes two experiment-oriented public seed lanes directly
+from that funnel:
+
+- `data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl`
+  - `168` rows that already satisfy the current autoprover shape contract
+  - `114` unique modules
+- `data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl`
+  - `70` rows that satisfy the autoprover shape contract but are not in the
+    current SANY-clean prover-candidate lane
+  - `46` unique modules
+  - dominated by `tlaplus/Examples` (`42` rows), `tlaplus/tlaplus` (`20`), and
+    `apalache-mc/apalache` (`7`)
+
+Those are the cleanest currently committed repair-target surfaces for widening
+the public prover corpus without relaxing the current `Init` / `Next` / `Spec`
+/ `TypeOK` contract.
+
 ## How ChatTLA should use them
 
 - Treat `FormaLLM` as the canonical public prompt/spec supervision layer.
