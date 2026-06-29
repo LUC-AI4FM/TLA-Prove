@@ -29,6 +29,31 @@ These values come from the local inspection report at
   - DVC `parse` input snapshot: `data/raw`, `227` files
   - DVC `parse` output surface: `data/parsed`, `3979` files
 
+## 2026-06-28 upstream verification
+
+We also re-checked the current upstream public repos directly on 2026-06-28:
+
+- `FormaLLM`
+  - current `main`: `b159f5df093e7ed71f4793bba99459b97a2bb23d`
+  - `data/all_models.json` still contains exactly `205` canonical records
+  - split files still sum to `205`: `143` train, `30` val, `32` test
+- `tla-dataset-pipeline`
+  - current `main`: `59bd5335f1d2c5ff66badbe98b594f4b064f8703`
+  - seed recipe currently lists `11` repos, `7` org seeds, `9` user seeds, and `5` search queries
+  - `dvc.lock` still reports `2628` `pull` files, `227` `parse` input files, and `3979` `parse` output files
+
+Important interpretation:
+
+- the local `205`-row `formalllm_eval_v1` lane matches upstream exactly
+- the local `1005` normalized `ai4fm_public_tlaprove_import_v1` rows and `98`
+  `ai4fm_public_seed_prover_candidates_v1` rows are ChatTLA-derived downstream
+  corpora, not counts published by the two upstream repos above
+- our own local public-seed lane currently has one mismatch worth tracking:
+  `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public seed
+  `.tla` files, while `ai4fm_public_seed_prover_candidates_v1.summary.json`
+  reports `2108` `source_rows`; that discrepancy needs to stay explicit until we
+  reconcile the two-lane accounting
+
 ## Public TLA-Prove corpora
 
 ChatTLA now also tracks the stable public corpora already committed in
