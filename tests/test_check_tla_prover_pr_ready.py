@@ -2,7 +2,13 @@ from pathlib import Path
 
 import subprocess
 
-from scripts.check_tla_prover_pr_ready import build_commands, readiness_files, scan_files
+from scripts.check_tla_prover_pr_ready import (
+    SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND,
+    build_commands,
+    build_report,
+    readiness_files,
+    scan_files,
+)
 
 
 def test_scan_files_flags_private_hosts_and_paths(tmp_path: Path) -> None:
@@ -144,3 +150,28 @@ def test_readiness_files_can_include_untracked_scripts_but_not_outputs(tmp_path:
     assert "scripts/tracked.py" in strict_paths
     assert "scripts/scratch.pbs" in strict_paths
     assert "outputs/manifests/scratch.json" not in strict_paths
+
+
+def test_build_report_recommends_hf_metadata_sync(monkeypatch) -> None:
+    def fake_run_commands(commands, *, repo):
+        return [
+            {
+                "command": ["python3", "scripts/check_public_dataset_claims.py"],
+                "returncode": 1,
+                "stdout_tail": '{"ok": false, "findings": []}',
+                "stderr_tail": "",
+            }
+        ]
+
+    monkeypatch.setattr("scripts.check_tla_prover_pr_ready.scan_files", lambda paths: [])
+    monkeypatch.setattr("scripts.check_tla_prover_pr_ready.run_commands", fake_run_commands)
+
+    report = build_report(run_tests=True)
+
+    assert report["ok"] is False
+    assert report["recommended_fixes"] == [
+        {
+            "reason": "HF publish bundle metadata is out of sync with the tracked local source artifacts.",
+            "command": SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND,
+        }
+    ]

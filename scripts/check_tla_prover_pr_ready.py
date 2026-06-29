@@ -15,6 +15,7 @@ DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_pr_ready.json"
 DEFAULT_EXCLUDE_PREFIXES = ("data/", "outputs/")
 DEFAULT_EXCLUDE_FILES = {"memory.md", "docs/formallm.md"}
 DEFAULT_UNTRACKED_SCAN_PREFIXES = ("scripts/",)
+SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND = "python3 scripts/sync_hf_publish_corpora_metadata.py"
 TRACKED_SHARED_ARTIFACTS = (
     "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
     "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
@@ -213,6 +214,20 @@ def run_commands(commands: list[list[str]], *, repo: Path = REPO) -> list[dict[s
     return results
 
 
+def recommended_fixes(command_results: list[dict[str, Any]]) -> list[dict[str, str]]:
+    fixes: list[dict[str, str]] = []
+    for item in command_results:
+        command = item.get("command")
+        if command == ["python3", "scripts/check_public_dataset_claims.py"] and item.get("returncode") != 0:
+            fixes.append(
+                {
+                    "reason": "HF publish bundle metadata is out of sync with the tracked local source artifacts.",
+                    "command": SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND,
+                }
+            )
+    return fixes
+
+
 def build_report(
     *,
     repo: Path = REPO,
@@ -222,6 +237,7 @@ def build_report(
     findings = scan_files(readiness_files(repo, include_untracked_scripts=include_untracked_scripts))
     command_results = run_commands(build_commands(), repo=repo) if run_tests else []
     commands_ok = all(item["returncode"] == 0 for item in command_results)
+    fixes = recommended_fixes(command_results)
     return {
         "ok": not findings and commands_ok,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -233,6 +249,7 @@ def build_report(
             "patterns": [name for name, _ in SENSITIVE_PATTERNS],
         },
         "commands": command_results,
+        "recommended_fixes": fixes,
         "tests_ran": run_tests,
     }
 

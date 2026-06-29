@@ -46,7 +46,9 @@ Public model: [EricSpencer00/chattla-20b](https://huggingface.co/EricSpencer00/c
   the repair loop.
 - For a reproducible tracked training input instead of ad hoc CLI mixing, run
   `python3 scripts/build_tla_prover_repair_corpus.py` and then train from
-  `data/processed/tla_prover_repair_train_v1.jsonl`.
+  `data/processed/tla_prover_repair_train_v1.jsonl`. The builder will use the
+  short Ralph corpus, the long-Ralph latest corpus, and the benchmark repair
+  corpus when those local files exist.
 - For Hub releases: ensure `HF_TOKEN` is in `.env`; `python -m src.training.publish_hf --dry-run` is a real deployability preflight:
   - it still computes the next version even when `huggingface_hub` is not installed locally;
   - it exits nonzero when the current candidate would be blocked from a real publish.

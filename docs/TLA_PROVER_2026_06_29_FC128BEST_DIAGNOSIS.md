@@ -75,6 +75,9 @@ fresh benchmark failures directly via:
 - `python3 scripts/build_tla_prover_repair_corpus.py`
 - `python3 -m scripts.train_rl_repair --include-benchmark-repair-pairs`
 
+If a local long-Ralph run exists, the tracked repair-corpus builder also folds
+in `data/processed/ralph_repair_pairs_long_latest.jsonl` automatically.
+
 Any future comparison should record the exact Ollama tag used and should
 benchmark a canonically registered model tag if the result is meant to speak
 for `chattla:20b`.
