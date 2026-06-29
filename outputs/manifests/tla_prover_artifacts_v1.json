@@ -1662,7 +1662,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T13:13:18.551516+00:00",
+        "generated_at": "2026-06-29T13:19:52.970630+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -1702,7 +1702,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "65e2fa3f301da7deddbc6d2176dd9ecb97e4b34e91e9e87f2dd955eedf07f39e"
+      "sha256": "ed115588657f80ac11cca8674c90f28cb6d4d5e28fccb83a7ac6ea8e6ff30f7f"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -1712,7 +1712,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T13:13:18.613251+00:00",
+        "generated_at": "2026-06-29T13:19:53.032579+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1953,7 +1953,7 @@
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "d01faf0ae7812f61ff3dff4dcda372e5700bcf1965ca655867002f4b0a707f6f"
+      "sha256": "502c061de8860d7bbed2c140b5b575784b8235c8eb1cb3c9a7af43c1b3773904"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7142,
@@ -2000,7 +2000,7 @@
         }
       },
       "rows": null,
-      "sha256": "8f523bfdff66ac678a331ccae1bd640b4469a70ad539a7ee14f68a9c6f98f192"
+      "sha256": "b8962a921fd081685ca779f100d95d6d0dc52ff83cb3de9389c5139b61b1e397"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -2042,7 +2042,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T13:13:19.246850+00:00",
+  "generated_at": "2026-06-29T13:19:53.664040+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
