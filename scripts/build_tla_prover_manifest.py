@@ -91,6 +91,10 @@ ARTIFACTS = {
         "summary": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
         "kind": "public_ai4fm_seed_repo_sany_valid_prover_candidate_corpus",
     },
+    "ai4fm_public_seed_prover_funnel": {
+        "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
+        "kind": "public_ai4fm_seed_repo_prover_funnel_report",
+    },
     "sany_tlc_pass_sft_v1": {
         "path": "data/processed/sany_tlc_pass_sft_v1.jsonl",
         "summary": "data/processed/sany_tlc_pass_sft_v1.summary.json",
@@ -249,6 +253,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             ),
             "build_ai4fm_public_discovery_manifest": (
                 "python3 scripts/build_ai4fm_public_discovery_manifest.py"
+            ),
+            "inspect_ai4fm_public_seed_prover_funnel": (
+                "python3 scripts/inspect_ai4fm_public_seed_prover_funnel.py"
             ),
             "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
             "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
