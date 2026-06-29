@@ -64,6 +64,7 @@ Important interpretation:
   corpora, not counts published by the two upstream repos above
 - the older `1800+` language appears to describe an earlier or broader internal
   surface, not the current committed public benchmark layer
+- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: `2350` committed `TLA-Prove` JSONL rows, `2110` public seed `.tla` files, or `2108` usable seed modules, not the canonical `205`-entry `FormaLLM` benchmark
 - our local public-seed lane is now reconciled:
   - `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public
     seed `.tla` files
@@ -200,8 +201,8 @@ raw module corpus:
 This keeps only public seed modules that are both SANY-clean and already match
 the current autoprover contract (`Init`, `Next`, `Spec`, `TypeOK`, plus `vars`
 or an explicit `[Next]_vars`-style spec body). It is the cleanest public bridge
-from the 2,110-module seed lane into a prover-usable corpus without private
-infrastructure.
+from the 2,108 usable public seed-module rows into a prover-usable corpus
+without private infrastructure.
 
 Current reconciled live summary:
 

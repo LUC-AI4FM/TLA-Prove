@@ -34,11 +34,19 @@ def _write_manifests(repo: Path) -> None:
     )
     _write(
         repo / "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
-        json.dumps({"seed_repo_inputs": 11, "totals": {"tla": 2110}}),
+        json.dumps({"seed_repo_inputs": 11, "kept_rows": 3140, "totals": {"all": 3140, "tla": 2110}}),
     )
     _write(
         repo / "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
         json.dumps({"kept_rows": 2108}),
+    )
+    _write(
+        repo / "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
+        json.dumps({"kept_rows": 98}),
+    )
+    _write(
+        repo / "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
+        json.dumps({"total_rows": 1330}),
     )
     _write(
         repo / "outputs/manifests/ai4fm_public_dataset_surface.json",
@@ -59,13 +67,15 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
         tmp_path / "README.md",
         "\n".join(
             [
-                "ChatTLA currently uses seven public AI4FM-aligned corpus layers spanning the 205-example `FormaLLM` benchmark, 2,350 raw public `TLA-Prove` JSONL rows, and a 2,110-file / 2,108-module public seed-repo surface:",
+                "ChatTLA currently uses seven public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, 2,350 raw public `TLA-Prove` JSONL rows, and a 2,110-file / 2,108-module public seed-repo surface:",
                 "| `FormaLLM` | 205 canonical prompt/spec entries across 71 families |",
                 "| `TLA-Prove public corpora` | 2,350 JSONL rows across committed public corpora; largest single corpus is `diamond_sft_v3.jsonl` with 1,053 rows |",
                 "| `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the committed public corpora |",
                 "| `tla-dataset-pipeline seed repo files` | 3,140 tracked `.tla` / `.cfg` / `.tlaps` files across the 11 committed public seed repos, including 2,110 `.tla` files |",
+                "| `tla-dataset-pipeline seed prover candidates` | 98 SANY-clean prover-candidate rows from 2,108 usable public seed-module rows |",
                 "| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface |",
                 "The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface.",
+                "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,350` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules.",
                 "The seed prover-candidate corpus is the first stricter bridge from the 2,110 public `.tla` files / 2,108 usable module rows into the current prover lane.",
             ]
         ),
@@ -80,6 +90,22 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "- `ai4fm_public_seed_tla_modules_v1.summary.json` reports `2108` usable",
                 "- `2350` raw public rows across the committed corpora",
                 "- `1005` kept ChatTLA-format rows after normalization and exact final-spec dedupe",
+                "- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: `2350` committed `TLA-Prove` JSONL rows, `2110` public seed `.tla` files, or `2108` usable seed modules",
+            ]
+        ),
+    )
+    _write(
+        tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md",
+        "\n".join(
+            [
+                "- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
+                "  layer (`205` rows).",
+                "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed",
+                "  file manifest (`3140` tracked files, `2110` `.tla` files, `2108` usable module rows).",
+                "- Mixed prover SFT corpus: `1330` rows",
+                "- Public AI4FM normalized import: `1005` rows.",
+                "- Public AI4FM seed-module prover candidates: `98` rows out of `2108` usable",
+                "  public seed-module rows.",
             ]
         ),
     )

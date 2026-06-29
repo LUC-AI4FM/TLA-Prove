@@ -77,6 +77,7 @@ PYTEST_FILES = [
     "tests/test_probe_tla_prover_control_planes.py",
     "tests/test_submit_tla_prover_remote_jobs.py",
     "tests/test_qsub_sft_preflight.py",
+    "tests/test_qsub_fc128_artifact_preflight.py",
     "tests/test_build_tla_prover_manifest.py",
     "tests/test_inspect_ai4fm_public_dataset_surface.py",
     "tests/test_inspect_hf_publish_readiness.py",

@@ -527,16 +527,16 @@ New trainable artifacts:
 - `data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl`
   contains 18 structured verified proof traces from the all-green `160816`
   archive, raw 299/299 TLAPS obligations, checksum
-  `3cb55c1440ca315cee7aef4ac3e360886e2ecce466e1a83dd776ac2da00c000d`.
+  `5444bd7da9a1946380877202f48658376df0c8e77bbf5328b9547c9eecb78e35`.
 - `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl` contains 1330
   SFT rows: `diamond_sft_v3`, the full `205`-row `formalllm_eval_v1`, plus 4x
   oversampled verified TLAPS proof rows, normalized to
   `developer`/`user`/assistant-channel message format, checksum
-  `71f90d0d657a89ea78fc13452de521ae132dacb972e349ffecd505cb4ef352fb`.
+  `3b4350956d94d214f1e1d8c2225bc7ecbcdf438b8cb1d23ac9f75464ccfb446e`.
 - `data/processed/prover_eval.jsonl` contains 18 TLAPS-callback-compatible
   prover eval rows derived from the verified proof traces, 299/299 gold TLAPS
   obligations, checksum
-  `e790f1d3a300ea0fc9ded15d77085e7f294a2a5dd44f6428d199a75cec5acd97`.
+  `2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357`.
 - `data/processed/sany_tlc_pass_sft_v1.jsonl` contains 170 verified
   SANY/TLC-pass rows from `outputs/diamond_gen/diamond_generated.jsonl`, with
   the 30-module holdout excluded. The builder now appends deterministic inline
