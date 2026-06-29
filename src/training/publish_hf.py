@@ -41,6 +41,7 @@ _README_TEMPLATE = _REPO_ROOT / "outputs" / "hf_readme" / "README.md"
 _DEFAULT_REPO = "EricSpencer00/chattla-20b"
 # Match public model card v11; first automated publish becomes v12 unless overridden.
 _INITIAL_VERSION = 11
+_GGUF_VERSION_RE = re.compile(r"^gguf/chattla-20b-v(\d+)-[A-Za-z0-9_]+\.gguf$")
 
 
 def _load_state() -> dict:
@@ -55,6 +56,46 @@ def _load_state() -> dict:
 def _save_state(state: dict) -> None:
     _STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     _STATE_PATH.write_text(json.dumps(state, indent=2), encoding="utf-8")
+
+
+def max_published_version(paths: list[str]) -> int | None:
+    versions = []
+    for path in paths:
+        match = _GGUF_VERSION_RE.match(path)
+        if match:
+            versions.append(int(match.group(1)))
+    return max(versions) if versions else None
+
+
+def next_version_for_publish(
+    *,
+    local_last: int,
+    remote_paths: list[str] | None = None,
+    version_override: int | None = None,
+) -> tuple[int, int | None]:
+    if version_override is not None:
+        return version_override, max_published_version(remote_paths or [])
+    remote_last = max_published_version(remote_paths or [])
+    effective_last = max(local_last, remote_last or local_last)
+    return effective_last + 1, remote_last
+
+
+def fetch_remote_repo_paths(api: object, repo_id: str) -> list[str]:
+    list_repo_files = getattr(api, "list_repo_files", None)
+    if callable(list_repo_files):
+        files = list_repo_files(repo_id=repo_id, repo_type="model")
+        return [str(item) for item in files]
+    model_info = getattr(api, "model_info", None)
+    if callable(model_info):
+        info = model_info(repo_id=repo_id)
+        siblings = getattr(info, "siblings", None) or []
+        paths = []
+        for item in siblings:
+            name = getattr(item, "rfilename", None)
+            if name:
+                paths.append(str(name))
+        return paths
+    raise AttributeError("HfApi does not expose list_repo_files or model_info")
 
 
 def latest_full_benchmark_stats() -> dict | None:
@@ -176,7 +217,26 @@ def publish(
 
     state = _load_state()
     last = int(state.get("last_published_version", _INITIAL_VERSION))
-    new_ver = version_override if version_override is not None else last + 1
+    api = HfApi(token=os.environ.get("HF_TOKEN") or None)
+    remote_paths: list[str] | None = None
+    remote_last: int | None = None
+    try:
+        remote_paths = fetch_remote_repo_paths(api, repo_id)
+        remote_last = max_published_version(remote_paths)
+    except Exception as exc:
+        print(f"[publish_hf] WARN: could not inspect remote repo version state: {exc}", file=sys.stderr)
+
+    new_ver, remote_last = next_version_for_publish(
+        local_last=last,
+        remote_paths=remote_paths,
+        version_override=version_override,
+    )
+    if remote_last is not None and remote_last > last:
+        print(
+            f"[publish_hf] WARN: local publish state v{last} lags remote repo v{remote_last}; "
+            f"using v{new_ver}",
+            file=sys.stderr,
+        )
 
     path_in_repo = f"gguf/chattla-20b-v{new_ver}-{quant}.gguf"
     msg_parts = [f"v{new_ver}: ChatTLA GGUF ({quant})"]

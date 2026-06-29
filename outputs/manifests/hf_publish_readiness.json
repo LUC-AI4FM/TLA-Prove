@@ -1,0 +1,56 @@
+{
+  "benchmark": {
+    "age_hours": 102.49861837016212,
+    "avg_struct": 0.3167,
+    "fresh_within_hours": 24.0,
+    "rows": 20,
+    "sany": 0,
+    "source_csv": "benchmark_results_fc128best_full_20260624_1640.csv",
+    "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260624_1640.csv",
+    "tlc": 0
+  },
+  "blockers": [
+    "local GGUF artifact missing under outputs/gguf",
+    "latest full benchmark is stale at 102.5h (limit 24.0h)"
+  ],
+  "generated_at": "2026-06-29T04:13:21.878388+00:00",
+  "local": {
+    "gguf_dir": "outputs/gguf",
+    "gguf_files": [],
+    "latest_gguf": null,
+    "merged_model_config_present": false,
+    "merged_model_dir": "outputs/merged_model",
+    "readme_template": "outputs/hf_readme/README.md",
+    "readme_template_present": true
+  },
+  "next_publish_version": 22,
+  "ready_to_publish": false,
+  "remote": {
+    "gguf_files": [
+      "gguf/Modelfile",
+      "gguf/chattla-20b-v10-Q8_0.gguf",
+      "gguf/chattla-20b-v11-Q8_0.gguf",
+      "gguf/chattla-20b-v12-Q8_0.gguf",
+      "gguf/chattla-20b-v13-Q8_0.gguf",
+      "gguf/chattla-20b-v14-Q8_0.gguf",
+      "gguf/chattla-20b-v15-Q8_0.gguf",
+      "gguf/chattla-20b-v16-Q8_0.gguf",
+      "gguf/chattla-20b-v17-Q8_0.gguf",
+      "gguf/chattla-20b-v18-Q8_0.gguf",
+      "gguf/chattla-20b-v19-Q8_0.gguf",
+      "gguf/chattla-20b-v20-Q8_0.gguf",
+      "gguf/chattla-20b-v21-Q8_0.gguf"
+    ],
+    "latest_published_version": 21
+  },
+  "repo_id": "EricSpencer00/chattla-20b",
+  "state": {
+    "last_cycle_id": 69,
+    "last_gguf_path_in_repo": "gguf/chattla-20b-v21-Q8_0.gguf",
+    "last_published_version": 21,
+    "last_repo": "EricSpencer00/chattla-20b",
+    "note": "State aligned to remote Hugging Face publish surface on 2026-06-29.",
+    "path": "data/benchmarks/hf_publish_state.json"
+  },
+  "warnings": []
+}

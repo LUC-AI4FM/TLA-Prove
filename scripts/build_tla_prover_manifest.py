@@ -80,6 +80,10 @@ ARTIFACTS = {
         "path": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         "kind": "public_ai4fm_tlaprove_corpora_report",
     },
+    "hf_publish_readiness": {
+        "path": "outputs/manifests/hf_publish_readiness.json",
+        "kind": "model_hf_publish_readiness_report",
+    },
     "known18_module_list": {
         "path": "data/processed/tla_prover/tlaps_candidate_modules_18.txt",
         "kind": "remote_smoke_input",
@@ -153,8 +157,6 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
         "remote_next_steps": {
             "known18_pbs": "scripts/qsub_autoprover_known18_corrected_smoke.pbs",
             "known18_launch": "qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs",
-            "sft_preflight_pbs": "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
-            "sft_preflight_launch": "qsub scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
             "final_proof_verify_pbs": "scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
             "final_proof_verify_launch": "qsub scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
             "remote_submit_script": "scripts/submit_tla_prover_remote_jobs.sh --submit-sft-preflight",
@@ -194,6 +196,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
             "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
             "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",
+            "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",
         },
         "promotion_gate": (
