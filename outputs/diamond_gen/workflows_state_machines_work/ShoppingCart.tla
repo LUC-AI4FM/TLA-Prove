@@ -46,7 +46,7 @@ Next == \/ AddItem \/ RemoveItem \/ Checkout \/ Abandon \/ Done
 Spec == Init /\ [][Next]_vars
 
 \* Cart bounded; checkout requires items and produces exactly one order.
-SafetyInvariant == (items <= MaxItems) /\ ((status = "checked_out") => (ever_added /\ order_count = 1)) /\ (order_count <= 1) /\ ((order_count = 1) => (status = "checked_out"))
+SafetyInvariant == (items <= MaxItems) /\ ((items > 0) => ever_added) /\ ((status = "checked_out") => (ever_added /\ order_count = 1)) /\ (order_count <= 1) /\ ((order_count = 1) => (status = "checked_out"))
 
 TypeOK == /\ status \in States
           /\ items \in 0..MaxItems

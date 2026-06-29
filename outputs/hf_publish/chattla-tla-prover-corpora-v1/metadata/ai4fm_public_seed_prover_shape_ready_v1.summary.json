@@ -1,0 +1,42 @@
+{
+  "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+  "generated_at": "2026-06-29T18:35:02.929678+00:00",
+  "jsonl_sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
+  "kept_rows": 168,
+  "out": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
+  "schema": "chattla_ai4fm_public_seed_prover_shape_ready_v1",
+  "shape_ready_source_rows": 168,
+  "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+  "source_rows": 2108,
+  "top_repos": [
+    {
+      "repo": "tlaplus/Examples",
+      "rows": 78
+    },
+    {
+      "repo": "tlaplus/tlaplus",
+      "rows": 59
+    },
+    {
+      "repo": "apalache-mc/apalache",
+      "rows": 26
+    },
+    {
+      "repo": "tlaplus/DrTLAPlus",
+      "rows": 2
+    },
+    {
+      "repo": "microsoft/CCF",
+      "rows": 1
+    },
+    {
+      "repo": "Azure/azure-cosmos-tla",
+      "rows": 1
+    },
+    {
+      "repo": "pingcap/tla-plus",
+      "rows": 1
+    }
+  ],
+  "unique_modules": 114
+}

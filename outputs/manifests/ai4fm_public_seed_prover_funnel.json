@@ -1,0 +1,290 @@
+{
+  "by_repo": {
+    "repos": [
+      {
+        "repo": "Azure/azure-cosmos-tla",
+        "sany_clean_rate": 0.333333,
+        "sany_clean_rows": 1,
+        "shape_ready_rate": 0.333333,
+        "shape_ready_rows": 1,
+        "total_rows": 3
+      },
+      {
+        "repo": "apalache-mc/apalache",
+        "sany_clean_rate": 0.05428,
+        "sany_clean_rows": 26,
+        "shape_ready_rate": 0.05428,
+        "shape_ready_rows": 26,
+        "total_rows": 479
+      },
+      {
+        "repo": "atomix/atomix-tlaplus",
+        "sany_clean_rate": 0.0,
+        "sany_clean_rows": 0,
+        "shape_ready_rate": 0.0,
+        "shape_ready_rows": 0,
+        "total_rows": 6
+      },
+      {
+        "repo": "microsoft/CCF",
+        "sany_clean_rate": 0.045455,
+        "sany_clean_rows": 1,
+        "shape_ready_rate": 0.045455,
+        "shape_ready_rows": 1,
+        "total_rows": 22
+      },
+      {
+        "repo": "pingcap/tla-plus",
+        "sany_clean_rate": 0.043478,
+        "sany_clean_rows": 1,
+        "shape_ready_rate": 0.043478,
+        "shape_ready_rows": 1,
+        "total_rows": 23
+      },
+      {
+        "repo": "tendermint/spec",
+        "sany_clean_rate": 0.0,
+        "sany_clean_rows": 0,
+        "shape_ready_rate": 0.0,
+        "shape_ready_rows": 0,
+        "total_rows": 51
+      },
+      {
+        "repo": "tlaplus/CommunityModules",
+        "sany_clean_rate": 0.0,
+        "sany_clean_rows": 0,
+        "shape_ready_rate": 0.0,
+        "shape_ready_rows": 0,
+        "total_rows": 73
+      },
+      {
+        "repo": "tlaplus/DrTLAPlus",
+        "sany_clean_rate": 0.5,
+        "sany_clean_rows": 1,
+        "shape_ready_rate": 1.0,
+        "shape_ready_rows": 2,
+        "total_rows": 2
+      },
+      {
+        "repo": "tlaplus/Examples",
+        "sany_clean_rate": 0.157248,
+        "sany_clean_rows": 64,
+        "shape_ready_rate": 0.191646,
+        "shape_ready_rows": 78,
+        "total_rows": 407
+      },
+      {
+        "repo": "tlaplus/ValidationTestSuite",
+        "sany_clean_rate": 0.0,
+        "sany_clean_rows": 0,
+        "shape_ready_rate": 0.0,
+        "shape_ready_rows": 0,
+        "total_rows": 2
+      },
+      {
+        "repo": "tlaplus/tlaplus",
+        "sany_clean_rate": 0.053846,
+        "sany_clean_rows": 56,
+        "shape_ready_rate": 0.056731,
+        "shape_ready_rows": 59,
+        "total_rows": 1040
+      }
+    ],
+    "top_sany_clean_repos": [
+      {
+        "count": 64,
+        "name": "tlaplus/Examples"
+      },
+      {
+        "count": 56,
+        "name": "tlaplus/tlaplus"
+      },
+      {
+        "count": 26,
+        "name": "apalache-mc/apalache"
+      },
+      {
+        "count": 1,
+        "name": "microsoft/CCF"
+      },
+      {
+        "count": 1,
+        "name": "Azure/azure-cosmos-tla"
+      },
+      {
+        "count": 1,
+        "name": "pingcap/tla-plus"
+      },
+      {
+        "count": 1,
+        "name": "tlaplus/DrTLAPlus"
+      }
+    ],
+    "top_shape_ready_repos": [
+      {
+        "count": 78,
+        "name": "tlaplus/Examples"
+      },
+      {
+        "count": 59,
+        "name": "tlaplus/tlaplus"
+      },
+      {
+        "count": 26,
+        "name": "apalache-mc/apalache"
+      },
+      {
+        "count": 2,
+        "name": "tlaplus/DrTLAPlus"
+      },
+      {
+        "count": 1,
+        "name": "microsoft/CCF"
+      },
+      {
+        "count": 1,
+        "name": "Azure/azure-cosmos-tla"
+      },
+      {
+        "count": 1,
+        "name": "pingcap/tla-plus"
+      }
+    ]
+  },
+  "candidates": {
+    "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+    "rows": 150,
+    "summary_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json"
+  },
+  "funnel": {
+    "not_shape_ready_rows": 1940,
+    "sany_clean_rows": 150,
+    "shape_ready_but_not_sany_clean_rows": 18,
+    "shape_ready_rows": 168,
+    "shape_ready_unique_modules": 114,
+    "source_rows": 2108
+  },
+  "generated_at": "2026-06-29T18:35:03.438319+00:00",
+  "missing_requirement_counts": {
+    "operators": {
+      "Init": 1082,
+      "Next": 1108,
+      "Spec": 1571,
+      "TypeOK": 1909
+    },
+    "top_requirement_combinations": [
+      {
+        "count": 994,
+        "requirements": [
+          "Init",
+          "Next",
+          "Spec",
+          "TypeOK",
+          "vars_shape"
+        ]
+      },
+      {
+        "count": 480,
+        "requirements": [
+          "Spec",
+          "TypeOK",
+          "vars_shape"
+        ]
+      },
+      {
+        "count": 298,
+        "requirements": [
+          "TypeOK"
+        ]
+      },
+      {
+        "count": 45,
+        "requirements": [
+          "Init",
+          "Next",
+          "TypeOK",
+          "vars_shape"
+        ]
+      },
+      {
+        "count": 30,
+        "requirements": [
+          "Spec",
+          "TypeOK"
+        ]
+      },
+      {
+        "count": 29,
+        "requirements": [
+          "Init",
+          "Next",
+          "Spec",
+          "TypeOK"
+        ]
+      },
+      {
+        "count": 15,
+        "requirements": [
+          "Spec",
+          "vars_shape"
+        ]
+      },
+      {
+        "count": 12,
+        "requirements": [
+          "Next",
+          "TypeOK"
+        ]
+      },
+      {
+        "count": 8,
+        "requirements": [
+          "Next",
+          "TypeOK",
+          "vars_shape"
+        ]
+      },
+      {
+        "count": 6,
+        "requirements": [
+          "Next",
+          "Spec",
+          "TypeOK",
+          "vars_shape"
+        ]
+      },
+      {
+        "count": 5,
+        "requirements": [
+          "Init",
+          "Next",
+          "Spec",
+          "vars_shape"
+        ]
+      },
+      {
+        "count": 4,
+        "requirements": [
+          "Spec"
+        ]
+      }
+    ],
+    "vars_or_temporal_spec_shape": 1560
+  },
+  "schema": "chattla_ai4fm_public_seed_prover_funnel_v1",
+  "shape_requirements": {
+    "required_operator_definitions": [
+      "Init",
+      "Next",
+      "Spec",
+      "TypeOK"
+    ],
+    "requires_vars_or_temporal_spec_shape": true
+  },
+  "source": {
+    "path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+    "rows": 2108,
+    "summary_path": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json"
+  },
+  "warnings": []
+}

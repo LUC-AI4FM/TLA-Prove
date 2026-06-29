@@ -1,0 +1,195 @@
+#!/bin/bash
+# Gated full-spec phase 2. This wakes after the phase-1 checkpoint eval,
+# selects a non-regressing/improving checkpoint, then continues with the
+# stricter syntax-hygiene floor now in src/rlvr_canary/fullspec_reward.py.
+# Submit with:
+#   qsub -W depend=afterok:160345 scripts/qsub_grpo_sophia_fullspec_phase2_strict_select.pbs
+# Set the project/account at submit time if your site requires one.
+#PBS -q single-node
+#PBS -l select=1:ngpus=4:ncpus=128:mem=480gb
+#PBS -l walltime=04:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N grpo_fullspec_p2
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+ARTIFACT_ROOT="${CHATTLA_ARTIFACT_ROOT:-$PBS_O_WORKDIR/outputs/artifacts/fullspec/${PBS_JOBNUM}}"
+LOG_DIR="$ARTIFACT_ROOT/logs"
+mkdir -p "$LOG_DIR" outputs/eval
+exec > "$LOG_DIR/grpo_fullspec_phase2_strict_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export NUMEXPR_MAX_THREADS=128
+export NUMEXPR_NUM_THREADS=32
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export CHATTLA_REWARD_WORKERS=4
+export CHATTLA_REWARD_TLC_TIMEOUT=20
+
+PY="${CHATTLA_PYTHON:-python3}"
+MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+PHASE1_JOB="${PHASE1_JOB:-160343}"
+PHASE1_DIR="$ARTIFACT_ROOT/${PHASE1_JOB}/checkpoints_grpo_fullspec_phase1_${PHASE1_JOB}"
+EVAL_JOB="${EVAL_JOB:-160345}"
+SELECTION=outputs/eval/fullspec_phase2_selection_${PBS_JOBNUM}.json
+OUT="$ARTIFACT_ROOT/checkpoints_grpo_fullspec_phase2_strict_${PBS_JOBNUM}"
+SAMPLES="$LOG_DIR/grpo_fullspec_phase2_strict_${PBS_JOBNUM}_samples.jsonl"
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "MODEL=$MODEL"
+echo "ARTIFACT_ROOT=$ARTIFACT_ROOT"
+echo "PHASE1_JOB=$PHASE1_JOB"
+echo "PHASE1_DIR=$PHASE1_DIR"
+echo "EVAL_JOB=$EVAL_JOB"
+echo "OUT=$OUT"
+echo "SAMPLES=$SAMPLES"
+
+echo
+echo "===== GPUs ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+
+echo
+echo "===== Python stack ====="
+"$PY" - <<'PY'
+import torch
+import transformers
+import trl
+import peft
+print("torch", torch.__version__, "cuda_available", torch.cuda.is_available(), "n_gpu", torch.cuda.device_count())
+print("transformers", transformers.__version__)
+print("trl", trl.__version__)
+print("peft", peft.__version__)
+PY
+
+echo
+echo "===== Selecting phase-1 checkpoint ====="
+ADAPTER=$("$PY" - <<PY
+import glob
+import json
+import re
+from pathlib import Path
+
+eval_job = "$EVAL_JOB"
+phase1_dir = Path("$PHASE1_DIR")
+selection_path = Path("$SELECTION")
+
+base_paths = glob.glob(f"outputs/eval/fullspec_phase1_base_{eval_job}.json")
+if not base_paths:
+    raise SystemExit(f"missing base eval JSON for job {eval_job}")
+with open(base_paths[0]) as f:
+    base = json.load(f)
+
+candidates = []
+for path in sorted(glob.glob(f"outputs/eval/fullspec_phase1_ckpt*_{eval_job}.json")):
+    with open(path) as f:
+        data = json.load(f)
+    m = re.search(r"ckpt(\\d+)_", Path(path).name)
+    if not m:
+        continue
+    step = int(m.group(1))
+    adapter = phase1_dir / f"checkpoint-{step}"
+    if not adapter.is_dir():
+        continue
+    no_regress = (
+        data["sany_pass"] >= base["sany_pass"]
+        and data["depth1_pass"] >= base["depth1_pass"]
+        and data["tlc_pass"] >= base["tlc_pass"]
+        and data["mean_reward"] >= base["mean_reward"]
+        and data.get("module_match", 0) >= base.get("module_match", 0)
+        and data.get("syntax_issue_rows", 0) <= base.get("syntax_issue_rows", 0)
+        and data.get("syntax_issue_count", 0) <= base.get("syntax_issue_count", 0)
+    )
+    improves = (
+        data["sany_pass"] > base["sany_pass"]
+        or data["depth1_pass"] > base["depth1_pass"]
+        or data["tlc_pass"] > base["tlc_pass"]
+        or data["mean_reward"] > base["mean_reward"]
+    )
+    candidates.append({
+        "step": step,
+        "adapter": str(adapter),
+        "path": path,
+        "eligible": bool(no_regress and improves),
+        "sany_pass": data["sany_pass"],
+        "depth1_pass": data["depth1_pass"],
+        "tlc_pass": data["tlc_pass"],
+        "mean_reward": data["mean_reward"],
+        "starts_module": data["starts_module"],
+        "has_terminator": data["has_terminator"],
+        "module_match": data["module_match"],
+        "syntax_issue_rows": data.get("syntax_issue_rows"),
+        "syntax_issue_count": data.get("syntax_issue_count"),
+    })
+
+eligible = [c for c in candidates if c["eligible"]]
+eligible.sort(key=lambda c: (
+    c["tlc_pass"],
+    c["depth1_pass"],
+    c["sany_pass"],
+    c["mean_reward"],
+    -c["step"],
+), reverse=True)
+selection = {
+    "base": {
+        "path": base_paths[0],
+        "sany_pass": base["sany_pass"],
+        "depth1_pass": base["depth1_pass"],
+        "tlc_pass": base["tlc_pass"],
+        "mean_reward": base["mean_reward"],
+        "module_match": base.get("module_match"),
+        "syntax_issue_rows": base.get("syntax_issue_rows"),
+        "syntax_issue_count": base.get("syntax_issue_count"),
+    },
+    "candidates": candidates,
+    "selected": eligible[0] if eligible else None,
+}
+selection_path.write_text(json.dumps(selection, indent=2), encoding="utf-8")
+if not eligible:
+    print("")
+else:
+    print(eligible[0]["adapter"])
+PY
+)
+
+if [[ -z "$ADAPTER" ]]; then
+  echo "No eligible phase-1 checkpoint. Wrote $SELECTION; exiting without phase-2 training."
+  exit 0
+fi
+
+echo "Selected adapter: $ADAPTER"
+cat "$SELECTION"
+
+echo
+echo "===== Full-spec GRPO phase 2 strict ====="
+"$PY" -u -m scripts.train_rl_fullspec \
+  --model "$MODEL" \
+  --adapter-checkpoint "$ADAPTER" \
+  --output-dir "$OUT" \
+  --max-steps 40 \
+  --num-generations 4 \
+  --max-completion-length 1024 \
+  --save-steps 10 \
+  --learning-rate 1.5e-6 \
+  --beta 0.04 \
+  --temperature 0.5 \
+  --chat-template-reasoning-effort none \
+  --sample-log-path "$SAMPLES" \
+  --sample-log-every 1 \
+  --sample-log-limit 8
+
+echo
+echo "===== full-spec phase 2 strict done ====="
+date
+echo "OUT=$OUT"
+echo "samples=$SAMPLES"
+echo "selection=$SELECTION"

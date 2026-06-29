@@ -1,0 +1,127 @@
+#!/bin/bash
+# Evaluate gated full-spec phase-2 checkpoints if phase 2 actually trained.
+# Submit with:
+#   qsub -W depend=afterok:160347 scripts/qsub_eval_sophia_fullspec_phase2_ckpts.pbs
+# Set the project/account at submit time if your site requires one.
+#PBS -q single-node
+#PBS -l select=1:ngpus=4:ncpus=128:mem=480gb
+#PBS -l walltime=03:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N eval_fullspec_p2
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+ARTIFACT_ROOT="${CHATTLA_ARTIFACT_ROOT:-$PBS_O_WORKDIR/outputs/artifacts/fullspec}"
+LOG_DIR="$ARTIFACT_ROOT/logs"
+mkdir -p "$LOG_DIR" outputs/eval
+exec > "$LOG_DIR/eval_fullspec_phase2_ckpts_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export NUMEXPR_MAX_THREADS=128
+export NUMEXPR_NUM_THREADS=32
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+PY="${CHATTLA_PYTHON:-python3}"
+MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+PHASE2_JOB="${PHASE2_JOB:-160347}"
+PHASE2_DIR="$ARTIFACT_ROOT/${PHASE2_JOB}/checkpoints_grpo_fullspec_phase2_strict_${PHASE2_JOB}"
+HOLDOUT=data/processed/diamond_eval_holdout.jsonl
+MAX_EXAMPLES=10
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "MODEL=$MODEL"
+echo "ARTIFACT_ROOT=$ARTIFACT_ROOT"
+echo "PHASE2_JOB=$PHASE2_JOB"
+echo "PHASE2_DIR=$PHASE2_DIR"
+echo "HOLDOUT=$HOLDOUT"
+echo "MAX_EXAMPLES=$MAX_EXAMPLES"
+
+echo
+echo "===== GPUs ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+
+echo
+echo "===== Python syntax check ====="
+"$PY" -m py_compile scripts/eval_fullspec_checkpoints.py
+
+if [[ ! -d "$PHASE2_DIR" ]]; then
+  echo "Phase-2 directory not present; gated phase-2 likely selected no eligible phase-1 checkpoint."
+  echo "Nothing to evaluate."
+  exit 0
+fi
+
+echo
+echo "===== Eval base model ====="
+"$PY" -u -m scripts.eval_fullspec_checkpoints \
+  --model "$MODEL" \
+  --label base \
+  --holdout "$HOLDOUT" \
+  --max-examples "$MAX_EXAMPLES" \
+  --max-new-tokens 1024 \
+  --chat-template-reasoning-effort none \
+  --timeout 20 \
+  --out "outputs/eval/fullspec_phase2_base_${PBS_JOBNUM}.json"
+
+for step in 10 20 30 40; do
+  CANDIDATE="${PHASE2_DIR}/checkpoint-${step}"
+  if [[ ! -d "$CANDIDATE" ]]; then
+    echo "skip missing $CANDIDATE"
+    continue
+  fi
+  echo
+  echo "===== Eval phase-2 checkpoint-${step} ====="
+  "$PY" -u -m scripts.eval_fullspec_checkpoints \
+    --model "$MODEL" \
+    --adapter "$CANDIDATE" \
+    --label "phase2-checkpoint-${step}" \
+    --holdout "$HOLDOUT" \
+    --max-examples "$MAX_EXAMPLES" \
+    --max-new-tokens 1024 \
+    --chat-template-reasoning-effort none \
+    --timeout 20 \
+    --out "outputs/eval/fullspec_phase2_ckpt${step}_${PBS_JOBNUM}.json"
+done
+
+echo
+echo "===== Summary ====="
+"$PY" - <<'PY'
+import glob
+import json
+from pathlib import Path
+
+paths = sorted(glob.glob("outputs/eval/fullspec_phase2_*_*.json"))
+if not paths:
+    print("no phase-2 eval JSONs")
+for path in paths:
+    with open(path) as f:
+        data = json.load(f)
+    print(
+        Path(path).name,
+        data["label"],
+        "n", data["n"],
+        "sany", data["sany_pass"],
+        "depth1", data["depth1_pass"],
+        "tlc", data["tlc_pass"],
+        "mean_reward", data["mean_reward"],
+        "starts_module", data["starts_module"],
+        "terminator", data["has_terminator"],
+        "module_match", data["module_match"],
+        "syntax_issue_rows", data.get("syntax_issue_rows"),
+        "syntax_issue_count", data.get("syntax_issue_count"),
+    )
+PY
+
+echo
+echo "===== full-spec phase-2 checkpoint eval done ====="
+date

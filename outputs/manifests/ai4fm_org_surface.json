@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-06-29T14:09:06.637526+00:00",
+  "org": "LUC-AI4FM",
+  "public_repo_count": 8,
+  "repos": [
+    {
+      "default_branch": "main",
+      "full_name": "LUC-AI4FM/.github",
+      "html_url": "https://github.com/LUC-AI4FM/.github",
+      "name": ".github",
+      "pushed_at": "2026-03-31T04:38:45Z",
+      "role": "adjacent",
+      "size": 11
+    },
+    {
+      "default_branch": "main",
+      "full_name": "LUC-AI4FM/FormaLLM",
+      "html_url": "https://github.com/LUC-AI4FM/FormaLLM",
+      "name": "FormaLLM",
+      "pushed_at": "2026-06-22T20:53:39Z",
+      "role": "benchmark",
+      "size": 15137
+    },
+    {
+      "default_branch": "main",
+      "full_name": "LUC-AI4FM/FormaLLM-Reverse",
+      "html_url": "https://github.com/LUC-AI4FM/FormaLLM-Reverse",
+      "name": "FormaLLM-Reverse",
+      "pushed_at": "2026-01-25T05:24:30Z",
+      "role": "adjacent",
+      "size": 14963
+    },
+    {
+      "default_branch": "main",
+      "full_name": "LUC-AI4FM/paper-parse",
+      "html_url": "https://github.com/LUC-AI4FM/paper-parse",
+      "name": "paper-parse",
+      "pushed_at": "2026-02-05T00:12:48Z",
+      "role": "adjacent",
+      "size": 25331
+    },
+    {
+      "default_branch": "main",
+      "full_name": "LUC-AI4FM/ralph-tla",
+      "html_url": "https://github.com/LUC-AI4FM/ralph-tla",
+      "name": "ralph-tla",
+      "pushed_at": "2026-04-11T03:15:57Z",
+      "role": "adjacent",
+      "size": 11
+    },
+    {
+      "default_branch": "main",
+      "full_name": "LUC-AI4FM/tla-dataset-pipeline",
+      "html_url": "https://github.com/LUC-AI4FM/tla-dataset-pipeline",
+      "name": "tla-dataset-pipeline",
+      "pushed_at": "2026-06-29T03:23:43Z",
+      "role": "pipeline",
+      "size": 176
+    },
+    {
+      "default_branch": "main",
+      "full_name": "LUC-AI4FM/TLA-Prove",
+      "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+      "name": "TLA-Prove",
+      "pushed_at": "2026-06-27T19:37:27Z",
+      "role": "public-corpora",
+      "size": 670220
+    },
+    {
+      "default_branch": "main",
+      "full_name": "LUC-AI4FM/webpage",
+      "html_url": "https://github.com/LUC-AI4FM/webpage",
+      "name": "webpage",
+      "pushed_at": "2026-04-14T02:09:32Z",
+      "role": "adjacent",
+      "size": 13755
+    }
+  ],
+  "summary": {
+    "adjacent_repo_count": 5,
+    "corpus_relevant_repo_count": 3,
+    "corpus_relevant_repos": [
+      "FormaLLM",
+      "TLA-Prove",
+      "tla-dataset-pipeline"
+    ]
+  },
+  "warnings": []
+}

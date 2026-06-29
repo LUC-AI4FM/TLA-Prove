@@ -1,0 +1,142 @@
+{
+  "comparisons": {
+    "expanded_vs_default_extra_rows": 1155,
+    "full_public_vs_default_extra_rows": 1160,
+    "full_public_vs_expanded_extra_rows": 5,
+    "shape_ready_not_sany_rows": 18,
+    "shape_ready_vs_sany_clean_extra_rows": 18
+  },
+  "default_train_file": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+  "generated_at": "2026-06-29T18:41:47.894842+00:00",
+  "lanes": {
+    "default": {
+      "alias": "default",
+      "component_rows": {
+        "base_rows": 1053,
+        "formalllm_rows": 205,
+        "verified_tlaps_rows": 18,
+        "verified_tlaps_weight": 4
+      },
+      "default_publish_lane": true,
+      "delta_vs_default_rows": 0,
+      "intended_role": "current_publish_baseline",
+      "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+      "rows": 1330,
+      "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
+      "trainable": true
+    },
+    "expanded": {
+      "alias": "expanded",
+      "component_rows": {
+        "base_rows": 1053,
+        "formalllm_rows": 205,
+        "public_import_rows": 1005,
+        "public_seed_candidates_rows": 150,
+        "verified_tlaps_rows": 18,
+        "verified_tlaps_weight": 4
+      },
+      "default_publish_lane": false,
+      "delta_vs_default_rows": 1155,
+      "intended_role": "bounded_public_comparison_train",
+      "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+      "rows": 2485,
+      "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
+      "trainable": true
+    },
+    "full-public": {
+      "alias": "full-public",
+      "component_rows": {
+        "base_rows": 1053,
+        "formalllm_rows": 205,
+        "public_import_rows": 1010,
+        "public_seed_candidates_rows": 150,
+        "verified_tlaps_rows": 18,
+        "verified_tlaps_weight": 4
+      },
+      "default_publish_lane": false,
+      "delta_vs_default_rows": 1160,
+      "intended_role": "maximal_committed_public_comparison_train",
+      "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+      "rows": 2490,
+      "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json",
+      "trainable": true
+    },
+    "shape-ready": {
+      "alias": "shape-ready",
+      "default_publish_lane": false,
+      "delta_vs_shape_ready_rows": 0,
+      "intended_role": "repair_and_prompt_shape_probe",
+      "path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
+      "rows": 168,
+      "sany_clean_rows": 150,
+      "shape_ready_source_rows": 168,
+      "source_rows": 2108,
+      "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json",
+      "trainable": false,
+      "unique_modules": 114
+    },
+    "shape-ready-not-sany": {
+      "alias": "shape-ready-not-sany",
+      "default_publish_lane": false,
+      "delta_vs_shape_ready_rows": -150,
+      "intended_role": "repair_only_seed_lane",
+      "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
+      "rows": 18,
+      "sany_clean_rows": 150,
+      "shape_ready_source_rows": 168,
+      "source_rows": 2108,
+      "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
+      "trainable": false,
+      "unique_modules": 16
+    }
+  },
+  "named_corpora": {
+    "default": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+    "expanded": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+    "full-public": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+    "shape-ready": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
+    "shape-ready-not-sany": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl"
+  },
+  "promotion_gates": [
+    "Keep the default lane as the publish baseline until a fresh benchmarked model shows non-zero SANY or TLC passes without regressions.",
+    "Use the expanded and full-public lanes for bounded comparison runs first; do not publish from those lanes on corpus size alone.",
+    "Use the shape-ready and shape-ready-not-sany lanes only for repair, curriculum, or ablation work; they are not publish lanes."
+  ],
+  "publish_baseline_lane": "default",
+  "publish_readiness": {
+    "default_model": {
+      "age_hours": 1405.2118107175165,
+      "benchmark_model": "chattla:20b",
+      "blockers": [
+        "latest full benchmark is stale at 1405.2h (limit 24.0h)",
+        "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+      ],
+      "ready_to_publish": false,
+      "rows": 20,
+      "sany": 0,
+      "source_path": "outputs/benchmark_results_v14_full_20260404.csv",
+      "tlc": 0
+    },
+    "fc128best_model": {
+      "age_hours": 8.154910328918033,
+      "benchmark_model": "chattla:20b-fc128best",
+      "blockers": [
+        "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+      ],
+      "ready_to_publish": false,
+      "rows": 20,
+      "sany": 0,
+      "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv",
+      "tlc": 0
+    }
+  },
+  "repo": ".",
+  "schema": "chattla_tla_prover_corpus_experiment_matrix_v1",
+  "seed_funnel_snapshot": {
+    "sany_clean_rows": 150,
+    "shape_ready_but_not_sany_clean_rows": 18,
+    "shape_ready_rows": 168,
+    "shape_ready_unique_modules": 114,
+    "source_rows": 2108
+  }
+}

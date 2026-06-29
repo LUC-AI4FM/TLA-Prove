@@ -1,0 +1,84 @@
+#!/bin/bash
+# Continue GRPO on Sophia from the Polaris checkpoint-80 LoRA adapter.
+#
+# This intentionally uses --adapter-checkpoint instead of
+# --resume-from-checkpoint: it keeps the learned adapter weights but starts a
+# fresh optimizer and LR schedule for this phase.
+#
+# Submit from ~/ChatTLA on Sophia:
+#   qsub scripts/qsub_grpo_sophia_phase2.pbs
+#
+# Tail:
+#   tail -f outputs/logs/grpo_action_tok1200_g4_phase2_sophia_<jobid>.log
+# Set the project/account at submit time if your site requires one.
+#PBS -q by-gpu
+#PBS -l select=4
+#PBS -l walltime=06:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N grpo_g4_p2
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+mkdir -p outputs/logs
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+exec > "outputs/logs/grpo_action_tok1200_g4_phase2_sophia_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export NUMEXPR_MAX_THREADS=128
+export NUMEXPR_NUM_THREADS=32
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+PY="${CHATTLA_PYTHON:-python3}"
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "PBS_O_WORKDIR=$PBS_O_WORKDIR"
+echo "HF_HOME=$HF_HOME"
+
+echo
+echo "===== GPUs ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+
+echo
+echo "===== Python stack ====="
+"$PY" - <<'PY'
+import torch
+import transformers
+import trl
+import peft
+print("torch", torch.__version__, "cuda_available", torch.cuda.is_available(), "n_gpu", torch.cuda.device_count())
+print("transformers", transformers.__version__)
+print("trl", trl.__version__)
+print("peft", peft.__version__)
+PY
+
+echo
+echo "===== Input checkpoints ====="
+ls -la outputs/checkpoints_grpo_action_tok1200_g4/checkpoint-80
+
+echo
+echo "===== Starting GRPO phase 2 ====="
+"$PY" -u -m scripts.train_rl_20b \
+  --model "$MODEL" \
+  --corpus data/processed/diamond_sft_v3_action_tok1200.jsonl \
+  --output-dir outputs/checkpoints_grpo_action_tok1200_g4_phase2_sophia \
+  --max-steps 240 \
+  --num-generations 4 \
+  --max-completion-length 192 \
+  --save-steps 20 \
+  --learning-rate 3e-6 \
+  --beta 0.04 \
+  --adapter-checkpoint outputs/checkpoints_grpo_action_tok1200_g4/checkpoint-80
+
+echo
+echo "===== done ====="
+date

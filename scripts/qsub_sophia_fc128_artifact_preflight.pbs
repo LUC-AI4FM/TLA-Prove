@@ -1,0 +1,132 @@
+#!/bin/bash
+# Gate and prepare deployable artifacts for the final-channel cap-128 phase.
+# Submit with:
+#   qsub -W depend=afterok:160250 scripts/qsub_sophia_fc128_artifact_preflight.pbs
+#
+# This job intentionally does not publish. It aborts unless the fixed action
+# holdout shows no regression, then builds merged weights + GGUF and runs the
+# Hugging Face publisher in dry-run mode so the remaining blockers are explicit.
+# Set the project/account at submit time if your site requires one.
+#PBS -q single-node
+#PBS -l select=1:ngpus=4:ncpus=128:mem=480gb
+#PBS -l walltime=04:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N fc128_artifacts
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+mkdir -p outputs/logs outputs/merged_model_fc128_phase1 outputs/gguf
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+exec > "outputs/logs/fc128_artifact_preflight_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export NUMEXPR_MAX_THREADS=128
+export NUMEXPR_NUM_THREADS=32
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+PY="${CHATTLA_PYTHON:-python3}"
+MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+NEW_ADAPTER=outputs/checkpoints_grpo_action_tok1200_g4_final_channel_cap128_phase1
+EVAL_JSON=outputs/eval/action_holdout_fc128_phase1_160250.json
+MERGED_OUT=outputs/merged_model_fc128_phase1
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "MODEL=$MODEL"
+echo "NEW_ADAPTER=$NEW_ADAPTER"
+echo "EVAL_JSON=$EVAL_JSON"
+echo "MERGED_OUT=$MERGED_OUT"
+
+echo
+echo "===== GPUs ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv || true
+
+echo
+echo "===== Holdout gate ====="
+"$PY" - <<'PY'
+import json
+from pathlib import Path
+
+p = Path("outputs/eval/action_holdout_fc128_phase1_160250.json")
+if not p.is_file():
+    raise SystemExit(f"missing holdout eval JSON: {p}")
+
+data = json.loads(p.read_text())
+if len(data) < 2:
+    raise SystemExit(f"expected at least two eval result sets, found {len(data)}")
+
+baseline = data[0]
+candidate = data[-1]
+
+def get(row, key, default=0):
+    return row.get(key, default) or default
+
+checks = {
+    "same_n": get(candidate, "n") == get(baseline, "n"),
+    "tlc_no_regression": get(candidate, "tlc_pass") >= get(baseline, "tlc_pass"),
+    "sany_no_regression": get(candidate, "sany_pass") >= get(baseline, "sany_pass"),
+    "reward_no_regression": float(get(candidate, "mean_reward", 0.0)) >= float(get(baseline, "mean_reward", 0.0)),
+    "no_analysis_start": get(candidate, "analysis_start") == 0,
+    "no_empty_next": get(candidate, "empty_extracted_next") == 0,
+}
+
+print("baseline", baseline.get("label"), "n", baseline.get("n"),
+      "tlc", baseline.get("tlc_pass"), "sany", baseline.get("sany_pass"),
+      "mean_reward", baseline.get("mean_reward"),
+      "analysis_start", baseline.get("analysis_start"),
+      "empty_next", baseline.get("empty_extracted_next"))
+print("candidate", candidate.get("label"), "n", candidate.get("n"),
+      "tlc", candidate.get("tlc_pass"), "sany", candidate.get("sany_pass"),
+      "mean_reward", candidate.get("mean_reward"),
+      "analysis_start", candidate.get("analysis_start"),
+      "empty_next", candidate.get("empty_extracted_next"))
+print("checks", checks)
+
+failed = [name for name, ok in checks.items() if not ok]
+if failed:
+    raise SystemExit("artifact preflight abort: holdout gate failed: " + ", ".join(failed))
+PY
+
+echo
+echo "===== Merge LoRA ====="
+"$PY" -m src.training.merge_lora \
+  --checkpoint "$NEW_ADAPTER" \
+  --base-model "$MODEL" \
+  --output "$MERGED_OUT" \
+  --device auto
+
+echo
+echo "===== Convert to GGUF ====="
+"$PY" -m src.inference.convert_to_gguf \
+  --quant Q8_0 \
+  --merged-model "$MERGED_OUT" \
+  --gguf-name chattla-20b \
+  --no-ollama-register
+
+echo
+echo "===== Publish dry-run ====="
+set +e
+"$PY" -m src.training.publish_hf \
+  --dry-run \
+  --benchmark-model "chattla:20b" \
+  --require-fresh-full-benchmark-hours 24
+PUBLISH_RC=$?
+set -e
+if [ "$PUBLISH_RC" -ne 0 ]; then
+  echo "[note] publish dry-run reported blockers (exit $PUBLISH_RC); artifact preflight remains useful for merged/GGUF outputs"
+else
+  echo "[note] publish dry-run passed"
+fi
+
+echo
+echo "===== artifact preflight done ====="
+date

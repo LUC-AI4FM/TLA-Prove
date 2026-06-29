@@ -38,7 +38,7 @@ AgentPut == /\ table = {}
 
 \* Smoker s grabs both ingredients it lacks and starts smoking.
 StartSmoke(s) == /\ smoking = NoSmoker
-                 /\ Lacks(s) \subseteq table
+                 /\ table = Lacks(s)
                  /\ table' = table \ Lacks(s)
                  /\ smoking' = s
 
@@ -56,5 +56,8 @@ Spec == Init /\ [][Next]_vars
 \* (encoded by the table being emptied of those ingredients).
 SmokerInv == (smoking = NoSmoker) \/ (smoking \in Smokers /\ table = {})
 
-TypeOK == /\ table \subseteq Ingredients /\ smoking \in Smokers \cup {NoSmoker} /\ SmokerInv
+TypeOK ==
+    /\ table \subseteq Ingredients
+    /\ smoking \in Smokers \cup {NoSmoker}
+    /\ SmokerInv
 ====

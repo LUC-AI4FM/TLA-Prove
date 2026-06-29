@@ -1,0 +1,99 @@
+{
+  "benchmark": {
+    "age_hours": 1405.2118107175165,
+    "avg_struct": 0.70575,
+    "fresh_within_hours": 24.0,
+    "model": "chattla:20b",
+    "rows": 20,
+    "sany": 0,
+    "source_csv": "benchmark_results_v14_full_20260404.csv",
+    "source_path": "outputs/benchmark_results_v14_full_20260404.csv",
+    "tlc": 0
+  },
+  "benchmark_model": "chattla:20b",
+  "blockers": [
+    "latest full benchmark is stale at 1405.2h (limit 24.0h)",
+    "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+  ],
+  "failure_surface": {
+    "aggregate": {
+      "rows_with_all_core_components": 0,
+      "rows_with_any_core_component": 0,
+      "rows_with_no_core_components": 20
+    },
+    "core_component_failures": {
+      "missing_init_level_ok_rows": 20,
+      "missing_init_present_rows": 20,
+      "missing_invariants_declared_rows": 20,
+      "missing_next_level_ok_rows": 20,
+      "missing_next_present_rows": 20,
+      "missing_tlc_depth1_ok_rows": 20
+    },
+    "planning": {
+      "plan_unused_rows": 20,
+      "plan_used_rows": 0
+    },
+    "red_flags": {
+      "duplicate_variables_rows": 1,
+      "obvious_placeholder_rows": 0,
+      "pseudo_tla_token_rows": 1
+    },
+    "rows": 20,
+    "sample_benchmark_ids": {
+      "no_core_components": [
+        "BM001",
+        "BM002",
+        "BM003",
+        "BM004",
+        "BM005"
+      ],
+      "obvious_placeholder_rows": []
+    }
+  },
+  "generated_at": "2026-06-29T13:10:21.880442+00:00",
+  "local": {
+    "gguf_dir": "outputs/gguf",
+    "gguf_files": [
+      "outputs/gguf_fc128_best/chattla-20b-Q8_0.gguf"
+    ],
+    "gguf_search_dirs": [
+      "outputs/gguf",
+      "outputs/gguf_fc128_best"
+    ],
+    "latest_gguf": "outputs/gguf_fc128_best/chattla-20b-Q8_0.gguf",
+    "merged_model_config_present": false,
+    "merged_model_dir": "outputs/merged_model",
+    "readme_template": "outputs/hf_readme/README.md",
+    "readme_template_present": true
+  },
+  "next_publish_version": 22,
+  "ready_to_publish": false,
+  "remote": {
+    "gguf_files": [
+      "gguf/Modelfile",
+      "gguf/chattla-20b-v10-Q8_0.gguf",
+      "gguf/chattla-20b-v11-Q8_0.gguf",
+      "gguf/chattla-20b-v12-Q8_0.gguf",
+      "gguf/chattla-20b-v13-Q8_0.gguf",
+      "gguf/chattla-20b-v14-Q8_0.gguf",
+      "gguf/chattla-20b-v15-Q8_0.gguf",
+      "gguf/chattla-20b-v16-Q8_0.gguf",
+      "gguf/chattla-20b-v17-Q8_0.gguf",
+      "gguf/chattla-20b-v18-Q8_0.gguf",
+      "gguf/chattla-20b-v19-Q8_0.gguf",
+      "gguf/chattla-20b-v20-Q8_0.gguf",
+      "gguf/chattla-20b-v21-Q8_0.gguf"
+    ],
+    "latest_published_version": 21
+  },
+  "repo_id": "EricSpencer00/chattla-20b",
+  "state": {
+    "last_cycle_id": 69,
+    "last_gguf_path_in_repo": "gguf/chattla-20b-v21-Q8_0.gguf",
+    "last_published_version": 21,
+    "last_repo": "EricSpencer00/chattla-20b",
+    "note": "State aligned to remote Hugging Face publish surface on 2026-06-29.",
+    "path": "data/benchmarks/hf_publish_state.json"
+  },
+  "warnings": []
+}

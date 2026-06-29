@@ -1,0 +1,35 @@
+{
+  "rows": 41,
+  "statuses": {
+    "skipped": 24,
+    "skeleton_emitted": 17
+  },
+  "skip_reasons": {
+    "missing_init_next_spec_typeok_vars": 17,
+    "typeok_uses_unbounded_seq": 2,
+    "typeok_infinite_builtin_domain_counter": 1,
+    "typeok_function_range_uses_infinite_builtin": 1,
+    "typeok_infinite_builtin_domain_time": 1,
+    "typeok_infinite_builtin_domain_timer": 1,
+    "assume_requires_function_constant_cfg": 1
+  },
+  "skeletons": [
+    "BoundedRetransmissionProtocol",
+    "DekkersAlgorithm",
+    "DiningPhilosophers",
+    "Elevator",
+    "LightSwitch",
+    "MinMaxTracker",
+    "ParkingLot",
+    "ReadersWriters",
+    "ResourceAlloc",
+    "RingLeader",
+    "Semaphore",
+    "SimpleCounter",
+    "TaskNode",
+    "TicketDispenser",
+    "Toggle",
+    "TokenRing",
+    "VendingMachine"
+  ]
+}

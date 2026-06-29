@@ -14,6 +14,8 @@ VARIABLES pc, ticket, next_ticket, serving
 
 vars == << pc, ticket, next_ticket, serving >>
 
+Succ(t) == IF t = MaxTicket THEN 0 ELSE t + 1
+
 Init == /\ pc          = [i \in Procs |-> "ncs"]
         /\ ticket      = [i \in Procs |-> 0]
         /\ next_ticket = 0
@@ -22,9 +24,11 @@ Init == /\ pc          = [i \in Procs |-> "ncs"]
 \* Atomic fetch-and-add on next_ticket; remember our ticket.
 Acquire(i) ==
     /\ pc[i] = "ncs"
-    /\ next_ticket < MaxTicket
+    /\ Succ(next_ticket) # serving
+    /\ \A j \in Procs :
+         (j # i /\ pc[j] \in {"wait", "cs"}) => ticket[j] # Succ(next_ticket)
     /\ ticket'      = [ticket EXCEPT ![i] = next_ticket]
-    /\ next_ticket' = next_ticket + 1
+    /\ next_ticket' = Succ(next_ticket)
     /\ pc'          = [pc EXCEPT ![i] = "wait"]
     /\ UNCHANGED serving
 
@@ -37,7 +41,7 @@ EnterCS(i) ==
 
 Release(i) ==
     /\ pc[i] = "cs"
-    /\ serving' = serving + 1
+    /\ serving' = Succ(serving)
     /\ pc'      = [pc EXCEPT ![i] = "ncs"]
     /\ UNCHANGED << ticket, next_ticket >>
 
@@ -53,5 +57,10 @@ TypeOK ==
     /\ ticket      \in [Procs -> 0..MaxTicket]
     /\ next_ticket \in 0..MaxTicket
     /\ serving     \in 0..MaxTicket
+    /\ \A i \in Procs : (pc[i] = "cs") => ticket[i] = serving
+    /\ \A i \in Procs : (pc[i] \in {"wait", "cs"}) => ticket[i] # next_ticket
+    /\ \A i, j \in Procs :
+         (i # j /\ pc[i] \in {"wait", "cs"} /\ pc[j] \in {"wait", "cs"}) =>
+            ticket[i] # ticket[j]
     /\ \A i, j \in Procs : (i # j /\ pc[i] = "cs") => pc[j] # "cs"
 ====

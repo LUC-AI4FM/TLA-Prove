@@ -26,13 +26,13 @@ print(result[0]["generated_text"][-1]["content"])
 
 **GGUF / llama.cpp:**
 ```bash
-huggingface-cli download EricSpencer00/chattla-20b gguf/chattla-20b-v15-Q8_0.gguf --local-dir ./chattla
-./llama-cli -m chattla/gguf/chattla-20b-v15-Q8_0.gguf -n 1024 --temp 0.4
+huggingface-cli download EricSpencer00/chattla-20b gguf/chattla-20b-v21-Q8_0.gguf --local-dir ./chattla
+./llama-cli -m chattla/gguf/chattla-20b-v21-Q8_0.gguf -n 1024 --temp 0.4
 ```
 
 ---
 
-## Benchmark Results (v15)
+## Checked-in Benchmark Snapshot (v15)
 
 | Tier | Rate | Criterion |
 |------|------|-----------|
@@ -40,6 +40,60 @@ huggingface-cli download EricSpencer00/chattla-20b gguf/chattla-20b-v15-Q8_0.ggu
 | Gold    | 9/30 (30%) | Parses + model-checks cleanly |
 
 Evaluated on a 30-spec held-out suite with up to 3 self-correction attempts via TLC feedback.
+This v15 table is a historical snapshot on the `diamond_eval_holdout` 30-spec suite. Current Hugging Face publish readiness is gated separately on the 20-problem benchmark surfaced in `outputs/manifests/hf_publish_readiness.json` and `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json`.
+The latest public Hugging Face GGUF is currently `gguf/chattla-20b-v21-Q8_0.gguf`; local publish readiness is tracked in `outputs/manifests/hf_publish_readiness.json` for the canonical `chattla:20b` lane and `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` for the current `fc128best` candidate lane.
+The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `19` repair pairs cover `19/20` failed benchmark rows, leaving only `BM020` without a public gold target today.
+
+---
+
+## Public Datasets
+
+ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:
+
+| Layer | Current public surface | Local artifact |
+|------|-------------------------|----------------|
+| `FormaLLM` | 205 canonical prompt/spec entries across 71 families | `data/processed/formalllm_eval_v1.jsonl` |
+| `TLA-Prove public corpora` | 2,350 JSONL rows across the tracked public training/eval corpora; the full committed public JSONL surface currently spans 2,757 rows across 19 files | `outputs/manifests/ai4fm_public_tlaprove_corpora.json` |
+| `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the committed public corpora | `data/processed/ai4fm_public_tlaprove_import_v1.jsonl` |
+| `TLA-Prove raw import` | 2,350 undeduped ChatTLA-format rows spanning the full tracked public corpora slice | `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` |
+| `tla-dataset-pipeline seed repo files` | 3,140 tracked `.tla` / `.cfg` / `.tlaps` files across the 11 committed public seed repos, including 2,110 `.tla` files | `data/processed/ai4fm_public_seed_file_manifest_v1.jsonl` |
+| `tla-dataset-pipeline seed prover candidates` | 150 SANY-clean prover-candidate rows from 2,108 usable public seed-module rows | `data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl` |
+| `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories | `data/processed/ai4fm_public_discovery_manifest_v1.jsonl` |
+| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface | `outputs/manifests/ai4fm_public_dataset_surface.json` |
+
+The mixed prover SFT lane already carries the full `205`-row `FormaLLM` benchmark. The generated local training file is `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl`, and the committed public copy is `outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl`; the nearby `30`-row corpora in this repo are holdout/eval slices, not the prover training corpus.
+The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone.
+Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.
+There is now an explicit non-default expansion build path as well: `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current `1330`-row prover SFT stack plus the `1005`-row normalized public `TLA-Prove` import and `150` public seed prover-candidate replays for `2485` total rows. It is meant for bounded experiments, not as the default training lane.
+The broader committed-public variant is now materialized too: `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl` carries the same prover stack plus the `1010`-row full-public normalized import for `2490` total rows.
+The full tracked-corpora public row lane is also materialized at `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `2350` rows when we need the undeduped AI4FM public import surface.
+There is also an opt-in full committed-surface import path now: `python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl` pulls in the currently excluded `data/toy/*` and `outputs/diamond_gen/*` files (`407` public rows across `13` JSONLs) without changing the default tracked-corpora lane. The current checked-in all-public import summaries land at `1010` deduped rows and `2757` raw rows, so the broader committed JSONL surface adds only `5` new unique normalized examples on top of the existing `1005`-row tracked import.
+The residual public seed repair lane is now narrower and better classified: `data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json` shows `18` shape-ready-but-not-SANY rows remaining, all recoverable from the current public helper surface, with the residual failures now landing in post-staging non-import SANY errors rather than unresolved imports.
+
+Rebuild the public AI4FM artifacts with:
+
+```bash
+python3 scripts/inspect_ai4fm_org_surface.py
+python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
+python3 scripts/build_ai4fm_public_tlaprove_import.py
+python3 scripts/build_ai4fm_public_seed_file_manifest.py
+python3 scripts/build_ai4fm_public_seed_tla_modules.py
+python3 scripts/build_ai4fm_public_seed_prover_candidates.py
+python3 scripts/inspect_ai4fm_public_dataset_surface.py
+python3 scripts/build_ai4fm_public_discovery_manifest.py
+python3 scripts/build_tla_prover_manifest.py
+python3 scripts/preflight_tla_prover_corpora.py
+python3 scripts/check_tla_prover_pr_ready.py --include-untracked-scripts
+```
+
+The `TLA-Prove` report intentionally distinguishes the stable tracked training/eval corpora (`2,350` rows across `6` files) from the full committed public JSONL surface (`2,757` rows across `19` files, including `data/toy/*` and `outputs/diamond_gen/*`). The normalized import turns the tracked corpora slice into a deduplicated ChatTLA-format corpus.
+The discovery manifest needs a local checkout of `LUC-AI4FM/tla-dataset-pipeline`; override it with `--pipeline-repo <path>` if your checkout is not at `/tmp/LUC-AI4FM-tla-dataset-pipeline`.
+The seed file manifest records the committed public seed-repo file surface directly from GitHub trees. The dataset surface report records the broader DVC-backed counts, while the discovery manifest records what the public seed/search recipe currently materializes. The manifest build, corpus preflight, and PR-ready check are the compact local gates for the checked-in public artifact surface.
+The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface. See `docs/AI4FM_PUBLIC_DATASET_SURFACE.md` for the exact upstream evidence and links.
+If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules. That is a statement about broader public AI4FM corpora, not the canonical `FormaLLM` benchmark.
+The checked-in org-surface manifest at `outputs/manifests/ai4fm_org_surface.json` makes that broader GitHub surface concrete: on 2026-06-29 the public `LUC-AI4FM` org exposed `8` repos, with `FormaLLM`, `TLA-Prove`, and `tla-dataset-pipeline` as the `3` corpus-relevant ones.
+Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown. Treat the `5` non-permissive/unknown buckets as redistribution-caution surfaces until reviewed separately; see `outputs/manifests/ai4fm_public_seed_license_surface.json`.
+The seed prover-candidate corpus is the first stricter audited bridge from the 2,110 public `.tla` files / 2,108 usable module rows toward future prover-lane expansion: it keeps only modules that pass SANY and already match the Phase-1 `Init`/`Next`/`Spec`/`TypeOK` autoprover contract.
 
 ---
 
@@ -49,7 +103,7 @@ Evaluated on a 30-spec held-out suite with up to 3 self-correction attempts via 
 ChatTLA/
 ├── data/
 │   ├── FormaLLM/        ← git submodule: seed specs (MIT)
-│   ├── processed/       ← train.jsonl + eval.jsonl (harmony-formatted)
+│   ├── processed/       ← train/eval corpora, including formalllm_eval_v1.jsonl
 │   └── benchmarks/
 │       └── benchmark_suite.json  ← 30 hand-crafted eval problems
 ├── src/
@@ -211,4 +265,5 @@ Copy `.env.example` to `.env` and fill in values. Never commit `.env`.
 
 Apache 2.0. See [LICENSE](LICENSE).
 
-Seed data from [FormaLLM](https://github.com/LUC-FMitF/FormaLLM) (MIT).
+Seed data from [FormaLLM](https://github.com/LUC-AI4FM/FormaLLM) (MIT).
+Broader public TLA+ extraction/parsing metadata comes from [LUC-AI4FM/tla-dataset-pipeline](https://github.com/LUC-AI4FM/tla-dataset-pipeline).

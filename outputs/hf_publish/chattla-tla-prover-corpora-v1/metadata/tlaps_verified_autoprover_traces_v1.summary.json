@@ -1,0 +1,30 @@
+{
+  "all_verified": true,
+  "jsonl_sha256": "5444bd7da9a1946380877202f48658376df0c8e77bbf5328b9547c9eecb78e35",
+  "modules": [
+    "AtomicCommit",
+    "AtomicRegister",
+    "ByzantineQuorum",
+    "CircuitBreaker",
+    "DistributedLock",
+    "EventCount",
+    "HeartbeatFailureDetector",
+    "IdempotencyKey",
+    "LeaderLease",
+    "ResourceLease",
+    "RetryWithBackoff",
+    "RoundRobinScheduler",
+    "SleepingBarber",
+    "SzymanskiMutex",
+    "TokenRing",
+    "TwoPhaseLockingDeadlock",
+    "VotingMajority",
+    "WitnessReplication"
+  ],
+  "out": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+  "proof_archive_sha256": "20ca68ea4caf304b42d5b45fbaeadefc55eb0a17fd1fd9991db27ed741a5d46c",
+  "raw_proved": 299,
+  "raw_total": 299,
+  "rows": 18,
+  "schema": "tlaps_verified_autoprover_traces_v1_summary"
+}

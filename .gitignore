@@ -22,6 +22,7 @@ env/
 # Training artefacts (large — don't commit to repo)
 # Patterns without trailing slash also match symlinks to external storage.
 outputs/gguf
+outputs/gguf_fc128_best
 outputs/gguf_backup
 outputs/merged_model
 outputs/merged_model_*
@@ -45,7 +46,37 @@ data/derived/.pdf_cache/
 data/raw/
 data/validated/
 data/rejected/
-data/processed/
+data/processed/*
+!data/processed/formalllm_eval_v1.jsonl
+!data/processed/formalllm_eval_v1.summary.json
+!data/processed/formalllm_public_module_manifest_v1.jsonl
+!data/processed/formalllm_public_module_manifest_v1.summary.json
+!data/processed/formalllm_public_prover_surface_v1.jsonl
+!data/processed/formalllm_public_prover_surface_v1.summary.json
+!data/processed/tlapm_public_tla_modules_v1.jsonl
+!data/processed/tlapm_public_tla_modules_v1.summary.json
+!data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl
+!data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json
+!data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl
+!data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json
+!data/processed/ai4fm_public_discovery_manifest_v1.jsonl
+!data/processed/ai4fm_public_discovery_manifest_v1.summary.json
+!data/processed/ai4fm_public_seed_tla_modules_v1.jsonl
+!data/processed/ai4fm_public_seed_tla_modules_v1.summary.json
+!data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl
+!data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json
+!data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl
+!data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json
+!data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl
+!data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json
+!data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl
+!data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json
+!data/processed/tla_prover_repair_train_v1.jsonl
+!data/processed/tla_prover_repair_train_v1.summary.json
+!data/processed/tla_prover/
+data/processed/tla_prover/*
+!data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl
+!data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json
 
 # Keep these data files
 !data/benchmarks/
@@ -73,6 +104,7 @@ train.log
 src/shared/apalache/
 src/shared/tlaps/
 outputs/logs/
+outputs/manifests/tla_prover_pr_ready.json
 
 # Ad-hoc 3-shot TLC+TLAPS eval debug artifacts (per-run dumps; not tracked
 # across versions like the holdout_*.json results are)

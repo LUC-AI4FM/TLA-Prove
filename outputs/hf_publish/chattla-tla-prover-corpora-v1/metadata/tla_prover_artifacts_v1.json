@@ -1,0 +1,2854 @@
+{
+  "artifacts": {
+    "ai4fm_org_surface": {
+      "bytes": 2479,
+      "exists": true,
+      "kind": "public_ai4fm_org_surface_report",
+      "path": "outputs/manifests/ai4fm_org_surface.json",
+      "rows": null,
+      "sha256": "67bd3ebeef1e1f292380f5cda2017fb053aafa6d1618421346c8a327e6df1134"
+    },
+    "ai4fm_public_dataset_surface": {
+      "bytes": 5323,
+      "exists": true,
+      "kind": "public_ai4fm_dataset_surface_report",
+      "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
+      "rows": null,
+      "sha256": "5efcb3dbb1a27bb7cd51bea3cadee5171c4fc1e01c7685801913cdc44de5c88e"
+    },
+    "ai4fm_public_discovery_manifest_v1": {
+      "bytes": 7034,
+      "exists": true,
+      "kind": "public_ai4fm_repo_discovery_manifest",
+      "path": "data/processed/ai4fm_public_discovery_manifest_v1.jsonl",
+      "rows": 18,
+      "sha256": "21bef4fa02a9478d0bd86ebde748872fd503a44a2c957cf897a2357bccb0f553",
+      "summary": {
+        "configured_org_inputs": 7,
+        "configured_user_inputs": 9,
+        "dvc_surface": {
+          "parse_input": {
+            "nfiles": 227,
+            "path": "data/raw",
+            "size": 618486
+          },
+          "parse_output": {
+            "nfiles": 3979,
+            "path": "data/parsed",
+            "size": 22773073
+          },
+          "pull": {
+            "nfiles": 2628,
+            "path": "data/raw",
+            "size": 12034995
+          }
+        },
+        "generated_at": "2026-06-29T10:18:53.801692+00:00",
+        "notes": [
+          "This manifest reflects the pipeline's public seed repo list plus live repository search queries.",
+          "Configured org/user seed lists are preserved for auditability, but the pipeline's checked-in loader currently ignores them.",
+          "The larger DVC-backed raw and parsed corpora are not reproduced here; this artifact captures the public discovery layer only."
+        ],
+        "operational_seed_mode": "repos_only",
+        "pipeline_git_head": "59bd533",
+        "pipeline_repo": "LUC-AI4FM-tla-dataset-pipeline",
+        "query_results_by_query": {
+          "\"EXTENDS\" \"VARIABLES\" extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "\"\\\\* PlusCal\" extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "TLAPS extension:tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "extension:cfg tla": {
+            "repository_count": 0,
+            "returned": 0
+          },
+          "extension:tla": {
+            "repository_count": 7,
+            "returned": 7
+          }
+        },
+        "search_limit": 100,
+        "search_queries": 5,
+        "seed_repo_inputs": 11,
+        "source_schema": "data_contracts/schemas/source_record.schema.json",
+        "unique_repo_records": 18,
+        "zero_result_queries": [
+          "extension:cfg tla",
+          "\"\\\\* PlusCal\" extension:tla",
+          "\"EXTENDS\" \"VARIABLES\" extension:tla",
+          "TLAPS extension:tla"
+        ]
+      },
+      "summary_path": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json"
+    },
+    "ai4fm_public_seed_file_manifest_v1": {
+      "bytes": 1804397,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_file_manifest",
+      "path": "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
+      "rows": 3140,
+      "sha256": "78a3743b8214d4569840e11c6208cce4b0b83edd97942f695a73a1e2f4e148d2",
+      "summary": {
+        "configured_org_inputs": 7,
+        "configured_user_inputs": 9,
+        "generated_at": "2026-06-28T22:53:20.468204+00:00",
+        "jsonl_sha256": "78a3743b8214d4569840e11c6208cce4b0b83edd97942f695a73a1e2f4e148d2",
+        "kept_rows": 3140,
+        "notes": [
+          "This artifact materializes the committed public seed-repo lane from tla-dataset-pipeline.",
+          "Counts reflect .tla, .cfg, and .tlaps files visible in the current GitHub default-branch trees."
+        ],
+        "out": "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
+        "per_repo": {
+          "Azure/azure-cosmos-tla": {
+            "counts": {
+              "all": 3,
+              "cfg": 0,
+              "tla": 3,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "a8357c9c0a8d0ed710c68a64bc3a9ed0dc860a8a"
+          },
+          "apalache-mc/apalache": {
+            "counts": {
+              "all": 608,
+              "cfg": 128,
+              "tla": 480,
+              "tlaps": 0
+            },
+            "default_branch": "main",
+            "repo_head_sha": "cf765e0400097cf4744d2fd658264cc56b94436e"
+          },
+          "atomix/atomix-tlaplus": {
+            "counts": {
+              "all": 6,
+              "cfg": 0,
+              "tla": 6,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "8770160427b184630c4eaeb253e84911c9cc378b"
+          },
+          "microsoft/CCF": {
+            "counts": {
+              "all": 38,
+              "cfg": 16,
+              "tla": 22,
+              "tlaps": 0
+            },
+            "default_branch": "main",
+            "repo_head_sha": "6b9afd455ec5adc7e2020b02906d287675791328"
+          },
+          "pingcap/tla-plus": {
+            "counts": {
+              "all": 41,
+              "cfg": 18,
+              "tla": 23,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "8ae629ddf9f5ad8efc763bff93e3e43ce0a3585d"
+          },
+          "tendermint/spec": {
+            "counts": {
+              "all": 51,
+              "cfg": 0,
+              "tla": 51,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "9d5734e21479dfc9c308f5630678c800d85a2067"
+          },
+          "tlaplus/CommunityModules": {
+            "counts": {
+              "all": 95,
+              "cfg": 22,
+              "tla": 73,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "a20cc8eb2ee6e7140848ca511040cf283e9d7256"
+          },
+          "tlaplus/DrTLAPlus": {
+            "counts": {
+              "all": 2,
+              "cfg": 0,
+              "tla": 2,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "b74cff5f3616c7a4beb5416203c292e818e87b5a"
+          },
+          "tlaplus/Examples": {
+            "counts": {
+              "all": 634,
+              "cfg": 226,
+              "tla": 408,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "47b0e2cc0268836b89f5ce451f38e5df5f1cf773"
+          },
+          "tlaplus/ValidationTestSuite": {
+            "counts": {
+              "all": 2,
+              "cfg": 0,
+              "tla": 2,
+              "tlaps": 0
+            },
+            "default_branch": "main",
+            "repo_head_sha": "19944506c0e0bd20a1341e8a0aa4da8fe0b0382f"
+          },
+          "tlaplus/tlaplus": {
+            "counts": {
+              "all": 1660,
+              "cfg": 620,
+              "tla": 1040,
+              "tlaps": 0
+            },
+            "default_branch": "master",
+            "repo_head_sha": "4ba7d8811289fb8e95dac4d5e554c05216ba3100"
+          }
+        },
+        "pipeline_repo": "LUC-AI4FM-tla-dataset-pipeline",
+        "schema": "chattla_ai4fm_public_seed_file_manifest_v1",
+        "seed_repo_inputs": 11,
+        "totals": {
+          "all": 3140,
+          "cfg": 1030,
+          "tla": 2110,
+          "tlaps": 0
+        },
+        "tracked_extensions": [
+          ".cfg",
+          ".tla",
+          ".tlaps"
+        ]
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json"
+    },
+    "ai4fm_public_seed_license_surface": {
+      "bytes": 6201,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_license_surface_report",
+      "path": "outputs/manifests/ai4fm_public_seed_license_surface.json",
+      "rows": null,
+      "sha256": "01067043419a8de5562232bdb4baae39788b8b7527b879788b8cb29ac068bf55"
+    },
+    "ai4fm_public_seed_prover_candidates_v1": {
+      "bytes": 1727546,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_sany_valid_prover_candidate_corpus",
+      "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+      "rows": 150,
+      "sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
+      "summary": {
+        "dependency_staging": {
+          "attempted_rows": 840,
+          "recovered_rows": 52,
+          "sample_recovered": [
+            {
+              "module": "AddTwo",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/LearnProofs/AddTwo.tla",
+              "staged_modules": [
+                "TLAPS"
+              ]
+            },
+            {
+              "module": "Barriers",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/barriers/Barriers.tla",
+              "staged_modules": [
+                "Barrier",
+                "FiniteSetTheorems",
+                "Folds",
+                "Functions",
+                "NaturalsInduction",
+                "TLAPS",
+                "WellFoundedInduction"
+              ]
+            },
+            {
+              "module": "bcastByz",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/tlaplus",
+              "source_path": "tlatools/org.lamport.tlatools/test-model/examples/bcastByz/bcastByz.tla",
+              "staged_modules": [
+                "Folds",
+                "Functions"
+              ]
+            },
+            {
+              "module": "BookKeeperProtocol",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/tlaplus",
+              "source_path": "general/performance/Bookkeeper/BookKeeperProtocol.tla",
+              "staged_modules": [
+                "CSV",
+                "FiniteSetsExt",
+                "Folds",
+                "Functions",
+                "IOUtils",
+                "MessagePassing",
+                "SequencesExt",
+                "stats"
+              ]
+            },
+            {
+              "module": "Boulanger",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/Bakery-Boulangerie/Boulanger.tla",
+              "staged_modules": [
+                "TLAPS"
+              ]
+            },
+            {
+              "module": "Bug1682",
+              "reason": "dependency_staging_recovered",
+              "repo": "apalache-mc/apalache",
+              "source_path": "test/tla/Bug1682.tla",
+              "staged_modules": [
+                "Variants"
+              ]
+            },
+            {
+              "module": "Consensus",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
+              "staged_modules": [
+                "FiniteSetTheorems",
+                "Folds",
+                "Functions",
+                "NaturalsInduction",
+                "TLAPS",
+                "WellFoundedInduction"
+              ]
+            },
+            {
+              "module": "Consensus",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/tlaplus",
+              "source_path": "tlatools/org.lamport.tlatools/test-model/VoteProof/Consensus.tla",
+              "staged_modules": [
+                "TLAPS"
+              ]
+            },
+            {
+              "module": "DieHardTLA",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/tlaplus",
+              "source_path": "tlatools/org.lamport.tlatools/test-model/DieHardTLA.tla",
+              "staged_modules": [
+                "_Possible"
+              ]
+            },
+            {
+              "module": "DistributedReplicatedLog",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/FiniteMonotonic/DistributedReplicatedLog.tla",
+              "staged_modules": [
+                "FiniteSetsExt",
+                "Folds",
+                "Functions",
+                "SequencesExt"
+              ]
+            },
+            {
+              "module": "DistributedReplicatedLog",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/tlaplus",
+              "source_path": "tlatools/org.lamport.tlatools/test-model/examples/FiniteMonotonic/DistributedReplicatedLog.tla",
+              "staged_modules": [
+                "FiniteSetsExt",
+                "Folds",
+                "Functions",
+                "SequencesExt"
+              ]
+            },
+            {
+              "module": "Echo",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/echo/Echo.tla",
+              "staged_modules": [
+                "Relation"
+              ]
+            }
+          ]
+        },
+        "duplicate_modules": {
+          "AsyncTerminationDetection": 2,
+          "BufferedRandomAccessFile": 3,
+          "Consensus": 2,
+          "DieHard": 2,
+          "DistributedReplicatedLog": 2,
+          "EWD840": 8,
+          "EWD998": 3,
+          "EWD998Chan": 2,
+          "Echo": 2,
+          "EnvironmentController": 2,
+          "Hanoi": 2,
+          "Huang": 2,
+          "Lock": 2,
+          "NQSpec": 2,
+          "Paxos": 5,
+          "Peterson": 3,
+          "Prisoners": 2,
+          "SingleLaneBridge": 2,
+          "SpanTree": 2,
+          "SpanTreeRandom": 2,
+          "SpanTreeTest": 2,
+          "SyncTerminationDetection": 2,
+          "Voting": 2,
+          "YoYoNoPruning": 2,
+          "YoYoPruning": 2,
+          "aba_asyn_byz": 2,
+          "ast": 2,
+          "bcastByz": 2,
+          "bcastFolklore": 2,
+          "cf1s_folklore": 2,
+          "nbacg_guer01": 2,
+          "spanning": 2,
+          "test211": 3
+        },
+        "generated_at": "2026-06-29T18:30:45.977961+00:00",
+        "helper_source_paths": [
+          "data/processed/formalllm_public_tla_modules_v1.jsonl",
+          "data/processed/tlapm_public_tla_modules_v1.jsonl"
+        ],
+        "helper_source_rows": 515,
+        "jsonl_sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
+        "kept_rows": 150,
+        "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "rows_considered": 2108,
+        "sample_not_autoprover_candidate": [
+          {
+            "module": "__apalache_folds",
+            "reason": "not_autoprover_candidate",
+            "repo": "apalache-mc/apalache",
+            "source_path": "src/tla/__apalache_folds.tla"
+          },
+          {
+            "module": "__apalache_internal",
+            "reason": "not_autoprover_candidate",
+            "repo": "apalache-mc/apalache",
+            "source_path": "src/tla/__apalache_internal.tla"
+          },
+          {
+            "module": "_DotTrace",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_DotTrace.tla",
+            "staged_modules": [
+              "FiniteSetsExt",
+              "Folds",
+              "Functions",
+              "GraphViz",
+              "IOUtils",
+              "SequencesExt"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "module": "_JsonTrace",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_JsonTrace.tla"
+          },
+          {
+            "module": "_Possible",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_Possible.tla"
+          },
+          {
+            "module": "_TLAPlusCounterExample",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLAPlusCounterExample.tla",
+            "staged_modules": [
+              "FiniteSetsExt",
+              "Folds",
+              "Functions",
+              "IOUtils",
+              "SequencesExt"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "module": "_TLCActionTrace",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCActionTrace.tla",
+            "staged_modules": [
+              "FiniteSetsExt",
+              "Folds",
+              "Functions",
+              "IOUtils",
+              "SequencesExt"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "module": "_TLCTESpec",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTESpec.tla",
+            "staged_modules": [
+              "FiniteSetsExt",
+              "Folds",
+              "Functions",
+              "IOUtils",
+              "SequencesExt"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "module": "_TLCTrace",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTrace.tla"
+          },
+          {
+            "module": "_TLCTracePlain",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTracePlain.tla",
+            "staged_modules": [
+              "FiniteSetsExt",
+              "Folds",
+              "Functions",
+              "IOUtils",
+              "SequencesExt"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "module": "A",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "tlatools/org.lamport.tlatools/test-model/coverage/A.tla"
+          },
+          {
+            "module": "ABCorrectness",
+            "reason": "not_autoprover_candidate",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/SpecifyingSystems/TLC/ABCorrectness.tla"
+          }
+        ],
+        "sample_sany_invalid": [
+          {
+            "detail": "*** Errors: 2",
+            "module": "AbstractComponentsModule",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AbstractComponentsModule.tla",
+            "staged_modules": [
+              "APIComponentsModule",
+              "AdditionalMathOperators",
+              "AdditionalSequenceOperators",
+              "FileComponentsModule",
+              "Stubs"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Errors: 2",
+            "module": "AdditionalMathOperators",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AdditionalMathOperators.tla"
+          },
+          {
+            "detail": "Cannot find source file for module Folds imported in module Functions.",
+            "module": "AllocatorImplementation_proof",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/allocator/AllocatorImplementation_proof.tla",
+            "staged_modules": [
+              "AllocatorImplementation",
+              "FiniteSetTheorems",
+              "Functions",
+              "NaturalsInduction",
+              "SchedulingAllocator",
+              "SequenceTheorems",
+              "TLAPS",
+              "WellFoundedInduction"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "Cannot find source file for module CSVTests imported in module AllTests.",
+            "module": "AllTests",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/CommunityModules",
+            "source_path": "tests/AllTests.tla",
+            "staged_modules": [
+              "BitwiseTests",
+              "FiniteSetsExtTests",
+              "FunctionsTests",
+              "IOUtilsTests",
+              "JsonTests",
+              "RelationTests",
+              "SVGTests",
+              "SequencesExtTests"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "Cannot find source file for module FiniteSetsExtTests imported in module AllTests.",
+            "module": "AllTestsUnix",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/CommunityModules",
+            "source_path": "tests/AllTestsUnix.tla",
+            "staged_modules": [
+              "AllTests",
+              "BitwiseTests",
+              "IOUtilsTests",
+              "IOUtilsUnixTests",
+              "JsonTests",
+              "RelationTests",
+              "SVGTests",
+              "SequencesExtTests"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Warnings: 1",
+            "module": "APBarrier",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/barriers/APBarrier.tla",
+            "staged_modules": [
+              "Barrier"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Warnings: 1",
+            "module": "APc1cs",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/c1cs/APc1cs.tla",
+            "staged_modules": [
+              "c1cs"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Warnings: 1",
+            "module": "APChameneos",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/Chameneos/APChameneos.tla",
+            "staged_modules": [
+              "Chameneos"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Warnings: 1",
+            "module": "APDisruptor_MPMC",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/Disruptor/APDisruptor_MPMC.tla",
+            "staged_modules": [
+              "Disruptor_MPMC",
+              "RingBuffer"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Warnings: 1",
+            "module": "APDisruptor_SPMC",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/Disruptor/APDisruptor_SPMC.tla",
+            "staged_modules": [
+              "Disruptor_SPMC",
+              "RingBuffer"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Warnings: 1",
+            "module": "APDistributedReplicatedLog",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/FiniteMonotonic/APDistributedReplicatedLog.tla",
+            "staged_modules": [
+              "DistributedReplicatedLog",
+              "FiniteSetsExt",
+              "Folds",
+              "Functions",
+              "SequencesExt"
+            ],
+            "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Errors: 2",
+            "module": "APIComponentsModule",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/tlaplus",
+            "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/APIComponentsModule.tla",
+            "staged_modules": [
+              "AdditionalMathOperators",
+              "AdditionalSequenceOperators",
+              "Stubs"
+            ],
+            "unresolved_missing_imports": []
+          }
+        ],
+        "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
+        "skipped": {
+          "not_autoprover_candidate": 1629,
+          "sany_invalid": 329
+        },
+        "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "source_rows": 2108,
+        "workers": 4
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json"
+    },
+    "ai4fm_public_seed_prover_funnel": {
+      "bytes": 6203,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_prover_funnel_report",
+      "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
+      "rows": null,
+      "sha256": "7fc2cac23129bbdef40e05a8ac34d7208ebed5b2d80e341d57631e2159011894"
+    },
+    "ai4fm_public_seed_prover_recovery_probe_v1": {
+      "bytes": 37935,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_prover_recovery_probe",
+      "path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
+      "rows": 18,
+      "sha256": "cdce9182aa3bea1bfd136e288f110c2fb01d6c57573781d1567e71957e690dcb",
+      "summary": {
+        "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "generated_at": "2026-06-29T18:35:37.277565+00:00",
+        "helper_source_paths": [
+          "data/processed/formalllm_public_tla_modules_v1.jsonl",
+          "data/processed/tlapm_public_tla_modules_v1.jsonl"
+        ],
+        "helper_source_rows": 515,
+        "jsonl_sha256": "cdce9182aa3bea1bfd136e288f110c2fb01d6c57573781d1567e71957e690dcb",
+        "kept_rows": 18,
+        "measured_conclusion": "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket.",
+        "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
+        "probe_status_counts": {
+          "post_stage_non_import_error": 18
+        },
+        "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
+        "rows_missing_full_source_row": 0,
+        "rows_post_stage_non_import_error": 18,
+        "rows_recovered_current_builder": 0,
+        "rows_still_missing_imports_after_staging": 0,
+        "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
+        "status_by_recommended_action": {
+          "stage_cross_repo_seed_helpers": {
+            "post_stage_non_import_error": 4
+          },
+          "stage_same_repo_seed_helpers": {
+            "post_stage_non_import_error": 5
+          },
+          "stage_tlaps_standard_module": {
+            "post_stage_non_import_error": 9
+          }
+        },
+        "top_final_errors": [
+          {
+            "error": "line 66, col 24 to line 66, col 36 of module Consensus",
+            "rows": 2
+          },
+          {
+            "error": "line 309, col 33 to line 309, col 35 of module VoteProof",
+            "rows": 2
+          },
+          {
+            "error": "line 342, col 16 to line 342, col 19 of module Bakery",
+            "rows": 1
+          },
+          {
+            "error": "line 146, col 18 to line 146, col 19 of module BinarySearch",
+            "rows": 1
+          },
+          {
+            "error": "line 138, col 42 to line 138, col 45 of module Quicksort",
+            "rows": 1
+          },
+          {
+            "error": "line 149, col 14 to line 149, col 15 of module Simple",
+            "rows": 1
+          },
+          {
+            "error": "line 170, col 18 to line 170, col 19 of module SimpleRegular",
+            "rows": 1
+          },
+          {
+            "error": "line 319, col 12 to line 319, col 13 of module VoteProof",
+            "rows": 1
+          },
+          {
+            "error": "line 683, col 10 to line 683, col 25 of module FunctionTheorems",
+            "rows": 1
+          },
+          {
+            "error": "line 424, col 16 to line 424, col 24 of module EWD687a",
+            "rows": 1
+          },
+          {
+            "error": "line 48, col 20 to line 48, col 22 of module BlockDag",
+            "rows": 1
+          },
+          {
+            "error": "line 133, col 6 to line 133, col 11 of module EWD998",
+            "rows": 1
+          }
+        ],
+        "top_repos": [
+          {
+            "repo": "tlaplus/Examples",
+            "rows": 14
+          },
+          {
+            "repo": "tlaplus/tlaplus",
+            "rows": 3
+          },
+          {
+            "repo": "tlaplus/DrTLAPlus",
+            "rows": 1
+          }
+        ],
+        "top_unresolved_missing_modules": []
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json"
+    },
+    "ai4fm_public_seed_prover_repair_queue_v1": {
+      "bytes": 34289,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_prover_repair_queue",
+      "path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
+      "rows": 18,
+      "sha256": "b7dc001571354716f57c7da0735f395da7f16e6c752bc399b813f081bc329c55",
+      "summary": {
+        "blocked_on_missing_public_dependency_rows": 0,
+        "generated_at": "2026-06-29T18:35:27.207828+00:00",
+        "helper_source_paths": [
+          "data/processed/formalllm_public_tla_modules_v1.jsonl",
+          "data/processed/tlapm_public_tla_modules_v1.jsonl"
+        ],
+        "helper_source_rows": 515,
+        "jsonl_sha256": "b7dc001571354716f57c7da0735f395da7f16e6c752bc399b813f081bc329c55",
+        "kept_rows": 18,
+        "missing_import_availability_counts": {
+          "cross_repo_seed_module": 4,
+          "same_repo_seed_module": 5,
+          "tlaps_standard_module": 9
+        },
+        "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
+        "priority_counts": {
+          "p1": 9,
+          "p2": 5,
+          "p3": 4
+        },
+        "recommended_action_counts": {
+          "stage_cross_repo_seed_helpers": 4,
+          "stage_same_repo_seed_helpers": 5,
+          "stage_tlaps_standard_module": 9
+        },
+        "recoverable_without_new_source_rows": 18,
+        "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
+        "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
+        "stage_plan": [
+          {
+            "note": "Highest-leverage rows: missing only the standard TLAPS helper module.",
+            "priority": "p1",
+            "recommended_action": "stage_tlaps_standard_module",
+            "rows": 9
+          },
+          {
+            "note": "Rows recoverable by staging helper modules already present in the same public repo.",
+            "priority": "p2",
+            "recommended_action": "stage_same_repo_seed_helpers",
+            "rows": 5
+          },
+          {
+            "note": "Rows recoverable by staging helper modules already visible elsewhere in the public seed surface.",
+            "priority": "p3",
+            "recommended_action": "stage_cross_repo_seed_helpers",
+            "rows": 4
+          },
+          {
+            "note": "Rows still blocked because at least one required helper module is missing from the current public seed surface.",
+            "priority": "p4",
+            "recommended_action": "expand_public_dependency_surface",
+            "rows": 0
+          }
+        ],
+        "top_missing_modules": [
+          {
+            "module": "TLAPS",
+            "rows": 9
+          },
+          {
+            "module": "Utils",
+            "rows": 2
+          },
+          {
+            "module": "FiniteSetTheorems",
+            "rows": 2
+          },
+          {
+            "module": "Functions",
+            "rows": 1
+          },
+          {
+            "module": "Graphs",
+            "rows": 1
+          },
+          {
+            "module": "BlockDag",
+            "rows": 1
+          },
+          {
+            "module": "SequenceTheorems",
+            "rows": 1
+          },
+          {
+            "module": "NaturalsInduction",
+            "rows": 1
+          }
+        ],
+        "top_repos": [
+          {
+            "repo": "tlaplus/Examples",
+            "rows": 14
+          },
+          {
+            "repo": "tlaplus/tlaplus",
+            "rows": 3
+          },
+          {
+            "repo": "tlaplus/DrTLAPlus",
+            "rows": 1
+          }
+        ]
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json"
+    },
+    "ai4fm_public_seed_prover_repair_surface": {
+      "bytes": 11512,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_prover_repair_surface_report",
+      "path": "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
+      "rows": null,
+      "sha256": "6f595d8c2e0ccf1ed44467e808b22a6e4c73ba01c9f5a59c5e1c612d2a64a87e"
+    },
+    "ai4fm_public_seed_prover_shape_ready_not_sany_v1": {
+      "bytes": 516621,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_autoprover_shape_repair_target_corpus",
+      "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
+      "rows": 18,
+      "sha256": "ca9fe2c3dccff2fc33878de548f873ba7bc3fd897aed6cbe93c0d7e7f7d9841f",
+      "summary": {
+        "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "excluded_sany_clean_rows": 150,
+        "generated_at": "2026-06-29T18:35:02.932224+00:00",
+        "jsonl_sha256": "ca9fe2c3dccff2fc33878de548f873ba7bc3fd897aed6cbe93c0d7e7f7d9841f",
+        "kept_rows": 18,
+        "out": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
+        "schema": "chattla_ai4fm_public_seed_prover_shape_ready_not_sany_v1",
+        "shape_ready_source_rows": 168,
+        "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "source_rows": 2108,
+        "top_repos": [
+          {
+            "repo": "tlaplus/Examples",
+            "rows": 14
+          },
+          {
+            "repo": "tlaplus/tlaplus",
+            "rows": 3
+          },
+          {
+            "repo": "tlaplus/DrTLAPlus",
+            "rows": 1
+          }
+        ],
+        "unique_modules": 16
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
+    },
+    "ai4fm_public_seed_prover_shape_ready_v1": {
+      "bytes": 2239108,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_autoprover_shape_corpus",
+      "path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
+      "rows": 168,
+      "sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
+      "summary": {
+        "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "generated_at": "2026-06-29T18:35:02.929678+00:00",
+        "jsonl_sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
+        "kept_rows": 168,
+        "out": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
+        "schema": "chattla_ai4fm_public_seed_prover_shape_ready_v1",
+        "shape_ready_source_rows": 168,
+        "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "source_rows": 2108,
+        "top_repos": [
+          {
+            "repo": "tlaplus/Examples",
+            "rows": 78
+          },
+          {
+            "repo": "tlaplus/tlaplus",
+            "rows": 59
+          },
+          {
+            "repo": "apalache-mc/apalache",
+            "rows": 26
+          },
+          {
+            "repo": "tlaplus/DrTLAPlus",
+            "rows": 2
+          },
+          {
+            "repo": "microsoft/CCF",
+            "rows": 1
+          },
+          {
+            "repo": "Azure/azure-cosmos-tla",
+            "rows": 1
+          },
+          {
+            "repo": "pingcap/tla-plus",
+            "rows": 1
+          }
+        ],
+        "unique_modules": 114
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json"
+    },
+    "ai4fm_public_seed_tla_modules_v1": {
+      "bytes": 15187743,
+      "exists": true,
+      "kind": "public_ai4fm_seed_repo_tla_module_corpus",
+      "path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+      "rows": 2108,
+      "sha256": "60ea4128f447c9cd8e456c02fd1215817bc1e5925a79a6daea3260e27e5cf9fd",
+      "summary": {
+        "duplicate_modules": {
+          "ABCorrectness": 2,
+          "ACP_NB": 2,
+          "ACP_NB_TLC": 2,
+          "ACP_NB_WRONG_TLC": 2,
+          "ACP_SB": 2,
+          "ACP_SB_TLC": 2,
+          "APChannel": 3,
+          "APHourClock": 3,
+          "Age_Channel": 2,
+          "AllConstructs": 2,
+          "AlternatingBit": 2,
+          "AsyncTerminationDetection": 2,
+          "BNFGrammars": 3,
+          "Bags": 3,
+          "BagsExt": 2,
+          "Bakery": 2,
+          "Base": 2,
+          "Bits": 4,
+          "Blockchain_003_draft": 3,
+          "BufferedRandomAccessFile": 3,
+          "CarTalkPuzzle": 4,
+          "Channel": 4,
+          "Channel_proof": 3,
+          "Consensus": 4,
+          "Counter": 3,
+          "DieHard": 3,
+          "DifferentialEquations": 2,
+          "DijkstraMutex": 3,
+          "DiningPhilosophers": 2,
+          "DistributedReplicatedLog": 2,
+          "DummyForIntegrationTests": 3,
+          "EPFailureDetector": 2,
+          "EWD687a": 2,
+          "EWD840": 8,
+          "EWD998": 4,
+          "EWD998Chan": 3,
+          "EWD998ChanID": 2,
+          "Echo": 2,
+          "Empty": 2,
+          "EnvironmentController": 2,
+          "FastPaxos": 2,
+          "FiniteSets": 4,
+          "FiniteSetsExt": 2,
+          "Folds": 4,
+          "Foo": 4,
+          "Functions": 3,
+          "Graphs": 2,
+          "Grid5k": 2,
+          "Hanoi": 2,
+          "HourClock": 8,
+          "HourClock_proof": 4,
+          "Huang": 2,
+          "IfThenElseTest": 3,
+          "Including": 2,
+          "Integers": 3,
+          "InternalMemory": 6,
+          "InternalMemory_proof": 4,
+          "Json": 2,
+          "JsonTests": 2,
+          "LCVerificationApi_003_draft": 3,
+          "LiveHourClock": 2,
+          "LiveInternalMemory": 2,
+          "LiveWriteThroughCache": 2,
+          "Lock": 2,
+          "LockHS": 2,
+          "MC": 39,
+          "MCAlternatingBit": 2,
+          "MCConsensus": 2,
+          "MCDistributedReplicatedLog": 2,
+          "MCEWD687a": 2,
+          "MCEcho": 2,
+          "MCInternalMemory": 2,
+          "MCLiveInternalMemory": 2,
+          "MCLiveWriteThroughCache": 2,
+          "MCPaxos": 2,
+          "MCVoting": 2,
+          "MCWriteThroughCache": 2,
+          "MCYoYoNoPruning": 2,
+          "MCa": 3,
+          "MegaSpec1": 2,
+          "Memory": 5,
+          "MemoryInterface": 6,
+          "NQSpec": 2,
+          "Naturals": 3,
+          "Paxos": 7,
+          "PaxosCommit": 2,
+          "Peterson": 3,
+          "Playground": 2,
+          "Prisoners": 2,
+          "Promises": 2,
+          "Queens": 2,
+          "QueensPluscal": 2,
+          "Quicksort": 2,
+          "Raft": 2,
+          "Reals": 3,
+          "RecordsWithNestedRecordsAndSequences": 2,
+          "Relation": 3,
+          "RemoveRedundantParens": 2,
+          "SPA_Attack": 2,
+          "SPA_Attack_New": 2,
+          "SchedulingAllocator": 2,
+          "Sequences": 4,
+          "SequencesExt": 2,
+          "Simple": 2,
+          "SimpleAllocator": 2,
+          "SingleLaneBridge": 2,
+          "Slush": 3,
+          "SpanTree": 2,
+          "SpanTreeRandom": 2,
+          "SpanTreeTest": 2,
+          "Stones": 3,
+          "Stuttering": 2,
+          "Submodules": 2,
+          "SyncTerminationDetection": 2,
+          "TCommit": 3,
+          "TLAToPCal": 3,
+          "TLC": 3,
+          "Test1": 5,
+          "Test2": 6,
+          "Test3": 3,
+          "TowerOfHanoi": 2,
+          "TransitiveClosure": 3,
+          "TwoPhase": 3,
+          "TwoPhase_proof": 2,
+          "Utils": 4,
+          "VoteProof": 2,
+          "Voting": 2,
+          "WriteThroughCache": 3,
+          "WriteThroughCacheInstanced": 4,
+          "YoYoNoPruning": 2,
+          "YoYoPruning": 2,
+          "aba_asyn_byz": 2,
+          "ast": 2,
+          "bcastByz": 3,
+          "bcastFolklore": 3,
+          "cf1s_folklore": 2,
+          "etest1": 3,
+          "etest10": 3,
+          "etest11": 3,
+          "etest12": 3,
+          "etest13": 3,
+          "etest14": 3,
+          "etest15": 3,
+          "etest16": 3,
+          "etest2": 3,
+          "etest3": 3,
+          "etest4": 3,
+          "etest5": 3,
+          "etest6": 3,
+          "etest7": 3,
+          "etest8": 3,
+          "etest9": 3,
+          "nbacg_guer01": 2,
+          "spanning": 2,
+          "test": 6,
+          "test1": 6,
+          "test10": 3,
+          "test11": 3,
+          "test12": 3,
+          "test13": 3,
+          "test14": 3,
+          "test15": 3,
+          "test16": 3,
+          "test17": 3,
+          "test18": 3,
+          "test19": 3,
+          "test2": 4,
+          "test20": 3,
+          "test201": 3,
+          "test201a": 3,
+          "test202": 3,
+          "test203": 3,
+          "test203a": 3,
+          "test204": 3,
+          "test205": 3,
+          "test206": 3,
+          "test206a": 3,
+          "test207": 3,
+          "test208": 3,
+          "test209": 3,
+          "test21": 3,
+          "test210": 3,
+          "test211": 3,
+          "test212": 3,
+          "test212a": 3,
+          "test212b": 3,
+          "test213": 3,
+          "test213b": 3,
+          "test214": 3,
+          "test215": 3,
+          "test216": 2,
+          "test216a": 2,
+          "test216b": 2,
+          "test216c": 2,
+          "test217": 2,
+          "test217a": 2,
+          "test218": 2,
+          "test219": 2,
+          "test219a": 2,
+          "test22": 3,
+          "test23": 6,
+          "test24": 3,
+          "test25": 3,
+          "test26": 3,
+          "test27": 3,
+          "test28": 3,
+          "test29": 3,
+          "test3": 4,
+          "test30": 3,
+          "test31": 6,
+          "test32": 3,
+          "test33": 3,
+          "test34": 3,
+          "test35": 3,
+          "test36": 3,
+          "test37": 6,
+          "test38": 3,
+          "test38a": 3,
+          "test39": 3,
+          "test4": 3,
+          "test40": 3,
+          "test41": 3,
+          "test42": 3,
+          "test43": 3,
+          "test44": 3,
+          "test45": 3,
+          "test46": 3,
+          "test47": 3,
+          "test47a": 3,
+          "test48": 3,
+          "test49": 3,
+          "test49a": 3,
+          "test49b": 3,
+          "test49c": 3,
+          "test5": 3,
+          "test50": 3,
+          "test51": 3,
+          "test51a": 3,
+          "test51b": 3,
+          "test52": 2,
+          "test53": 3,
+          "test54": 3,
+          "test55": 2,
+          "test55a": 2,
+          "test56": 2,
+          "test56a": 2,
+          "test57": 2,
+          "test57a": 2,
+          "test58": 3,
+          "test59": 2,
+          "test59a": 2,
+          "test6": 3,
+          "test60": 3,
+          "test61": 3,
+          "test61a": 3,
+          "test62": 3,
+          "test63": 2,
+          "test63a": 2,
+          "test64": 2,
+          "test64a": 2,
+          "test65": 2,
+          "test65a": 2,
+          "test7": 3,
+          "test8": 3,
+          "test9": 3,
+          "test99": 3,
+          "test999": 3,
+          "testa": 3,
+          "typedefs": 2
+        },
+        "fetch_failures": 0,
+        "generated_at": "2026-06-29T03:11:29.391263+00:00",
+        "jsonl_sha256": "60ea4128f447c9cd8e456c02fd1215817bc1e5925a79a6daea3260e27e5cf9fd",
+        "kept_rows": 2108,
+        "manifest_path": "data/processed/ai4fm_public_seed_file_manifest_v1.jsonl",
+        "manifest_rows": 3140,
+        "out": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+        "schema": "chattla_ai4fm_public_seed_tla_modules_v1",
+        "skipped_missing_module_header": 2,
+        "skipped_non_tla": 1030,
+        "tla_candidates": 2110,
+        "workers": 64
+      },
+      "summary_path": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json"
+    },
+    "ai4fm_public_tlaprove_corpora": {
+      "bytes": 8077,
+      "exists": true,
+      "kind": "public_ai4fm_tlaprove_corpora_report",
+      "path": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+      "rows": null,
+      "sha256": "c1f5448c653ac28e93859ff327dc05d12445bd3d75c082ab186c185f8359305d"
+    },
+    "ai4fm_public_tlaprove_import_all_public_raw_v1": {
+      "bytes": 12893363,
+      "exists": true,
+      "kind": "raw_full_public_ai4fm_tlaprove_import",
+      "path": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
+      "rows": 2757,
+      "sha256": "6133599c0f874f473e1b7841df61dd8ebd2e8e5b6149443b0f404a17edd23434",
+      "summary": {
+        "dedupe_exact_final_spec": false,
+        "duplicate_rows_collapsed": 0,
+        "generated_at": "2026-06-29T11:09:41.065613+00:00",
+        "include_additional_public_jsonl": true,
+        "jsonl_sha256": "6133599c0f874f473e1b7841df61dd8ebd2e8e5b6149443b0f404a17edd23434",
+        "kept_rows": 2757,
+        "out": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
+        "per_corpus": {
+          "diamond_eval_holdout": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 30,
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "raw_rows": 30,
+            "split": "eval",
+            "unique_canonical_finals": 30
+          },
+          "diamond_gen_communication_protocols": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/communication_protocols.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_concurrency_primitives": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/concurrency_primitives.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_consensus_election": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/consensus_election.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_data_structures": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/data_structures.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_diamond_generated": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 200,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/diamond_generated.jsonl",
+            "raw_rows": 200,
+            "split": "train",
+            "unique_canonical_finals": 200
+          },
+          "diamond_gen_memory_caches": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/memory_caches.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_mutual_exclusion": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/mutual_exclusion.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_puzzles_classical": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/puzzles_classical.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_scheduling_resources": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/scheduling_resources.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_transactions_databases": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/transactions_databases.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_workflows_state_machines": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 20,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/workflows_state_machines.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_sft_v3": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 1053,
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "raw_rows": 1053,
+            "split": "train",
+            "unique_canonical_finals": 455
+          },
+          "processed_eval": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 4,
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "raw_rows": 4,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "processed_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 713,
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "raw_rows": 713,
+            "split": "train",
+            "unique_canonical_finals": 285
+          },
+          "ralph_dev": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 50,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "raw_rows": 50,
+            "split": "eval",
+            "unique_canonical_finals": 50
+          },
+          "ralph_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 500,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "raw_rows": 500,
+            "split": "train",
+            "unique_canonical_finals": 499
+          },
+          "toy_eval": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 2,
+            "kind": "messages",
+            "path": "data/toy/eval.jsonl",
+            "raw_rows": 2,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "toy_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 5,
+            "kind": "messages",
+            "path": "data/toy/train.jsonl",
+            "raw_rows": 5,
+            "split": "train",
+            "unique_canonical_finals": 5
+          }
+        },
+        "raw_rows": 2757,
+        "repo": {
+          "default_branch": "main",
+          "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+          "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+          "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+        },
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+      },
+      "summary_path": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json"
+    },
+    "ai4fm_public_tlaprove_import_all_public_v1": {
+      "bytes": 5070495,
+      "exists": true,
+      "kind": "normalized_full_public_ai4fm_tlaprove_import",
+      "path": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+      "rows": 1010,
+      "sha256": "9918bb2f631c0d5ea450a2a6d2ca043cf29cb94f484924fb7c4395d3f1616e10",
+      "summary": {
+        "dedupe_exact_final_spec": true,
+        "duplicate_rows_collapsed": 1747,
+        "generated_at": "2026-06-29T11:09:00.723995+00:00",
+        "include_additional_public_jsonl": true,
+        "jsonl_sha256": "9918bb2f631c0d5ea450a2a6d2ca043cf29cb94f484924fb7c4395d3f1616e10",
+        "kept_rows": 1010,
+        "out": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+        "per_corpus": {
+          "diamond_eval_holdout": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 30,
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "raw_rows": 30,
+            "split": "eval",
+            "unique_canonical_finals": 30
+          },
+          "diamond_gen_communication_protocols": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/communication_protocols.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_concurrency_primitives": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/concurrency_primitives.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_consensus_election": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/consensus_election.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_data_structures": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/data_structures.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_diamond_generated": {
+            "duplicate_rows_collapsed": 200,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/diamond_generated.jsonl",
+            "raw_rows": 200,
+            "split": "train",
+            "unique_canonical_finals": 200
+          },
+          "diamond_gen_memory_caches": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/memory_caches.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_mutual_exclusion": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/mutual_exclusion.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_puzzles_classical": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/puzzles_classical.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_scheduling_resources": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/scheduling_resources.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_transactions_databases": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/transactions_databases.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_gen_workflows_state_machines": {
+            "duplicate_rows_collapsed": 20,
+            "kept_rows": 0,
+            "kind": "holdout",
+            "path": "outputs/diamond_gen/workflows_state_machines.jsonl",
+            "raw_rows": 20,
+            "split": "train",
+            "unique_canonical_finals": 20
+          },
+          "diamond_sft_v3": {
+            "duplicate_rows_collapsed": 883,
+            "kept_rows": 170,
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "raw_rows": 1053,
+            "split": "train",
+            "unique_canonical_finals": 455
+          },
+          "processed_eval": {
+            "duplicate_rows_collapsed": 3,
+            "kept_rows": 1,
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "raw_rows": 4,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "processed_train": {
+            "duplicate_rows_collapsed": 428,
+            "kept_rows": 285,
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "raw_rows": 713,
+            "split": "train",
+            "unique_canonical_finals": 285
+          },
+          "ralph_dev": {
+            "duplicate_rows_collapsed": 2,
+            "kept_rows": 48,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "raw_rows": 50,
+            "split": "eval",
+            "unique_canonical_finals": 50
+          },
+          "ralph_train": {
+            "duplicate_rows_collapsed": 29,
+            "kept_rows": 471,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "raw_rows": 500,
+            "split": "train",
+            "unique_canonical_finals": 499
+          },
+          "toy_eval": {
+            "duplicate_rows_collapsed": 2,
+            "kept_rows": 0,
+            "kind": "messages",
+            "path": "data/toy/eval.jsonl",
+            "raw_rows": 2,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "toy_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 5,
+            "kind": "messages",
+            "path": "data/toy/train.jsonl",
+            "raw_rows": 5,
+            "split": "train",
+            "unique_canonical_finals": 5
+          }
+        },
+        "raw_rows": 2757,
+        "repo": {
+          "default_branch": "main",
+          "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+          "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+          "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+        },
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+      },
+      "summary_path": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json"
+    },
+    "ai4fm_public_tlaprove_import_raw_v1": {
+      "bytes": 11345822,
+      "exists": true,
+      "kind": "raw_public_ai4fm_tlaprove_import",
+      "path": "data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+      "rows": 2350,
+      "sha256": "8db94892c20897d1d1dfdb8939091cae82d940382b5d34ab451199ddf1852bd6",
+      "summary": {
+        "dedupe_exact_final_spec": false,
+        "duplicate_rows_collapsed": 0,
+        "generated_at": "2026-06-29T10:40:18.154655+00:00",
+        "jsonl_sha256": "8db94892c20897d1d1dfdb8939091cae82d940382b5d34ab451199ddf1852bd6",
+        "kept_rows": 2350,
+        "out": "data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+        "per_corpus": {
+          "diamond_eval_holdout": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 30,
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "raw_rows": 30,
+            "split": "eval",
+            "unique_canonical_finals": 30
+          },
+          "diamond_sft_v3": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 1053,
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "raw_rows": 1053,
+            "split": "train",
+            "unique_canonical_finals": 455
+          },
+          "processed_eval": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 4,
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "raw_rows": 4,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "processed_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 713,
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "raw_rows": 713,
+            "split": "train",
+            "unique_canonical_finals": 285
+          },
+          "ralph_dev": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 50,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "raw_rows": 50,
+            "split": "eval",
+            "unique_canonical_finals": 50
+          },
+          "ralph_train": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 500,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "raw_rows": 500,
+            "split": "train",
+            "unique_canonical_finals": 499
+          }
+        },
+        "raw_rows": 2350,
+        "repo": {
+          "default_branch": "main",
+          "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+          "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+          "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+        },
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+      },
+      "summary_path": "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json"
+    },
+    "ai4fm_public_tlaprove_import_v1": {
+      "bytes": 5028704,
+      "exists": true,
+      "kind": "normalized_public_ai4fm_tlaprove_import",
+      "path": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
+      "rows": 1005,
+      "sha256": "7cd42c185b48460392815f34942a6fd41f6f60b2c1c04214a1b90297059398ca",
+      "summary": {
+        "duplicate_rows_collapsed": 1345,
+        "generated_at": "2026-06-28T22:31:47.829566+00:00",
+        "jsonl_sha256": "7cd42c185b48460392815f34942a6fd41f6f60b2c1c04214a1b90297059398ca",
+        "kept_rows": 1005,
+        "out": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
+        "per_corpus": {
+          "diamond_eval_holdout": {
+            "duplicate_rows_collapsed": 0,
+            "kept_rows": 30,
+            "kind": "holdout",
+            "path": "data/processed/diamond_eval_holdout.jsonl",
+            "raw_rows": 30,
+            "split": "eval",
+            "unique_canonical_finals": 30
+          },
+          "diamond_sft_v3": {
+            "duplicate_rows_collapsed": 883,
+            "kept_rows": 170,
+            "kind": "messages",
+            "path": "data/processed/diamond_sft_v3.jsonl",
+            "raw_rows": 1053,
+            "split": "train",
+            "unique_canonical_finals": 455
+          },
+          "processed_eval": {
+            "duplicate_rows_collapsed": 3,
+            "kept_rows": 1,
+            "kind": "messages",
+            "path": "data/processed/eval.jsonl",
+            "raw_rows": 4,
+            "split": "eval",
+            "unique_canonical_finals": 2
+          },
+          "processed_train": {
+            "duplicate_rows_collapsed": 428,
+            "kept_rows": 285,
+            "kind": "messages",
+            "path": "data/processed/train.jsonl",
+            "raw_rows": 713,
+            "split": "train",
+            "unique_canonical_finals": 285
+          },
+          "ralph_dev": {
+            "duplicate_rows_collapsed": 2,
+            "kept_rows": 48,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/dev.jsonl",
+            "raw_rows": 50,
+            "split": "eval",
+            "unique_canonical_finals": 50
+          },
+          "ralph_train": {
+            "duplicate_rows_collapsed": 29,
+            "kept_rows": 471,
+            "kind": "ralph",
+            "path": "data/frs_tla_ralph_gen/train.jsonl",
+            "raw_rows": 500,
+            "split": "train",
+            "unique_canonical_finals": 499
+          }
+        },
+        "raw_rows": 2350,
+        "repo": {
+          "default_branch": "main",
+          "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+          "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+          "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+        },
+        "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+      },
+      "summary_path": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json"
+    },
+    "benchmark_repair_pairs_fc128best": {
+      "bytes": 102517,
+      "exists": true,
+      "kind": "benchmark_repair_pair_corpus",
+      "path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+      "rows": 19,
+      "sha256": "5b3ae964547054966948f8b4f8968983a169b035d327875a82bf1036bfb5143f",
+      "summary": {
+        "benchmark_model": "chattla:20b-fc128best",
+        "failed_rows_seen": 20,
+        "gold_coverage": {
+          "covered_failed_rows": 19,
+          "missing_gold_benchmark_ids": [
+            "BM020"
+          ]
+        },
+        "rows": 19,
+        "schema": "chattla_benchmark_repair_pairs_summary_v1",
+        "source_csv": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv"
+      },
+      "summary_path": "data/processed/benchmark_repair_pairs_fc128best.summary.json"
+    },
+    "chattla_tla_prover_sft_public_all_v1": {
+      "bytes": 13906451,
+      "exists": true,
+      "kind": "full_public_ai4fm_expanded_prover_sft_dataset",
+      "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+      "rows": 2490,
+      "sha256": "7631a627f62825b99ff6bfd0f715a410b914d8492294ec9264d00ea540437668",
+      "summary": {
+        "base": "data/processed/diamond_sft_v3.jsonl",
+        "base_rows": 1053,
+        "formalllm": "data/processed/formalllm_eval_v1.jsonl",
+        "formalllm_rows": 205,
+        "generated_at": "2026-06-29T18:35:37.650151+00:00",
+        "jsonl_sha256": "7631a627f62825b99ff6bfd0f715a410b914d8492294ec9264d00ea540437668",
+        "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+        "public_import": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+        "public_import_rows": 1010,
+        "public_import_weight": 1,
+        "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "public_seed_candidates_rows": 150,
+        "public_seed_candidates_weight": 1,
+        "seed": 20260627,
+        "total_rows": 2490,
+        "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
+        "verified_tlaps_rows": 18,
+        "verified_tlaps_weight": 4
+      },
+      "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json"
+    },
+    "chattla_tla_prover_sft_public_expanded_v1": {
+      "bytes": 13864660,
+      "exists": true,
+      "kind": "public_ai4fm_expanded_prover_sft_dataset",
+      "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+      "rows": 2485,
+      "sha256": "5a98b448d4db524c224664aeff2eff71d548aae2695ea7db0bf7d703068fc365",
+      "summary": {
+        "base": "data/processed/diamond_sft_v3.jsonl",
+        "base_rows": 1053,
+        "formalllm": "data/processed/formalllm_eval_v1.jsonl",
+        "formalllm_rows": 205,
+        "generated_at": "2026-06-29T18:35:37.470226+00:00",
+        "jsonl_sha256": "5a98b448d4db524c224664aeff2eff71d548aae2695ea7db0bf7d703068fc365",
+        "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+        "public_import": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
+        "public_import_rows": 1005,
+        "public_import_weight": 1,
+        "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+        "public_seed_candidates_rows": 150,
+        "public_seed_candidates_weight": 1,
+        "seed": 20260627,
+        "total_rows": 2485,
+        "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
+        "verified_tlaps_rows": 18,
+        "verified_tlaps_weight": 4
+      },
+      "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json"
+    },
+    "chattla_tla_prover_sft_v1": {
+      "bytes": 7118327,
+      "exists": true,
+      "kind": "mixed_prover_sft_dataset",
+      "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+      "rows": 1330,
+      "sha256": "3b4350956d94d214f1e1d8c2225bc7ecbcdf438b8cb1d23ac9f75464ccfb446e",
+      "summary": {
+        "base": "data/processed/diamond_sft_v3.jsonl",
+        "base_rows": 1053,
+        "formalllm": "data/processed/formalllm_eval_v1.jsonl",
+        "formalllm_rows": 205,
+        "generated_at": "2026-06-29T02:46:55.443374+00:00",
+        "jsonl_sha256": "3b4350956d94d214f1e1d8c2225bc7ecbcdf438b8cb1d23ac9f75464ccfb446e",
+        "out": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "seed": 20260627,
+        "total_rows": 1330,
+        "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
+        "verified_tlaps_rows": 18,
+        "verified_tlaps_weight": 4
+      },
+      "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json"
+    },
+    "formalllm_eval_v1": {
+      "bytes": 2064473,
+      "exists": true,
+      "kind": "full_formalllm_prompt_eval_dataset",
+      "path": "data/processed/formalllm_eval_v1.jsonl",
+      "rows": 205,
+      "sha256": "7d2f18a3c5a267b8fb94af26ec4c94c980201ce5b27ab46e40428a8379026769",
+      "summary": {
+        "duplicate_modules": [
+          "Consensus",
+          "MC",
+          "MCConsensus",
+          "MCPaxos",
+          "MCVoting",
+          "Paxos",
+          "TLAPS",
+          "TwoPhase",
+          "Voting"
+        ],
+        "families_seen": 71,
+        "generated_at": "2026-06-28T22:01:26.491011+00:00",
+        "jsonl_sha256": "7d2f18a3c5a267b8fb94af26ec4c94c980201ce5b27ab46e40428a8379026769",
+        "out": "data/processed/formalllm_eval_v1.jsonl",
+        "rows": 205,
+        "skipped_missing_files": [],
+        "source_root": "data/FormaLLM/data",
+        "unique_modules": 191
+      },
+      "summary_path": "data/processed/formalllm_eval_v1.summary.json"
+    },
+    "formalllm_public_module_manifest_v1": {
+      "bytes": 146760,
+      "exists": true,
+      "kind": "public_formalllm_repo_file_module_manifest",
+      "path": "data/processed/formalllm_public_module_manifest_v1.jsonl",
+      "rows": 666,
+      "sha256": "497d707dcd6253804e9efc21aa167883f1c60bec43a6cc84890c03304d97a77c",
+      "summary": {
+        "auxiliary_cfg_files": 27,
+        "auxiliary_tla_files": 93,
+        "canonical_cfg_files": 136,
+        "canonical_clean_tla_files": 205,
+        "canonical_tree_tla_files": 410,
+        "canonical_variant_tla_files": 205,
+        "category_counts": {
+          "auxiliary_cfg": 27,
+          "auxiliary_tla": 93,
+          "canonical_cfg": 136,
+          "canonical_clean_tla": 205,
+          "canonical_variant_tla": 205
+        },
+        "family_counts_top": [
+          {
+            "family": "SpecifyingSystems",
+            "rows": 89
+          },
+          {
+            "family": "ewd998",
+            "rows": 47
+          },
+          {
+            "family": "MisraReachability",
+            "rows": 24
+          },
+          {
+            "family": "FiniteMonotonic",
+            "rows": 17
+          },
+          {
+            "family": "lamport_mutex",
+            "rows": 17
+          },
+          {
+            "family": "KeyValueStore",
+            "rows": 16
+          },
+          {
+            "family": "PaxosHowToWinATuringAward",
+            "rows": 16
+          },
+          {
+            "family": "ewd840",
+            "rows": 16
+          },
+          {
+            "family": "Paxos",
+            "rows": 15
+          },
+          {
+            "family": "byihive",
+            "rows": 15
+          },
+          {
+            "family": "YoYo",
+            "rows": 13
+          },
+          {
+            "family": "acp",
+            "rows": 13
+          },
+          {
+            "family": "LoopInvariance",
+            "rows": 12
+          },
+          {
+            "family": "allocator",
+            "rows": 12
+          },
+          {
+            "family": "byzpaxos",
+            "rows": 12
+          },
+          {
+            "family": "transaction_commit",
+            "rows": 12
+          },
+          {
+            "family": "CarTalkPuzzle",
+            "rows": 11
+          },
+          {
+            "family": "Bakery-Boulangerie",
+            "rows": 10
+          },
+          {
+            "family": "N-Queens",
+            "rows": 10
+          },
+          {
+            "family": "SpanningTree",
+            "rows": 10
+          }
+        ],
+        "formalllm_git_head": "e74c2ed",
+        "generated_at": "2026-06-29T16:39:14.557892+00:00",
+        "jsonl_sha256": "497d707dcd6253804e9efc21aa167883f1c60bec43a6cc84890c03304d97a77c",
+        "kept_rows": 666,
+        "out": "data/processed/formalllm_public_module_manifest_v1.jsonl",
+        "repo_cfg_files": 163,
+        "repo_tla_files": 503,
+        "schema": "chattla_formalllm_public_module_manifest_v1",
+        "source_root": "data/FormaLLM/data"
+      },
+      "summary_path": "data/processed/formalllm_public_module_manifest_v1.summary.json"
+    },
+    "formalllm_public_prover_surface_v1": {
+      "bytes": 219653,
+      "exists": true,
+      "kind": "public_formalllm_prover_surface_report",
+      "path": "data/processed/formalllm_public_prover_surface_v1.jsonl",
+      "rows": 666,
+      "sha256": "738cf844ad513d960ca80deab66d575c9768d1f110e25b638f93f2b8006cc4ec",
+      "summary": {
+        "category_counts": {
+          "auxiliary_cfg": 27,
+          "auxiliary_tla": 93,
+          "canonical_cfg": 136,
+          "canonical_clean_tla": 205,
+          "canonical_variant_tla": 205
+        },
+        "generated_at": "2026-06-29T16:49:44.962729+00:00",
+        "jsonl_sha256": "738cf844ad513d960ca80deab66d575c9768d1f110e25b638f93f2b8006cc4ec",
+        "kept_rows": 666,
+        "manifest_path": "data/processed/formalllm_public_module_manifest_v1.jsonl",
+        "out": "data/processed/formalllm_public_prover_surface_v1.jsonl",
+        "repair_candidate_rows": 7,
+        "scanned_category_counts": {
+          "canonical_clean_tla": 205,
+          "canonical_variant_tla": 205
+        },
+        "scanned_formalllm_rows": 410,
+        "schema": "chattla_formalllm_public_prover_surface_v1",
+        "smoke_path": "outputs/autoprover/full_dataset_smoke_161031.jsonl",
+        "status_by_category": {
+          "canonical_clean_tla": {
+            "skipped": 203,
+            "tlc_error": 2
+          },
+          "canonical_variant_tla": {
+            "skipped": 200,
+            "tlc_error": 5
+          }
+        },
+        "status_counts": {
+          "skipped": 403,
+          "tlc_error": 7
+        },
+        "top_skip_reasons": [
+          {
+            "reason": "missing_init_next_spec_typeok_vars",
+            "rows": 270
+          },
+          {
+            "reason": "sany_parse_or_semantic_invalid",
+            "rows": 128
+          },
+          {
+            "reason": "typeok_infinite_builtin_domain_primer",
+            "rows": 2
+          },
+          {
+            "reason": "typeok_missing_variable_domain_prnt",
+            "rows": 2
+          },
+          {
+            "reason": "typeok_missing_variable_domain_pc",
+            "rows": 1
+          }
+        ],
+        "top_tlc_errors": [
+          {
+            "error": "TLC produced no conclusive result:",
+            "rows": 7
+          }
+        ],
+        "unscanned_category_counts": {
+          "auxiliary_cfg": 27,
+          "auxiliary_tla": 93,
+          "canonical_cfg": 136
+        }
+      },
+      "summary_path": "data/processed/formalllm_public_prover_surface_v1.summary.json"
+    },
+    "hf_publish_readiness": {
+      "bytes": 2965,
+      "exists": true,
+      "kind": "model_hf_publish_readiness_report",
+      "path": "outputs/manifests/hf_publish_readiness.json",
+      "report_excerpt": {
+        "blockers": [
+          "latest full benchmark is stale at 1405.2h (limit 24.0h)",
+          "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+        ],
+        "failure_surface": {
+          "aggregate": {
+            "rows_with_all_core_components": 0,
+            "rows_with_any_core_component": 0,
+            "rows_with_no_core_components": 20
+          },
+          "core_component_failures": {
+            "missing_init_level_ok_rows": 20,
+            "missing_init_present_rows": 20,
+            "missing_invariants_declared_rows": 20,
+            "missing_next_level_ok_rows": 20,
+            "missing_next_present_rows": 20,
+            "missing_tlc_depth1_ok_rows": 20
+          },
+          "planning": {
+            "plan_unused_rows": 20,
+            "plan_used_rows": 0
+          },
+          "red_flags": {
+            "duplicate_variables_rows": 1,
+            "obvious_placeholder_rows": 0,
+            "pseudo_tla_token_rows": 1
+          },
+          "rows": 20,
+          "sample_benchmark_ids": {
+            "no_core_components": [
+              "BM001",
+              "BM002",
+              "BM003",
+              "BM004",
+              "BM005"
+            ],
+            "obvious_placeholder_rows": []
+          }
+        },
+        "ready_to_publish": false
+      },
+      "rows": null,
+      "sha256": "c569ede417291523f389442eb5b2101afadcf4e9508d30811433ff24fec01325"
+    },
+    "hf_publish_readiness_fc128best": {
+      "bytes": 3056,
+      "exists": true,
+      "kind": "model_hf_publish_readiness_report",
+      "path": "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+      "report_excerpt": {
+        "blockers": [
+          "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+        ],
+        "failure_surface": {
+          "aggregate": {
+            "rows_with_all_core_components": 0,
+            "rows_with_any_core_component": 0,
+            "rows_with_no_core_components": 20
+          },
+          "core_component_failures": {
+            "missing_init_level_ok_rows": 20,
+            "missing_init_present_rows": 20,
+            "missing_invariants_declared_rows": 20,
+            "missing_next_level_ok_rows": 20,
+            "missing_next_present_rows": 20,
+            "missing_tlc_depth1_ok_rows": 20
+          },
+          "planning": {
+            "plan_unused_rows": 20,
+            "plan_used_rows": 0
+          },
+          "red_flags": {
+            "duplicate_variables_rows": 2,
+            "obvious_placeholder_rows": 8,
+            "pseudo_tla_token_rows": 14
+          },
+          "rows": 20,
+          "sample_benchmark_ids": {
+            "no_core_components": [
+              "BM001",
+              "BM002",
+              "BM003",
+              "BM004",
+              "BM005"
+            ],
+            "obvious_placeholder_rows": [
+              "BM001",
+              "BM002",
+              "BM003",
+              "BM007",
+              "BM011"
+            ]
+          }
+        },
+        "ready_to_publish": false
+      },
+      "rows": null,
+      "sha256": "d2540f29fcef3c980ba5ac2546f6d3b1d00f6c356fc5b97c747b71677885afda"
+    },
+    "known18_module_list": {
+      "bytes": 1194,
+      "exists": true,
+      "kind": "remote_smoke_input",
+      "path": "data/processed/tla_prover/tlaps_candidate_modules_18.txt",
+      "rows": null,
+      "sha256": "5028aa6b0adf0f2ed006b49159df95d4e4e0e39e8597e2ff4682ade53d10a51f"
+    },
+    "prover_eval_v1": {
+      "bytes": 76314,
+      "exists": true,
+      "kind": "verified_tlaps_prover_eval_dataset",
+      "path": "data/processed/prover_eval.jsonl",
+      "rows": 18,
+      "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
+      "summary": {
+        "generated_at": "2026-06-29T14:10:05.283541+00:00",
+        "invalid_modules": [],
+        "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
+        "kept_rows": 18,
+        "modules": [
+          "AtomicCommit",
+          "AtomicRegister",
+          "ByzantineQuorum",
+          "CircuitBreaker",
+          "DistributedLock",
+          "EventCount",
+          "HeartbeatFailureDetector",
+          "IdempotencyKey",
+          "LeaderLease",
+          "ResourceLease",
+          "RetryWithBackoff",
+          "RoundRobinScheduler",
+          "SleepingBarber",
+          "SzymanskiMutex",
+          "TokenRing",
+          "TwoPhaseLockingDeadlock",
+          "VotingMajority",
+          "WitnessReplication"
+        ],
+        "obligations_proved": 299,
+        "obligations_total": 299,
+        "out": "data/processed/prover_eval.jsonl",
+        "skipped_invalid": 0,
+        "skipped_unverified": 0,
+        "source": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+        "source_rows": 18
+      },
+      "summary_path": "data/processed/prover_eval.summary.json"
+    },
+    "sany_tlc_pass_corpus_diagnostic": {
+      "bytes": 4125,
+      "exists": true,
+      "kind": "sany_tlc_pass_corpus_quality_gate",
+      "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
+      "rows": null,
+      "sha256": "b035307ef7487fd7958a83ba4bb29ef0364bef3b13f1244201cdb8b1bc53cd03"
+    },
+    "sany_tlc_pass_eval_v1": {
+      "bytes": 110701,
+      "exists": true,
+      "kind": "heldout_sany_tlc_pass_eval_dataset",
+      "path": "data/processed/sany_tlc_pass_eval_v1.jsonl",
+      "rows": 30,
+      "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
+      "summary": {
+        "generated_at": "2026-06-29T14:10:05.345974+00:00",
+        "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
+        "kept_rows": 30,
+        "modules": [
+          "AdaptiveMutex",
+          "AdmissionControl",
+          "AlternatingBit",
+          "AndersonMutex",
+          "AravindMutex",
+          "ArenaAllocator",
+          "Arp",
+          "AtomicCommit",
+          "AtomicRegister",
+          "BackpressureChannel",
+          "Bankers",
+          "BinaryHeap",
+          "BinarySemaphore",
+          "BlocksWorld",
+          "BloomCounter",
+          "BloomFilter",
+          "BuddyAllocator",
+          "BullyElection",
+          "ByzantineQuorum",
+          "ChainReplication",
+          "Channel",
+          "ChessKingMoves",
+          "ColoredHats",
+          "ContentModeration",
+          "CopyingGc",
+          "CountDownLatch",
+          "DistributedLock",
+          "DocumentApproval",
+          "EmailVerification",
+          "FencingToken"
+        ],
+        "out": "data/processed/sany_tlc_pass_eval_v1.jsonl",
+        "skipped_not_verified_pass": 0,
+        "source": "data/processed/diamond_eval_holdout.jsonl",
+        "source_rows": 30
+      },
+      "summary_path": "data/processed/sany_tlc_pass_eval_v1.summary.json"
+    },
+    "sany_tlc_pass_sft_v1": {
+      "bytes": 615338,
+      "exists": true,
+      "kind": "verified_sany_tlc_pass_sft_dataset",
+      "path": "data/processed/sany_tlc_pass_sft_v1.jsonl",
+      "rows": 170,
+      "sha256": "c72006c0ac5933cfdaee82c15b456dd58f18d8af70cd6f3c82950f7abe14af51",
+      "summary": {
+        "generated_at": "2026-06-29T02:46:55.440869+00:00",
+        "holdout": "data/processed/diamond_eval_holdout.jsonl",
+        "holdout_modules": 30,
+        "jsonl_sha256": "c72006c0ac5933cfdaee82c15b456dd58f18d8af70cd6f3c82950f7abe14af51",
+        "kept_rows": 170,
+        "modules": [
+          "BakeryMutex",
+          "Barrier",
+          "BatchAdmission",
+          "BoundedQueue",
+          "BoundedStack",
+          "BurnsMutex",
+          "CausalBroadcast",
+          "ChangRoberts",
+          "CigaretteSmokers",
+          "CircuitBreaker",
+          "CircularBuffer",
+          "ConsistentHashRing",
+          "CoordinatorRecovery",
+          "CountingSemaphore",
+          "CpuQuota",
+          "CsmaCd",
+          "DeadlineScheduler",
+          "DeadlockDetector",
+          "DekkerMutex",
+          "DhcpLease",
+          "DijkstraMutex",
+          "DiningPhilosophers",
+          "DirectoryCoherence",
+          "DmaTransfer",
+          "Dolev",
+          "DoubleEndedQueue",
+          "EightQueensSmall",
+          "EpochLeader",
+          "EventCount",
+          "FairMutex",
+          "FairQueue",
+          "FastMutex",
+          "FastPaxos",
+          "FetchAndAddMutex",
+          "FifoCache",
+          "FifteenPuzzle",
+          "FloodingConsensus",
+          "FreeList",
+          "FsmDoor",
+          "FsmMicrowave",
+          "FsmTrafficLight",
+          "Futex",
+          "GoBackN",
+          "GossipDissemination",
+          "HashSetBounded",
+          "HeartbeatFailureDetector",
+          "HirschbergSinclair",
+          "IdempotencyKey",
+          "IdempotentWrite",
+          "JealousHusbands",
+          "JobScheduling",
+          "JwtSession",
+          "KnightsTour",
+          "KvStore",
+          "LamportClock",
+          "LeaderLease",
+          "LeakyBucket",
+          "LightsOut",
+          "LinkedListBounded",
+          "LruCache",
+          "MCSLock",
+          "MarkSweepGc",
+          "MazeRunner",
+          "MemoryFence",
+          "MergeRequest",
+          "MesiCache",
+          "MissionariesCannibals",
+          "Monitor",
+          "MsiCache",
+          "MultilevelFeedbackQueue",
+          "Multiset",
+          "Mutex",
+          "MutexWithTimeout",
+          "MvccSnapshot",
+          "NQueensPlacement",
+          "Numa",
+          "OAuth2Flow",
+          "Onboarding",
+          "Once",
+          "OptimisticConcurrency",
+          "OptimisticLockVersion",
+          "OrderLifecycle",
+          "OrderedMulticast",
+          "OutboxPattern",
+          "PageReplacementClock",
+          "PageReplacementLru",
+          "PasswordReset",
+          "PaxosSingleDecree",
+          "PaymentStateMachine",
+          "PegSolitaire",
+          "PerCpuCache",
+          "PetersonMutex",
+          "Pipeline",
+          "PriorityCeilingMutex",
+          "PriorityQueue",
+          "PriorityScheduler",
+          "ProducerConsumer",
+          "PromiseFuture",
+          "QueuedRequests",
+          "QuorumRead",
+          "QuorumWrite",
+          "Quota",
+          "RWBakery",
+          "RaftElection",
+          "RateLimiter",
+          "ReadWriteLock",
+          "ReadWriteLockTxn",
+          "RecursiveMutex",
+          "ReentrantMutex",
+          "RefCountGc",
+          "RefundFlow",
+          "ReplicatedLog",
+          "ReservationSystem",
+          "ResourceHierarchy",
+          "ResourceLease",
+          "RetryWithBackoff",
+          "RingBuffer",
+          "RingElection",
+          "RiverCrossingFamily",
+          "RoundRobinScheduler",
+          "RubiksFace",
+          "RushHour",
+          "Saga",
+          "SelectiveRepeat",
+          "SerializableSnapshot",
+          "ShoppingCart",
+          "SkipListAbstract",
+          "SleepingBarber",
+          "SlidingWindow",
+          "Snapshot",
+          "SpinLock",
+          "SplitBrain",
+          "StopAndWait",
+          "StoreBufferTSO",
+          "Sudoku4x4",
+          "SzymanskiMutex",
+          "TcpClose",
+          "TcpHandshake",
+          "TestAndSetMutex",
+          "ThreePhaseCommit",
+          "TicTacToeLegality",
+          "TicketLifecycle",
+          "TicketLock",
+          "TlbShootdown",
+          "TokenRing",
+          "TournamentMutex",
+          "TowersOfHanoi",
+          "TransferAtomic",
+          "TricolorGc",
+          "Trie",
+          "TwoFactorAuth",
+          "TwoPhaseCommit",
+          "TwoPhaseLockingDeadlock",
+          "TwoProcessHandshake",
+          "UnboundedChannel",
+          "UnionFind",
+          "VectorClock",
+          "VersionedKv",
+          "ViewChange",
+          "VotingMajority",
+          "WaitGroup",
+          "WaterJugs",
+          "WitnessReplication",
+          "WolfGoatCabbage",
+          "WorkPool",
+          "WorkStealing",
+          "WorkflowEngine",
+          "WriteAheadLog",
+          "WriteBuffer",
+          "WriteThroughCache"
+        ],
+        "out": "data/processed/sany_tlc_pass_sft_v1.jsonl",
+        "skipped_holdout": 30,
+        "skipped_not_verified_pass": 0,
+        "source": "outputs/diamond_gen/diamond_generated.jsonl",
+        "source_rows": 200
+      },
+      "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
+    },
+    "tla_prover_corpus_experiment_matrix": {
+      "bytes": 5502,
+      "exists": true,
+      "kind": "corpus_experiment_matrix_report",
+      "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+      "rows": null,
+      "sha256": "74673f522536b51c30b6ec1e7138f14cf9c95618251f5e2b5aca17182b66de55"
+    },
+    "tla_prover_corpus_preflight": {
+      "bytes": 7143,
+      "exists": true,
+      "kind": "corpus_schema_preflight_report",
+      "path": "outputs/manifests/tla_prover_corpus_preflight.json",
+      "report_excerpt": {
+        "formalllm_coverage": {
+          "corpora": [
+            {
+              "extra_occurrences_over_formalllm_rows": 0,
+              "matched_distinct_rows": 205,
+              "matched_total_occurrences": 205,
+              "missing_prompt_ids_sample": [],
+              "missing_rows": 0,
+              "ok": true,
+              "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+              "rows": 1330
+            },
+            {
+              "extra_occurrences_over_formalllm_rows": 0,
+              "matched_distinct_rows": 205,
+              "matched_total_occurrences": 205,
+              "missing_prompt_ids_sample": [],
+              "missing_rows": 0,
+              "ok": true,
+              "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+              "rows": 2479
+            },
+            {
+              "extra_occurrences_over_formalllm_rows": 0,
+              "matched_distinct_rows": 205,
+              "matched_total_occurrences": 205,
+              "missing_prompt_ids_sample": [],
+              "missing_rows": 0,
+              "ok": true,
+              "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+              "rows": 2484
+            }
+          ],
+          "formalllm_path": "data/processed/formalllm_eval_v1.jsonl",
+          "formalllm_rows": 205,
+          "ok": true
+        }
+      },
+      "rows": null,
+      "sha256": "2cd38d54c1d304dee2bc498ce7d189152c9b1e5cb5ae08c0cd997ff608f3951b"
+    },
+    "tla_prover_full_dataset_failure_analysis": {
+      "bytes": 20913,
+      "exists": true,
+      "kind": "full_dataset_autoprover_failure_analysis_report",
+      "path": "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
+      "rows": null,
+      "sha256": "5fc5cb7203898e2fbe90683ccacbf55e9fda52826e96509708676c5d936556ca"
+    },
+    "tla_prover_repair_train_v1": {
+      "bytes": 103885,
+      "exists": true,
+      "kind": "merged_tla_prover_repair_training_corpus",
+      "path": "data/processed/tla_prover_repair_train_v1.jsonl",
+      "rows": 19,
+      "sha256": "a4725822903ac6bbbd949d6853dee61f889959abe2032c0eed7c46ad49a62ef9",
+      "summary": {
+        "difficulty_counts": {
+          "easy": 19,
+          "hard": 0,
+          "medium": 0
+        },
+        "duplicate_repair_ids": [],
+        "kept_rows_by_source": {
+          "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19
+        },
+        "missing_sources": [
+          "data/processed/ralph_repair_pairs.jsonl",
+          "data/processed/ralph_repair_pairs_long_latest.jsonl"
+        ],
+        "rows": 19,
+        "schema": "chattla_tla_prover_repair_train_summary_v1",
+        "source_defaults": {
+          "benchmark_repair_pairs_fc128best": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+          "ralph_repair_pairs": "data/processed/ralph_repair_pairs.jsonl",
+          "ralph_repair_pairs_long_latest": "data/processed/ralph_repair_pairs_long_latest.jsonl"
+        },
+        "source_rows": {
+          "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19
+        }
+      },
+      "summary_path": "data/processed/tla_prover_repair_train_v1.summary.json"
+    },
+    "tlapm_public_tla_modules_v1": {
+      "bytes": 233400,
+      "exists": true,
+      "kind": "public_tlapm_library_helper_module_corpus",
+      "path": "data/processed/tlapm_public_tla_modules_v1.jsonl",
+      "rows": 14,
+      "sha256": "070a5462a3c9ebfc8b0713ea25992af6771967fa95e96eca4fbbf7d6b5cd8cd8",
+      "summary": {
+        "duplicate_modules": {},
+        "generated_at": "2026-06-29T18:30:45.803846+00:00",
+        "jsonl_sha256": "070a5462a3c9ebfc8b0713ea25992af6771967fa95e96eca4fbbf7d6b5cd8cd8",
+        "kept_rows": 14,
+        "library_root": "data/external/tlapm/library",
+        "out": "data/processed/tlapm_public_tla_modules_v1.jsonl",
+        "repo_head_sha": "80172c61842c8dd15524c6f01a70ba91029802f5",
+        "schema": "chattla_tlapm_public_tla_modules_v1",
+        "skipped_missing_module_header": 0,
+        "tla_candidates": 14,
+        "tlapm_root": "data/external/tlapm"
+      },
+      "summary_path": "data/processed/tlapm_public_tla_modules_v1.summary.json"
+    },
+    "tlaps_verified_autoprover_traces_v1": {
+      "bytes": 98180,
+      "exists": true,
+      "kind": "verified_tlaps_trace_dataset",
+      "path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+      "rows": 18,
+      "sha256": "5444bd7da9a1946380877202f48658376df0c8e77bbf5328b9547c9eecb78e35",
+      "summary": {
+        "all_verified": true,
+        "jsonl_sha256": "5444bd7da9a1946380877202f48658376df0c8e77bbf5328b9547c9eecb78e35",
+        "modules": [
+          "AtomicCommit",
+          "AtomicRegister",
+          "ByzantineQuorum",
+          "CircuitBreaker",
+          "DistributedLock",
+          "EventCount",
+          "HeartbeatFailureDetector",
+          "IdempotencyKey",
+          "LeaderLease",
+          "ResourceLease",
+          "RetryWithBackoff",
+          "RoundRobinScheduler",
+          "SleepingBarber",
+          "SzymanskiMutex",
+          "TokenRing",
+          "TwoPhaseLockingDeadlock",
+          "VotingMajority",
+          "WitnessReplication"
+        ],
+        "out": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+        "proof_archive_sha256": "20ca68ea4caf304b42d5b45fbaeadefc55eb0a17fd1fd9991db27ed741a5d46c",
+        "raw_proved": 299,
+        "raw_total": 299,
+        "rows": 18,
+        "schema": "tlaps_verified_autoprover_traces_v1_summary"
+      },
+      "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
+    }
+  },
+  "generated_at": "2026-06-29T18:41:47.955407+00:00",
+  "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
+  "remote_next_steps": {
+    "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
+    "build_ai4fm_public_seed_file_manifest": "python3 scripts/build_ai4fm_public_seed_file_manifest.py",
+    "build_ai4fm_public_seed_license_manifest": "python3 scripts/build_ai4fm_public_seed_license_manifest.py",
+    "build_ai4fm_public_seed_prover_candidates": "python3 scripts/build_ai4fm_public_seed_prover_candidates.py",
+    "build_ai4fm_public_seed_prover_recovery_probe": "python3 scripts/build_ai4fm_public_seed_prover_recovery_probe.py",
+    "build_ai4fm_public_seed_prover_repair_queue": "python3 scripts/build_ai4fm_public_seed_prover_repair_queue.py",
+    "build_ai4fm_public_seed_prover_shape_corpora": "python3 scripts/build_ai4fm_public_seed_prover_shape_corpora.py",
+    "build_ai4fm_public_seed_tla_modules": "python3 scripts/build_ai4fm_public_seed_tla_modules.py",
+    "build_ai4fm_public_tlaprove_import": "python3 scripts/build_ai4fm_public_tlaprove_import.py",
+    "build_ai4fm_public_tlaprove_import_all_public": "python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
+    "build_ai4fm_public_tlaprove_import_all_public_raw": "python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
+    "build_ai4fm_public_tlaprove_import_raw": "python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+    "build_benchmark_repair_pairs_fc128best": "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best",
+    "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
+    "build_formalllm_public_module_manifest": "python3 scripts/build_formalllm_public_module_manifest.py",
+    "build_formalllm_public_prover_surface": "python3 scripts/build_formalllm_public_prover_surface.py",
+    "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
+    "build_tla_prover_corpus_experiment_matrix": "python3 scripts/build_tla_prover_corpus_experiment_matrix.py",
+    "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
+    "build_tla_prover_finetune_corpus_public_all": "python3 scripts/build_tla_prover_finetune_corpus.py --public-import data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl --public-import-weight 1 --public-seed-candidates-weight 1 --out data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+    "build_tla_prover_full_dataset_failure_analysis": "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py",
+    "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
+    "collect_direct_results": "scripts/collect_tla_prover_direct_results.sh",
+    "collect_remote_results": "scripts/collect_tla_prover_remote_results.sh",
+    "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",
+    "evaluate_remote_results": "python3 scripts/evaluate_tla_prover_remote_results.py",
+    "final_proof_verify_launch": "qsub scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
+    "final_proof_verify_pbs": "scripts/qsub_verify_published_tlaps_proof_artifact.pbs",
+    "inspect_ai4fm_org_surface": "python3 scripts/inspect_ai4fm_org_surface.py",
+    "inspect_ai4fm_public_dataset_surface": "python3 scripts/inspect_ai4fm_public_dataset_surface.py",
+    "inspect_ai4fm_public_seed_prover_funnel": "python3 scripts/inspect_ai4fm_public_seed_prover_funnel.py",
+    "inspect_ai4fm_public_tlaprove_corpora": "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py",
+    "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
+    "inspect_hf_publish_readiness_fc128best": "python3 scripts/inspect_hf_publish_readiness.py --benchmark-model chattla:20b-fc128best",
+    "known18_launch": "qsub scripts/qsub_autoprover_known18_corrected_smoke.pbs",
+    "known18_pbs": "scripts/qsub_autoprover_known18_corrected_smoke.pbs",
+    "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",
+    "probe_control_planes": "python3 scripts/probe_tla_prover_control_planes.py",
+    "remote_decision_report": "outputs/manifests/tla_prover_remote_decision.json",
+    "remote_results_collection_report": "outputs/manifests/tla_prover_remote_results_collection.json",
+    "remote_results_watch_report": "outputs/manifests/tla_prover_remote_watch.json",
+    "remote_submission_report": "outputs/manifests/tla_prover_remote_submission.json",
+    "remote_submit_script": "scripts/submit_tla_prover_remote_jobs.sh --submit-sft-preflight",
+    "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
+    "watch_remote_results": "scripts/watch_tla_prover_remote_results.sh"
+  },
+  "repo": ".",
+  "schema": "chattla_tla_prover_artifacts_v1"
+}

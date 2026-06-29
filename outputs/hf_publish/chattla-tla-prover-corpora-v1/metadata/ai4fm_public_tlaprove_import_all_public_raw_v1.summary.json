@@ -1,0 +1,190 @@
+{
+  "dedupe_exact_final_spec": false,
+  "duplicate_rows_collapsed": 0,
+  "generated_at": "2026-06-29T11:09:41.065613+00:00",
+  "include_additional_public_jsonl": true,
+  "jsonl_sha256": "6133599c0f874f473e1b7841df61dd8ebd2e8e5b6149443b0f404a17edd23434",
+  "kept_rows": 2757,
+  "out": "data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
+  "per_corpus": {
+    "diamond_eval_holdout": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 30,
+      "kind": "holdout",
+      "path": "data/processed/diamond_eval_holdout.jsonl",
+      "raw_rows": 30,
+      "split": "eval",
+      "unique_canonical_finals": 30
+    },
+    "diamond_gen_communication_protocols": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/communication_protocols.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_concurrency_primitives": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/concurrency_primitives.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_consensus_election": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/consensus_election.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_data_structures": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/data_structures.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_diamond_generated": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 200,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/diamond_generated.jsonl",
+      "raw_rows": 200,
+      "split": "train",
+      "unique_canonical_finals": 200
+    },
+    "diamond_gen_memory_caches": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/memory_caches.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_mutual_exclusion": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/mutual_exclusion.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_puzzles_classical": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/puzzles_classical.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_scheduling_resources": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/scheduling_resources.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_transactions_databases": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/transactions_databases.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_gen_workflows_state_machines": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 20,
+      "kind": "holdout",
+      "path": "outputs/diamond_gen/workflows_state_machines.jsonl",
+      "raw_rows": 20,
+      "split": "train",
+      "unique_canonical_finals": 20
+    },
+    "diamond_sft_v3": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 1053,
+      "kind": "messages",
+      "path": "data/processed/diamond_sft_v3.jsonl",
+      "raw_rows": 1053,
+      "split": "train",
+      "unique_canonical_finals": 455
+    },
+    "processed_eval": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 4,
+      "kind": "messages",
+      "path": "data/processed/eval.jsonl",
+      "raw_rows": 4,
+      "split": "eval",
+      "unique_canonical_finals": 2
+    },
+    "processed_train": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 713,
+      "kind": "messages",
+      "path": "data/processed/train.jsonl",
+      "raw_rows": 713,
+      "split": "train",
+      "unique_canonical_finals": 285
+    },
+    "ralph_dev": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 50,
+      "kind": "ralph",
+      "path": "data/frs_tla_ralph_gen/dev.jsonl",
+      "raw_rows": 50,
+      "split": "eval",
+      "unique_canonical_finals": 50
+    },
+    "ralph_train": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 500,
+      "kind": "ralph",
+      "path": "data/frs_tla_ralph_gen/train.jsonl",
+      "raw_rows": 500,
+      "split": "train",
+      "unique_canonical_finals": 499
+    },
+    "toy_eval": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 2,
+      "kind": "messages",
+      "path": "data/toy/eval.jsonl",
+      "raw_rows": 2,
+      "split": "eval",
+      "unique_canonical_finals": 2
+    },
+    "toy_train": {
+      "duplicate_rows_collapsed": 0,
+      "kept_rows": 5,
+      "kind": "messages",
+      "path": "data/toy/train.jsonl",
+      "raw_rows": 5,
+      "split": "train",
+      "unique_canonical_finals": 5
+    }
+  },
+  "raw_rows": 2757,
+  "repo": {
+    "default_branch": "main",
+    "head_sha": "d1b5142422cfab2ce9a2eba9522d6221776378d6",
+    "html_url": "https://github.com/LUC-AI4FM/TLA-Prove",
+    "nameWithOwner": "LUC-AI4FM/TLA-Prove"
+  },
+  "schema": "chattla_ai4fm_public_tlaprove_import_v1"
+}

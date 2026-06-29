@@ -105,4 +105,8 @@ TypeOK ==
     /\ (pState = "last_ack") => (aState \in {"fin_wait", "closing", "time_wait", "closed"})
     \* Only the active side can be in time_wait.
     /\ (aState = "time_wait") => (pState \in {"last_ack", "closed"})
+    /\ finA => (aState = "fin_wait" /\ pState = "established")
+    /\ ackP => (aState = "fin_wait" /\ ~finA /\ pState \in {"close_wait", "last_ack"})
+    /\ finP => (pState = "last_ack" /\ aState \in {"fin_wait", "closing", "time_wait", "closed"})
+    /\ ackA => (aState \in {"time_wait", "closed"} /\ pState = "last_ack" /\ ~finP)
 ====

@@ -1,0 +1,132 @@
+{
+  "broader_public_lanes": {
+    "sany_clean_seed_prover_candidates": {
+      "detail": "Public seed modules that are already SANY-clean and prover-candidate shaped.",
+      "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
+      "rows": 124
+    },
+    "seed_repo_tla_files": {
+      "detail": "Public `.tla` files visible across the committed seed-repo lane.",
+      "path": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
+      "rows": 2110
+    },
+    "shape_ready_not_sany_rows": {
+      "detail": "Immediate repair-target subset: shape-ready but not yet SANY-clean.",
+      "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
+      "rows": 44
+    },
+    "shape_ready_seed_rows": {
+      "detail": "Shape-ready public seed rows for repair/eval work; current unique module count is 114.",
+      "path": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json",
+      "rows": 168
+    },
+    "tla_prove_committed_public_jsonl": {
+      "detail": "2350 tracked training/eval rows across 6 files; 2757 committed public rows across 19 files including auxiliary public JSONL lanes.",
+      "path": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+      "rows": 2757
+    },
+    "usable_seed_modules": {
+      "detail": "Usable `.tla` module rows after header validation and normalization.",
+      "path": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
+      "rows": 2108
+    }
+  },
+  "formalllm": {
+    "architecture_doc": {
+      "metadata_specification_claim": "1800+",
+      "path": "data/FormaLLM/doc/ARCHITECTURE.md"
+    },
+    "auxiliary_cfg_files": 27,
+    "auxiliary_tla_files": 93,
+    "canonical_entries": 205,
+    "cfg_files": 136,
+    "clean_comment_files": 187,
+    "clean_tla_files": 205,
+    "comment_files": 374,
+    "families": 71,
+    "git_head": "e74c2ed",
+    "nonclean_tla_files": 205,
+    "repo_cfg_files": 163,
+    "repo_tla_files": 503,
+    "root": "data/FormaLLM/data",
+    "split_files": {
+      "counts": {
+        "test": 32,
+        "train": 143,
+        "val": 30
+      },
+      "root": "data/FormaLLM/Input",
+      "total": 205
+    },
+    "tla_files": 410,
+    "unique_models": 191
+  },
+  "generated_at": "2026-06-29T16:54:09.093453+00:00",
+  "integration_recommendation": {
+    "formalllm_role": "canonical prompt/spec supervised corpus",
+    "pipeline_role": "broader public extraction/parsing discovery surface",
+    "recommended_next_step": "Use formalllm_eval_v1 for direct supervised/eval work, build formalllm_public_module_manifest_v1 to audit the broader public FormaLLM file surface, treat the `_clean.tla` subset inside FormaLLM as the raw-module view of that canonical layer, inspect ai4fm_public_tlaprove_corpora and build ai4fm_public_tlaprove_import_v1 for stable public JSONL expansion, build ai4fm_public_seed_file_manifest_v1 for the committed public GitHub file surface, build ai4fm_public_seed_tla_modules_v1 for a usable `.tla` module corpus from that lane, and treat ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
+  },
+  "pipeline": {
+    "dvc_lock": "LUC-AI4FM-tla-dataset-pipeline/dvc.lock",
+    "dvc_lock_present": true,
+    "git_head": "59bd533",
+    "parse_input": {
+      "nfiles": 227,
+      "path": "data/raw",
+      "size": 618486
+    },
+    "parse_output": {
+      "nfiles": 3979,
+      "path": "data/parsed",
+      "size": 22773073
+    },
+    "pull": {
+      "nfiles": 2628,
+      "path": "data/raw",
+      "size": 12034995
+    },
+    "repo": "LUC-AI4FM-tla-dataset-pipeline",
+    "seed_config_counts": {
+      "orgs": 7,
+      "queries": 5,
+      "repos": 11,
+      "users": 9
+    }
+  },
+  "public_1800_plus_interpretation": {
+    "canonical_formalllm_rows": 205,
+    "claim": "1800+",
+    "closest_reproducible_public_surfaces": [
+      {
+        "detail": "2350 tracked training/eval rows across 6 files; 2757 committed public rows across 19 files including auxiliary public JSONL lanes.",
+        "path": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+        "rows": 2757
+      },
+      {
+        "detail": "Public `.tla` files visible across the committed seed-repo lane.",
+        "path": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
+        "rows": 2110
+      },
+      {
+        "detail": "Usable `.tla` module rows after header validation and normalization.",
+        "path": "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
+        "rows": 2108
+      }
+    ],
+    "recommended_reference": "Use the larger public-lane counts above when discussing the broader AI4FM GitHub surface, and reserve the canonical FormaLLM row count for the benchmark layer itself.",
+    "status": "stale_for_formalllm_canonical_layer"
+  },
+  "public_sources": {
+    "formalllm_repo": "https://github.com/LUC-AI4FM/FormaLLM",
+    "live_remote_heads": {
+      "formalllm_repo": "b159f5df093e7ed71f4793bba99459b97a2bb23d",
+      "pipeline_repo": "4ac5620f7ef425285ca5a8d91304c9b4da5ca56f"
+    },
+    "pipeline_dvc_lock": "https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock",
+    "pipeline_repo": "https://github.com/LUC-AI4FM/tla-dataset-pipeline"
+  },
+  "warnings": [
+    "FormaLLM architecture metadata claim differs from current canonical_entries."
+  ]
+}

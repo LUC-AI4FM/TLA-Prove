@@ -1,0 +1,20 @@
+{
+  "rows": 3,
+  "statuses": {
+    "skeleton_emitted": 2,
+    "skipped": 1
+  },
+  "skip_reasons": {
+    "typeok_function_range_uses_infinite_builtin": 1
+  },
+  "source_prefixes": {
+    "('outputs', 'materialized_tla')": 3
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {},
+  "tlc_error_samples": {},
+  "tlaps_by_status": {}
+}

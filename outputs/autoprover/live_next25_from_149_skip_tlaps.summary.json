@@ -1,0 +1,61 @@
+{
+  "rows": 25,
+  "statuses": {
+    "skeleton_emitted": 11,
+    "skipped": 10,
+    "tlc_error": 4
+  },
+  "skip_reasons": {
+    "missing_typeok_body": 4,
+    "typeok_missing_variable_domain_state": 1,
+    "typeok_missing_variable_domain_level": 1,
+    "typeok_missing_variable_domain_holds": 1,
+    "typeok_missing_variable_domain_ticks": 1,
+    "typeok_missing_variable_domain_waiting": 1,
+    "typeok_uses_unbounded_seq": 1
+  },
+  "source_prefixes": {
+    "('outputs', 'diamond_gen')": 25
+  },
+  "tlaps_checked": 0,
+  "tlaps_total_obligations": 0,
+  "tlaps_proved_obligations": 0,
+  "tlaps_failed_obligations": 0,
+  "tlc_error_families": {
+    "tlc_error_missing_identifier:ready": 1,
+    "tlc_error_missing_identifier:queued": 1,
+    "tlc_error_no_conclusive_result": 1,
+    "tlc_error_other": 1
+  },
+  "tlc_error_samples": {
+    "tlc_error_missing_identifier:ready": [
+      {
+        "module": "PriorityScheduler",
+        "module_path": "outputs/diamond_gen/scheduling_resources_work/PriorityScheduler.tla",
+        "tlc_error": "Error: In evaluation, the identifier ready is either undefined or not an operator.\nError: The error occurred when TLC was evaluating the nested"
+      }
+    ],
+    "tlc_error_missing_identifier:queued": [
+      {
+        "module": "WorkPool",
+        "module_path": "outputs/diamond_gen/scheduling_resources_work/WorkPool.tla",
+        "tlc_error": "Error: In evaluation, the identifier queued is either undefined or not an operator.\nError: The error occurred when TLC was evaluating the nested"
+      }
+    ],
+    "tlc_error_no_conclusive_result": [
+      {
+        "module": "FencingToken",
+        "module_path": "outputs/diamond_gen/transactions_databases_work/FencingToken.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      }
+    ],
+    "tlc_error_other": [
+      {
+        "module": "OptimisticConcurrency",
+        "module_path": "outputs/diamond_gen/transactions_databases_work/OptimisticConcurrency.tla",
+        "tlc_error": "TLC timed out after 45s (INIT-as-predicate state space too large to enumerate)."
+      }
+    ]
+  },
+  "tlaps_by_status": {}
+}

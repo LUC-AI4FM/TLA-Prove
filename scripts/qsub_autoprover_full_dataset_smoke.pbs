@@ -1,0 +1,49 @@
+#!/bin/bash
+#PBS -N tla_full_smoke
+#PBS -V
+#PBS -j oe
+#PBS -o outputs/logs/autoprover_full_dataset_smoke_pbs.log
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+mkdir -p outputs/logs outputs/autoprover
+
+JOBNUM="${PBS_JOBID%%.*}"
+JOBLOG="outputs/logs/autoprover_full_dataset_smoke_${PBS_JOBID}.log"
+exec > >(tee "$JOBLOG") 2>&1
+OUT="outputs/autoprover/full_dataset_smoke_${JOBNUM}.jsonl"
+SUMMARY="${OUT%.jsonl}.summary.json"
+
+export CHATTLA_TLAPM="${CHATTLA_TLAPM:-tlapm}"
+
+python3 -u scripts/autoprover_smoke.py \
+  --limit 0 \
+  --tlc-timeout 60 \
+  --tlapm-timeout 180 \
+  --progress-out "outputs/manifests/tla_prover_full_dataset_progress.json" \
+  --progress-job-id "$PBS_JOBID" \
+  --out "$OUT"
+
+python3 - <<PY
+import json
+from collections import Counter
+from pathlib import Path
+
+out = Path("$OUT")
+rows = [json.loads(line) for line in out.read_text().splitlines() if line.strip()]
+statuses = Counter(row.get("status", "unknown") for row in rows)
+modules = sorted({row.get("module") for row in rows if row.get("module")})
+summary = {
+    "job": "$JOBNUM",
+    "out": str(out),
+    "rows": len(rows),
+    "statuses": dict(sorted(statuses.items())),
+    "modules_seen": len(modules),
+    "tlaps_proved": statuses.get("tlaps_proved", 0),
+    "tlaps_partial": statuses.get("tlaps_partial", 0),
+    "tlaps_unproved": statuses.get("tlaps_unproved", 0),
+    "tlaps_parse_error": statuses.get("tlaps_parse_error", 0),
+}
+Path("$SUMMARY").write_text(json.dumps(summary, indent=2) + "\\n")
+print(json.dumps(summary, indent=2))
+PY

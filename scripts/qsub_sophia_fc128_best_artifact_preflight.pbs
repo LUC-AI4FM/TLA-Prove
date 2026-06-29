@@ -1,0 +1,197 @@
+#!/bin/bash
+# Select the best no-regression checkpoint from the fc128 sweep, then prepare
+# deployable artifacts. This does not publish; it only merges, converts, and
+# runs the Hugging Face publisher in dry-run mode.
+# Submit with:
+#   qsub -W depend=afterok:160260 scripts/qsub_sophia_fc128_best_artifact_preflight.pbs
+# Set the project/account at submit time if your site requires one.
+#PBS -q single-node
+#PBS -l select=1:ngpus=4:ncpus=128:mem=480gb
+#PBS -l walltime=04:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N fc128_best_art
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+ARTIFACT_ROOT="${CHATTLA_ARTIFACT_ROOT:-$PBS_O_WORKDIR/outputs/artifacts/fc128_best}"
+MERGED_OUT="$ARTIFACT_ROOT/merged_model"
+GGUF_OUT="$ARTIFACT_ROOT/gguf"
+mkdir -p outputs/logs outputs/eval "$MERGED_OUT" "$GGUF_OUT"
+exec > "outputs/logs/fc128_best_artifact_preflight_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export NUMEXPR_MAX_THREADS=128
+export NUMEXPR_NUM_THREADS=32
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export CHATTLA_LLAMA_CPP_OFFLINE=1
+
+PY="${CHATTLA_PYTHON:-python3}"
+MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+PHASE_DIR=outputs/checkpoints_grpo_action_tok1200_g4_final_channel_cap128_phase1
+BEST_JSON=outputs/eval/fc128_best_checkpoint_${PBS_JOBNUM}.json
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "MODEL=$MODEL"
+echo "PHASE_DIR=$PHASE_DIR"
+echo "ARTIFACT_ROOT=$ARTIFACT_ROOT"
+echo "MERGED_OUT=$MERGED_OUT"
+echo "GGUF_OUT=$GGUF_OUT"
+echo "BEST_JSON=$BEST_JSON"
+
+echo
+echo "===== GPUs ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv || true
+
+echo
+echo "===== Select best checkpoint from sweep ====="
+BEST_ADAPTER="$("$PY" - <<'PY'
+import glob
+import json
+import re
+from pathlib import Path
+
+paths = sorted(
+    glob.glob("outputs/eval/action_holdout_fc128_phase1_ckpt*_160260.json"),
+    key=lambda p: int(re.search(r"ckpt(\d+)_", p).group(1)),
+)
+if not paths:
+    raise SystemExit("no checkpoint sweep JSON files found")
+
+rows = []
+for path in paths:
+    data = json.loads(Path(path).read_text())
+    if len(data) < 2:
+        continue
+    base, cand = data[0], data[-1]
+    step = int(re.search(r"ckpt(\d+)_", path).group(1))
+    row = {
+        "path": path,
+        "step": step,
+        "adapter": f"outputs/checkpoints_grpo_action_tok1200_g4_final_channel_cap128_phase1/checkpoint-{step}",
+        "baseline": {
+            "label": base["label"],
+            "n": base["n"],
+            "tlc_pass": base["tlc_pass"],
+            "sany_pass": base["sany_pass"],
+            "mean_reward": base["mean_reward"],
+        },
+        "candidate": {
+            "label": cand["label"],
+            "n": cand["n"],
+            "tlc_pass": cand["tlc_pass"],
+            "sany_pass": cand["sany_pass"],
+            "mean_reward": cand["mean_reward"],
+            "analysis_start": cand.get("analysis_start"),
+            "next_start": cand.get("next_start"),
+            "empty_extracted_next": cand.get("empty_extracted_next"),
+        },
+    }
+    row["delta"] = {
+        "tlc_pass": row["candidate"]["tlc_pass"] - row["baseline"]["tlc_pass"],
+        "sany_pass": row["candidate"]["sany_pass"] - row["baseline"]["sany_pass"],
+        "mean_reward": row["candidate"]["mean_reward"] - row["baseline"]["mean_reward"],
+    }
+    rows.append(row)
+
+if not rows:
+    raise SystemExit("no valid checkpoint comparisons found")
+
+eligible = []
+for row in rows:
+    cand = row["candidate"]
+    base = row["baseline"]
+    delta = row["delta"]
+    no_regression = (
+        cand["n"] == base["n"]
+        and delta["tlc_pass"] >= 0
+        and delta["sany_pass"] >= 0
+        and delta["mean_reward"] >= -1e-12
+        and cand["analysis_start"] == 0
+        and cand["empty_extracted_next"] == 0
+    )
+    improved = (
+        delta["tlc_pass"] > 0
+        or delta["sany_pass"] > 0
+        or delta["mean_reward"] > 1e-12
+    )
+    if no_regression and improved:
+        eligible.append(row)
+
+summary = {
+    "rows": rows,
+    "eligible_steps": [r["step"] for r in eligible],
+    "selected": None,
+}
+if not eligible:
+    Path("outputs/eval/fc128_best_checkpoint_pending.json").write_text(json.dumps(summary, indent=2))
+    raise SystemExit("no improving no-regression checkpoint found")
+
+selected = max(
+    eligible,
+    key=lambda r: (
+        r["candidate"]["tlc_pass"],
+        r["candidate"]["sany_pass"],
+        r["candidate"]["mean_reward"],
+        -r["step"],
+    ),
+)
+summary["selected"] = selected
+Path("outputs/eval/fc128_best_checkpoint_pending.json").write_text(json.dumps(summary, indent=2))
+print(selected["adapter"])
+PY
+)"
+
+cp outputs/eval/fc128_best_checkpoint_pending.json "$BEST_JSON"
+cat "$BEST_JSON"
+echo
+echo "BEST_ADAPTER=$BEST_ADAPTER"
+
+echo
+echo "===== Merge best LoRA ====="
+CUDA_VISIBLE_DEVICES="" "$PY" -m src.training.merge_lora \
+  --checkpoint "$BEST_ADAPTER" \
+  --base-model "$MODEL" \
+  --output "$MERGED_OUT" \
+  --device cpu \
+  --no-dpo-auto
+
+echo
+echo "===== Convert to GGUF ====="
+"$PY" -m src.inference.convert_to_gguf \
+  --quant Q8_0 \
+  --merged-model "$MERGED_OUT" \
+  --gguf-dir "$GGUF_OUT" \
+  --gguf-name chattla-20b \
+  --no-ollama-register
+
+echo
+echo "===== Publish dry-run ====="
+set +e
+"$PY" -m src.training.publish_hf \
+  --dry-run \
+  --benchmark-model "chattla:20b-fc128best" \
+  --gguf-dir "$GGUF_OUT" \
+  --merged-model-dir "$MERGED_OUT" \
+  --require-fresh-full-benchmark-hours 24
+PUBLISH_RC=$?
+set -e
+if [ "$PUBLISH_RC" -ne 0 ]; then
+  echo "[note] publish dry-run reported blockers (exit $PUBLISH_RC); best-artifact preflight remains useful for merged/GGUF outputs"
+else
+  echo "[note] publish dry-run passed"
+fi
+
+echo
+echo "===== best artifact preflight done ====="
+date

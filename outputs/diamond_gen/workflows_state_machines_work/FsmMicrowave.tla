@@ -61,7 +61,7 @@ Next == \/ StartCook \/ CookTick \/ Pause \/ Resume \/ OpenDoor \/ CloseDoor \/ 
 Spec == Init /\ [][Next]_vars
 
 \* Cooking implies door closed; finished implies cook_time > 0 and ever cooked.
-SafetyInvariant == ((state = "cooking") => door_closed) /\ ((state = "finished") => (cook_time > 0 /\ ever_cooked)) /\ (ever_cooked => cook_time >= 0)
+SafetyInvariant == ((state = "cooking") => (door_closed /\ ever_cooked)) /\ ((state = "paused") => ever_cooked) /\ ((state = "finished") => (cook_time > 0 /\ ever_cooked)) /\ (ever_cooked => cook_time >= 0)
 
 TypeOK == /\ state \in States
           /\ door_closed \in BOOLEAN

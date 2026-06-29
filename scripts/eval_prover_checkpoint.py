@@ -21,7 +21,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0,1")
+if os.environ.get("CHATTLA_CUDA_VISIBLE_DEVICES"):
+    os.environ.setdefault("CUDA_VISIBLE_DEVICES", os.environ["CHATTLA_CUDA_VISIBLE_DEVICES"])
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch  # noqa: E402
@@ -29,6 +30,7 @@ from peft import PeftModel  # noqa: E402
 from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: E402
 
 from src.validators.tlaps_validator import validate_string  # noqa: E402
+from src.harmony_extract import extract_final_channel  # noqa: E402
 
 EVAL_JSONL = REPO / "data" / "processed" / "prover_eval.jsonl"
 BASE_MODEL = "openai/gpt-oss-20b"
@@ -75,7 +77,7 @@ def main() -> None:
     model.eval()
 
     dump = []
-    summary = {"n": 0, "parse": 0, "any": 0, "full": 0, "sum_proved": 0}
+    summary = {"n": 0, "parse": 0, "no_final": 0, "any": 0, "full": 0, "sum_proved": 0}
 
     for i, ex in enumerate(rows, 1):
         msgs = [m for m in ex["messages"] if m["role"] in ("developer", "user")]
@@ -91,38 +93,34 @@ def main() -> None:
                 pad_token_id=tokenizer.pad_token_id,
             )
         new_tokens = out[0][inputs["input_ids"].shape[1]:]
-        raw = tokenizer.decode(new_tokens, skip_special_tokens=True)
+        raw = tokenizer.decode(new_tokens, skip_special_tokens=False)
 
-        # Strip harmony tags / <think> / fences via the canonical normalizer.
-        try:
-            from src.postprocess import strip_reasoning_artifacts, NormalizationReport
-            proof_text = strip_reasoning_artifacts(raw, NormalizationReport())
-        except Exception:
-            proof_text = raw
-        if "final" in proof_text:
-            proof_text = proof_text[proof_text.index("final") + len("final"):]
-        m = re.search(r"(<\d+>.*)", proof_text, re.DOTALL)
-        if m:
-            proof = m.group(1).strip()
-        else:
-            proof = proof_text.strip()
+        extraction = extract_final_channel(raw)
+        proof = extraction.proof
 
         user_text = next(m for m in ex["messages"] if m["role"] == "user")["content"]
         tla_block_m = TLA_BLOCK_RE.search(user_text)
         preamble = tla_block_m.group(1).strip() if tla_block_m else ""
 
         synth, mod_name = build_synthetic(preamble, proof)
-        try:
-            res = validate_string(synth, module_name=mod_name, timeout=60)
-            tier = res.tier
-            proved = res.obligations_proved
-            total = res.obligations_total
-        except Exception as e:
-            tier, proved, total = f"exception:{e}", 0, 0
+        if extraction.status == "no_final":
+            # Model never emitted a `final` channel (truncated mid-analysis);
+            # don't feed analysis prose to SANY and mislabel it parse_error.
+            tier, proved, total = "no_final", 0, 0
+        else:
+            try:
+                res = validate_string(synth, module_name=mod_name, timeout=60)
+                tier = res.tier
+                proved = res.obligations_proved
+                total = res.obligations_total
+            except Exception as e:
+                tier, proved, total = f"exception:{e}", 0, 0
 
         gold_total = int(ex.get("_obligations_total") or 0)
         summary["n"] += 1
-        if tier != "parse_error":
+        if tier == "no_final":
+            summary["no_final"] += 1
+        elif tier != "parse_error":
             summary["parse"] += 1
         if proved > 0:
             summary["any"] += 1
@@ -148,6 +146,7 @@ def main() -> None:
     n = max(summary["n"], 1)
     print("\n[eval] summary:")
     print(f"  parse_rate: {summary['parse']/n:.2f}")
+    print(f"  no_final_rate: {summary['no_final']/n:.2f}")
     print(f"  any_proved: {summary['any']/n:.2f}")
     print(f"  full_proved: {summary['full']/n:.2f}")
     print(f"  avg_obligations: {summary['sum_proved']/n:.1f}")

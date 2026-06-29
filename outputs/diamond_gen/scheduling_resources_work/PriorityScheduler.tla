@@ -66,5 +66,8 @@ Spec == Init /\ [][Next]_vars
 \* Strong safety: running task's priority is >= every ready task's priority.
 PriorityInv == (running = NoTask) \/ (\A t \in ready : Prio(running) >= Prio(t))
 
-TypeOK == /\ ready \subseteq Tasks /\ running \in Tasks \cup {NoTask} /\ PriorityInv
+TypeOK ==
+    /\ ready \subseteq Tasks
+    /\ running \in Tasks \cup {NoTask}
+    /\ PriorityInv
 ====

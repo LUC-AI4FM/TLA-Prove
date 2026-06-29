@@ -47,7 +47,7 @@ Next == \/ VerifyFactor1 \/ FailFactor1 \/ VerifyFactor2 \/ FailFactor2 \/ Grant
 Spec == Init /\ [][Next]_vars
 
 \* A granted session implies both factors were independently verified.
-SafetyInvariant == ((phase = "granted") => (ever_factor1 /\ ever_factor2)) /\ ((phase = "factor2_ok") => ever_factor1)
+SafetyInvariant == ((phase \in {"factor1_ok","factor2_ok","granted"}) => ever_factor1) /\ ((phase = "granted") => (ever_factor1 /\ ever_factor2)) /\ ((phase = "factor2_ok") => ever_factor2)
 
 TypeOK == /\ phase \in States
           /\ ever_factor1 \in BOOLEAN

@@ -20,7 +20,7 @@ datasets:
 pipeline_tag: text-generation
 ---
 
-# ChatTLA-20b (v15)
+# ChatTLA-20b (v21)
 
 ChatTLA is a fine-tuned version of [openai/gpt-oss-20b](https://huggingface.co/openai/gpt-oss-20b) specialised in generating **TLA+ formal specifications** — the language used by AWS, Microsoft, and Intel to mathematically verify distributed systems.
 
@@ -28,7 +28,7 @@ Given a plain-English description of a concurrent or distributed system, ChatTLA
 
 ---
 
-## Benchmark Results (v15, 3-shot self-correct)
+## Benchmark Results (v21, 3-shot self-correct)
 
 Evaluated on a 30-spec held-out suite spanning communication protocols, concurrency primitives, consensus, data structures, memory/caches, mutual exclusion, classical puzzles, scheduling, transactions, and workflow state machines. Each spec gets up to 3 self-correction attempts using TLC error feedback. Tiers are defined by what the spec actually does under SANY and TLC, not just whether it parses:
 
@@ -150,11 +150,11 @@ print(result[0]["generated_text"])
 ```bash
 # Download GGUF
 huggingface-cli download EricSpencer00/chattla-20b \
-    gguf/chattla-20b-v15-Q8_0.gguf \
+    gguf/chattla-20b-v21-Q8_0.gguf \
     --local-dir ./chattla
 
 # Run with llama.cpp
-./llama-cli -m chattla/gguf/chattla-20b-v15-Q8_0.gguf \
+./llama-cli -m chattla/gguf/chattla-20b-v21-Q8_0.gguf \
     -n 1024 --temp 0.4 \
     -p "Write a TLA+ spec for mutual exclusion with N processes."
 ```
@@ -241,7 +241,7 @@ EricSpencer00/chattla-20b
 ├── pytorch_model.bin        # Full BF16 weights (39 GB)
 ├── generation_config.json
 └── gguf/
-    ├── chattla-20b-v15-Q8_0.gguf   # Quantised GGUF for Ollama / llama.cpp
+    ├── chattla-20b-v21-Q8_0.gguf   # Quantised GGUF for Ollama / llama.cpp
     └── Modelfile                    # Ollama Modelfile
 ```
 

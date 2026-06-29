@@ -101,7 +101,13 @@ _REPO_ROOT    = Path(__file__).resolve().parents[2]
 # tanked v15 (project_v15_topic_overfit_20260408.md).
 _TRAIN_JSONL  = _REPO_ROOT / "data" / "processed" / "diamond_sft_v4_upweight2x_plus_multitask.jsonl"
 _EVAL_JSONL   = _REPO_ROOT / "data" / "processed" / "eval.jsonl"
-_PROVER_TRAIN_JSONL = _REPO_ROOT / "data" / "processed" / "prover_train.jsonl"
+# The prover lane now trains against the mixed SFT corpus, which already
+# includes the full 205-row FormaLLM layer plus Diamond/verified-TLAPS rows.
+_PROVER_TRAIN_JSONL = _REPO_ROOT / "data" / "processed" / "tla_prover" / "chattla_tla_prover_sft_v1.jsonl"
+# For bounded public-AI4FM expansion experiments, pass:
+#   --train-file data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl
+# That non-default corpus keeps the baseline prover stack and appends the
+# normalized public TLA-Prove import plus public seed prover-candidate replays.
 _PROVER_EVAL_JSONL  = _REPO_ROOT / "data" / "processed" / "prover_eval.jsonl"
 _CHECKPOINT_DIR = _REPO_ROOT / "outputs" / "checkpoints"
 _PROVER_CHECKPOINT_DIR = _REPO_ROOT / "outputs" / "checkpoints_prover"
@@ -341,6 +347,7 @@ def main(
     base_model: str | None = None,
     prover: bool = False,
     train_file: str | None = None,
+    eval_file: str | None = None,
     output_dir_override: str | None = None,
     experiment_name: str | None = None,
 ) -> None:
@@ -356,7 +363,10 @@ def main(
         train_path = Path(train_file)
     else:
         train_path = _PROVER_TRAIN_JSONL if prover else _TRAIN_JSONL
-    eval_path = _PROVER_EVAL_JSONL if prover else _EVAL_JSONL
+    if eval_file:
+        eval_path = Path(eval_file)
+    else:
+        eval_path = _PROVER_EVAL_JSONL if prover else _EVAL_JSONL
     if output_dir_override:
         output_dir = Path(output_dir_override)
     else:
@@ -652,11 +662,14 @@ if __name__ == "__main__":
                         help="Path or HF ID to load instead of openai/gpt-oss-20b "
                              "(e.g. outputs/merged_model/ for incremental DPO on a previously trained model)")
     parser.add_argument("--prover", action="store_true",
-                        help="Train the prover model: read prover_train.jsonl/prover_eval.jsonl, "
+                        help="Train the prover model: read chattla_tla_prover_sft_v1.jsonl/prover_eval.jsonl by default, "
                              "use TLAPSEvalCallback, save to outputs/checkpoints_prover/")
     parser.add_argument("--train-file", default=None,
                         help="Path to a custom training JSONL (overrides the hardcoded default). "
-                             "Used for Fork A validator-segregated corpora.")
+                             "Used for Fork A validator-segregated corpora or "
+                             "--train-file data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl.")
+    parser.add_argument("--eval-file", default=None,
+                        help="Path to a custom evaluation JSONL (overrides eval.jsonl/prover_eval.jsonl).")
     parser.add_argument("--output-dir", default=None,
                         help="Override checkpoint output directory (default: outputs/checkpoints/)")
     parser.add_argument("--experiment-name", default=None,
@@ -685,6 +698,7 @@ if __name__ == "__main__":
         base_model=args.base_model,
         prover=args.prover,
         train_file=args.train_file,
+        eval_file=args.eval_file,
         output_dir_override=args.output_dir,
         experiment_name=args.experiment_name,
     )

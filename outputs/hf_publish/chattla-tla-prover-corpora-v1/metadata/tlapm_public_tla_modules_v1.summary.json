@@ -1,0 +1,13 @@
+{
+  "duplicate_modules": {},
+  "generated_at": "2026-06-29T18:30:45.803846+00:00",
+  "jsonl_sha256": "070a5462a3c9ebfc8b0713ea25992af6771967fa95e96eca4fbbf7d6b5cd8cd8",
+  "kept_rows": 14,
+  "library_root": "data/external/tlapm/library",
+  "out": "data/processed/tlapm_public_tla_modules_v1.jsonl",
+  "repo_head_sha": "80172c61842c8dd15524c6f01a70ba91029802f5",
+  "schema": "chattla_tlapm_public_tla_modules_v1",
+  "skipped_missing_module_header": 0,
+  "tla_candidates": 14,
+  "tlapm_root": "data/external/tlapm"
+}

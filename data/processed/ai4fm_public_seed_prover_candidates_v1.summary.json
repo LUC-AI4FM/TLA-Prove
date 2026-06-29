@@ -1,0 +1,472 @@
+{
+  "dependency_staging": {
+    "attempted_rows": 840,
+    "recovered_rows": 52,
+    "sample_recovered": [
+      {
+        "module": "AddTwo",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/LearnProofs/AddTwo.tla",
+        "staged_modules": [
+          "TLAPS"
+        ]
+      },
+      {
+        "module": "Barriers",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/barriers/Barriers.tla",
+        "staged_modules": [
+          "Barrier",
+          "FiniteSetTheorems",
+          "Folds",
+          "Functions",
+          "NaturalsInduction",
+          "TLAPS",
+          "WellFoundedInduction"
+        ]
+      },
+      {
+        "module": "bcastByz",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/tlaplus",
+        "source_path": "tlatools/org.lamport.tlatools/test-model/examples/bcastByz/bcastByz.tla",
+        "staged_modules": [
+          "Folds",
+          "Functions"
+        ]
+      },
+      {
+        "module": "BookKeeperProtocol",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/tlaplus",
+        "source_path": "general/performance/Bookkeeper/BookKeeperProtocol.tla",
+        "staged_modules": [
+          "CSV",
+          "FiniteSetsExt",
+          "Folds",
+          "Functions",
+          "IOUtils",
+          "MessagePassing",
+          "SequencesExt",
+          "stats"
+        ]
+      },
+      {
+        "module": "Boulanger",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/Bakery-Boulangerie/Boulanger.tla",
+        "staged_modules": [
+          "TLAPS"
+        ]
+      },
+      {
+        "module": "Bug1682",
+        "reason": "dependency_staging_recovered",
+        "repo": "apalache-mc/apalache",
+        "source_path": "test/tla/Bug1682.tla",
+        "staged_modules": [
+          "Variants"
+        ]
+      },
+      {
+        "module": "Consensus",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
+        "staged_modules": [
+          "FiniteSetTheorems",
+          "Folds",
+          "Functions",
+          "NaturalsInduction",
+          "TLAPS",
+          "WellFoundedInduction"
+        ]
+      },
+      {
+        "module": "Consensus",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/tlaplus",
+        "source_path": "tlatools/org.lamport.tlatools/test-model/VoteProof/Consensus.tla",
+        "staged_modules": [
+          "TLAPS"
+        ]
+      },
+      {
+        "module": "DieHardTLA",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/tlaplus",
+        "source_path": "tlatools/org.lamport.tlatools/test-model/DieHardTLA.tla",
+        "staged_modules": [
+          "_Possible"
+        ]
+      },
+      {
+        "module": "DistributedReplicatedLog",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/FiniteMonotonic/DistributedReplicatedLog.tla",
+        "staged_modules": [
+          "FiniteSetsExt",
+          "Folds",
+          "Functions",
+          "SequencesExt"
+        ]
+      },
+      {
+        "module": "DistributedReplicatedLog",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/tlaplus",
+        "source_path": "tlatools/org.lamport.tlatools/test-model/examples/FiniteMonotonic/DistributedReplicatedLog.tla",
+        "staged_modules": [
+          "FiniteSetsExt",
+          "Folds",
+          "Functions",
+          "SequencesExt"
+        ]
+      },
+      {
+        "module": "Echo",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/echo/Echo.tla",
+        "staged_modules": [
+          "Relation"
+        ]
+      }
+    ]
+  },
+  "duplicate_modules": {
+    "AsyncTerminationDetection": 2,
+    "BufferedRandomAccessFile": 3,
+    "Consensus": 2,
+    "DieHard": 2,
+    "DistributedReplicatedLog": 2,
+    "EWD840": 8,
+    "EWD998": 3,
+    "EWD998Chan": 2,
+    "Echo": 2,
+    "EnvironmentController": 2,
+    "Hanoi": 2,
+    "Huang": 2,
+    "Lock": 2,
+    "NQSpec": 2,
+    "Paxos": 5,
+    "Peterson": 3,
+    "Prisoners": 2,
+    "SingleLaneBridge": 2,
+    "SpanTree": 2,
+    "SpanTreeRandom": 2,
+    "SpanTreeTest": 2,
+    "SyncTerminationDetection": 2,
+    "Voting": 2,
+    "YoYoNoPruning": 2,
+    "YoYoPruning": 2,
+    "aba_asyn_byz": 2,
+    "ast": 2,
+    "bcastByz": 2,
+    "bcastFolklore": 2,
+    "cf1s_folklore": 2,
+    "nbacg_guer01": 2,
+    "spanning": 2,
+    "test211": 3
+  },
+  "generated_at": "2026-06-29T18:30:45.977961+00:00",
+  "helper_source_paths": [
+    "data/processed/formalllm_public_tla_modules_v1.jsonl",
+    "data/processed/tlapm_public_tla_modules_v1.jsonl"
+  ],
+  "helper_source_rows": 515,
+  "jsonl_sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
+  "kept_rows": 150,
+  "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
+  "rows_considered": 2108,
+  "sample_not_autoprover_candidate": [
+    {
+      "module": "__apalache_folds",
+      "reason": "not_autoprover_candidate",
+      "repo": "apalache-mc/apalache",
+      "source_path": "src/tla/__apalache_folds.tla"
+    },
+    {
+      "module": "__apalache_internal",
+      "reason": "not_autoprover_candidate",
+      "repo": "apalache-mc/apalache",
+      "source_path": "src/tla/__apalache_internal.tla"
+    },
+    {
+      "module": "_DotTrace",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_DotTrace.tla",
+      "staged_modules": [
+        "FiniteSetsExt",
+        "Folds",
+        "Functions",
+        "GraphViz",
+        "IOUtils",
+        "SequencesExt"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "module": "_JsonTrace",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_JsonTrace.tla"
+    },
+    {
+      "module": "_Possible",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_Possible.tla"
+    },
+    {
+      "module": "_TLAPlusCounterExample",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLAPlusCounterExample.tla",
+      "staged_modules": [
+        "FiniteSetsExt",
+        "Folds",
+        "Functions",
+        "IOUtils",
+        "SequencesExt"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "module": "_TLCActionTrace",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCActionTrace.tla",
+      "staged_modules": [
+        "FiniteSetsExt",
+        "Folds",
+        "Functions",
+        "IOUtils",
+        "SequencesExt"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "module": "_TLCTESpec",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTESpec.tla",
+      "staged_modules": [
+        "FiniteSetsExt",
+        "Folds",
+        "Functions",
+        "IOUtils",
+        "SequencesExt"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "module": "_TLCTrace",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTrace.tla"
+    },
+    {
+      "module": "_TLCTracePlain",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/_TLCTracePlain.tla",
+      "staged_modules": [
+        "FiniteSetsExt",
+        "Folds",
+        "Functions",
+        "IOUtils",
+        "SequencesExt"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "module": "A",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "tlatools/org.lamport.tlatools/test-model/coverage/A.tla"
+    },
+    {
+      "module": "ABCorrectness",
+      "reason": "not_autoprover_candidate",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/SpecifyingSystems/TLC/ABCorrectness.tla"
+    }
+  ],
+  "sample_sany_invalid": [
+    {
+      "detail": "*** Errors: 2",
+      "module": "AbstractComponentsModule",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AbstractComponentsModule.tla",
+      "staged_modules": [
+        "APIComponentsModule",
+        "AdditionalMathOperators",
+        "AdditionalSequenceOperators",
+        "FileComponentsModule",
+        "Stubs"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Errors: 2",
+      "module": "AdditionalMathOperators",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AdditionalMathOperators.tla"
+    },
+    {
+      "detail": "Cannot find source file for module Folds imported in module Functions.",
+      "module": "AllocatorImplementation_proof",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/allocator/AllocatorImplementation_proof.tla",
+      "staged_modules": [
+        "AllocatorImplementation",
+        "FiniteSetTheorems",
+        "Functions",
+        "NaturalsInduction",
+        "SchedulingAllocator",
+        "SequenceTheorems",
+        "TLAPS",
+        "WellFoundedInduction"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "Cannot find source file for module CSVTests imported in module AllTests.",
+      "module": "AllTests",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/CommunityModules",
+      "source_path": "tests/AllTests.tla",
+      "staged_modules": [
+        "BitwiseTests",
+        "FiniteSetsExtTests",
+        "FunctionsTests",
+        "IOUtilsTests",
+        "JsonTests",
+        "RelationTests",
+        "SVGTests",
+        "SequencesExtTests"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "Cannot find source file for module FiniteSetsExtTests imported in module AllTests.",
+      "module": "AllTestsUnix",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/CommunityModules",
+      "source_path": "tests/AllTestsUnix.tla",
+      "staged_modules": [
+        "AllTests",
+        "BitwiseTests",
+        "IOUtilsTests",
+        "IOUtilsUnixTests",
+        "JsonTests",
+        "RelationTests",
+        "SVGTests",
+        "SequencesExtTests"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Warnings: 1",
+      "module": "APBarrier",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/barriers/APBarrier.tla",
+      "staged_modules": [
+        "Barrier"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Warnings: 1",
+      "module": "APc1cs",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/c1cs/APc1cs.tla",
+      "staged_modules": [
+        "c1cs"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Warnings: 1",
+      "module": "APChameneos",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/Chameneos/APChameneos.tla",
+      "staged_modules": [
+        "Chameneos"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Warnings: 1",
+      "module": "APDisruptor_MPMC",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/Disruptor/APDisruptor_MPMC.tla",
+      "staged_modules": [
+        "Disruptor_MPMC",
+        "RingBuffer"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Warnings: 1",
+      "module": "APDisruptor_SPMC",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/Disruptor/APDisruptor_SPMC.tla",
+      "staged_modules": [
+        "Disruptor_SPMC",
+        "RingBuffer"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Warnings: 1",
+      "module": "APDistributedReplicatedLog",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/FiniteMonotonic/APDistributedReplicatedLog.tla",
+      "staged_modules": [
+        "DistributedReplicatedLog",
+        "FiniteSetsExt",
+        "Folds",
+        "Functions",
+        "SequencesExt"
+      ],
+      "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Errors: 2",
+      "module": "APIComponentsModule",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/tlaplus",
+      "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/APIComponentsModule.tla",
+      "staged_modules": [
+        "AdditionalMathOperators",
+        "AdditionalSequenceOperators",
+        "Stubs"
+      ],
+      "unresolved_missing_imports": []
+    }
+  ],
+  "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
+  "skipped": {
+    "not_autoprover_candidate": 1629,
+    "sany_invalid": 329
+  },
+  "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+  "source_rows": 2108,
+  "workers": 4
+}

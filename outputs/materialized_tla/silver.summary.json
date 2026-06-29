@@ -1,0 +1,17 @@
+{
+  "jsonl": "data/processed/train.jsonl",
+  "out_dir": "outputs/materialized_tla/silver",
+  "rows_seen": 713,
+  "files_written": 4,
+  "unique_modules": 4,
+  "duplicates": {},
+  "skipped": {
+    "tier_filtered": 709
+  },
+  "written_files": [
+    "outputs/materialized_tla/silver/ReadWriteLock.tla",
+    "outputs/materialized_tla/silver/ProducerConsumerQueue.tla",
+    "outputs/materialized_tla/silver/ClockSynchronisation.tla",
+    "outputs/materialized_tla/silver/TokenRing.tla"
+  ]
+}

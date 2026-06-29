@@ -27,10 +27,10 @@ from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
 
 from src.validators.tlaps_validator import validate_string
+from scripts.tla_prover_corpus_paths import resolve_probe_corpus_file
 
 ADAPTER = REPO / "outputs" / "checkpoints_prover" / "checkpoint-48"
 BASE_MODEL = "openai/gpt-oss-20b"
-TRAIN_JSONL = REPO / "data" / "processed" / "prover_train.jsonl"
 REPORT = REPO / "outputs" / "prover_diagnose2.json"
 
 _MODULE_RE = re.compile(r"MODULE\s+(\w+)")
@@ -124,7 +124,15 @@ def run_variant(model, tok, ex, label, reasoning, max_new):
 
 def main():
     model, tok = load_model()
-    train_rows = [json.loads(l) for l in TRAIN_JSONL.open()][:2]
+    train_path, using_probe_fallback = resolve_probe_corpus_file(REPO)
+    train_path = REPO / train_path
+    if using_probe_fallback:
+        print(
+            "[diag2] prover_train.jsonl missing; using "
+            f"{train_path.name} "
+            "as the training-like probe corpus."
+        )
+    train_rows = [json.loads(l) for l in train_path.open()][:2]
     variants = [
         ("A_med_1024", "medium", 1024),
         ("B_med_4096", "medium", 4096),

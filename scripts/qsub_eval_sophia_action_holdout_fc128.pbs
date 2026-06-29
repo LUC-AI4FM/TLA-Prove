@@ -1,0 +1,75 @@
+#!/bin/bash
+# Post-phase action-holdout evaluation for the final-channel cap-128 GRPO run.
+# Submit with:
+#   qsub -W depend=afterok:160247 scripts/qsub_eval_sophia_action_holdout_fc128.pbs
+# Set the project/account at submit time if your site requires one.
+#PBS -q single-node
+#PBS -l select=1:ngpus=4:ncpus=128:mem=480gb
+#PBS -l walltime=02:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N eval_fc128
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+mkdir -p outputs/logs outputs/eval
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+exec > "outputs/logs/eval_action_holdout_fc128_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export NUMEXPR_MAX_THREADS=128
+export NUMEXPR_NUM_THREADS=32
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export CHATTLA_ACTION_PROMPT_MODE=direct
+
+PY="${CHATTLA_PYTHON:-python3}"
+MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+BASELINE_ADAPTER=outputs/checkpoints_grpo_action_tok1200_g4_phase2_sophia/checkpoint-240
+NEW_ADAPTER=outputs/checkpoints_grpo_action_tok1200_g4_final_channel_cap128_phase1
+CORPUS=data/processed/diamond_eval_holdout.jsonl
+OUT=outputs/eval/action_holdout_fc128_phase1_${PBS_JOBNUM}.json
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "MODEL=$MODEL"
+echo "BASELINE_ADAPTER=$BASELINE_ADAPTER"
+echo "NEW_ADAPTER=$NEW_ADAPTER"
+echo "CORPUS=$CORPUS"
+echo "OUT=$OUT"
+
+echo
+echo "===== GPUs ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+
+echo
+echo "===== Harness count ====="
+"$PY" - <<'PY'
+from src.rlvr_canary.tla_dataset import load_tla_action_prompts
+for path in ["data/processed/diamond_eval_holdout.jsonl"]:
+    xs = load_tla_action_prompts(path)
+    print(path, len(xs), xs[0].prompt_id if xs else None)
+PY
+
+"$PY" -u -m scripts.eval_canary_tla \
+  --model "$MODEL" \
+  --compare-adapter "$BASELINE_ADAPTER" \
+  --adapter "$NEW_ADAPTER" \
+  --corpus "$CORPUS" \
+  --device auto \
+  --max-new-tokens 128 \
+  --force-final-channel \
+  --chat-template-reasoning-effort none \
+  --out "$OUT"
+
+echo
+echo "===== action holdout eval done ====="
+date
+echo "out=$OUT"

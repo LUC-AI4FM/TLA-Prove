@@ -1,0 +1,21 @@
+{
+  "duplicate_modules": [
+    "Consensus",
+    "MC",
+    "MCConsensus",
+    "MCPaxos",
+    "MCVoting",
+    "Paxos",
+    "TLAPS",
+    "TwoPhase",
+    "Voting"
+  ],
+  "families_seen": 71,
+  "generated_at": "2026-06-28T22:01:26.491011+00:00",
+  "jsonl_sha256": "7d2f18a3c5a267b8fb94af26ec4c94c980201ce5b27ab46e40428a8379026769",
+  "out": "data/processed/formalllm_eval_v1.jsonl",
+  "rows": 205,
+  "skipped_missing_files": [],
+  "source_root": "data/FormaLLM/data",
+  "unique_modules": 191
+}

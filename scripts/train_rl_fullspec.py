@@ -94,17 +94,48 @@ def main() -> None:
                         "at moderate temperatures.")
     parser.add_argument("--logging-steps", type=int, default=1)
     parser.add_argument("--save-steps", type=int, default=50)
+    parser.add_argument("--sample-log-path", default=None,
+                        help="Optional JSONL path for raw completion samples from reward calls.")
+    parser.add_argument("--sample-log-every", type=int, default=1,
+                        help="Log samples every N reward calls when --sample-log-path is set.")
+    parser.add_argument("--sample-log-limit", type=int, default=8,
+                        help="Number of completions to record per sampled reward call.")
+    parser.add_argument(
+        "--chat-template-reasoning-effort",
+        default=None,
+        help="Optional reasoning_effort kwarg when pre-formatting prompts.",
+    )
+    parser.add_argument(
+        "--resume-from-checkpoint",
+        default=None,
+        help="Path to a checkpoint directory to resume the same GRPO phase.",
+    )
+    parser.add_argument(
+        "--adapter-checkpoint",
+        default=None,
+        help=(
+            "Path to a PEFT adapter checkpoint to warm-start from while creating "
+            "a fresh optimizer and LR scheduler. Do not combine with "
+            "--resume-from-checkpoint."
+        ),
+    )
     parser.add_argument("--smoke", action="store_true",
                         help="2 steps, no checkpoint, sanity-check the wiring.")
     args = parser.parse_args()
+    if args.resume_from_checkpoint and args.adapter_checkpoint:
+        parser.error("--adapter-checkpoint cannot be combined with --resume-from-checkpoint")
 
     if args.model is None:
         args.model = _resolve_base_model()
+    if args.sample_log_path:
+        os.environ["CHATTLA_SAMPLE_LOG_PATH"] = args.sample_log_path
+        os.environ["CHATTLA_SAMPLE_LOG_EVERY"] = str(max(1, args.sample_log_every))
+        os.environ["CHATTLA_SAMPLE_LOG_LIMIT"] = str(max(1, args.sample_log_limit))
 
     import torch
     import yaml
     from datasets import Dataset
-    from peft import LoraConfig
+    from peft import LoraConfig, PeftModel
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from trl import GRPOConfig, GRPOTrainer
 
@@ -159,17 +190,23 @@ def main() -> None:
     # By pre-formatting and appending the channel header, we force the
     # model to write directly into the final channel (the spec).
     _CHANNEL_SUFFIX = "<|channel|>final<|message|>"
+    template_kwargs = {"add_generation_prompt": True}
+    if args.chat_template_reasoning_effort:
+        template_kwargs["reasoning_effort"] = args.chat_template_reasoning_effort
     formatted_prompts: list[str] = []
     for ex in examples:
         text = tokenizer.apply_chat_template(
-            ex.prompt, tokenize=False, add_generation_prompt=True)
+            ex.prompt,
+            tokenize=False,
+            **template_kwargs,
+        )
         formatted_prompts.append(text + _CHANNEL_SUFFIX)
 
     train_ds = Dataset.from_list([
         {"prompt": p} for p in formatted_prompts
     ])
     print(f"[rl-fullspec] prompts pre-formatted: {len(formatted_prompts[0])} chars, "
-          f"suffix='{_CHANNEL_SUFFIX}'")
+          f"suffix='{_CHANNEL_SUFFIX}', reasoning_effort={args.chat_template_reasoning_effort!r}")
 
     model = AutoModelForCausalLM.from_pretrained(
         args.model,
@@ -177,6 +214,16 @@ def main() -> None:
         device_map="auto",
     )
     model.config.use_cache = False
+    trainer_peft_config = peft_config
+    if args.adapter_checkpoint:
+        print(f"[rl-fullspec] warm-starting trainable adapter from {args.adapter_checkpoint} ...")
+        model = PeftModel.from_pretrained(
+            model,
+            args.adapter_checkpoint,
+            is_trainable=True,
+        )
+        model.config.use_cache = False
+        trainer_peft_config = None
 
     # ── GRPO config ─────────────────────────────────────────────────────
     gen_batch_size = args.per_device_batch_size * args.num_generations
@@ -216,7 +263,7 @@ def main() -> None:
         args=config,
         train_dataset=train_ds,
         reward_funcs=[fullspec_component_reward],
-        peft_config=peft_config,
+        peft_config=trainer_peft_config,
     )
 
     total_params = sum(p.numel() for p in model.parameters())
@@ -227,7 +274,10 @@ def main() -> None:
           f"{args.num_generations} gens/prompt, lr={args.learning_rate}, "
           f"beta={args.beta}, max_completion={args.max_completion_length}")
 
-    trainer.train()
+    if args.resume_from_checkpoint:
+        print(f"[rl-fullspec] resuming from {args.resume_from_checkpoint} ...")
+
+    trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
     trainer.save_model(args.output_dir)
     print(f"[rl-fullspec] done -> {args.output_dir}")
 

@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import os
 import sys
+from collections import OrderedDict
 from pathlib import Path
 
 import torch
@@ -51,6 +52,44 @@ _CHECKPOINT_DIR  = _REPO_ROOT / "outputs" / "checkpoints"
 _MERGED_OUT      = _REPO_ROOT / "outputs" / "merged_model"
 
 MODEL_ID = "openai/gpt-oss-20b"
+
+
+def _clear_peft_save_markers(model) -> None:
+    """Treat a merged PEFT model as a plain HF model before saving.
+
+    Some Transformers/PEFT combinations leave adapter metadata on the base
+    model after `merge_and_unload()`. If `_hf_peft_config_loaded` remains true,
+    `save_pretrained()` tries to save adapter-only state and can fail because no
+    active adapter exists after the merge.
+    """
+    if getattr(model, "_hf_peft_config_loaded", False):
+        print("[merge_lora] Clearing stale PEFT save marker after merge")
+        model._hf_peft_config_loaded = False
+    if "peft_config" in getattr(model, "__dict__", {}):
+        print("[merge_lora] Removing stale peft_config after merge")
+        delattr(model, "peft_config")
+
+
+def _full_model_state_dict(model):
+    """Return a converter-friendly state dict after PEFT merge.
+
+    Some PEFT merge paths leave full-model tensor names prefixed with
+    `base_model.model.`. The tensors are correct, but downstream converters
+    expect ordinary HF names such as `model.embed_tokens.weight`.
+    """
+    state_dict = model.state_dict()
+    prefix = "base_model.model."
+    prefixed = sum(1 for key in state_dict if key.startswith(prefix))
+    if not prefixed:
+        return state_dict
+
+    print(f"[merge_lora] Stripping '{prefix}' from {prefixed} tensor names before save")
+    cleaned = OrderedDict()
+    for key, value in state_dict.items():
+        if key.startswith(prefix):
+            key = key[len(prefix):]
+        cleaned[key] = value
+    return cleaned
 
 
 def find_latest_checkpoint(checkpoint_dir: Path) -> Path | None:
@@ -119,6 +158,7 @@ def merge(
 
     print("[merge_lora] Merging SFT adapter weights into base model...")
     model = model.merge_and_unload()
+    _clear_peft_save_markers(model)
 
     # Optional second-stage DPO merge
     if dpo_checkpoint_path is not None:
@@ -126,6 +166,7 @@ def merge(
         model = PeftModel.from_pretrained(model, str(dpo_checkpoint_path))
         print("[merge_lora] Merging DPO adapter weights into SFT-merged model...")
         model = model.merge_and_unload()
+        _clear_peft_save_markers(model)
 
     output_path.mkdir(parents=True, exist_ok=True)
     # Clean old weight files before saving to avoid duplicates (e.g. 39GB safetensors + 39GB pytorch_model.bin)
@@ -137,17 +178,18 @@ def merge(
         print(f"[merge_lora] Cleaned old weights: {old_weights.name}")
 
     print(f"[merge_lora] Saving merged model → {output_path}")
-    # Use save_pretrained to write proper safetensors + index files that
-    # llama.cpp's convert_hf_to_gguf.py expects.  Fall back to torch.save
-    # only if save_pretrained fails (e.g. unsupported weight dtypes).
-    try:
-        model.save_pretrained(output_path, safe_serialization=True)
-        print("[merge_lora] Saved via save_pretrained (safetensors)")
-    except Exception as exc:
-        print(f"[merge_lora] save_pretrained failed ({exc}), falling back to torch.save")
-        state_dict = model.state_dict()
-        torch.save(state_dict, output_path / "pytorch_model.bin")
-        model.config.save_pretrained(output_path)
+    # Use sharded safetensors. A monolithic torch.save fallback is fragile for
+    # 20B checkpoints and is not the preferred input for llama.cpp conversion.
+    max_shard_size = os.environ.get("CHATTLA_MERGE_MAX_SHARD_SIZE", "5GB")
+    model.save_pretrained(
+        output_path,
+        state_dict=_full_model_state_dict(model),
+        safe_serialization=True,
+        max_shard_size=max_shard_size,
+        save_peft_format=False,
+        save_original_format=False,
+    )
+    print(f"[merge_lora] Saved via save_pretrained (safetensors, max_shard_size={max_shard_size})")
     tokenizer.save_pretrained(output_path)
 
     stage = "SFT+DPO" if dpo_checkpoint_path else "SFT"
@@ -167,6 +209,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Merge LoRA adapter into gpt-oss-20b base weights")
     parser.add_argument("--checkpoint", default=None, help="SFT checkpoint dir (default: latest in outputs/checkpoints)")
     parser.add_argument("--dpo-checkpoint", default=None, help="DPO checkpoint dir for two-stage merge (default: latest in outputs/checkpoints_dpo if it exists)")
+    parser.add_argument("--no-dpo-auto", action="store_true",
+                        help="Do not auto-detect outputs/checkpoints_dpo when --dpo-checkpoint is omitted")
     parser.add_argument("--output",     default=str(_MERGED_OUT), help="Output directory for merged model")
     parser.add_argument("--device",     default="auto", help="Device map: 'auto', 'cuda', or 'cpu'")
     parser.add_argument("--base-model", default=None,
@@ -178,7 +222,7 @@ if __name__ == "__main__":
     dpo_ckpt = None
     if args.dpo_checkpoint:
         dpo_ckpt = Path(args.dpo_checkpoint)
-    elif _DPO_CHECKPOINT_DIR.is_dir():
+    elif not args.no_dpo_auto and _DPO_CHECKPOINT_DIR.is_dir():
         dpo_ckpt = find_latest_checkpoint(_DPO_CHECKPOINT_DIR)
         if dpo_ckpt:
             print(f"[merge_lora] Auto-detected DPO checkpoint: {dpo_ckpt}")
