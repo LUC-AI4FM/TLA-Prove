@@ -55,6 +55,10 @@ data/processed/*
 !data/processed/ai4fm_public_seed_tla_modules_v1.summary.json
 !data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl
 !data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json
+!data/processed/tla_prover/
+data/processed/tla_prover/*
+!data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl
+!data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json
 
 # Keep these data files
 !data/benchmarks/

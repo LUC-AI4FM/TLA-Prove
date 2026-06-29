@@ -258,6 +258,14 @@ Current reconciled live summary:
   benchmark is curated, `TLA-Prove` is a public corpus stack, the discovery
   manifest is a public GitHub repo roster, and the DVC surface is a larger
   extraction and transformation inventory.
+- For bounded prover-corpus experiments, ChatTLA can now materialize
+  `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl`
+  via:
+  `python3 scripts/build_tla_prover_finetune_corpus.py --public-import-weight 1 --public-seed-candidates-weight 1 --out data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl`
+  This keeps the current default `chattla_tla_prover_sft_v1` stable while
+  exposing a `2433`-row public-AI4FM expansion lane (`1330` default prover SFT
+  rows + `1005` normalized public import rows + `98` public seed prover-candidate
+  replays).
 
 ## Rebuild
 
