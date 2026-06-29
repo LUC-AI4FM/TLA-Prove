@@ -1408,6 +1408,28 @@
       },
       "summary_path": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json"
     },
+    "benchmark_repair_pairs_fc128best": {
+      "bytes": 102517,
+      "exists": true,
+      "kind": "benchmark_repair_pair_corpus",
+      "path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+      "rows": 19,
+      "sha256": "5b3ae964547054966948f8b4f8968983a169b035d327875a82bf1036bfb5143f",
+      "summary": {
+        "benchmark_model": "chattla:20b-fc128best",
+        "failed_rows_seen": 20,
+        "gold_coverage": {
+          "covered_failed_rows": 19,
+          "missing_gold_benchmark_ids": [
+            "BM020"
+          ]
+        },
+        "rows": 19,
+        "schema": "chattla_benchmark_repair_pairs_summary_v1",
+        "source_csv": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv"
+      },
+      "summary_path": "data/processed/benchmark_repair_pairs_fc128best.summary.json"
+    },
     "chattla_tla_prover_sft_public_all_v1": {
       "bytes": 13210614,
       "exists": true,
@@ -1520,13 +1542,13 @@
       "summary_path": "data/processed/formalllm_eval_v1.summary.json"
     },
     "hf_publish_readiness": {
-      "bytes": 2964,
+      "bytes": 2965,
       "exists": true,
       "kind": "model_hf_publish_readiness_report",
       "path": "outputs/manifests/hf_publish_readiness.json",
       "report_excerpt": {
         "blockers": [
-          "latest full benchmark is stale at 1405.0h (limit 24.0h)",
+          "latest full benchmark is stale at 1405.2h (limit 24.0h)",
           "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
         ],
         "failure_surface": {
@@ -1567,7 +1589,7 @@
         "ready_to_publish": false
       },
       "rows": null,
-      "sha256": "0f35749e94d122e6427643976777c8e2ceab4ec711415344e597cb800698d2d8"
+      "sha256": "c569ede417291523f389442eb5b2101afadcf4e9508d30811433ff24fec01325"
     },
     "hf_publish_readiness_fc128best": {
       "bytes": 3056,
@@ -1622,7 +1644,7 @@
         "ready_to_publish": false
       },
       "rows": null,
-      "sha256": "3b7f969b72dcb11ef2337b0ab91c9ce56f56945addae4a2f959c4c7e6abc1a72"
+      "sha256": "d2540f29fcef3c980ba5ac2546f6d3b1d00f6c356fc5b97c747b71677885afda"
     },
     "known18_module_list": {
       "bytes": 1194,
@@ -1640,7 +1662,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T13:01:02.855035+00:00",
+        "generated_at": "2026-06-29T13:13:18.551516+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -1680,7 +1702,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "ea75f24d588427cbc6c743937b627e06b7d8a69cca0c35495c0ee7d0946513b3"
+      "sha256": "65e2fa3f301da7deddbc6d2176dd9ecb97e4b34e91e9e87f2dd955eedf07f39e"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -1690,7 +1712,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T13:01:02.917259+00:00",
+        "generated_at": "2026-06-29T13:13:18.613251+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1926,12 +1948,12 @@
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_experiment_matrix": {
-      "bytes": 5495,
+      "bytes": 5496,
       "exists": true,
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "b119a1d0cc393f0e810bcea5310a6d6beb545df7d655798548cb30e6db1df20e"
+      "sha256": "d01faf0ae7812f61ff3dff4dcda372e5700bcf1965ca655867002f4b0a707f6f"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7142,
@@ -1978,7 +2000,7 @@
         }
       },
       "rows": null,
-      "sha256": "e611603f337a42e677af27e257affb7080167e31392284a6f9423f73f4e50012"
+      "sha256": "8f523bfdff66ac678a331ccae1bd640b4469a70ad539a7ee14f68a9c6f98f192"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -2020,7 +2042,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T13:01:03.551887+00:00",
+  "generated_at": "2026-06-29T13:13:19.246850+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -2033,6 +2055,7 @@
     "build_ai4fm_public_tlaprove_import_all_public": "python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --out data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
     "build_ai4fm_public_tlaprove_import_all_public_raw": "python3 scripts/build_ai4fm_public_tlaprove_import.py --include-additional-public-jsonl --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_all_public_raw_v1.jsonl",
     "build_ai4fm_public_tlaprove_import_raw": "python3 scripts/build_ai4fm_public_tlaprove_import.py --keep-duplicates --out data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl",
+    "build_benchmark_repair_pairs_fc128best": "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best",
     "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
     "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
     "build_tla_prover_corpus_experiment_matrix": "python3 scripts/build_tla_prover_corpus_experiment_matrix.py",
