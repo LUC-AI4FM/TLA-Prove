@@ -6,6 +6,7 @@ from src.training.publish_hf import (
     _patch_readme,
     fetch_remote_paths_via_http,
     fetch_remote_repo_paths,
+    latest_full_benchmark_stats,
     main,
     max_published_version,
     next_version_for_publish,
@@ -185,6 +186,38 @@ def test_publish_readiness_blockers_reject_zero_pass_full_benchmark() -> None:
     ]
 
 
+def test_latest_full_benchmark_stats_filters_to_requested_model(tmp_path: Path, monkeypatch) -> None:
+    results_dir = tmp_path / "outputs" / "benchmark_results"
+    results_dir.mkdir(parents=True)
+
+    older = results_dir / "benchmark_results_chattla_full_20260628_200000.csv"
+    older.write_text(
+        "model,benchmark_id,sany_pass,tlc_pass,structural_score\n"
+        "chattla:20b,BM001,1,1,0.9\n"
+        "chattla:20b,BM002,0,0,0.5\n",
+        encoding="utf-8",
+    )
+    newer = results_dir / "benchmark_results_fc128best_full_20260628_235102.csv"
+    newer.write_text(
+        "model,benchmark_id,sany_pass,tlc_pass,structural_score\n"
+        "chattla:20b-fc128best,BM001,0,0,0.8\n"
+        "chattla:20b-fc128best,BM002,0,0,0.7\n",
+        encoding="utf-8",
+    )
+    older.touch()
+    newer.touch()
+    monkeypatch.setattr("src.training.publish_hf._REPO_ROOT", tmp_path)
+
+    stats = latest_full_benchmark_stats(benchmark_model="chattla:20b")
+
+    assert stats is not None
+    assert stats["source_csv"] == older.name
+    assert stats["model"] == "chattla:20b"
+    assert stats["n"] == 2
+    assert stats["sany"] == 1
+    assert stats["tlc"] == 1
+
+
 def test_publish_aborts_before_upload_when_readiness_is_blocked(tmp_path: Path, monkeypatch) -> None:
     gguf_dir = tmp_path / "gguf"
     gguf_dir.mkdir()
@@ -267,6 +300,96 @@ def test_publish_dry_run_does_not_require_huggingface_hub(tmp_path: Path, monkey
         repo_id="EricSpencer00/chattla-20b",
         dry_run=True,
         gguf_dir=gguf_dir,
+        merged_model_dir=tmp_path / "merged_model",
+        require_fresh_full_benchmark_hours=24.0,
+    )
+
+    assert result == 22
+
+
+def test_publish_uses_requested_benchmark_model(tmp_path: Path, monkeypatch) -> None:
+    gguf_dir = tmp_path / "gguf"
+    gguf_dir.mkdir()
+    (gguf_dir / "chattla-20b-Q8_0.gguf").write_text("gguf", encoding="utf-8")
+    readme = tmp_path / "README.md"
+    readme.write_text("# card\n", encoding="utf-8")
+
+    seen: list[str | None] = []
+
+    monkeypatch.setattr("src.training.publish_hf._load_hf_api_class", lambda required: None)
+    monkeypatch.setattr(
+        "src.training.publish_hf.latest_full_benchmark_stats",
+        lambda benchmark_model=None: seen.append(benchmark_model) or {
+            "source_csv": "benchmark_results_good_full.csv",
+            "source_path": str(tmp_path / "benchmark_results_good_full.csv"),
+            "mtime": 1000.0,
+            "n": 20,
+            "sany": 10,
+            "tlc": 8,
+            "avg_struct": 0.91,
+            "model": benchmark_model,
+        },
+    )
+    monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
+    monkeypatch.setattr(
+        "src.training.publish_hf._load_state",
+        lambda: {"last_published_version": 21},
+    )
+    monkeypatch.setattr(
+        "src.training.publish_hf.fetch_remote_paths_via_http",
+        lambda repo_id: ["gguf/chattla-20b-v21-Q8_0.gguf"],
+    )
+    monkeypatch.setattr("src.training.publish_hf._README_TEMPLATE", readme)
+
+    result = publish(
+        repo_id="EricSpencer00/chattla-20b",
+        dry_run=True,
+        gguf_dir=gguf_dir,
+        merged_model_dir=tmp_path / "merged_model",
+        require_fresh_full_benchmark_hours=24.0,
+        benchmark_model="chattla:20b-fc128best",
+    )
+
+    assert result == 22
+    assert seen
+    assert all(item == "chattla:20b-fc128best" for item in seen)
+
+
+def test_publish_dry_run_uses_fc128best_fallback_gguf_when_default_dir_is_empty(tmp_path: Path, monkeypatch) -> None:
+    gguf_dir = tmp_path / "outputs" / "gguf"
+    gguf_dir.mkdir(parents=True)
+    fallback_dir = tmp_path / "outputs" / "gguf_fc128_best"
+    fallback_dir.mkdir(parents=True)
+    (fallback_dir / "chattla-20b-Q8_0.gguf").write_text("gguf", encoding="utf-8")
+
+    monkeypatch.setattr("src.training.publish_hf._load_hf_api_class", lambda required: None)
+    monkeypatch.setattr(
+        "src.training.publish_hf.latest_full_benchmark_stats",
+        lambda: {
+            "source_csv": "benchmark_results_good_full.csv",
+            "source_path": str(tmp_path / "benchmark_results_good_full.csv"),
+            "mtime": 1000.0,
+            "n": 20,
+            "sany": 10,
+            "tlc": 8,
+            "avg_struct": 0.91,
+        },
+    )
+    monkeypatch.setattr("src.training.publish_hf.time.time", lambda: 1000.0)
+    monkeypatch.setattr("src.training.publish_hf._GGUF_DIR", gguf_dir)
+    monkeypatch.setattr("src.training.publish_hf._REPO_ROOT", tmp_path)
+    monkeypatch.setattr(
+        "src.training.publish_hf._load_state",
+        lambda: {"last_published_version": 21},
+    )
+    monkeypatch.setattr(
+        "src.training.publish_hf.fetch_remote_paths_via_http",
+        lambda repo_id: ["gguf/chattla-20b-v21-Q8_0.gguf"],
+    )
+
+    result = publish(
+        repo_id="EricSpencer00/chattla-20b",
+        dry_run=True,
         merged_model_dir=tmp_path / "merged_model",
         require_fresh_full_benchmark_hours=24.0,
     )

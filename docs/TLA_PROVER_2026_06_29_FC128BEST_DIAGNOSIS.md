@@ -33,8 +33,30 @@ primarily model-side parse corruption rather than a broken validator/runtime.
 
 - `scripts/inspect_hf_publish_readiness.py` now blocks publish on a fresh
   benchmark that still scores `0/20`.
+- `scripts/inspect_hf_publish_readiness.py` and `src.training.publish_hf` now
+  accept a benchmark-model lane, so canonical `chattla:20b` readiness and
+  candidate-specific lanes such as `chattla:20b-fc128best` no longer get
+  flattened into one ambiguous “latest full benchmark” story.
+- `src.training.publish_hf` now finds the local fallback GGUF under
+  `outputs/gguf_fc128_best/` during dry-run/readiness checks, matching the
+  readiness inspector instead of falsely reporting “GGUF missing”.
 - `src/inference/benchmark.py` now zeros `structural_score` when SANY parsing
   fails, so unparsable pseudo-TLA no longer looks structurally healthy.
+
+## Canonical Lane Status
+
+The new benchmark-model split makes the current repository state clearer:
+
+- Canonical publish lane:
+  - `python3 scripts/inspect_hf_publish_readiness.py`
+  - benchmark model: `chattla:20b`
+  - current source: `outputs/benchmark_results_v14_full_20260404.csv`
+  - current verdict: still blocked, because the latest canonical full benchmark
+    is both stale and `0/20`
+- Candidate lane:
+  - `python3 scripts/inspect_hf_publish_readiness.py --benchmark-model chattla:20b-fc128best`
+  - current source: `outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv`
+  - current verdict: fresh but still blocked at `0/20`
 
 ## Interpretation
 
