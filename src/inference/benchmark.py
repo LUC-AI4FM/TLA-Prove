@@ -3,7 +3,7 @@ benchmark.py — Evaluate ChatTLA on the 20-problem handcrafted benchmark suite.
 
 Runs TLA+ spec generation for each benchmark problem against:
   1. Base gpt-oss:20b (baseline)
-  2. ChatTLA fine-tuned model (chattla:20b)
+  2. ChatTLA fine-tuned model (defaults to chattla:20b, override with CHATTLA_MODEL)
 
 Scores are aggregated across three dimensions:
   - sany_pass   : SANY parsing succeeds (syntax correct TLA+)
@@ -20,6 +20,9 @@ Usage
 
     # Fine-tuned model only:
     python -m src.inference.benchmark --model chattla:20b
+
+    # Override the default "chattla" alias for this run:
+    CHATTLA_MODEL=chattla:20b-fc128best python -m src.inference.benchmark
 
     # With TLC self-correction (up to 3 retries on TLC failure):
     python -m src.inference.benchmark --self-correct
@@ -63,10 +66,11 @@ except ImportError:
 _REPO_ROOT     = Path(__file__).resolve().parents[2]
 _BENCH_JSON    = _REPO_ROOT / "data" / "benchmarks" / "benchmark_suite.json"
 _RESULTS_CSV   = _REPO_ROOT / "outputs" / "benchmark_results.csv"
+_DEFAULT_CHATTLA_MODEL = os.getenv("CHATTLA_MODEL", "chattla:20b")
 
 _MODELS = {
     "base":      "gpt-oss:20b",
-    "chattla":   "chattla:20b",
+    "chattla":   _DEFAULT_CHATTLA_MODEL,
 }
 
 _CSV_FIELDS = [
