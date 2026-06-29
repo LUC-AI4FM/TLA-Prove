@@ -46,6 +46,8 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
 - `metadata/ai4fm_public_dataset_surface.json`: rollup report across the committed
   public AI4FM dataset surface.
 - `metadata/chattla_tla_prover_sft_v1.summary.json`: mixed prover SFT summary.
+- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default
+  public-AI4FM expanded prover SFT summary (`2433` rows total; `1005` normalized import rows + `98` seed prover-candidate replays on top of the baseline prover stack).
 - `metadata/sany_tlc_pass_sft_v1.summary.json`: SANY/TLC-pass SFT summary.
 - `metadata/prover_eval.summary.json`: TLAPS prover eval summary.
 - `metadata/sany_tlc_pass_eval_v1.summary.json`: held-out SANY/TLC-pass eval
@@ -64,6 +66,9 @@ not bundle-local copies of every artifact named there.
 
 - Mixed prover SFT corpus: `1330` rows (`1053` Diamond SFT + `205` `FormaLLM`
   + `18 * 4` verified TLAPS rows).
+- Public-AI4FM expanded prover SFT: `2433` rows total (`1005` normalized public
+  import rows + `98` seed prover-candidate replays on top of the baseline prover
+  stack).
 - Verified TLAPS traces: `18` rows, raw `299/299` obligations proved.
 - Prover eval: `18` rows, `299/299` gold TLAPS obligations.
 - SANY/TLC SFT: `170` rows, no holdout overlap.

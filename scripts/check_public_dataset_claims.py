@@ -31,6 +31,7 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
+        "chattla_tla_prover_sft_public_expanded_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
         "chattla_tla_prover_sft_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
         "formalllm_eval_v1.summary.json": "data/processed/formalllm_eval_v1.summary.json",
         "prover_eval.summary.json": "data/processed/prover_eval.summary.json",
@@ -51,6 +52,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     seed_modules = _read_json(repo / "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json")
     seed_candidates = _read_json(repo / "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json")
     mixed_sft = _read_json(repo / "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json")
+    expanded_sft = _read_json(
+        repo / "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json"
+    )
     seed_license_surface = _read_json(repo / "outputs/manifests/ai4fm_public_seed_license_surface.json")
     dataset_surface = _read_json(repo / "outputs/manifests/ai4fm_public_dataset_surface.json")
 
@@ -71,6 +75,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     usable_module_rows = int(seed_modules.get("rows", seed_modules["kept_rows"]))
     candidate_rows = int(seed_candidates["kept_rows"])
     mixed_sft_rows = int(mixed_sft["total_rows"])
+    expanded_sft_rows = int(expanded_sft["total_rows"])
+    expanded_public_import_rows = int(expanded_sft["public_import_rows"])
+    expanded_seed_candidate_rows = int(expanded_sft["public_seed_candidates_rows"])
     license_repo_counts = seed_license_surface["license_summary"]["repo_counts"]
     permissive_repo_count = int(seed_license_surface["license_summary"]["clearly_permissive_repo_count"])
     caution_repo_count = int(seed_license_surface["license_summary"]["caution_repo_count"])
@@ -129,6 +136,13 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"Only the `{formalllm_rows}`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`;"
                 " the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus."
             ),
+            (
+                "There is now an explicit non-default expansion build path as well: "
+                "`data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current "
+                f"`{mixed_sft_rows}`-row prover SFT stack plus the `{expanded_public_import_rows}`-row normalized public "
+                f"`TLA-Prove` import and `{expanded_seed_candidate_rows}` public seed prover-candidate replays for "
+                f"`{expanded_sft_rows}` total rows."
+            ),
         ],
         "docs/AI4FM_PUBLIC_DATASET_SURFACE.md": [
             f"- `{formalllm_rows}` canonical metadata entries",
@@ -166,6 +180,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"  rollup for the `{seed_repo_inputs}` committed public seed repos."
             ),
             f"- Mixed prover SFT corpus: `{mixed_sft_rows}` rows",
+            (
+                f"- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n"
+                f"  public-AI4FM expanded prover SFT summary (`{expanded_sft_rows}` rows total; "
+                f"`{expanded_public_import_rows}` normalized import rows + `{expanded_seed_candidate_rows}` seed prover-candidate replays on top of the baseline prover stack)."
+            ),
             f"- Public AI4FM normalized import: `{normalized_rows}` rows from the tracked `{raw_rows}`-row",
             "  public corpora slice.",
             (
