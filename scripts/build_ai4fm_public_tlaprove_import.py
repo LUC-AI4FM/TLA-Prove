@@ -231,6 +231,7 @@ def build_import(
     *,
     repo: dict[str, Any] | None = None,
     generated_at: str | None = None,
+    dedupe: bool = True,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     generated_at = generated_at or datetime.now(timezone.utc).isoformat()
     kept: list[dict[str, Any]] = []
@@ -255,11 +256,12 @@ def build_import(
             normalized = _normalize_row(row, corpus_name=corpus_name, spec=spec)
             dedupe_key = normalized["_canonical_final_sha256"]
             seen_in_corpus.add(dedupe_key)
-            if dedupe_key in by_hash:
+            if dedupe and dedupe_key in by_hash:
                 stats["duplicate_rows_collapsed"] += 1
                 _merge_provenance(by_hash[dedupe_key], normalized)
                 continue
-            by_hash[dedupe_key] = normalized
+            if dedupe:
+                by_hash[dedupe_key] = normalized
             kept.append(normalized)
             stats["kept_rows"] += 1
         stats["unique_canonical_finals"] = len(seen_in_corpus)
@@ -271,7 +273,8 @@ def build_import(
         "repo": repo,
         "raw_rows": raw_rows,
         "kept_rows": len(kept),
-        "duplicate_rows_collapsed": raw_rows - len(kept),
+        "duplicate_rows_collapsed": (raw_rows - len(kept)) if dedupe else 0,
+        "dedupe_exact_final_spec": dedupe,
         "per_corpus": per_corpus,
     }
     return kept, summary
@@ -295,21 +298,28 @@ def write_outputs(rows: list[dict[str, Any]], summary: dict[str, Any], out: Path
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n", encoding="utf-8")
     final_summary = dict(summary)
-    final_summary["out"] = str(out.relative_to(REPO))
+    final_summary["out"] = str(out.relative_to(REPO)) if out.is_relative_to(REPO) else str(out)
     final_summary["jsonl_sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
     summary_path = out.with_suffix(".summary.json")
     summary_path.write_text(json.dumps(final_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    final_summary["summary"] = str(summary_path.relative_to(REPO))
+    final_summary["summary"] = (
+        str(summary_path.relative_to(REPO)) if summary_path.is_relative_to(REPO) else str(summary_path)
+    )
     return final_summary
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument(
+        "--keep-duplicates",
+        action="store_true",
+        help="Preserve raw public rows instead of collapsing exact final-spec duplicates.",
+    )
     args = parser.parse_args()
 
     rows_by_corpus, repo = load_public_rows()
-    rows, summary = build_import(rows_by_corpus, repo=repo)
+    rows, summary = build_import(rows_by_corpus, repo=repo, dedupe=not args.keep_duplicates)
     print(json.dumps(write_outputs(rows, summary, args.out), indent=2, sort_keys=True))
     return 0
 

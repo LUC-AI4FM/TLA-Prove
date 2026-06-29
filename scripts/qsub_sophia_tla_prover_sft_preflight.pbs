@@ -30,10 +30,10 @@ export MKL_NUM_THREADS=8
 PY="${CHATTLA_PYTHON:-python3}"
 BASE_MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
 TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl}"
-PROVER_EVAL_FILE="${CHATTLA_TLA_PROVER_EVAL_FILE:-data/processed/prover_eval.jsonl}"
+PROVER_EVAL_FILE="${CHATTLA_TLA_PROVER_EVAL_FILE:-data/processed/formalllm_eval_v1.jsonl}"
 
 nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv || true
-# This is a startup/data/VRAM/TLAPS-eval preflight for the mixed TLA prover corpus.
+# This is a startup/data/VRAM/full-FormaLLM preflight for the mixed TLA prover corpus.
 test -s "$PROVER_EVAL_FILE"
 "$PY" -u -m src.training.train \
   --prover \
