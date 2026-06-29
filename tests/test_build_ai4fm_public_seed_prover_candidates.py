@@ -91,6 +91,36 @@ def test_build_prover_candidates_tracks_duplicate_modules(tmp_path: Path) -> Non
     assert summary["duplicate_modules"] == {"CandidateA": 2}
 
 
+def test_build_prover_candidates_accepts_source_label_override(tmp_path: Path) -> None:
+    source = tmp_path / "seed_modules.jsonl"
+    candidate = (
+        "---- MODULE CandidateA ----\n"
+        "EXTENDS Naturals\n"
+        "VARIABLE x\n"
+        "vars == <<x>>\n"
+        "Init == x = 0\n"
+        "Next == x' = x\n"
+        "Spec == Init /\\ [][Next]_vars\n"
+        "TypeOK == x \\in 0..1\n"
+        "====\n"
+    )
+    _write_jsonl(
+        source,
+        [
+            {"repo": "example/alpha", "module": "CandidateA", "source_path": "CandidateA.tla", "content": candidate},
+        ],
+    )
+
+    _rows, summary = build_prover_candidates(
+        source,
+        validate_module=lambda *_args, **_kwargs: _Sany(True),
+        workers=1,
+        source_label="data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
+    )
+
+    assert summary["source_path"] == "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl"
+
+
 def test_write_outputs_handles_out_of_repo_target(tmp_path: Path) -> None:
     out = tmp_path / "ai4fm_public_seed_prover_candidates_v1.jsonl"
     rows = [{"module": "CandidateA", "repo": "example/alpha", "source_path": "CandidateA.tla", "content": "---- MODULE CandidateA ----\n====\n"}]
