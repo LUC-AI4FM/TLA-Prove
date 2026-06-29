@@ -32,6 +32,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"funnel": {"source_rows": 2, "shape_ready_rows": 1, "sany_clean_rows": 1}}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json").write_text(
+        json.dumps({"repair_surface": {"rows": 1}, "missing_imports": {"rows_with_missing_imports": 1}}),
+        encoding="utf-8",
+    )
     (repo / "outputs/manifests/tla_prover_full_dataset_failure_analysis.json").write_text(
         json.dumps({"rows": 610, "action_bucket_counts": {"proof_repair": 79}}),
         encoding="utf-8",
@@ -317,6 +321,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_public_seed_prover_funnel"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_seed_prover_funnel"]["kind"] == (
         "public_ai4fm_seed_repo_prover_funnel_report"
+    )
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_repair_surface"]["exists"] is True
+    assert manifest["artifacts"]["ai4fm_public_seed_prover_repair_surface"]["kind"] == (
+        "public_ai4fm_seed_repo_prover_repair_surface_report"
     )
     assert manifest["artifacts"]["tla_prover_full_dataset_failure_analysis"]["exists"] is True
     assert manifest["artifacts"]["tla_prover_full_dataset_failure_analysis"]["kind"] == (
