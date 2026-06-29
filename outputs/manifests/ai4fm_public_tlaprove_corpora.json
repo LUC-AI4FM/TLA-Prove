@@ -165,7 +165,7 @@
       "sha": "9d4c0bdf3d2ffd3b02ea633992a8868c56b0db14"
     }
   },
-  "generated_at": "2026-06-29T09:24:50.452349+00:00",
+  "generated_at": "2026-06-29T10:19:29.918001+00:00",
   "notes": [
     "These corpora are committed directly in the public TLA-Prove repository, unlike the larger DVC-backed crawl in tla-dataset-pipeline.",
     "Row totals here are raw public JSONL counts and may include overlap or oversampling across corpora.",

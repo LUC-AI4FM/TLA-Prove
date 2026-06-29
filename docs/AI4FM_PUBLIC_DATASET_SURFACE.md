@@ -56,6 +56,9 @@ We also re-checked the current upstream public repos directly on 2026-06-29:
   - that line no longer matches the current committed public metadata file,
     which now contains `205` records
 
+See also [AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md](AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md)
+for the compact live re-verification note and exact commands used.
+
 Important interpretation:
 
 - the local `205`-row `formalllm_eval_v1` lane matches upstream exactly

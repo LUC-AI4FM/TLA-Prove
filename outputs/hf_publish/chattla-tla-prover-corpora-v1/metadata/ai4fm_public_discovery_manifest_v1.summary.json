@@ -18,7 +18,7 @@
       "size": 12034995
     }
   },
-  "generated_at": "2026-06-28T22:01:56.671351+00:00",
+  "generated_at": "2026-06-29T10:18:53.801692+00:00",
   "notes": [
     "This manifest reflects the pipeline's public seed repo list plus live repository search queries.",
     "Configured org/user seed lists are preserved for auditability, but the pipeline's checked-in loader currently ignores them.",
