@@ -1258,6 +1258,124 @@ TypeOK == x \in 0..1
     assert row["reason"] == "assume_requires_function_constant_cfg"
 
 
+def test_run_one_skips_modules_requiring_sequence_constant_cfg(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "SequenceConstant.tla"
+    module_path.write_text(
+        r"""---- MODULE SequenceConstant ----
+EXTENDS Naturals, Sequences
+CONSTANTS Node, Id
+ASSUME /\ Node \in Nat
+       /\ Id \in Seq(Nat)
+VARIABLE x
+vars == <<x>>
+Init == x = 0
+Next == UNCHANGED x
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ x \in 0..1
+          /\ x = x
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module SequenceConstant"
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+
+    def fail_check_inductive(*_args, **_kwargs):
+        raise AssertionError("check_inductive should not run for sequence-constant cfg cases")
+
+    monkeypatch.setattr(smoke, "check_inductive", fail_check_inductive)
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skipped"
+    assert row["reason"] == "assume_requires_sequence_constant_cfg"
+
+
+def test_run_one_does_not_confuse_scalar_assume_with_later_typeok_function_domain(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "ScalarAssume.tla"
+    module_path.write_text(
+        r"""---- MODULE ScalarAssume ----
+EXTENDS Naturals
+CONSTANT N
+ASSUME NAssumption == N \in Nat \ {0}
+Node == 0..N-1
+VARIABLE active
+vars == <<active>>
+Init == active \in [Node -> BOOLEAN]
+Next == active' = active
+Spec == Init /\ [][Next]_vars
+TypeOK == active \in [Node -> BOOLEAN]
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module ScalarAssume"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_ignores_commented_out_assume_blocks(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "CommentedAssume.tla"
+    module_path.write_text(
+        r"""---- MODULE CommentedAssume ----
+EXTENDS Naturals
+(*
+CONSTANT Value, Acceptor, Quorum
+ASSUME QuorumAssumption == /\ \A Q \in Quorum : Q \subseteq Acceptor
+                           /\ \A Q1, Q2 \in Quorum : Q1 \cap Q2 # {}
+*)
+VARIABLE x
+vars == <<x>>
+Init == x = 0
+Next == x' = x
+Spec == Init /\ [][Next]_vars
+TypeOK == x \in 0..1
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module CommentedAssume"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
 def test_run_one_skips_sequence_backed_array_domains(monkeypatch, tmp_path: Path) -> None:
     module_path = tmp_path / "ArrayBacked.tla"
     module_path.write_text(

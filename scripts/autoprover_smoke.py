@@ -36,6 +36,11 @@ _TLAPS_TUPLE_BINDER_RE = re.compile(r"^\s*[A-Za-z_]\w*\s*\[\s*<<", re.MULTILINE)
 _MAX_INIT_STATE_SPACE = 50_000_000
 
 
+def _strip_tla_comments(src: str) -> str:
+    without_block_comments = re.sub(r"\(\*.*?\*\)", "", src, flags=re.DOTALL)
+    return re.sub(r"(?m)^\s*\\\*.*$", "", without_block_comments)
+
+
 def _defines(src: str, name: str) -> bool:
     return bool(re.search(rf"^\s*{re.escape(name)}\s*==", src, re.MULTILINE))
 
@@ -43,6 +48,26 @@ def _defines(src: str, name: str) -> bool:
 def _module_name(src: str) -> str | None:
     match = _MODULE_RE.search(src)
     return match.group(1) if match else None
+
+
+def _assume_bodies(src: str) -> list[str]:
+    stripped = _strip_tla_comments(src)
+    pattern = re.compile(
+        r"(?ms)^\s*ASSUME\b(?P<body>.*?)(?=^\s*(?:ASSUME\b|VARIABLES?\b|CONSTANTS?\b|EXTENDS\b|----|====|[A-Za-z_]\w*(?:\([^)]*\))?\s*==)\b|\Z)"
+    )
+    return [match.group("body") for match in pattern.finditer(stripped)]
+
+
+def _assume_requires_function_constant_cfg(src: str) -> bool:
+    return any(re.search(r"\\in\s*\[", body, re.DOTALL) for body in _assume_bodies(src))
+
+
+def _assume_requires_powerset_constant_cfg(src: str) -> bool:
+    return any(re.search(r"\\subseteq\s*\(?\s*SUBSET\b", body, re.DOTALL) for body in _assume_bodies(src))
+
+
+def _assume_requires_sequence_constant_cfg(src: str) -> bool:
+    return any(re.search(r"\\in\s*Seq\s*\(", body, re.DOTALL) for body in _assume_bodies(src))
 
 
 def _default_globs() -> list[str]:
@@ -904,10 +929,12 @@ def _enumerability_issue(src: str) -> str | None:
     typeok = _operator_body(src, "TypeOK")
     if not typeok:
         return "missing_typeok_body"
-    if re.search(r"^\s*ASSUME\b.*\\in\s*\[", src, re.MULTILINE | re.DOTALL):
+    if _assume_requires_function_constant_cfg(src):
         return "assume_requires_function_constant_cfg"
-    if re.search(r"^\s*ASSUME\b.*\\subseteq\s*\(?\s*SUBSET\b", src, re.MULTILINE | re.DOTALL):
+    if _assume_requires_powerset_constant_cfg(src):
         return "assume_requires_powerset_constant_cfg"
+    if _assume_requires_sequence_constant_cfg(src):
+        return "assume_requires_sequence_constant_cfg"
     if re.search(r"\b(Array|ArrayOfAnyLength)\s*\(", typeok):
         return "typeok_uses_sequence_backed_array_domain"
     clauses = _augment_with_inferred_domains(
