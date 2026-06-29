@@ -33,11 +33,25 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     (repo / "outputs/manifests/hf_publish_readiness.json").write_text(
-        json.dumps({"ready_to_publish": False, "next_publish_version": 22}),
+        json.dumps(
+            {
+                "ready_to_publish": False,
+                "next_publish_version": 22,
+                "blockers": ["zero passes"],
+                "failure_surface": {"aggregate": {"rows_with_no_core_components": 20}},
+            }
+        ),
         encoding="utf-8",
     )
     (repo / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json").write_text(
-        json.dumps({"benchmark_model": "chattla:20b-fc128best", "ready_to_publish": False}),
+        json.dumps(
+            {
+                "benchmark_model": "chattla:20b-fc128best",
+                "ready_to_publish": False,
+                "blockers": ["zero passes"],
+                "failure_surface": {"aggregate": {"rows_with_no_core_components": 20}},
+            }
+        ),
         encoding="utf-8",
     )
     (repo / "outputs/manifests/tla_prover_corpus_experiment_matrix.json").write_text(
@@ -199,10 +213,20 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["ai4fm_org_surface"]["kind"] == "public_ai4fm_org_surface_report"
     assert manifest["artifacts"]["hf_publish_readiness"]["exists"] is True
     assert manifest["artifacts"]["hf_publish_readiness"]["kind"] == "model_hf_publish_readiness_report"
+    assert manifest["artifacts"]["hf_publish_readiness"]["report_excerpt"] == {
+        "ready_to_publish": False,
+        "blockers": ["zero passes"],
+        "failure_surface": {"aggregate": {"rows_with_no_core_components": 20}},
+    }
     assert manifest["artifacts"]["hf_publish_readiness_fc128best"]["exists"] is True
     assert manifest["artifacts"]["hf_publish_readiness_fc128best"]["kind"] == (
         "model_hf_publish_readiness_report"
     )
+    assert manifest["artifacts"]["hf_publish_readiness_fc128best"]["report_excerpt"] == {
+        "ready_to_publish": False,
+        "blockers": ["zero passes"],
+        "failure_surface": {"aggregate": {"rows_with_no_core_components": 20}},
+    }
     assert manifest["artifacts"]["tla_prover_corpus_experiment_matrix"]["exists"] is True
     assert manifest["artifacts"]["tla_prover_corpus_experiment_matrix"]["kind"] == (
         "corpus_experiment_matrix_report"

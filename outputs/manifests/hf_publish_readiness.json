@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 1402.5447678050068,
+    "age_hours": 1405.024034619464,
     "avg_struct": 0.70575,
     "fresh_within_hours": 24.0,
     "model": "chattla:20b",
@@ -12,10 +12,45 @@
   },
   "benchmark_model": "chattla:20b",
   "blockers": [
-    "latest full benchmark is stale at 1402.5h (limit 24.0h)",
+    "latest full benchmark is stale at 1405.0h (limit 24.0h)",
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
-  "generated_at": "2026-06-29T10:30:20.762786+00:00",
+  "failure_surface": {
+    "aggregate": {
+      "rows_with_all_core_components": 0,
+      "rows_with_any_core_component": 0,
+      "rows_with_no_core_components": 20
+    },
+    "core_component_failures": {
+      "missing_init_level_ok_rows": 20,
+      "missing_init_present_rows": 20,
+      "missing_invariants_declared_rows": 20,
+      "missing_next_level_ok_rows": 20,
+      "missing_next_present_rows": 20,
+      "missing_tlc_depth1_ok_rows": 20
+    },
+    "planning": {
+      "plan_unused_rows": 20,
+      "plan_used_rows": 0
+    },
+    "red_flags": {
+      "duplicate_variables_rows": 1,
+      "obvious_placeholder_rows": 0,
+      "pseudo_tla_token_rows": 1
+    },
+    "rows": 20,
+    "sample_benchmark_ids": {
+      "no_core_components": [
+        "BM001",
+        "BM002",
+        "BM003",
+        "BM004",
+        "BM005"
+      ],
+      "obvious_placeholder_rows": []
+    }
+  },
+  "generated_at": "2026-06-29T12:59:08.059212+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [

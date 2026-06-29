@@ -7,7 +7,7 @@
     "shape_ready_vs_sany_clean_extra_rows": 70
   },
   "default_train_file": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
-  "generated_at": "2026-06-29T12:53:08.403301+00:00",
+  "generated_at": "2026-06-29T13:01:03.501285+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -105,10 +105,10 @@
   "publish_baseline_lane": "default",
   "publish_readiness": {
     "default_model": {
-      "age_hours": 1402.5447678050068,
+      "age_hours": 1405.024034619464,
       "benchmark_model": "chattla:20b",
       "blockers": [
-        "latest full benchmark is stale at 1402.5h (limit 24.0h)",
+        "latest full benchmark is stale at 1405.0h (limit 24.0h)",
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
       ],
       "ready_to_publish": false,
@@ -118,7 +118,7 @@
       "tlc": 0
     },
     "fc128best_model": {
-      "age_hours": 5.487866718437936,
+      "age_hours": 7.967119890318976,
       "benchmark_model": "chattla:20b-fc128best",
       "blockers": [
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
