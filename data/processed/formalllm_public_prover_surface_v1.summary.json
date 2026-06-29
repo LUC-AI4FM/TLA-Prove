@@ -1,0 +1,69 @@
+{
+  "category_counts": {
+    "auxiliary_cfg": 27,
+    "auxiliary_tla": 93,
+    "canonical_cfg": 136,
+    "canonical_clean_tla": 205,
+    "canonical_variant_tla": 205
+  },
+  "generated_at": "2026-06-29T16:49:44.962729+00:00",
+  "jsonl_sha256": "738cf844ad513d960ca80deab66d575c9768d1f110e25b638f93f2b8006cc4ec",
+  "kept_rows": 666,
+  "manifest_path": "data/processed/formalllm_public_module_manifest_v1.jsonl",
+  "out": "data/processed/formalllm_public_prover_surface_v1.jsonl",
+  "repair_candidate_rows": 7,
+  "scanned_category_counts": {
+    "canonical_clean_tla": 205,
+    "canonical_variant_tla": 205
+  },
+  "scanned_formalllm_rows": 410,
+  "schema": "chattla_formalllm_public_prover_surface_v1",
+  "smoke_path": "outputs/autoprover/full_dataset_smoke_161031.jsonl",
+  "status_by_category": {
+    "canonical_clean_tla": {
+      "skipped": 203,
+      "tlc_error": 2
+    },
+    "canonical_variant_tla": {
+      "skipped": 200,
+      "tlc_error": 5
+    }
+  },
+  "status_counts": {
+    "skipped": 403,
+    "tlc_error": 7
+  },
+  "top_skip_reasons": [
+    {
+      "reason": "missing_init_next_spec_typeok_vars",
+      "rows": 270
+    },
+    {
+      "reason": "sany_parse_or_semantic_invalid",
+      "rows": 128
+    },
+    {
+      "reason": "typeok_infinite_builtin_domain_primer",
+      "rows": 2
+    },
+    {
+      "reason": "typeok_missing_variable_domain_prnt",
+      "rows": 2
+    },
+    {
+      "reason": "typeok_missing_variable_domain_pc",
+      "rows": 1
+    }
+  ],
+  "top_tlc_errors": [
+    {
+      "error": "TLC produced no conclusive result:",
+      "rows": 7
+    }
+  ],
+  "unscanned_category_counts": {
+    "auxiliary_cfg": 27,
+    "auxiliary_tla": 93,
+    "canonical_cfg": 136
+  }
+}

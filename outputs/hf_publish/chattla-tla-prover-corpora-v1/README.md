@@ -34,6 +34,10 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
 - `metadata/formalllm_public_module_manifest_v1.summary.json`: audited public
   `FormaLLM` file-surface summary across canonical clean modules, paired non-clean
   variants, auxiliary repo-wide `.tla` files, and `.cfg` files.
+- `metadata/formalllm_public_prover_surface_v1.summary.json`: join between the
+  audited public `FormaLLM` file surface and the latest full-dataset prover smoke,
+  showing which canonical `.tla` files are still skip-only versus TLC-repair
+  candidates.
 - `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus
   report (`2350` tracked training/eval rows within a `2757`-row committed public
   JSONL surface).

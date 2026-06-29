@@ -29,11 +29,11 @@
     "tla_files": 410,
     "unique_models": 191
   },
-  "generated_at": "2026-06-29T16:30:48.439269+00:00",
+  "generated_at": "2026-06-29T16:39:27.605757+00:00",
   "integration_recommendation": {
     "formalllm_role": "canonical prompt/spec supervised corpus",
     "pipeline_role": "broader public extraction/parsing discovery surface",
-    "recommended_next_step": "Use formalllm_eval_v1 for direct supervised/eval work, treat the `_clean.tla` subset inside FormaLLM as the raw-module view of that canonical layer, inspect ai4fm_public_tlaprove_corpora and build ai4fm_public_tlaprove_import_v1 for stable public JSONL expansion, build ai4fm_public_seed_file_manifest_v1 for the committed public GitHub file surface, build ai4fm_public_seed_tla_modules_v1 for a usable `.tla` module corpus from that lane, and treat ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
+    "recommended_next_step": "Use formalllm_eval_v1 for direct supervised/eval work, build formalllm_public_module_manifest_v1 to audit the broader public FormaLLM file surface, treat the `_clean.tla` subset inside FormaLLM as the raw-module view of that canonical layer, inspect ai4fm_public_tlaprove_corpora and build ai4fm_public_tlaprove_import_v1 for stable public JSONL expansion, build ai4fm_public_seed_file_manifest_v1 for the committed public GitHub file surface, build ai4fm_public_seed_tla_modules_v1 for a usable `.tla` module corpus from that lane, and treat ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
   },
   "pipeline": {
     "dvc_lock": "LUC-AI4FM-tla-dataset-pipeline/dvc.lock",

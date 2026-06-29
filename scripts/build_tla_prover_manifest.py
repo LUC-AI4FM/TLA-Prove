@@ -53,6 +53,11 @@ ARTIFACTS = {
         "summary": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "kind": "public_formalllm_repo_file_module_manifest",
     },
+    "formalllm_public_prover_surface_v1": {
+        "path": "data/processed/formalllm_public_prover_surface_v1.jsonl",
+        "summary": "data/processed/formalllm_public_prover_surface_v1.summary.json",
+        "kind": "public_formalllm_prover_surface_report",
+    },
     "ai4fm_public_tlaprove_import_v1": {
         "path": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         "summary": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
@@ -270,6 +275,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
             "build_formalllm_public_module_manifest": (
                 "python3 scripts/build_formalllm_public_module_manifest.py"
+            ),
+            "build_formalllm_public_prover_surface": (
+                "python3 scripts/build_formalllm_public_prover_surface.py"
             ),
             "inspect_ai4fm_public_tlaprove_corpora": (
                 "python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py"

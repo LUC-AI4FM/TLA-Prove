@@ -9,12 +9,12 @@
       "sha256": "67bd3ebeef1e1f292380f5cda2017fb053aafa6d1618421346c8a327e6df1134"
     },
     "ai4fm_public_dataset_surface": {
-      "bytes": 2653,
+      "bytes": 2746,
       "exists": true,
       "kind": "public_ai4fm_dataset_surface_report",
       "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
       "rows": null,
-      "sha256": "54873aad16c0168e442ce735ed99de4515185145abebde0259be6f0a58203dad"
+      "sha256": "fe88d4caf0767cbb93d7d3ebe9b5877245f5487505208cc838fddc2bb391ddbb"
     },
     "ai4fm_public_discovery_manifest_v1": {
       "bytes": 7034,
@@ -1879,6 +1879,84 @@
       },
       "summary_path": "data/processed/formalllm_public_module_manifest_v1.summary.json"
     },
+    "formalllm_public_prover_surface_v1": {
+      "bytes": 219653,
+      "exists": true,
+      "kind": "public_formalllm_prover_surface_report",
+      "path": "data/processed/formalllm_public_prover_surface_v1.jsonl",
+      "rows": 666,
+      "sha256": "738cf844ad513d960ca80deab66d575c9768d1f110e25b638f93f2b8006cc4ec",
+      "summary": {
+        "category_counts": {
+          "auxiliary_cfg": 27,
+          "auxiliary_tla": 93,
+          "canonical_cfg": 136,
+          "canonical_clean_tla": 205,
+          "canonical_variant_tla": 205
+        },
+        "generated_at": "2026-06-29T16:49:44.962729+00:00",
+        "jsonl_sha256": "738cf844ad513d960ca80deab66d575c9768d1f110e25b638f93f2b8006cc4ec",
+        "kept_rows": 666,
+        "manifest_path": "data/processed/formalllm_public_module_manifest_v1.jsonl",
+        "out": "data/processed/formalllm_public_prover_surface_v1.jsonl",
+        "repair_candidate_rows": 7,
+        "scanned_category_counts": {
+          "canonical_clean_tla": 205,
+          "canonical_variant_tla": 205
+        },
+        "scanned_formalllm_rows": 410,
+        "schema": "chattla_formalllm_public_prover_surface_v1",
+        "smoke_path": "outputs/autoprover/full_dataset_smoke_161031.jsonl",
+        "status_by_category": {
+          "canonical_clean_tla": {
+            "skipped": 203,
+            "tlc_error": 2
+          },
+          "canonical_variant_tla": {
+            "skipped": 200,
+            "tlc_error": 5
+          }
+        },
+        "status_counts": {
+          "skipped": 403,
+          "tlc_error": 7
+        },
+        "top_skip_reasons": [
+          {
+            "reason": "missing_init_next_spec_typeok_vars",
+            "rows": 270
+          },
+          {
+            "reason": "sany_parse_or_semantic_invalid",
+            "rows": 128
+          },
+          {
+            "reason": "typeok_infinite_builtin_domain_primer",
+            "rows": 2
+          },
+          {
+            "reason": "typeok_missing_variable_domain_prnt",
+            "rows": 2
+          },
+          {
+            "reason": "typeok_missing_variable_domain_pc",
+            "rows": 1
+          }
+        ],
+        "top_tlc_errors": [
+          {
+            "error": "TLC produced no conclusive result:",
+            "rows": 7
+          }
+        ],
+        "unscanned_category_counts": {
+          "auxiliary_cfg": 27,
+          "auxiliary_tla": 93,
+          "canonical_cfg": 136
+        }
+      },
+      "summary_path": "data/processed/formalllm_public_prover_surface_v1.summary.json"
+    },
     "hf_publish_readiness": {
       "bytes": 2965,
       "exists": true,
@@ -2422,7 +2500,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T16:39:26.812982+00:00",
+  "generated_at": "2026-06-29T16:49:52.485777+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -2438,6 +2516,7 @@
     "build_benchmark_repair_pairs_fc128best": "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best",
     "build_formalllm_eval_corpus": "python3 scripts/build_formalllm_eval_corpus.py",
     "build_formalllm_public_module_manifest": "python3 scripts/build_formalllm_public_module_manifest.py",
+    "build_formalllm_public_prover_surface": "python3 scripts/build_formalllm_public_prover_surface.py",
     "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
     "build_tla_prover_corpus_experiment_matrix": "python3 scripts/build_tla_prover_corpus_experiment_matrix.py",
     "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
