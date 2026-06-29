@@ -31,9 +31,9 @@ re-verified below are the current public-source reference.
   - DVC `parse` input snapshot: `data/raw`, `227` files
   - DVC `parse` output surface: `data/parsed`, `3979` files
 
-## 2026-06-28 upstream verification
+## 2026-06-29 upstream verification
 
-We also re-checked the current upstream public repos directly on 2026-06-28:
+We also re-checked the current upstream public repos directly on 2026-06-29:
 
 - `FormaLLM`
   - current `main`: `b159f5df093e7ed71f4793bba99459b97a2bb23d`
