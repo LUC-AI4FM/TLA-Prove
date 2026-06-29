@@ -115,6 +115,10 @@ ARTIFACTS = {
         "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
         "kind": "public_ai4fm_seed_repo_prover_funnel_report",
     },
+    "tla_prover_full_dataset_failure_analysis": {
+        "path": "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
+        "kind": "full_dataset_autoprover_failure_analysis_report",
+    },
     "sany_tlc_pass_sft_v1": {
         "path": "data/processed/sany_tlc_pass_sft_v1.jsonl",
         "summary": "data/processed/sany_tlc_pass_sft_v1.summary.json",
@@ -319,6 +323,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "--benchmark-model chattla:20b-fc128best"
             ),
             "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
+            "build_tla_prover_full_dataset_failure_analysis": (
+                "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py"
+            ),
             "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",
         },

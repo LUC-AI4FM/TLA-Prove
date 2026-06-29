@@ -39,6 +39,7 @@ def _write_sources(repo: Path) -> None:
         "tla_prover_artifacts_v1.json": "outputs/manifests/tla_prover_artifacts_v1.json",
         "tla_prover_corpus_preflight.json": "outputs/manifests/tla_prover_corpus_preflight.json",
         "tla_prover_corpus_experiment_matrix.json": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+        "tla_prover_full_dataset_failure_analysis.json": "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
         "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
     }.items():
         _write(repo / source_rel, json.dumps({"bundle_name": bundle_name}))

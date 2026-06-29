@@ -23,7 +23,7 @@
     "tla_files": 410,
     "unique_models": 191
   },
-  "generated_at": "2026-06-29T08:45:46.441470+00:00",
+  "generated_at": "2026-06-29T14:09:07.277519+00:00",
   "integration_recommendation": {
     "formalllm_role": "canonical prompt/spec supervised corpus",
     "pipeline_role": "broader public extraction/parsing discovery surface",

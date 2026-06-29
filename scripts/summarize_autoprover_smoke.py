@@ -18,6 +18,8 @@ _MISSING_IDENTIFIER_RE = re.compile(r"identifier\s+([A-Za-z_]\w*)\s+is either un
 
 def _tlc_error_family(message: str) -> str:
     msg = (message or "").lower()
+    if "timed out after 60s" in msg and "init-as-predicate state space too large" in msg:
+        return "tlc_error_init_state_space_timeout"
     if "***parse error***" in msg or "parsing or semantic analysis failed" in msg:
         return "tlc_error_parse_or_semantic"
     if "constant parameter" in msg and "is not assigned a value" in msg:
@@ -34,9 +36,30 @@ def _tlc_error_family(message: str) -> str:
     return "tlc_error_other"
 
 
+def _skip_reason_family(reason: str) -> str:
+    if reason == "missing_init_next_spec_typeok_vars":
+        return "skip_missing_contract_operators"
+    if reason == "sany_parse_or_semantic_invalid":
+        return "skip_sany_parse_or_semantic_invalid"
+    if reason == "typeok_uses_unbounded_seq":
+        return "skip_unbounded_sequence_domain"
+    if reason == "typeok_init_state_space_too_large":
+        return "skip_init_state_space_too_large"
+    if reason.startswith("typeok_missing_variable_domain_"):
+        return "skip_missing_variable_domain"
+    if reason.startswith("typeok_infinite_builtin_domain_"):
+        return "skip_infinite_builtin_domain"
+    if reason:
+        return "skip_other_reason"
+    return "skip_without_reason"
+
+
 def summarize(rows: list[dict]) -> dict:
     statuses = Counter(row.get("status", "unknown") for row in rows)
     reasons = Counter(row.get("reason", "") for row in rows if row.get("reason"))
+    reason_families = Counter(
+        _skip_reason_family(str(row.get("reason", ""))) for row in rows if row.get("status") == "skipped"
+    )
     by_module_path = Counter(str(Path(row.get("module_path", "")).parts[0:2]) for row in rows)
     tlc_error_families = Counter()
     tlc_error_samples: dict[str, list[dict]] = defaultdict(list)
@@ -77,6 +100,7 @@ def summarize(rows: list[dict]) -> dict:
         "rows": len(rows),
         "statuses": dict(sorted(statuses.items())),
         "skip_reasons": dict(reasons.most_common(20)),
+        "skip_reason_families": dict(reason_families.most_common(20)),
         "source_prefixes": dict(by_module_path.most_common(20)),
         "tlaps_checked": len(tlaps),
         "tlaps_total_obligations": sum(item["total"] or 0 for item in tlaps),

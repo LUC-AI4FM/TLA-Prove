@@ -72,6 +72,9 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "tla_prover_corpus_experiment_matrix.json": (
             "outputs/manifests/tla_prover_corpus_experiment_matrix.json"
         ),
+        "tla_prover_full_dataset_failure_analysis.json": (
+            "outputs/manifests/tla_prover_full_dataset_failure_analysis.json"
+        ),
         "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
     }
 

@@ -210,6 +210,10 @@ def _write_manifests(repo: Path) -> None:
         json.dumps({"schema": "chattla_tla_prover_corpus_experiment_matrix_v1"}),
     )
     _write(
+        repo / "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
+        json.dumps({"rows": 610, "action_bucket_counts": {"proof_repair": 79}}),
+    )
+    _write(
         repo / "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
         json.dumps({"rows": 18}),
     )
@@ -247,6 +251,7 @@ def _write_manifests(repo: Path) -> None:
         "tla_prover_artifacts_v1.json": "outputs/manifests/tla_prover_artifacts_v1.json",
         "tla_prover_corpus_preflight.json": "outputs/manifests/tla_prover_corpus_preflight.json",
         "tla_prover_corpus_experiment_matrix.json": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+        "tla_prover_full_dataset_failure_analysis.json": "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
         "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
     }.items():
         _write_bundle_copy(repo, bundle_name, source_rel)
