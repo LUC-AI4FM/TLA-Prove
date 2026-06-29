@@ -868,12 +868,12 @@
       "summary_path": "data/processed/formalllm_eval_v1.summary.json"
     },
     "hf_publish_readiness": {
-      "bytes": 1827,
+      "bytes": 1995,
       "exists": true,
       "kind": "model_hf_publish_readiness_report",
       "path": "outputs/manifests/hf_publish_readiness.json",
       "rows": null,
-      "sha256": "0dc21a0bcbb12ad2e73f4620e4fb6f8944d795412f2f4dfcfc714d11f644760f"
+      "sha256": "1640d1683db5adff5634341084e69fa55f462c507b814748fafe5b3d5d5ae9c6"
     },
     "known18_module_list": {
       "bytes": 1194,
@@ -1224,7 +1224,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T04:39:21.091211+00:00",
+  "generated_at": "2026-06-29T05:05:01.801035+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

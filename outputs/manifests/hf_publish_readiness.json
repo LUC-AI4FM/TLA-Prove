@@ -1,18 +1,18 @@
 {
   "benchmark": {
-    "age_hours": 102.93223894576232,
-    "avg_struct": 0.3167,
+    "age_hours": 0.05444799111949073,
+    "avg_struct": 0.8557,
     "fresh_within_hours": 24.0,
     "rows": 20,
     "sany": 0,
-    "source_csv": "benchmark_results_fc128best_full_20260624_1640.csv",
-    "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260624_1640.csv",
+    "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
+    "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv",
     "tlc": 0
   },
   "blockers": [
-    "latest full benchmark is stale at 102.9h (limit 24.0h)"
+    "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
-  "generated_at": "2026-06-29T04:39:21.610796+00:00",
+  "generated_at": "2026-06-29T05:04:21.324869+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [

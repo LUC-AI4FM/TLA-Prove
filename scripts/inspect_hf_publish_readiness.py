@@ -113,6 +113,10 @@ def build_report(
             f"latest full benchmark is stale at {benchmark_age_hours:.1f}h "
             f"(limit {benchmark_max_age_hours:.1f}h)"
         )
+    elif int(stats.get("sany", 0) or 0) == 0 and int(stats.get("tlc", 0) or 0) == 0:
+        blockers.append(
+            "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+        )
     if not readme_template.is_file():
         blockers.append("outputs/hf_readme/README.md missing")
     if remote_last is not None and remote_last > local_last:
