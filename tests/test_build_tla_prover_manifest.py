@@ -197,6 +197,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     _write_jsonl(repo / "data/processed/formalllm_eval_v1.jsonl", [{"messages": []}, {"messages": []}, {"messages": []}])
+    _write_jsonl(
+        repo / "data/processed/formalllm_public_module_manifest_v1.jsonl",
+        [{"category": "canonical_clean_tla", "path": "data/FormaLLM/data/Fam/tla/Alpha_clean.tla"}],
+    )
+    (repo / "data/processed/formalllm_public_module_manifest_v1.summary.json").write_text(
+        json.dumps({"kept_rows": 1, "repo_tla_files": 503, "canonical_clean_tla_files": 205}),
+        encoding="utf-8",
+    )
     _write_jsonl(repo / "data/processed/sany_tlc_pass_sft_v1.jsonl", [{"a": 1}, {"a": 2}])
     _write_jsonl(repo / "data/processed/prover_eval.jsonl", [{"messages": []}])
     _write_jsonl(repo / "data/processed/sany_tlc_pass_eval_v1.jsonl", [{"messages": []}, {"messages": []}])
@@ -230,6 +238,12 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["sany_tlc_pass_sft_v1"]["rows"] == 2
     assert manifest["artifacts"]["formalllm_eval_v1"]["rows"] == 3
     assert manifest["artifacts"]["formalllm_eval_v1"]["kind"] == "full_formalllm_prompt_eval_dataset"
+    assert manifest["artifacts"]["formalllm_public_module_manifest_v1"]["exists"] is True
+    assert manifest["artifacts"]["formalllm_public_module_manifest_v1"]["rows"] == 1
+    assert manifest["artifacts"]["formalllm_public_module_manifest_v1"]["kind"] == (
+        "public_formalllm_repo_file_module_manifest"
+    )
+    assert manifest["artifacts"]["formalllm_public_module_manifest_v1"]["summary"]["repo_tla_files"] == 503
     assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["exists"] is True
     assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["rows"] == 5
     assert manifest["artifacts"]["chattla_tla_prover_sft_public_expanded_v1"]["summary"]["public_import_rows"] == 2
@@ -433,6 +447,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["build_sany_tlc_eval_corpus"] == (
         "python3 scripts/build_sany_tlc_eval_corpus.py"
+    )
+    assert manifest["remote_next_steps"]["build_formalllm_public_module_manifest"] == (
+        "python3 scripts/build_formalllm_public_module_manifest.py"
     )
     assert manifest["remote_next_steps"]["inspect_hf_publish_readiness"] == (
         "python3 scripts/inspect_hf_publish_readiness.py"

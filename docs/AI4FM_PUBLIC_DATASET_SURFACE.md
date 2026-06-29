@@ -21,6 +21,9 @@ These values come from the checked-in inspection report at
 `outputs/manifests/ai4fm_public_dataset_surface.json`.
 Treat them as the reproducible local snapshot; the live upstream heads
 re-verified below are the current public-source reference.
+The broader public FormaLLM file surface is also materialized directly in
+`data/processed/formalllm_public_module_manifest_v1.jsonl` with a summary beside
+it.
 
 - `FormaLLM`
   - git head: `e74c2ed`

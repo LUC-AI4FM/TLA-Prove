@@ -294,6 +294,7 @@ def build_report(
             "pipeline_role": "broader public extraction/parsing discovery surface",
             "recommended_next_step": (
                 "Use formalllm_eval_v1 for direct supervised/eval work, "
+                "build formalllm_public_module_manifest_v1 to audit the broader public FormaLLM file surface, "
                 "treat the `_clean.tla` subset inside FormaLLM as the raw-module view of that canonical layer, "
                 "inspect ai4fm_public_tlaprove_corpora and build ai4fm_public_tlaprove_import_v1 "
                 "for stable public JSONL expansion, build ai4fm_public_seed_file_manifest_v1 "
