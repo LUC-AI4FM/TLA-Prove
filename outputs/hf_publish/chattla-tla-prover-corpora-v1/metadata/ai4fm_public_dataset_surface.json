@@ -1,0 +1,45 @@
+{
+  "formalllm": {
+    "canonical_entries": 205,
+    "cfg_files": 136,
+    "clean_comment_files": 187,
+    "comment_files": 374,
+    "families": 71,
+    "git_head": "e74c2ed",
+    "root": "data/FormaLLM/data",
+    "tla_files": 410,
+    "unique_models": 191
+  },
+  "generated_at": "2026-06-28T22:53:42.590636+00:00",
+  "integration_recommendation": {
+    "formalllm_role": "canonical prompt/spec supervised corpus",
+    "pipeline_role": "broader public extraction/parsing discovery surface",
+    "recommended_next_step": "Use formalllm_eval_v1 for direct supervised/eval work, inspect ai4fm_public_tlaprove_corpora and build ai4fm_public_tlaprove_import_v1 for stable public JSONL expansion, build ai4fm_public_seed_file_manifest_v1 for the committed public GitHub file surface, and treat ai4fm_public_discovery_manifest_v1 as the public repo-level expansion lane."
+  },
+  "pipeline": {
+    "dvc_lock": "LUC-AI4FM-tla-dataset-pipeline/dvc.lock",
+    "dvc_lock_present": true,
+    "git_head": "59bd533",
+    "parse_input": {
+      "nfiles": 227,
+      "path": "data/raw",
+      "size": 618486
+    },
+    "parse_output": {
+      "nfiles": 3979,
+      "path": "data/parsed",
+      "size": 22773073
+    },
+    "pull": {
+      "nfiles": 2628,
+      "path": "data/raw",
+      "size": 12034995
+    },
+    "repo": "LUC-AI4FM-tla-dataset-pipeline"
+  },
+  "public_sources": {
+    "formalllm_repo": "https://github.com/LUC-AI4FM/FormaLLM",
+    "pipeline_dvc_lock": "https://raw.githubusercontent.com/LUC-AI4FM/tla-dataset-pipeline/main/dvc.lock",
+    "pipeline_repo": "https://github.com/LUC-AI4FM/tla-dataset-pipeline"
+  }
+}
