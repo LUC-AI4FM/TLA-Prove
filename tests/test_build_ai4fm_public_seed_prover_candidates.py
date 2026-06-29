@@ -255,3 +255,55 @@ def test_build_prover_candidates_prefers_real_cross_repo_helper_over_rewire_stub
     assert [row["module"] for row in rows] == ["CandidateA"]
     assert rows[0]["dependency_staging"]["staged_modules"] == ["SharedHelper"]
     assert summary["dependency_staging"]["recovered_rows"] == 1
+
+
+def test_build_prover_candidates_uses_supplemental_helper_source(tmp_path: Path) -> None:
+    source = tmp_path / "seed_modules.jsonl"
+    helper_source = tmp_path / "helper_modules.jsonl"
+    main = (
+        "---- MODULE CandidateA ----\n"
+        "EXTENDS SharedHelper\n"
+        "VARIABLE x\n"
+        "vars == <<x>>\n"
+        "Init == x = 0\n"
+        "Next == x' = x\n"
+        "Spec == Init /\\ [][Next]_vars\n"
+        "TypeOK == x \\in 0..1\n"
+        "====\n"
+    )
+    helper = "---- MODULE SharedHelper ----\nFoo == 1\n====\n"
+    _write_jsonl(
+        source,
+        [
+            {"repo": "example/alpha", "module": "CandidateA", "source_path": "specs/CandidateA.tla", "content": main},
+        ],
+    )
+    _write_jsonl(
+        helper_source,
+        [
+            {"module": "SharedHelper", "source_path": "helpers/SharedHelper.tla", "content": helper},
+        ],
+    )
+
+    def fake_validate(content: str, *, module_name: str) -> _Sany:
+        if module_name == "CandidateA":
+            return _Sany(False, ["Cannot find source file for module SharedHelper imported in module CandidateA.", "*** Errors: 1"])
+        return _Sany(True)
+
+    def fake_validate_file(path: Path) -> _Sany:
+        helper_path = path.parent / "SharedHelper.tla"
+        if helper_path.exists() and "Foo == 1" in helper_path.read_text(encoding="utf-8"):
+            return _Sany(True)
+        return _Sany(False, ["wrong helper chosen", "*** Errors: 1"])
+
+    rows, summary = build_prover_candidates(
+        source,
+        validate_module=fake_validate,
+        validate_file=fake_validate_file,
+        workers=1,
+        helper_source_paths=[helper_source],
+    )
+
+    assert [row["module"] for row in rows] == ["CandidateA"]
+    assert rows[0]["dependency_staging"]["staged_modules"] == ["SharedHelper"]
+    assert summary["dependency_staging"]["recovered_rows"] == 1

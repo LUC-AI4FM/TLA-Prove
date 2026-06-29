@@ -41,6 +41,7 @@ quality: current publish readiness is still blocked by fresh `0/20` or stale
 | `data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json` | Repair-target lane is `24` rows with `18` unique modules after excluding the `144` SANY-clean rows. | These are immediate repair targets, but not safe training inputs under the current syntax/verification problems. |
 | `data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json` | After transitive helper staging is accounted for, only `9` of the `24` residual rows are recoverable without new source material; `15` are blocked on missing public dependencies. | The remaining queue is smaller than before, but most of it is now a public-dependency coverage problem rather than a missed one-hop staging opportunity. |
 | `data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json` | The current builder still recovers `0/24` residual rows, with `15` unresolved-import cases and `9` post-stage non-import SANY failures. | Builder-side staging still matters, but the dominant next bottleneck is absent public helper modules such as `FiniteSetTheorems`. |
+| 2026-06-29 augmented helper-surface measurement (`python3 scripts/build_formalllm_public_tla_modules.py`, then rerun repair-surface / repair-queue / recovery-probe against a temporary combined seed surface) | The checked-in broader public `FormaLLM` tree contributes `501` helper-module rows. On the residual `24`-row repair lane, that shifts the measured queue from `9 recoverable / 15 blocked` to `11 recoverable / 13 blocked`, and the probe shifts from `15` unresolved-import rows plus `9` post-stage non-import errors to `13` unresolved-import rows plus `11` post-stage non-import errors. | The broader public `FormaLLM` surface is worth keeping as a helper-source lane for repair analysis: it does not yet create new SANY-clean prover candidates, but it does shrink the true dependency-coverage gap and confirms that `FiniteSetTheorems` is now the dominant missing public blocker. |
 | `outputs/manifests/hf_publish_readiness.json` | Canonical `chattla:20b` lane is blocked because the newest full benchmark is stale and also `0` SANY / `0` TLC. | The canonical public model is not publishable. |
 | `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` | `chattla:20b-fc128best` has a fresh full benchmark but still `0` SANY / `0` TLC. | Freshness alone does not clear the gate; candidate quality is also non-deployable. |
 | `docs/TLA_PROVER_2026_06_29_FC128BEST_DIAGNOSIS.md` | Representative failures are parse corruption (`CONSTDEF`, C-style assignment/comment syntax, placeholder fragments). | Training on known non-SANY rows right now is more likely to worsen the current blocker than to help it. |
@@ -126,6 +127,33 @@ python3 scripts/build_tla_prover_finetune_corpus.py \
 
 python3 scripts/build_ai4fm_public_seed_prover_shape_corpora.py
 ```
+
+For the residual repair lane, keep one extra non-default measurement loop
+available:
+
+```bash
+python3 scripts/build_formalllm_public_tla_modules.py
+python3 - <<'PY'
+from pathlib import Path
+out = Path("/tmp/ai4fm_public_seed_tla_modules_plus_formalllm_helpers.jsonl")
+parts = [
+    Path("data/processed/ai4fm_public_seed_tla_modules_v1.jsonl"),
+    Path("data/processed/formalllm_public_tla_modules_v1.jsonl"),
+]
+out.write_text("".join(path.read_text(encoding="utf-8") for path in parts), encoding="utf-8")
+print(out)
+PY
+python3 scripts/build_ai4fm_public_seed_prover_repair_queue.py \
+  --seed-modules /tmp/ai4fm_public_seed_tla_modules_plus_formalllm_helpers.jsonl
+python3 scripts/build_ai4fm_public_seed_prover_recovery_probe.py \
+  --repair-queue /tmp/ai4fm_public_seed_prover_repair_queue_with_formalllm.jsonl \
+  --full-source /tmp/ai4fm_public_seed_tla_modules_plus_formalllm_helpers.jsonl
+```
+
+That loop is for repair analysis only. It currently improves dependency-surface
+coverage but still leaves the residual lane blocked on `FiniteSetTheorems` and
+post-stage parse/non-import errors rather than producing new clean training
+rows.
 
 The evaluation emphasis should stay on verifier-backed outcomes:
 
