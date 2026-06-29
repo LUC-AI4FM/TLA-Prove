@@ -333,6 +333,7 @@ def publish(
         if dry_run:
             for blocker in blockers:
                 print(f"[publish_hf] WARN: would abort real publish — {blocker}", file=sys.stderr)
+            return None
         else:
             for blocker in blockers:
                 print(f"[publish_hf] ABORT: {blocker}", file=sys.stderr)
@@ -475,7 +476,7 @@ def main() -> int:
         merged_model_dir=Path(args.merged_model_dir) if args.merged_model_dir else None,
     )
     if args.dry_run:
-        return 0
+        return 0 if v is not None else 1
     return 0 if v is not None else 1
 
 
