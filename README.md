@@ -46,7 +46,7 @@ The latest public Hugging Face GGUF is currently `gguf/chattla-20b-v21-Q8_0.gguf
 
 ## Public Datasets
 
-ChatTLA currently uses seven public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:
+ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:
 
 | Layer | Current public surface | Local artifact |
 |------|-------------------------|----------------|
@@ -59,6 +59,7 @@ ChatTLA currently uses seven public AI4FM-aligned data/artifact layers spanning 
 | `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface | `outputs/manifests/ai4fm_public_dataset_surface.json` |
 
 The mixed prover SFT lane already carries the full `205`-row `FormaLLM` benchmark. The generated local training file is `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl`, and the committed public copy is `outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl`; the nearby `30`-row corpora in this repo are holdout/eval slices, not the prover training corpus.
+Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.
 
 Rebuild the public AI4FM artifacts with:
 
@@ -81,7 +82,7 @@ The seed file manifest records the committed public seed-repo file surface direc
 The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface. See `docs/AI4FM_PUBLIC_DATASET_SURFACE.md` for the exact upstream evidence and links.
 If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules. That is a statement about broader public AI4FM corpora, not the canonical `FormaLLM` benchmark.
 Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown. Treat the `5` non-permissive/unknown buckets as redistribution-caution surfaces until reviewed separately; see `outputs/manifests/ai4fm_public_seed_license_surface.json`.
-The seed prover-candidate corpus is the first stricter bridge from the 2,110 public `.tla` files / 2,108 usable module rows into the current prover lane: it keeps only modules that pass SANY and already match the Phase-1 `Init`/`Next`/`Spec`/`TypeOK` autoprover contract.
+The seed prover-candidate corpus is the first stricter audited bridge from the 2,110 public `.tla` files / 2,108 usable module rows toward future prover-lane expansion: it keeps only modules that pass SANY and already match the Phase-1 `Init`/`Next`/`Spec`/`TypeOK` autoprover contract.
 
 ---
 

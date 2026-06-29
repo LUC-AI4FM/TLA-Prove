@@ -18,8 +18,7 @@ pretty_name: ChatTLA TLA+ Prover Corpora v1
 # ChatTLA TLA+ Prover Corpora v1
 
 Verifier-backed metadata for ChatTLA TLA+ prover training and evaluation corpora.
-This bundle now includes the full committed `FormaLLM` layer plus the public
-AI4FM expansion lanes alongside the prover replay evidence.
+This bundle ships prover corpora plus metadata summaries for the broader public AI4FM expansion lanes.
 
 ## Files
 
@@ -55,6 +54,11 @@ AI4FM expansion lanes alongside the prover replay evidence.
   trace summary.
 - `metadata/sany_tlc_pass_eval_replay.json`: latest held-out replay result.
 - `metadata/sany_tlc_pass_corpus_diagnostic.json`: corpus diagnostic report.
+
+The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; they are not yet mixed into `data/train/chattla_tla_prover_sft_v1.jsonl`. The copied
+`metadata/tla_prover_artifacts_v1.json` remains a source-repo snapshot, so its
+`path` and `exists` fields describe the repo state used to assemble the bundle,
+not bundle-local copies of every artifact named there.
 
 ## Verification Snapshot
 

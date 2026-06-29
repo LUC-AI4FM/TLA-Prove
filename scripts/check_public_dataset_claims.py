@@ -84,7 +84,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     return {
         "README.md": [
             (
-                "ChatTLA currently uses seven public AI4FM-aligned data/artifact layers spanning "
+                "ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spanning "
                 f"the {formalllm_rows}-example `FormaLLM` benchmark, a {_comma(raw_rows)}-row tracked `TLA-Prove` training/eval slice within a "
                 f"{_comma(all_public_rows)}-row committed public JSONL surface, and a {_comma(raw_tla_files)}-file / "
                 f"{_comma(usable_module_rows)}-module public seed-repo surface:"
@@ -126,8 +126,8 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"`{apache_repos}` Apache-2.0, `{mit_repos}` MIT, `{noassertion_repos}` NOASSERTION, and `{unknown_repos}` unknown."
             ),
             (
-                "The seed prover-candidate corpus is the first stricter bridge from the "
-                f"{_comma(raw_tla_files)} public `.tla` files / {_comma(usable_module_rows)} usable module rows into the current prover lane"
+                f"Only the `{formalllm_rows}`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`;"
+                " the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus."
             ),
         ],
         "docs/AI4FM_PUBLIC_DATASET_SURFACE.md": [
@@ -145,6 +145,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             ),
         ],
         "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md": [
+            "This bundle ships prover corpora plus metadata summaries for the broader public AI4FM expansion lanes.",
             f"- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
             f"  layer (`{formalllm_rows}` rows).",
             (
@@ -174,6 +175,10 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             (
                 f"- Public AI4FM seed-module prover candidates: `{candidate_rows}` rows out of `{usable_module_rows}` usable\n"
                 "  public seed-module rows."
+            ),
+            (
+                "The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; "
+                "they are not yet mixed into `data/train/chattla_tla_prover_sft_v1.jsonl`."
             ),
         ],
     }

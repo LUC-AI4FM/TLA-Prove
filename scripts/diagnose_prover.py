@@ -24,11 +24,10 @@ from transformers import AutoTokenizer
 
 from src.validators.tlaps_validator import validate_string
 from src.harmony_extract import extract_final_channel
+from scripts.tla_prover_corpus_paths import resolve_probe_corpus_file
 
 ADAPTER = REPO / "outputs" / "checkpoints_prover" / "checkpoint-48"
 BASE_MODEL = "openai/gpt-oss-20b"
-TRAIN_JSONL = REPO / "data" / "processed" / "prover_train.jsonl"
-FALLBACK_TRAINLIKE_JSONL = REPO / "data" / "processed" / "prover_eval.jsonl"
 EVAL_JSONL = REPO / "data" / "processed" / "prover_eval.jsonl"
 REPORT = REPO / "outputs" / "prover_diagnose.json"
 
@@ -133,10 +132,12 @@ def run_one(model, tokenizer, example: dict, tag: str) -> dict:
 def main():
     model, tokenizer = load_model()
 
-    train_path = TRAIN_JSONL if TRAIN_JSONL.exists() else FALLBACK_TRAINLIKE_JSONL
-    if train_path != TRAIN_JSONL:
+    train_path, using_probe_fallback = resolve_probe_corpus_file(REPO)
+    train_path = REPO / train_path
+    if using_probe_fallback:
         print(
-            f"[diagnose] {TRAIN_JSONL.name} missing; using {train_path.name} "
+            "[diagnose] prover_train.jsonl missing; using "
+            f"{train_path.name} "
             "as the training-like probe corpus."
         )
     train_rows = [json.loads(l) for l in train_path.open()]
