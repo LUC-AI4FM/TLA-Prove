@@ -8,6 +8,7 @@ def test_sft_preflight_uses_new_prover_corpus_and_safe_bounds() -> None:
     text = PBS.read_text(encoding="utf-8")
 
     assert "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl" in text
+    assert "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl" in text
     assert "data/processed/formalllm_eval_v1.jsonl" in text
     assert "src.training.train" in text
     assert "--prover" in text

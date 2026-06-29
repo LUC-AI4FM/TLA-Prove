@@ -48,6 +48,11 @@ SOPHIA_CTL="${SOPHIA_CTL:-$HOME/.ssh/${CHATTLA_SOPHIA_CTL_NAME:-chattla-remote-c
 REMOTE_HOST="${CHATTLA_REMOTE_HOST:-${SOPHIA_HOST:-}}"
 REMOTE_REPO="${CHATTLA_REMOTE_REPO:-ChatTLA}"
 REMOTE_TLAPM="${CHATTLA_TLAPM:-tlapm}"
+LOCAL_PROVER_TRAIN_FILE="data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl"
+LOCAL_PROVER_TRAIN_SUMMARY="data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json"
+PUBLIC_PROVER_TRAIN_FILE="outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
+PUBLIC_PROVER_TRAIN_SUMMARY="outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/chattla_tla_prover_sft_v1.summary.json"
+REMOTE_TRAIN_FILE="${CHATTLA_TLA_PROVER_TRAIN_FILE:-$LOCAL_PROVER_TRAIN_FILE}"
 
 if [ -z "$RELAY_HOST" ]; then
   echo "Set CHATTLA_RELAY_HOST or CHATTLA_MAC_HOST to the relay SSH target." >&2
@@ -102,8 +107,6 @@ FILES=(
   data/processed/tla_prover/tlaps_candidate_modules_18.txt
   data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl
   data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json
-  data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl
-  data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json
   data/processed/prover_eval.jsonl
   data/processed/prover_eval.summary.json
   data/processed/sany_tlc_pass_sft_v1.jsonl
@@ -136,7 +139,21 @@ python3 scripts/diagnose_sany_tlc_pass_corpus.py >/dev/null
 python3 scripts/preflight_tla_prover_corpora.py >/dev/null
 python3 scripts/build_tla_prover_manifest.py >/dev/null
 
+TRAIN_FILE_TO_SYNC="$LOCAL_PROVER_TRAIN_FILE"
+TRAIN_SUMMARY_TO_SYNC="$LOCAL_PROVER_TRAIN_SUMMARY"
+if [ -z "${CHATTLA_TLA_PROVER_TRAIN_FILE:-}" ] && [ ! -f "$TRAIN_FILE_TO_SYNC" ] && [ -f "$PUBLIC_PROVER_TRAIN_FILE" ]; then
+  TRAIN_FILE_TO_SYNC="$PUBLIC_PROVER_TRAIN_FILE"
+  TRAIN_SUMMARY_TO_SYNC="$PUBLIC_PROVER_TRAIN_SUMMARY"
+  REMOTE_TRAIN_FILE="$PUBLIC_PROVER_TRAIN_FILE"
+fi
+if [ ! -f "$TRAIN_FILE_TO_SYNC" ]; then
+  echo "Missing prover train file: $TRAIN_FILE_TO_SYNC" >&2
+  exit 2
+fi
+
 ALL_FILES=("${FILES[@]}")
+ALL_FILES+=("$TRAIN_FILE_TO_SYNC")
+[ -f "$TRAIN_SUMMARY_TO_SYNC" ] && ALL_FILES+=("$TRAIN_SUMMARY_TO_SYNC")
 while IFS= read -r module_path; do
   [ -z "$module_path" ] && continue
   ALL_FILES+=("$module_path")
@@ -163,7 +180,7 @@ for file in "${ALL_FILES[@]}"; do
   run "${SSH_MAC[@]}" "$RELAY_HOST" "cd '$RELAY_REPO' && rsync -az --relative '$file' -e \"ssh -o BatchMode=yes -S '$SOPHIA_CTL'\" '$REMOTE_HOST:$REMOTE_REPO/'"
 done
 
-REMOTE_SUBMIT="cd '$REMOTE_REPO' && CHATTLA_TLAPM='$REMOTE_TLAPM' scripts/submit_tla_prover_remote_jobs.sh"
+REMOTE_SUBMIT="cd '$REMOTE_REPO' && CHATTLA_TLAPM='$REMOTE_TLAPM' CHATTLA_TLA_PROVER_TRAIN_FILE='$REMOTE_TRAIN_FILE' scripts/submit_tla_prover_remote_jobs.sh"
 if [ "$SUBMIT_SFT_PREFLIGHT" = "1" ]; then
   REMOTE_SUBMIT="$REMOTE_SUBMIT --submit-sft-preflight"
 fi

@@ -15,6 +15,10 @@ REPO = Path(__file__).resolve().parents[1]
 DEFAULT_MODULE_LIST = REPO / "data" / "processed" / "tla_prover" / "tlaps_candidate_modules_18.txt"
 DEFAULT_TLAPM = Path(os.environ.get("CHATTLA_TLAPM", "tlapm"))
 DEFAULT_PYTHON = Path(os.environ.get("CHATTLA_PYTHON", sys.executable))
+DEFAULT_LOCAL_SFT_TRAIN = "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl"
+DEFAULT_PUBLIC_SFT_TRAIN = (
+    "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
+)
 
 BASE_REQUIRED = [
     "src/",
@@ -30,7 +34,6 @@ BASE_REQUIRED = [
 SFT_REQUIRED = [
     "configs/",
     "data/processed/prover_eval.jsonl",
-    "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "scripts/qsub_sophia_tla_prover_sft_preflight.pbs",
     "src/training/train.py",
     "src/training/tlc_eval_callback.py",
@@ -45,6 +48,16 @@ def _read_module_paths(module_list: Path) -> list[str]:
     if not module_list.exists():
         return []
     return [line.strip() for line in module_list.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _resolve_sft_train_file(repo: Path) -> tuple[str | None, list[str]]:
+    requested = os.environ.get("CHATTLA_TLA_PROVER_TRAIN_FILE")
+    candidates = [requested] if requested else [DEFAULT_LOCAL_SFT_TRAIN, DEFAULT_PUBLIC_SFT_TRAIN]
+    checked = [candidate for candidate in candidates if candidate]
+    for candidate in checked:
+        if _exists(repo, candidate):
+            return candidate, checked
+    return None, checked
 
 
 def _python_import_timeout_s() -> int:
@@ -69,6 +82,19 @@ def run_preflight(
     for rel_path in required:
         if not _exists(repo, rel_path):
             errors.append(f"missing required path: {rel_path}")
+
+    resolved_sft_train = None
+    checked_sft_train_paths: list[str] = []
+    if sft_preflight:
+        resolved_sft_train, checked_sft_train_paths = _resolve_sft_train_file(repo)
+        if resolved_sft_train is None:
+            if len(checked_sft_train_paths) == 1:
+                errors.append(f"missing required path: {checked_sft_train_paths[0]}")
+            else:
+                errors.append(
+                    "missing required SFT train file; checked: "
+                    + ", ".join(checked_sft_train_paths)
+                )
 
     module_paths = _read_module_paths(module_list)
     if not module_paths:
@@ -163,6 +189,7 @@ def run_preflight(
         "repo": str(repo),
         "module_list": str(module_list),
         "module_count": len(module_paths),
+        "resolved_sft_train_file": resolved_sft_train,
         "sft_preflight": sft_preflight,
         "require_tools": require_tools,
         "errors": errors,
