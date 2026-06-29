@@ -80,6 +80,7 @@ train.log
 src/shared/apalache/
 src/shared/tlaps/
 outputs/logs/
+outputs/manifests/tla_prover_pr_ready.json
 
 # Ad-hoc 3-shot TLC+TLAPS eval debug artifacts (per-run dumps; not tracked
 # across versions like the holdout_*.json results are)
