@@ -44,6 +44,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/inspect_ai4fm_public_dataset_surface.py" in joined
     assert "scripts/materialize_processed_tla_corpus.py" in joined
     assert "scripts/inspect_hf_publish_readiness.py" in joined
+    assert "scripts/sync_hf_publish_corpora_metadata.py" in joined
     assert "scripts/upload_v11.py" in joined
     assert "tests/test_remote_handoff_script.py" in joined
     assert "tests/test_build_ai4fm_public_discovery_manifest.py" in joined
@@ -52,6 +53,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_inspect_hf_publish_readiness.py" in joined
     assert "tests/test_qsub_fc128_artifact_preflight.py" in joined
     assert "tests/test_train_prover_defaults.py" in joined
+    assert "tests/test_sync_hf_publish_corpora_metadata.py" in joined
     assert "tests/test_upload_v11.py" in joined
     assert "tests/test_materialize_processed_tla_corpus.py" in joined
     assert "tests/test_preflight_tla_prover_remote.py" in joined

@@ -204,6 +204,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "build_sany_tlc_eval_corpus": "python3 scripts/build_sany_tlc_eval_corpus.py",
             "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",
             "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
+            "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",
         },
         "promotion_gate": (
