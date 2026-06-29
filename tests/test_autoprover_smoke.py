@@ -961,6 +961,58 @@ TypeOK == /\ a \in 0..1
     assert calls == [20]
 
 
+def test_run_one_falls_back_to_post_spec_safety_invariant(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "FallbackInvariant.tla"
+    module_path.write_text(
+        r"""---- MODULE FallbackInvariant ----
+EXTENDS Naturals
+VARIABLES x
+vars == <<x>>
+Init == x = 0
+Next == x' = x
+Spec == Init /\ [][Next]_vars
+SafetyInv == x \in 0..1
+TypeOK == x \in 0..1
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module FallbackInvariant"
+
+    class TypeOKFail:
+        inductive = False
+        error = "TLC timed out after 20s (INIT-as-predicate state space too large to enumerate)."
+        cti = None
+
+    class SafetyOk:
+        inductive = True
+        error = None
+        cti = None
+
+    calls: list[tuple[str, int]] = []
+
+    def fake_check_inductive(_src: str, inv: str, *, timeout: int):
+        calls.append((inv, timeout))
+        return TypeOKFail() if inv == "TypeOK" else SafetyOk()
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", fake_check_inductive)
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=20, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+    assert row["target"] == "Spec => []SafetyInv"
+    assert row["invariant_name"] == "SafetyInv"
+    assert calls == [("TypeOK", 20), ("SafetyInv", 20)]
+
+
 def test_run_one_multiline_variables_block_still_checks_missing_direct_domain(
     monkeypatch, tmp_path: Path
 ) -> None:
