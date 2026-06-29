@@ -90,6 +90,89 @@ def test_build_report_summarizes_public_tlaprove_corpora() -> None:
         diamond_topics=diamond_topics,
         diamond_topics_download_url="https://example.com/diamond_topics.json",
         ralph_readme_download_url="https://example.com/ralph_readme.md",
+        all_jsonl_entries=[
+            {
+                "path": "data/processed/train.jsonl",
+                "rows": 713,
+                "download_url": "https://example.com/train.jsonl",
+                "html_url": "https://example.com/html/train",
+                "sha": "a" * 40,
+                "bytes": 1,
+            },
+            {
+                "path": "data/processed/eval.jsonl",
+                "rows": 4,
+                "download_url": "https://example.com/eval.jsonl",
+                "html_url": "https://example.com/html/eval",
+                "sha": "b" * 40,
+                "bytes": 1,
+            },
+            {
+                "path": "data/processed/diamond_eval_holdout.jsonl",
+                "rows": 30,
+                "download_url": "https://example.com/diamond_eval_holdout.jsonl",
+                "html_url": "https://example.com/html/holdout",
+                "sha": "c" * 40,
+                "bytes": 1,
+            },
+            {
+                "path": "data/processed/diamond_sft_v3.jsonl",
+                "rows": 1053,
+                "download_url": "https://example.com/diamond_sft_v3.jsonl",
+                "html_url": "https://example.com/html/diamond",
+                "sha": "d" * 40,
+                "bytes": 1,
+            },
+            {
+                "path": "data/frs_tla_ralph_gen/train.jsonl",
+                "rows": 500,
+                "download_url": "https://example.com/ralph_train.jsonl",
+                "html_url": "https://example.com/html/ralph_train",
+                "sha": "e" * 40,
+                "bytes": 1,
+            },
+            {
+                "path": "data/frs_tla_ralph_gen/dev.jsonl",
+                "rows": 50,
+                "download_url": "https://example.com/ralph_dev.jsonl",
+                "html_url": "https://example.com/html/ralph_dev",
+                "sha": "f" * 40,
+                "bytes": 1,
+            },
+            {
+                "path": "data/toy/train.jsonl",
+                "rows": 5,
+                "download_url": "https://example.com/toy_train.jsonl",
+                "html_url": "https://example.com/html/toy_train",
+                "sha": "g" * 40,
+                "bytes": 1,
+            },
+            {
+                "path": "data/toy/eval.jsonl",
+                "rows": 2,
+                "download_url": "https://example.com/toy_eval.jsonl",
+                "html_url": "https://example.com/html/toy_eval",
+                "sha": "h" * 40,
+                "bytes": 1,
+            },
+            {
+                "path": "outputs/diamond_gen/diamond_generated.jsonl",
+                "rows": 200,
+                "download_url": "https://example.com/diamond_generated.jsonl",
+                "html_url": "https://example.com/html/diamond_generated",
+                "sha": "i" * 40,
+                "bytes": 1,
+            },
+        ],
+        benchmark_suite=[{"id": "BM001"}, {"id": "BM002"}],
+        benchmark_to_module={
+            "mappings": [
+                {"benchmark_id": "BM001", "module_name": "Foo"},
+                {"benchmark_id": "BM002", "module_name": None},
+            ],
+            "holdout_module_names": ["Foo"],
+        },
+        repo_readme="Current README still mentions a 30-spec held-out suite.",
         generated_at="2026-06-28T12:00:00+00:00",
     )
 
@@ -100,4 +183,12 @@ def test_build_report_summarizes_public_tlaprove_corpora() -> None:
     assert report["corpora"]["frs_tla_ralph_gen"]["train"]["rows"] == 500
     assert report["corpora"]["diamond_gen_topics"]["topics_total"] == 3
     assert report["aggregate"]["total_public_jsonl_rows"] == 2350
+    assert report["aggregate"]["all_public_jsonl_rows"] == 2557
+    assert report["aggregate"]["additional_public_jsonl_rows_outside_tracked_corpora"] == 207
+    assert report["all_public_jsonl_surface"]["by_prefix"]["data/toy"]["rows"] == 7
+    assert report["all_public_jsonl_surface"]["by_prefix"]["outputs/diamond_gen"]["rows"] == 200
+    assert report["benchmark_surface"]["benchmark_suite_items"] == 2
+    assert report["benchmark_surface"]["non_null_module_mappings"] == 1
+    assert report["benchmark_surface"]["repo_readme_mentions_30_spec_holdout"] is True
+    assert any("30-spec held-out suite" in note for note in report["notes"])
     assert report["recommended_ingest_order"][0]["path"] == "data/processed/diamond_sft_v3.jsonl"

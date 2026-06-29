@@ -36,6 +36,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     largest_name = Path(str(largest["path"])).name
     largest_rows = int(largest["rows"])
     normalized_rows = int(tlaprove_import["kept_rows"])
+    all_public_rows = int(tlaprove["aggregate"].get("all_public_jsonl_rows", raw_rows))
+    all_public_files = int(tlaprove["aggregate"].get("all_public_jsonl_files", 0))
+    tracked_public_files = int(tlaprove["aggregate"].get("tracked_public_jsonl_files", 0))
     seed_repo_inputs = int(seed_files["seed_repo_inputs"])
     seed_totals = seed_files.get("totals", {})
     tracked_seed_files = int(seed_totals.get("all", seed_files.get("kept_rows", 0)))
@@ -50,15 +53,15 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
         "README.md": [
             (
                 "ChatTLA currently uses seven public AI4FM-aligned data/artifact layers spanning "
-                f"the {formalllm_rows}-example `FormaLLM` benchmark, {_comma(raw_rows)} raw public "
-                f"`TLA-Prove` JSONL rows, and a {_comma(raw_tla_files)}-file / "
+                f"the {formalllm_rows}-example `FormaLLM` benchmark, a {_comma(raw_rows)}-row tracked `TLA-Prove` training/eval slice within a "
+                f"{_comma(all_public_rows)}-row committed public JSONL surface, and a {_comma(raw_tla_files)}-file / "
                 f"{_comma(usable_module_rows)}-module public seed-repo surface:"
             ),
             f"| `FormaLLM` | {formalllm_rows} canonical prompt/spec entries across {formalllm_families} families |",
             (
                 "| `TLA-Prove public corpora` | "
-                f"{_comma(raw_rows)} JSONL rows across committed public corpora; "
-                f"largest single corpus is `{largest_name}` with {_comma(largest_rows)} rows |"
+                f"{_comma(raw_rows)} JSONL rows across the tracked public training/eval corpora; "
+                f"the full committed public JSONL surface currently spans {_comma(all_public_rows)} rows across {all_public_files} files |"
             ),
             (
                 "| `TLA-Prove normalized import` | "
@@ -83,7 +86,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             ),
             (
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: "
-                f"`{_comma(raw_rows)}` committed `TLA-Prove` JSONL rows, `{_comma(raw_tla_files)}` public seed `.tla` files, "
+                f"`{_comma(all_public_rows)}` committed `TLA-Prove` JSONL rows, `{_comma(raw_tla_files)}` public seed `.tla` files, "
                 f"and `{_comma(usable_module_rows)}` usable seed modules."
             ),
             (
@@ -93,25 +96,32 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
         ],
         "docs/AI4FM_PUBLIC_DATASET_SURFACE.md": [
             f"- `{formalllm_rows}` canonical metadata entries",
-            f"- public JSONL rows across the tracked corpora: `{raw_rows}`",
+            f"- public JSONL rows across the tracked training/eval corpora: `{raw_rows}`",
+            f"- full committed public JSONL surface: `{all_public_rows}` rows across `{all_public_files}` files",
             f"- `ai4fm_public_seed_file_manifest_v1.summary.json` reports `{raw_tla_files}` public",
             f"- `ai4fm_public_seed_tla_modules_v1.summary.json` reports `{usable_module_rows}` usable",
-            f"- `{raw_rows}` raw public rows across the committed corpora",
+            f"- `{raw_rows}` raw public rows across the tracked corpora",
             f"- `{normalized_rows}` kept ChatTLA-format rows after normalization and exact final-spec dedupe",
             (
                 f"- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: "
-                f"`{raw_rows}` committed `TLA-Prove` JSONL rows, `{raw_tla_files}` public seed `.tla` files, or `{usable_module_rows}` usable seed modules"
+                f"`{all_public_rows}` committed `TLA-Prove` JSONL rows, `{raw_tla_files}` public seed `.tla` files, or `{usable_module_rows}` usable seed modules"
             ),
         ],
         "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md": [
             f"- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
             f"  layer (`{formalllm_rows}` rows).",
             (
+                f"- `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus\n"
+                f"  report (`{raw_rows}` tracked training/eval rows within a `{all_public_rows}`-row committed public\n"
+                "  JSONL surface)."
+            ),
+            (
                 "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed\n"
                 f"  file manifest (`{tracked_seed_files}` tracked files, `{raw_tla_files}` `.tla` files, `{usable_module_rows}` usable module rows)."
             ),
             f"- Mixed prover SFT corpus: `{mixed_sft_rows}` rows",
-            f"- Public AI4FM normalized import: `{normalized_rows}` rows.",
+            f"- Public AI4FM normalized import: `{normalized_rows}` rows from the tracked `{raw_rows}`-row",
+            "  public corpora slice.",
             (
                 f"- Public AI4FM seed-module prover candidates: `{candidate_rows}` rows out of `{usable_module_rows}` usable\n"
                 "  public seed-module rows."

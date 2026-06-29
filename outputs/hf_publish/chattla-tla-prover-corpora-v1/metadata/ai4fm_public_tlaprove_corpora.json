@@ -1,10 +1,63 @@
 {
   "aggregate": {
+    "additional_public_jsonl_files_outside_tracked_corpora": 13,
+    "additional_public_jsonl_rows_outside_tracked_corpora": 407,
+    "all_public_jsonl_files": 19,
+    "all_public_jsonl_rows": 2757,
     "largest_public_jsonl": {
       "path": "data/processed/diamond_sft_v3.jsonl",
       "rows": 1053
     },
-    "total_public_jsonl_rows": 2350
+    "total_public_jsonl_rows": 2350,
+    "tracked_public_jsonl_files": 6
+  },
+  "all_public_jsonl_surface": {
+    "additional_files_outside_tracked_corpora": 13,
+    "additional_paths": [
+      "data/toy/eval.jsonl",
+      "data/toy/train.jsonl",
+      "outputs/diamond_gen/communication_protocols.jsonl",
+      "outputs/diamond_gen/concurrency_primitives.jsonl",
+      "outputs/diamond_gen/consensus_election.jsonl",
+      "outputs/diamond_gen/data_structures.jsonl",
+      "outputs/diamond_gen/diamond_generated.jsonl",
+      "outputs/diamond_gen/memory_caches.jsonl",
+      "outputs/diamond_gen/mutual_exclusion.jsonl",
+      "outputs/diamond_gen/puzzles_classical.jsonl",
+      "outputs/diamond_gen/scheduling_resources.jsonl",
+      "outputs/diamond_gen/transactions_databases.jsonl",
+      "outputs/diamond_gen/workflows_state_machines.jsonl"
+    ],
+    "additional_rows_outside_tracked_corpora": 407,
+    "by_prefix": {
+      "data/frs_tla_ralph_gen": {
+        "files": 2,
+        "rows": 550
+      },
+      "data/processed": {
+        "files": 4,
+        "rows": 1800
+      },
+      "data/toy": {
+        "files": 2,
+        "rows": 7
+      },
+      "outputs/diamond_gen": {
+        "files": 11,
+        "rows": 400
+      }
+    },
+    "total_files": 19,
+    "total_rows": 2757,
+    "tracked_corpora_files": 6,
+    "tracked_corpora_rows": 2350
+  },
+  "benchmark_surface": {
+    "benchmark_mapping_items": 20,
+    "benchmark_suite_items": 20,
+    "holdout_module_names": 13,
+    "non_null_module_mappings": 13,
+    "repo_readme_mentions_30_spec_holdout": true
   },
   "corpora": {
     "diamond_eval_holdout": {
@@ -112,10 +165,11 @@
       "sha": "9d4c0bdf3d2ffd3b02ea633992a8868c56b0db14"
     }
   },
-  "generated_at": "2026-06-28T22:16:07.766999+00:00",
+  "generated_at": "2026-06-29T07:19:15.286044+00:00",
   "notes": [
     "These corpora are committed directly in the public TLA-Prove repository, unlike the larger DVC-backed crawl in tla-dataset-pipeline.",
-    "Row totals here are raw public JSONL counts and may include overlap or oversampling across corpora."
+    "Row totals here are raw public JSONL counts and may include overlap or oversampling across corpora.",
+    "Public TLA-Prove README still mentions a 30-spec held-out suite, but benchmark_suite.json currently contains a different item count."
   ],
   "public_sources": {
     "processed_dir": "https://github.com/LUC-AI4FM/TLA-Prove/tree/main/data/processed",
