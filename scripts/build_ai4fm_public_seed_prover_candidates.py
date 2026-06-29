@@ -80,8 +80,9 @@ def _build_indexes(source_rows: list[dict[str, Any]]) -> tuple[dict[tuple[str, s
     for row in source_rows:
         repo = str(row.get("repo", ""))
         module = str(row.get("module", ""))
-        if repo and module and isinstance(row.get("content"), str):
-            by_repo_module[(repo, module)] = row
+        if module and isinstance(row.get("content"), str):
+            if repo:
+                by_repo_module[(repo, module)] = row
             by_module.setdefault(module, []).append(row)
     return by_repo_module, by_module
 
@@ -236,11 +237,16 @@ def build_prover_candidates(
     limit: int = 0,
     workers: int = 4,
     source_label: str | None = None,
+    helper_source_paths: list[Path] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     source_rows = _load_jsonl(source_path)
     selected_rows = source_rows[:limit] if limit else source_rows
     generated_at = generated_at or datetime.now(timezone.utc).isoformat()
-    by_repo_module, by_module = _build_indexes(source_rows)
+    helper_paths = helper_source_paths or []
+    helper_rows: list[dict[str, Any]] = []
+    for helper_path in helper_paths:
+        helper_rows.extend(_load_jsonl(helper_path))
+    by_repo_module, by_module = _build_indexes(source_rows + helper_rows)
 
     kept_rows: list[dict[str, Any]] = []
     duplicate_modules: Counter[str] = Counter()
@@ -355,6 +361,8 @@ def build_prover_candidates(
         "generated_at": generated_at,
         "source_path": source_label or _display_path(source_path),
         "source_rows": len(source_rows),
+        "helper_source_paths": [_display_path(path) for path in helper_paths],
+        "helper_source_rows": len(helper_rows),
         "rows_considered": len(selected_rows),
         "kept_rows": len(kept_rows),
         "skipped": dict(skipped),
@@ -390,6 +398,7 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--source-label", default=None)
+    parser.add_argument("--helper-source", type=Path, action="append", default=[])
     args = parser.parse_args()
 
     rows, summary = build_prover_candidates(
@@ -398,6 +407,7 @@ def main() -> int:
         limit=args.limit,
         workers=args.workers,
         source_label=args.source_label,
+        helper_source_paths=args.helper_source,
     )
     print(json.dumps(write_outputs(rows, summary, args.out), indent=2, sort_keys=True))
     return 0
