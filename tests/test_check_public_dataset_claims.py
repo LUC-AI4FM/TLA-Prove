@@ -84,6 +84,10 @@ def _write_manifests(repo: Path) -> None:
         json.dumps({"rows": 44, "kept_rows": 44, "excluded_sany_clean_rows": 124}),
     )
     _write(
+        repo / "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json",
+        json.dumps({"kept_rows": 44, "recoverable_without_new_source_rows": 40, "blocked_on_missing_public_dependency_rows": 4}),
+    )
+    _write(
         repo / "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
         json.dumps({"repair_surface": {"rows": 44}, "missing_imports": {"rows_with_missing_imports": 44}}),
     )
@@ -252,6 +256,7 @@ def _write_manifests(repo: Path) -> None:
         "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
         "ai4fm_public_seed_prover_shape_ready_v1.summary.json": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json",
         "ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
+        "ai4fm_public_seed_prover_repair_queue_v1.summary.json": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json",
         "ai4fm_public_seed_prover_repair_surface.json": "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
         "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
         "ai4fm_public_tlaprove_import_all_public_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json",
