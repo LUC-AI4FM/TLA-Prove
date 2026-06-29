@@ -278,6 +278,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
         ],
         "docs/AI4FM_PUBLIC_DATASET_SURFACE.md": [
             f"- `{formalllm_rows}` canonical metadata entries",
+            f"- `{dataset_surface['formalllm']['tla_files']}` `.tla` files under `data/*/tla/*.tla`",
+            f"- `{dataset_surface['formalllm']['clean_tla_files']}` `_clean.tla` files, matching the canonical benchmark row count",
+            f"- `{dataset_surface['formalllm']['nonclean_tla_files']}` non-clean `.tla` variants in that same canonical module tree",
             f"- public JSONL rows across the tracked training/eval corpora: `{raw_rows}`",
             f"- `{raw_import_rows}` kept rows in `ai4fm_public_tlaprove_import_raw_v1` when exact-final-spec dedupe is disabled",
             f"- full committed public JSONL surface: `{all_public_rows}` rows across `{all_public_files}` files",

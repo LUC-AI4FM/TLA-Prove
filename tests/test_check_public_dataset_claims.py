@@ -116,6 +116,11 @@ def _write_manifests(repo: Path) -> None:
         repo / "outputs/manifests/ai4fm_public_dataset_surface.json",
         json.dumps(
             {
+                "formalllm": {
+                    "tla_files": 410,
+                    "clean_tla_files": 205,
+                    "nonclean_tla_files": 205,
+                },
                 "pipeline": {
                     "pull": {"nfiles": 2628},
                     "parse_output": {"nfiles": 3979},
@@ -292,11 +297,14 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
     _write(
         tmp_path / "docs/AI4FM_PUBLIC_DATASET_SURFACE.md",
         "\n".join(
-            [
-                "- `205` canonical metadata entries",
-                "- public JSONL rows across the tracked training/eval corpora: `2350`",
-                "- `2350` kept rows in `ai4fm_public_tlaprove_import_raw_v1` when exact-final-spec dedupe is disabled",
-                "- full committed public JSONL surface: `2757` rows across `19` files",
+                [
+                    "- `205` canonical metadata entries",
+                    "- `410` `.tla` files under `data/*/tla/*.tla`",
+                    "- `205` `_clean.tla` files, matching the canonical benchmark row count",
+                    "- `205` non-clean `.tla` variants in that same canonical module tree",
+                    "- public JSONL rows across the tracked training/eval corpora: `2350`",
+                    "- `2350` kept rows in `ai4fm_public_tlaprove_import_raw_v1` when exact-final-spec dedupe is disabled",
+                    "- full committed public JSONL surface: `2757` rows across `19` files",
                 "- `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public",
                 "- `ai4fm_public_seed_tla_modules_v1.summary.json` reports `2108` usable",
                 "- `6` repos with clearly permissive SPDX labels at the repo level, versus `5` redistribution-caution repos",

@@ -24,6 +24,11 @@ The current public AI4FM surface still supports ChatTLA's existing split:
   - `data/all_models.json` still resolves to `205` canonical rows
   - `Input/train.json`, `Input/val.json`, `Input/test.json` still sum to `205`
     as `143 + 30 + 32`
+  - the canonical `data/*/tla/*.tla` module tree is `410` files:
+    `205` `_clean.tla` modules plus `205` paired non-clean variants
+  - the full public repo tree is larger: `503` total `.tla` files and `163`
+    total `.cfg` files, including `93` auxiliary `.tla` files and `27`
+    auxiliary `.cfg` files outside the canonical `data/*/{tla,cfg}` trees
 - Stale architecture note still present:
   - `doc/ARCHITECTURE.md` still says `Metadata for 1800+ specifications`
 - Public site still aligns with the `205`-entry benchmark layer:
