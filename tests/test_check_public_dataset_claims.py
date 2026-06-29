@@ -9,6 +9,14 @@ def _write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def _write_bundle_copy(repo: Path, bundle_name: str, source_rel: str) -> None:
+    source = repo / source_rel
+    _write(
+        repo / "outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata" / bundle_name,
+        source.read_text(encoding="utf-8"),
+    )
+
+
 def _write_manifests(repo: Path) -> None:
     _write(
         repo / "data/processed/formalllm_eval_v1.summary.json",
@@ -52,6 +60,23 @@ def _write_manifests(repo: Path) -> None:
         json.dumps({"total_rows": 1330}),
     )
     _write(
+        repo / "outputs/manifests/ai4fm_public_seed_license_surface.json",
+        json.dumps(
+            {
+                "license_summary": {
+                    "repo_counts": {
+                        "Apache-2.0": 3,
+                        "MIT": 3,
+                        "NOASSERTION": 2,
+                        "UNKNOWN": 3,
+                    },
+                    "clearly_permissive_repo_count": 6,
+                    "caution_repo_count": 5,
+                }
+            }
+        ),
+    )
+    _write(
         repo / "outputs/manifests/ai4fm_public_dataset_surface.json",
         json.dumps(
             {
@@ -62,6 +87,41 @@ def _write_manifests(repo: Path) -> None:
             }
         ),
     )
+    _write(repo / "data/processed/ai4fm_public_discovery_manifest_v1.summary.json", json.dumps({"rows": 18}))
+    _write(repo / "data/processed/prover_eval.summary.json", json.dumps({"kept_rows": 18}))
+    _write(repo / "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json", json.dumps({"ok": True}))
+    _write(repo / "data/processed/sany_tlc_pass_eval_v1.summary.json", json.dumps({"kept_rows": 30}))
+    _write(repo / "data/processed/sany_tlc_pass_sft_v1.summary.json", json.dumps({"kept_rows": 170}))
+    _write(repo / "outputs/manifests/tla_prover_artifacts_v1.json", json.dumps({"schema": "artifact"}))
+    _write(repo / "outputs/manifests/tla_prover_corpus_preflight.json", json.dumps({"ok": True}))
+    _write(
+        repo / "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
+        json.dumps({"rows": 18}),
+    )
+    _write(
+        repo / "outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/sany_tlc_pass_eval_replay.json",
+        json.dumps({"rows": 30}),
+    )
+
+    for bundle_name, source_rel in {
+        "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
+        "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
+        "ai4fm_public_seed_file_manifest_v1.summary.json": "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
+        "ai4fm_public_seed_license_surface.json": "outputs/manifests/ai4fm_public_seed_license_surface.json",
+        "ai4fm_public_seed_prover_candidates_v1.summary.json": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
+        "ai4fm_public_tlaprove_corpora.json": "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+        "ai4fm_public_tlaprove_import_v1.summary.json": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
+        "chattla_tla_prover_sft_v1.summary.json": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
+        "formalllm_eval_v1.summary.json": "data/processed/formalllm_eval_v1.summary.json",
+        "prover_eval.summary.json": "data/processed/prover_eval.summary.json",
+        "sany_tlc_pass_corpus_diagnostic.json": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
+        "sany_tlc_pass_eval_v1.summary.json": "data/processed/sany_tlc_pass_eval_v1.summary.json",
+        "sany_tlc_pass_sft_v1.summary.json": "data/processed/sany_tlc_pass_sft_v1.summary.json",
+        "tla_prover_artifacts_v1.json": "outputs/manifests/tla_prover_artifacts_v1.json",
+        "tla_prover_corpus_preflight.json": "outputs/manifests/tla_prover_corpus_preflight.json",
+        "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
+    }.items():
+        _write_bundle_copy(repo, bundle_name, source_rel)
 
 
 def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> None:
@@ -79,6 +139,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface |",
                 "The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface.",
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules.",
+                "Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown.",
                 "The seed prover-candidate corpus is the first stricter bridge from the 2,110 public `.tla` files / 2,108 usable module rows into the current prover lane.",
             ]
         ),
@@ -92,6 +153,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "- full committed public JSONL surface: `2757` rows across `19` files",
                 "- `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public",
                 "- `ai4fm_public_seed_tla_modules_v1.summary.json` reports `2108` usable",
+                "- `6` repos with clearly permissive SPDX labels at the repo level, versus `5` redistribution-caution repos",
                 "- `2350` raw public rows across the tracked corpora",
                 "- `1005` kept ChatTLA-format rows after normalization and exact final-spec dedupe",
                 "- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: `2757` committed `TLA-Prove` JSONL rows, `2110` public seed `.tla` files, or `2108` usable seed modules",
@@ -109,9 +171,13 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "  JSONL surface).",
                 "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed",
                 "  file manifest (`3140` tracked files, `2110` `.tla` files, `2108` usable module rows).",
+                "- `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance",
+                "  rollup for the `11` committed public seed repos.",
                 "- Mixed prover SFT corpus: `1330` rows",
                 "- Public AI4FM normalized import: `1005` rows from the tracked `2350`-row",
                 "  public corpora slice.",
+                "- Public seed repo license surface: `3` Apache-2.0 repos, `3` MIT repos, `2`",
+                "  NOASSERTION repos, and `3` unknown-license repos.",
                 "- Public AI4FM seed-module prover candidates: `98` rows out of `2108` usable",
                 "  public seed-module rows.",
             ]
@@ -134,3 +200,31 @@ def test_build_report_flags_mismatched_public_claims(tmp_path: Path) -> None:
     assert report["ok"] is False
     assert any("205 canonical prompt/spec entries across 71 families" in finding["expected"] for finding in report["findings"])
     assert any("public JSONL rows across the tracked training/eval corpora: `2350`" in finding["expected"] for finding in report["findings"])
+
+
+def test_build_report_flags_missing_or_stale_hf_bundle_metadata(tmp_path: Path) -> None:
+    _write_manifests(tmp_path)
+    _write(tmp_path / "README.md", "")
+    _write(tmp_path / "docs/AI4FM_PUBLIC_DATASET_SURFACE.md", "")
+    _write(tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md", "")
+
+    missing = tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/ai4fm_public_seed_license_surface.json"
+    missing.unlink()
+    _write(
+        tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/tla_prover_artifacts_v1.json",
+        "{\"schema\":\"stale\"}",
+    )
+
+    report = build_report(repo=tmp_path)
+
+    assert report["ok"] is False
+    assert any(
+        finding["path"] == "outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/ai4fm_public_seed_license_surface.json"
+        and "bundled copy of outputs/manifests/ai4fm_public_seed_license_surface.json" in finding["expected"]
+        for finding in report["findings"]
+    )
+    assert any(
+        finding["path"] == "outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/tla_prover_artifacts_v1.json"
+        and "exact content match for outputs/manifests/tla_prover_artifacts_v1.json" in finding["expected"]
+        for finding in report["findings"]
+    )

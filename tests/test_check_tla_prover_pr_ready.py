@@ -35,6 +35,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "python3 -m py_compile" in joined
     assert "scripts/check_public_dataset_claims.py" in joined
     assert "scripts/build_ai4fm_public_seed_file_manifest.py" in joined
+    assert "scripts/build_ai4fm_public_seed_license_manifest.py" in joined
     assert "scripts/build_ai4fm_public_seed_prover_candidates.py" in joined
     assert "scripts/build_ai4fm_public_seed_tla_modules.py" in joined
     assert "scripts/build_ai4fm_public_tlaprove_import.py" in joined
@@ -50,12 +51,14 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_inspect_ai4fm_public_dataset_surface.py" in joined
     assert "tests/test_inspect_hf_publish_readiness.py" in joined
     assert "tests/test_qsub_fc128_artifact_preflight.py" in joined
+    assert "tests/test_train_prover_defaults.py" in joined
     assert "tests/test_upload_v11.py" in joined
     assert "tests/test_materialize_processed_tla_corpus.py" in joined
     assert "tests/test_preflight_tla_prover_remote.py" in joined
     assert "tests/test_build_tla_prover_manifest.py" in joined
     assert "tests/test_build_ai4fm_public_tlaprove_import.py" in joined
     assert "tests/test_build_ai4fm_public_seed_file_manifest.py" in joined
+    assert "tests/test_build_ai4fm_public_seed_license_manifest.py" in joined
     assert "tests/test_build_ai4fm_public_seed_prover_candidates.py" in joined
     assert "tests/test_build_ai4fm_public_seed_tla_modules.py" in joined
     assert "tests/test_check_public_dataset_claims.py" in joined
@@ -71,6 +74,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
         "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
         "outputs/autoprover/tlaps_verify_published_161016/summary.json",
         "outputs/manifests/ai4fm_public_dataset_surface.json",
+        "outputs/manifests/ai4fm_public_seed_license_surface.json",
         "outputs/manifests/hf_publish_readiness.json",
     ]:
         path = tmp_path / rel
@@ -82,6 +86,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     assert "outputs/autoprover/tlaps_verify_published_161016/manifest.json" in paths
     assert "outputs/autoprover/tlaps_verify_published_161016/summary.json" in paths
     assert "outputs/manifests/ai4fm_public_dataset_surface.json" in paths
+    assert "outputs/manifests/ai4fm_public_seed_license_surface.json" in paths
     assert "outputs/manifests/hf_publish_readiness.json" in paths
 
 

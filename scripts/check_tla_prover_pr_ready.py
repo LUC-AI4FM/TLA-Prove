@@ -24,6 +24,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
     "outputs/autoprover/tlaps_verify_published_161016/summary.json",
     "outputs/manifests/ai4fm_public_dataset_surface.json",
+    "outputs/manifests/ai4fm_public_seed_license_surface.json",
     "outputs/manifests/hf_publish_readiness.json",
     "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",
@@ -43,6 +44,7 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 PY_COMPILE_FILES = [
     "scripts/check_public_dataset_claims.py",
     "scripts/build_ai4fm_public_seed_file_manifest.py",
+    "scripts/build_ai4fm_public_seed_license_manifest.py",
     "scripts/build_ai4fm_public_seed_prover_candidates.py",
     "scripts/build_ai4fm_public_seed_tla_modules.py",
     "scripts/build_ai4fm_public_tlaprove_import.py",
@@ -62,6 +64,7 @@ PY_COMPILE_FILES = [
 PYTEST_FILES = [
     "tests/test_check_public_dataset_claims.py",
     "tests/test_build_ai4fm_public_seed_file_manifest.py",
+    "tests/test_build_ai4fm_public_seed_license_manifest.py",
     "tests/test_build_ai4fm_public_seed_prover_candidates.py",
     "tests/test_build_ai4fm_public_seed_tla_modules.py",
     "tests/test_build_ai4fm_public_tlaprove_import.py",
@@ -79,6 +82,7 @@ PYTEST_FILES = [
     "tests/test_qsub_sft_preflight.py",
     "tests/test_qsub_fc128_artifact_preflight.py",
     "tests/test_build_tla_prover_manifest.py",
+    "tests/test_train_prover_defaults.py",
     "tests/test_inspect_ai4fm_public_dataset_surface.py",
     "tests/test_inspect_hf_publish_readiness.py",
     "tests/test_upload_v11.py",
