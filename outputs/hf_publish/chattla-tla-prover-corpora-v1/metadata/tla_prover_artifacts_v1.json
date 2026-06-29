@@ -1920,28 +1920,28 @@
       "summary_path": "data/processed/benchmark_repair_pairs_fc128best.summary.json"
     },
     "chattla_tla_prover_sft_public_all_v1": {
-      "bytes": 13486296,
+      "bytes": 13770776,
       "exists": true,
       "kind": "full_public_ai4fm_expanded_prover_sft_dataset",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-      "rows": 2464,
-      "sha256": "05ee1a06e46e391b05ca887c5f255fe2ec59e8bbd07ff6f38eb287f2c361a941",
+      "rows": 2484,
+      "sha256": "350e3c033f67ce144f49ec831097dbde2098bb24342f8e8d92aa6c1d43e0440a",
       "summary": {
         "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "formalllm": "data/processed/formalllm_eval_v1.jsonl",
         "formalllm_rows": 205,
-        "generated_at": "2026-06-29T16:15:26.618182+00:00",
-        "jsonl_sha256": "05ee1a06e46e391b05ca887c5f255fe2ec59e8bbd07ff6f38eb287f2c361a941",
+        "generated_at": "2026-06-29T17:25:46.932091+00:00",
+        "jsonl_sha256": "350e3c033f67ce144f49ec831097dbde2098bb24342f8e8d92aa6c1d43e0440a",
         "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
         "public_import": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
         "public_import_rows": 1010,
         "public_import_weight": 1,
         "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "public_seed_candidates_rows": 124,
+        "public_seed_candidates_rows": 144,
         "public_seed_candidates_weight": 1,
         "seed": 20260627,
-        "total_rows": 2464,
+        "total_rows": 2484,
         "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
@@ -1949,28 +1949,28 @@
       "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json"
     },
     "chattla_tla_prover_sft_public_expanded_v1": {
-      "bytes": 13444505,
+      "bytes": 13728985,
       "exists": true,
       "kind": "public_ai4fm_expanded_prover_sft_dataset",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-      "rows": 2459,
-      "sha256": "e8f6e5aadb7604b7d87668fb5c322cc38263bee2aae382aa5040ef872e806b02",
+      "rows": 2479,
+      "sha256": "73d963cfcca80f9cc0a9f54482064a848e80735e9da67aacc579aec5bab818ae",
       "summary": {
         "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "formalllm": "data/processed/formalllm_eval_v1.jsonl",
         "formalllm_rows": 205,
-        "generated_at": "2026-06-29T16:14:59.730120+00:00",
-        "jsonl_sha256": "e8f6e5aadb7604b7d87668fb5c322cc38263bee2aae382aa5040ef872e806b02",
+        "generated_at": "2026-06-29T17:25:46.940244+00:00",
+        "jsonl_sha256": "73d963cfcca80f9cc0a9f54482064a848e80735e9da67aacc579aec5bab818ae",
         "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
         "public_import": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         "public_import_rows": 1005,
         "public_import_weight": 1,
         "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "public_seed_candidates_rows": 124,
+        "public_seed_candidates_rows": 144,
         "public_seed_candidates_weight": 1,
         "seed": 20260627,
-        "total_rows": 2459,
+        "total_rows": 2479,
         "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
@@ -2635,7 +2635,7 @@
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "0aad9220b2f31c4d9e3e482e1c7be87f546e97fc90f45481de7e590366ab5632"
+      "sha256": "51637319a24f48447747ea302f91edb4fa744d20cbbee773a080e2eea29bf9a3"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7143,
@@ -2663,7 +2663,7 @@
               "missing_rows": 0,
               "ok": true,
               "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-              "rows": 2459
+              "rows": 2479
             },
             {
               "extra_occurrences_over_formalllm_rows": 0,
@@ -2673,7 +2673,7 @@
               "missing_rows": 0,
               "ok": true,
               "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-              "rows": 2464
+              "rows": 2484
             }
           ],
           "formalllm_path": "data/processed/formalllm_eval_v1.jsonl",
@@ -2682,7 +2682,7 @@
         }
       },
       "rows": null,
-      "sha256": "1136cfc1cf972389c628ac8ab825e123c362cfa0861b957f4310f80f4057f31f"
+      "sha256": "2cd38d54c1d304dee2bc498ce7d189152c9b1e5cb5ae08c0cd997ff608f3951b"
     },
     "tla_prover_full_dataset_failure_analysis": {
       "bytes": 20913,
@@ -2766,7 +2766,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T17:22:58.198936+00:00",
+  "generated_at": "2026-06-29T17:26:08.631746+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

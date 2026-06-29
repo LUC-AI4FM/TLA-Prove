@@ -34,8 +34,8 @@ quality: current publish readiness is still blocked by fresh `0/20` or stale
 | Source | Evidence | Implication |
 | --- | --- | --- |
 | `data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json` | Current default prover SFT is `1330` rows and already includes the full `205`-row `FormaLLM` layer. | The original `30`-row concern is resolved for the prover training lane itself. |
-| `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json` | Non-default tracked-public expanded lane is `2459` rows: `1330` base stack + `1005` normalized public import + `124` SANY-clean seed candidates. | This is the main public-expanded training candidate already materialized. |
-| `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json` | Broader committed-public lane is `2464` rows with `1010` normalized public-import rows. | The full committed-public `TLA-Prove` surface only buys `5` extra unique normalized rows beyond the tracked-public lane. |
+| `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json` | Non-default tracked-public expanded lane is `2479` rows: `1330` base stack + `1005` normalized public import + `144` SANY-clean seed candidates. | This is the main public-expanded training candidate already materialized. |
+| `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json` | Broader committed-public lane is `2484` rows with `1010` normalized public-import rows. | The full committed-public `TLA-Prove` surface only buys `5` extra unique normalized rows beyond the tracked-public lane. |
 | `outputs/manifests/ai4fm_public_seed_prover_funnel.json` | `2108` usable seed modules -> `168` shape-ready rows -> `144` SANY-clean rows, leaving `24` shape-ready-but-not-SANY-clean rows. | The strongest remaining public-data headroom is in verifier/repair work on the narrowed `24`-row residual queue, not in scraping more JSONLs. |
 | `data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json` | Shape-ready public seed lane is `168` rows with `114` unique modules. | This lane is useful as an analysis/eval surface for autoprover-shaped modules. |
 | `data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json` | Repair-target lane is `24` rows with `18` unique modules after excluding the `144` SANY-clean rows. | These are immediate repair targets, but not safe training inputs under the current syntax/verification problems. |
@@ -52,9 +52,9 @@ Keep these roles:
 - `chattla_tla_prover_sft_v1` (`1330` rows):
   current default and the only lane that should be treated as the stable
   baseline.
-- `chattla_tla_prover_sft_public_expanded_v1` (`2459` rows):
+- `chattla_tla_prover_sft_public_expanded_v1` (`2479` rows):
   the main bounded public-expansion training comparison.
-- `chattla_tla_prover_sft_public_all_v1` (`2464` rows):
+- `chattla_tla_prover_sft_public_all_v1` (`2484` rows):
   a secondary bounded comparison for testing whether the extra `5` normalized
   rows help at all.
 
@@ -77,9 +77,9 @@ non-SANY data into a model family that is already failing basic parse gates.
 
 ## Rejected Alternatives
 
-### 1. Promote the `2464`-row full-public lane to the default immediately
+### 1. Promote the `2484`-row full-public lane to the default immediately
 
-Rejected because the delta over `2459` is only `5` unique normalized public
+Rejected because the delta over `2479` is only `5` unique normalized public
 rows. That is too small to justify changing the default before there is any
 verifier-backed model evidence.
 
@@ -159,6 +159,6 @@ Abort or demote a public-corpus experiment if any of the following appear:
 The public corpus side is now sufficiently built out. The next real win is to
 use the repo's new public lanes to run disciplined, bounded comparisons while
 keeping the publish gate strict. The best immediate experiment is the existing
-`2459`-row public-expanded lane, with the `2464`-row full-public lane as a
+`2479`-row public-expanded lane, with the `2484`-row full-public lane as a
 small follow-up and the `24` repair-target rows reserved for verifier-side
 cleanup work.
