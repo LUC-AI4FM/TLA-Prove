@@ -60,6 +60,36 @@ def _first_error(result: Any) -> str:
     return errors[0] if errors else "(no parsed error detail)"
 
 
+def _error_detail(result: Any) -> str:
+    raw_output = str(getattr(result, "raw_output", ""))
+    lines = [line.strip() for line in raw_output.splitlines() if line.strip()]
+    for idx, line in enumerate(lines):
+        if line.startswith("Cannot find source file for module "):
+            return line
+        if line.startswith("Unknown operator:"):
+            return line
+        if line.startswith("Substitution missing for symbol "):
+            return line
+        if line.startswith("line ") and " of module " in line:
+            for candidate in lines[idx + 1 :]:
+                if candidate.startswith("line "):
+                    continue
+                if candidate.startswith("*** "):
+                    continue
+                return candidate
+    return _first_error(result)
+
+
+def _error_family(*, final_missing_imports: list[str], detail: str) -> str:
+    if final_missing_imports:
+        return "missing_import_after_staging"
+    if detail.startswith("Unknown operator:"):
+        return "unknown_operator"
+    if detail.startswith("Substitution missing for symbol "):
+        return "missing_substitution"
+    return "other_post_stage_sany_error"
+
+
 def _row_key(row: dict[str, Any]) -> tuple[str, str, str, str]:
     return (
         str(row.get("repo", "")),
@@ -110,6 +140,7 @@ def build_probe(
             "recovered": False,
             "staged_modules": [],
             "unresolved_missing_imports": [],
+            "final_missing_imports": [],
         }
         if initial_missing_imports:
             final_result, staged_info = _validate_with_staged_imports(
@@ -120,10 +151,12 @@ def build_probe(
                 by_module=by_module,
                 initial_missing_imports=initial_missing_imports,
             )
+        final_missing_imports = list(staged_info.get("final_missing_imports", []))
+        final_detail = _error_detail(final_result)
 
         if getattr(final_result, "valid", False):
             status = "recovered_current_builder"
-        elif staged_info["unresolved_missing_imports"]:
+        elif final_missing_imports:
             status = "still_missing_imports_after_staging"
         elif staged_info["attempted"]:
             status = "post_stage_non_import_error"
@@ -139,6 +172,9 @@ def build_probe(
             "initial_missing_imports": initial_missing_imports,
             "staged_modules": staged_info["staged_modules"],
             "unresolved_missing_imports": staged_info["unresolved_missing_imports"],
+            "final_missing_imports": final_missing_imports,
+            "final_error_detail": final_detail,
+            "final_error_family": _error_family(final_missing_imports=final_missing_imports, detail=final_detail),
             "final_first_error": _first_error(final_result),
         }
 
@@ -163,6 +199,8 @@ def build_probe(
     probe_status_counts = Counter(str(row.get("probe_status", "")) for row in ordered if row.get("probe_status"))
     repo_counts = Counter(str(row.get("repo", "")) for row in ordered if row.get("repo"))
     final_error_counts = Counter(str(row.get("final_first_error", "")) for row in ordered if row.get("final_first_error"))
+    final_error_detail_counts = Counter(str(row.get("final_error_detail", "")) for row in ordered if row.get("final_error_detail"))
+    final_error_family_counts = Counter(str(row.get("final_error_family", "")) for row in ordered if row.get("final_error_family"))
     unresolved_module_counts = Counter()
     status_by_action: dict[str, Counter[str]] = defaultdict(Counter)
     for row in ordered:
@@ -183,6 +221,7 @@ def build_probe(
         "kept_rows": len(ordered),
         "rows_recovered_current_builder": sum(1 for row in ordered if row.get("current_builder_recovers_row")),
         "probe_status_counts": dict(sorted(probe_status_counts.items())),
+        "final_error_family_counts": dict(sorted(final_error_family_counts.items())),
         "status_by_recommended_action": {
             action: dict(sorted(counter.items()))
             for action, counter in sorted(status_by_action.items())
@@ -194,10 +233,13 @@ def build_probe(
             {"module": module, "rows": count} for module, count in unresolved_module_counts.most_common(MAX_TOP)
         ],
         "top_final_errors": [{"error": error, "rows": count} for error, count in final_error_counts.most_common(MAX_TOP)],
+        "top_final_error_details": [
+            {"detail": detail, "rows": count} for detail, count in final_error_detail_counts.most_common(MAX_TOP)
+        ],
         "top_repos": [{"repo": repo, "rows": count} for repo, count in repo_counts.most_common(MAX_TOP)],
         "measured_conclusion": (
-            "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; "
-            "the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket."
+            "The current public seed candidate builder only partially closes the remaining repair queue: "
+            "some rows still fail on missing transitive imports after staging, while the dominant residual bucket is now post-staging non-import SANY failures."
         ),
     }
     return ordered, summary

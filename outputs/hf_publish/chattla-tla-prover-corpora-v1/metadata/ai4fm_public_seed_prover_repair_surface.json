@@ -2,11 +2,11 @@
   "by_repo": {
     "top_repair_repos": [
       {
-        "count": 14,
+        "count": 6,
         "name": "tlaplus/Examples"
       },
       {
-        "count": 3,
+        "count": 2,
         "name": "tlaplus/tlaplus"
       },
       {
@@ -17,38 +17,38 @@
   },
   "failure_categories": [
     {
-      "count": 18,
+      "count": 9,
       "name": "missing_import"
     }
   ],
-  "generated_at": "2026-06-29T18:35:16.363228+00:00",
+  "generated_at": "2026-06-29T19:23:18.829196+00:00",
   "missing_imports": {
     "availability_counts": {
-      "cross_repo_seed_module": 4,
+      "cross_repo_seed_module": 2,
       "same_repo_seed_module": 5,
-      "tlaps_standard_module": 9
+      "tlaps_standard_module": 2
     },
-    "rows_recoverable_from_seed_surface_or_tlaps_stub": 18,
-    "rows_with_missing_imports": 18,
+    "rows_recoverable_from_seed_surface_or_tlaps_stub": 9,
+    "rows_with_missing_imports": 9,
     "top_missing_modules": [
-      {
-        "availability": "tlaps_standard_module",
-        "module": "TLAPS",
-        "rows": 9
-      },
-      {
-        "availability": "cross_repo_seed_module",
-        "module": "FiniteSetTheorems",
-        "rows": 2
-      },
       {
         "availability": "cross_repo_seed_module",
         "module": "Utils",
         "rows": 2
       },
       {
+        "availability": "tlaps_standard_module",
+        "module": "TLAPS",
+        "rows": 2
+      },
+      {
         "availability": "cross_repo_seed_module",
         "module": "Functions",
+        "rows": 1
+      },
+      {
+        "availability": "cross_repo_seed_module",
+        "module": "FiniteSetTheorems",
         "rows": 1
       },
       {
@@ -63,43 +63,18 @@
       },
       {
         "availability": "cross_repo_seed_module",
-        "module": "SequenceTheorems",
-        "rows": 1
-      },
-      {
-        "availability": "cross_repo_seed_module",
         "module": "NaturalsInduction",
         "rows": 1
       }
     ]
   },
   "repair_surface": {
-    "excluded_sany_clean_rows": 150,
-    "rows": 18,
-    "unique_modules": 16,
+    "excluded_sany_clean_rows": 159,
+    "rows": 9,
+    "unique_modules": 9,
     "unique_repos": 3
   },
   "samples": [
-    {
-      "category": "missing_import",
-      "first_error": "line 342, col 16 to line 342, col 19 of module Bakery",
-      "initial_missing_imports": [
-        "TLAPS"
-      ],
-      "missing_import_availability": [
-        "tlaps_standard_module"
-      ],
-      "missing_imports": [
-        "TLAPS"
-      ],
-      "module": "Bakery",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/Bakery-Boulangerie/Bakery.tla",
-      "staged_modules": [
-        "TLAPS"
-      ],
-      "unexpected_valid": false
-    },
     {
       "category": "missing_import",
       "first_error": "line 683, col 10 to line 683, col 25 of module FunctionTheorems",
@@ -129,27 +104,7 @@
     },
     {
       "category": "missing_import",
-      "first_error": "line 146, col 18 to line 146, col 19 of module BinarySearch",
-      "initial_missing_imports": [
-        "TLAPS"
-      ],
-      "missing_import_availability": [
-        "tlaps_standard_module"
-      ],
-      "missing_imports": [
-        "TLAPS"
-      ],
-      "module": "BinarySearch",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/LoopInvariance/BinarySearch.tla",
-      "staged_modules": [
-        "TLAPS"
-      ],
-      "unexpected_valid": false
-    },
-    {
-      "category": "missing_import",
-      "first_error": "Cannot find source file for module Consensus imported in module VoteProof.",
+      "first_error": "line 947, col 49 to line 947, col 52 of module VoteProof",
       "initial_missing_imports": [
         "FiniteSetTheorems"
       ],
@@ -163,6 +118,7 @@
       "repo": "tlaplus/Examples",
       "source_path": "specifications/byzpaxos/BPConProof.tla",
       "staged_modules": [
+        "Consensus",
         "FiniteSetTheorems",
         "Folds",
         "Functions",
@@ -170,56 +126,6 @@
         "PConProof",
         "TLAPS",
         "VoteProof",
-        "WellFoundedInduction"
-      ],
-      "unexpected_valid": false
-    },
-    {
-      "category": "missing_import",
-      "first_error": "line 186, col 19 to line 186, col 31 of module Consensus",
-      "initial_missing_imports": [
-        "FiniteSetTheorems"
-      ],
-      "missing_import_availability": [
-        "cross_repo_seed_module"
-      ],
-      "missing_imports": [
-        "FiniteSetTheorems"
-      ],
-      "module": "Consensus",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/byzpaxos/Consensus.tla",
-      "staged_modules": [
-        "FiniteSetTheorems",
-        "Folds",
-        "Functions",
-        "NaturalsInduction",
-        "TLAPS",
-        "WellFoundedInduction"
-      ],
-      "unexpected_valid": false
-    },
-    {
-      "category": "missing_import",
-      "first_error": "line 66, col 24 to line 66, col 36 of module Consensus",
-      "initial_missing_imports": [
-        "TLAPS"
-      ],
-      "missing_import_availability": [
-        "tlaps_standard_module"
-      ],
-      "missing_imports": [
-        "TLAPS"
-      ],
-      "module": "Consensus",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/Paxos/Consensus.tla",
-      "staged_modules": [
-        "FiniteSetTheorems",
-        "Folds",
-        "Functions",
-        "NaturalsInduction",
-        "TLAPS",
         "WellFoundedInduction"
       ],
       "unexpected_valid": false
@@ -296,7 +202,7 @@
     },
     {
       "category": "missing_import",
-      "first_error": "line 66, col 24 to line 66, col 36 of module Consensus",
+      "first_error": "line 543, col 1 to line 543, col 48 of module Paxos",
       "initial_missing_imports": [
         "TLAPS"
       ],
@@ -322,7 +228,7 @@
     },
     {
       "category": "missing_import",
-      "first_error": "line 309, col 33 to line 309, col 35 of module VoteProof",
+      "first_error": "line 947, col 49 to line 947, col 52 of module VoteProof",
       "initial_missing_imports": [
         "TLAPS"
       ],
@@ -349,25 +255,49 @@
     },
     {
       "category": "missing_import",
-      "first_error": "line 138, col 42 to line 138, col 45 of module Quicksort",
+      "first_error": "line 48, col 20 to line 48, col 22 of module BlockDag",
       "initial_missing_imports": [
-        "TLAPS"
+        "BlockDag"
       ],
       "missing_import_availability": [
-        "tlaps_standard_module"
+        "same_repo_seed_module"
       ],
       "missing_imports": [
-        "TLAPS"
+        "BlockDag"
       ],
-      "module": "Quicksort",
+      "module": "Sailfish",
       "repo": "tlaplus/Examples",
-      "source_path": "specifications/LoopInvariance/Quicksort.tla",
+      "source_path": "specifications/dag-consensus/Sailfish.tla",
       "staged_modules": [
+        "BlockDag",
+        "Digraph",
+        "Folds",
+        "Functions",
+        "Utils"
+      ],
+      "unexpected_valid": false
+    },
+    {
+      "category": "missing_import",
+      "first_error": "line 947, col 49 to line 947, col 52 of module VoteProof",
+      "initial_missing_imports": [
+        "NaturalsInduction"
+      ],
+      "missing_import_availability": [
+        "cross_repo_seed_module"
+      ],
+      "missing_imports": [
+        "NaturalsInduction"
+      ],
+      "module": "VoteProof",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/byzpaxos/VoteProof.tla",
+      "staged_modules": [
+        "Consensus",
         "FiniteSetTheorems",
         "Folds",
         "Functions",
         "NaturalsInduction",
-        "SequenceTheorems",
         "TLAPS",
         "WellFoundedInduction"
       ],
@@ -387,37 +317,17 @@
   },
   "source": {
     "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-    "rows": 18,
+    "rows": 9,
     "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
   },
   "top_first_errors": [
     {
-      "count": 2,
-      "error": "line 66, col 24 to line 66, col 36 of module Consensus"
-    },
-    {
-      "count": 2,
-      "error": "line 309, col 33 to line 309, col 35 of module VoteProof"
-    },
-    {
-      "count": 1,
-      "error": "line 342, col 16 to line 342, col 19 of module Bakery"
+      "count": 3,
+      "error": "line 947, col 49 to line 947, col 52 of module VoteProof"
     },
     {
       "count": 1,
       "error": "line 683, col 10 to line 683, col 25 of module FunctionTheorems"
-    },
-    {
-      "count": 1,
-      "error": "line 146, col 18 to line 146, col 19 of module BinarySearch"
-    },
-    {
-      "count": 1,
-      "error": "Cannot find source file for module Consensus imported in module VoteProof."
-    },
-    {
-      "count": 1,
-      "error": "line 186, col 19 to line 186, col 31 of module Consensus"
     },
     {
       "count": 1,
@@ -433,7 +343,7 @@
     },
     {
       "count": 1,
-      "error": "line 138, col 42 to line 138, col 45 of module Quicksort"
+      "error": "line 543, col 1 to line 543, col 48 of module Paxos"
     },
     {
       "count": 1,

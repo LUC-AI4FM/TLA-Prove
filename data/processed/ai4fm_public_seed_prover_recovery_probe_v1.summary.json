@@ -1,66 +1,72 @@
 {
+  "final_error_family_counts": {
+    "missing_substitution": 1,
+    "unknown_operator": 8
+  },
   "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-  "generated_at": "2026-06-29T18:35:37.277565+00:00",
+  "generated_at": "2026-06-29T19:23:40.272024+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
   "helper_source_rows": 515,
-  "jsonl_sha256": "cdce9182aa3bea1bfd136e288f110c2fb01d6c57573781d1567e71957e690dcb",
-  "kept_rows": 18,
-  "measured_conclusion": "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket.",
+  "jsonl_sha256": "2dbefcf5754689601e547a7d203379ca994631f721d2e59c7b6750072321b1bb",
+  "kept_rows": 9,
+  "measured_conclusion": "The current public seed candidate builder only partially closes the remaining repair queue: some rows still fail on missing transitive imports after staging, while the dominant residual bucket is now post-staging non-import SANY failures.",
   "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
   "probe_status_counts": {
-    "post_stage_non_import_error": 18
+    "post_stage_non_import_error": 9
   },
   "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
   "rows_missing_full_source_row": 0,
-  "rows_post_stage_non_import_error": 18,
+  "rows_post_stage_non_import_error": 9,
   "rows_recovered_current_builder": 0,
   "rows_still_missing_imports_after_staging": 0,
   "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
   "status_by_recommended_action": {
     "stage_cross_repo_seed_helpers": {
-      "post_stage_non_import_error": 4
+      "post_stage_non_import_error": 2
     },
     "stage_same_repo_seed_helpers": {
       "post_stage_non_import_error": 5
     },
     "stage_tlaps_standard_module": {
-      "post_stage_non_import_error": 9
+      "post_stage_non_import_error": 2
     }
   },
+  "top_final_error_details": [
+    {
+      "detail": "Unknown operator: `vars'.",
+      "rows": 3
+    },
+    {
+      "detail": "Unknown operator: `Reduce'.",
+      "rows": 2
+    },
+    {
+      "detail": "Substitution missing for symbol Value declared at line 4, col 10 to line 4, col 14 of module Consensus",
+      "rows": 1
+    },
+    {
+      "detail": "Unknown operator: `SumFunctionOnSet'.",
+      "rows": 1
+    },
+    {
+      "detail": "Unknown operator: `Transpose'.",
+      "rows": 1
+    },
+    {
+      "detail": "Unknown operator: `Max'.",
+      "rows": 1
+    }
+  ],
   "top_final_errors": [
     {
-      "error": "line 66, col 24 to line 66, col 36 of module Consensus",
-      "rows": 2
+      "error": "line 947, col 49 to line 947, col 52 of module VoteProof",
+      "rows": 3
     },
     {
-      "error": "line 309, col 33 to line 309, col 35 of module VoteProof",
-      "rows": 2
-    },
-    {
-      "error": "line 342, col 16 to line 342, col 19 of module Bakery",
-      "rows": 1
-    },
-    {
-      "error": "line 146, col 18 to line 146, col 19 of module BinarySearch",
-      "rows": 1
-    },
-    {
-      "error": "line 138, col 42 to line 138, col 45 of module Quicksort",
-      "rows": 1
-    },
-    {
-      "error": "line 149, col 14 to line 149, col 15 of module Simple",
-      "rows": 1
-    },
-    {
-      "error": "line 170, col 18 to line 170, col 19 of module SimpleRegular",
-      "rows": 1
-    },
-    {
-      "error": "line 319, col 12 to line 319, col 13 of module VoteProof",
+      "error": "line 543, col 1 to line 543, col 48 of module Paxos",
       "rows": 1
     },
     {
@@ -78,16 +84,20 @@
     {
       "error": "line 133, col 6 to line 133, col 11 of module EWD998",
       "rows": 1
+    },
+    {
+      "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
+      "rows": 1
     }
   ],
   "top_repos": [
     {
       "repo": "tlaplus/Examples",
-      "rows": 14
+      "rows": 6
     },
     {
       "repo": "tlaplus/tlaplus",
-      "rows": 3
+      "rows": 2
     },
     {
       "repo": "tlaplus/DrTLAPlus",

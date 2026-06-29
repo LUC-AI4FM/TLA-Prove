@@ -244,22 +244,31 @@
       "sha256": "01067043419a8de5562232bdb4baae39788b8b7527b879788b8cb29ac068bf55"
     },
     "ai4fm_public_seed_prover_candidates_v1": {
-      "bytes": 1727546,
+      "bytes": 1885091,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_sany_valid_prover_candidate_corpus",
       "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-      "rows": 150,
-      "sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
+      "rows": 159,
+      "sha256": "cfa94e3a1aa14280cbd207bf4c87b94a3e64c16795f867070c2fb4fccde68b71",
       "summary": {
         "dependency_staging": {
           "attempted_rows": 840,
-          "recovered_rows": 52,
+          "recovered_rows": 61,
           "sample_recovered": [
             {
               "module": "AddTwo",
               "reason": "dependency_staging_recovered",
               "repo": "tlaplus/Examples",
               "source_path": "specifications/LearnProofs/AddTwo.tla",
+              "staged_modules": [
+                "TLAPS"
+              ]
+            },
+            {
+              "module": "Bakery",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/Bakery-Boulangerie/Bakery.tla",
               "staged_modules": [
                 "TLAPS"
               ]
@@ -287,6 +296,15 @@
               "staged_modules": [
                 "Folds",
                 "Functions"
+              ]
+            },
+            {
+              "module": "BinarySearch",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/LoopInvariance/BinarySearch.tla",
+              "staged_modules": [
+                "TLAPS"
               ]
             },
             {
@@ -327,6 +345,34 @@
               "module": "Consensus",
               "reason": "dependency_staging_recovered",
               "repo": "tlaplus/Examples",
+              "source_path": "specifications/byzpaxos/Consensus.tla",
+              "staged_modules": [
+                "FiniteSetTheorems",
+                "Folds",
+                "Functions",
+                "NaturalsInduction",
+                "TLAPS",
+                "WellFoundedInduction"
+              ]
+            },
+            {
+              "module": "Consensus",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
+              "source_path": "specifications/Paxos/Consensus.tla",
+              "staged_modules": [
+                "FiniteSetTheorems",
+                "Folds",
+                "Functions",
+                "NaturalsInduction",
+                "TLAPS",
+                "WellFoundedInduction"
+              ]
+            },
+            {
+              "module": "Consensus",
+              "reason": "dependency_staging_recovered",
+              "repo": "tlaplus/Examples",
               "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
               "staged_modules": [
                 "FiniteSetTheorems",
@@ -345,55 +391,13 @@
               "staged_modules": [
                 "TLAPS"
               ]
-            },
-            {
-              "module": "DieHardTLA",
-              "reason": "dependency_staging_recovered",
-              "repo": "tlaplus/tlaplus",
-              "source_path": "tlatools/org.lamport.tlatools/test-model/DieHardTLA.tla",
-              "staged_modules": [
-                "_Possible"
-              ]
-            },
-            {
-              "module": "DistributedReplicatedLog",
-              "reason": "dependency_staging_recovered",
-              "repo": "tlaplus/Examples",
-              "source_path": "specifications/FiniteMonotonic/DistributedReplicatedLog.tla",
-              "staged_modules": [
-                "FiniteSetsExt",
-                "Folds",
-                "Functions",
-                "SequencesExt"
-              ]
-            },
-            {
-              "module": "DistributedReplicatedLog",
-              "reason": "dependency_staging_recovered",
-              "repo": "tlaplus/tlaplus",
-              "source_path": "tlatools/org.lamport.tlatools/test-model/examples/FiniteMonotonic/DistributedReplicatedLog.tla",
-              "staged_modules": [
-                "FiniteSetsExt",
-                "Folds",
-                "Functions",
-                "SequencesExt"
-              ]
-            },
-            {
-              "module": "Echo",
-              "reason": "dependency_staging_recovered",
-              "repo": "tlaplus/Examples",
-              "source_path": "specifications/echo/Echo.tla",
-              "staged_modules": [
-                "Relation"
-              ]
             }
           ]
         },
         "duplicate_modules": {
           "AsyncTerminationDetection": 2,
           "BufferedRandomAccessFile": 3,
-          "Consensus": 2,
+          "Consensus": 4,
           "DieHard": 2,
           "DistributedReplicatedLog": 2,
           "EWD840": 8,
@@ -425,14 +429,14 @@
           "spanning": 2,
           "test211": 3
         },
-        "generated_at": "2026-06-29T18:30:45.977961+00:00",
+        "generated_at": "2026-06-29T19:16:43.239201+00:00",
         "helper_source_paths": [
           "data/processed/formalllm_public_tla_modules_v1.jsonl",
           "data/processed/tlapm_public_tla_modules_v1.jsonl"
         ],
         "helper_source_rows": 515,
-        "jsonl_sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
-        "kept_rows": 150,
+        "jsonl_sha256": "cfa94e3a1aa14280cbd207bf4c87b94a3e64c16795f867070c2fb4fccde68b71",
+        "kept_rows": 159,
         "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
         "rows_considered": 2108,
         "sample_not_autoprover_candidate": [
@@ -574,50 +578,48 @@
             "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AdditionalMathOperators.tla"
           },
           {
-            "detail": "Cannot find source file for module Folds imported in module Functions.",
-            "module": "AllocatorImplementation_proof",
-            "reason": "sany_invalid",
-            "repo": "tlaplus/Examples",
-            "source_path": "specifications/allocator/AllocatorImplementation_proof.tla",
-            "staged_modules": [
-              "AllocatorImplementation",
-              "FiniteSetTheorems",
-              "Functions",
-              "NaturalsInduction",
-              "SchedulingAllocator",
-              "SequenceTheorems",
-              "TLAPS",
-              "WellFoundedInduction"
-            ],
-            "unresolved_missing_imports": []
-          },
-          {
-            "detail": "Cannot find source file for module CSVTests imported in module AllTests.",
+            "detail": "Cannot find source file for module GraphVizTests imported in module AllTests.",
             "module": "AllTests",
             "reason": "sany_invalid",
             "repo": "tlaplus/CommunityModules",
             "source_path": "tests/AllTests.tla",
             "staged_modules": [
+              "BagsExtTests",
               "BitwiseTests",
+              "CSVTests",
+              "CombinatoricsTests",
+              "DyadicRationalsTests",
               "FiniteSetsExtTests",
+              "FoldsTests",
               "FunctionsTests",
+              "GraphsTests",
               "IOUtilsTests",
               "JsonTests",
               "RelationTests",
               "SVGTests",
-              "SequencesExtTests"
+              "SequencesExtTests",
+              "StatisticsTests",
+              "VectorClocksTests"
             ],
             "unresolved_missing_imports": []
           },
           {
-            "detail": "Cannot find source file for module FiniteSetsExtTests imported in module AllTests.",
+            "detail": "Cannot find source file for module StatisticsTests imported in module AllTests.",
             "module": "AllTestsUnix",
             "reason": "sany_invalid",
             "repo": "tlaplus/CommunityModules",
             "source_path": "tests/AllTestsUnix.tla",
             "staged_modules": [
               "AllTests",
+              "BagsExtTests",
               "BitwiseTests",
+              "CSVTests",
+              "CombinatoricsTests",
+              "DyadicRationalsTests",
+              "FiniteSetsExtTests",
+              "FoldsTests",
+              "FunctionsTests",
+              "GraphsTests",
               "IOUtilsTests",
               "IOUtilsUnixTests",
               "JsonTests",
@@ -711,12 +713,23 @@
               "Stubs"
             ],
             "unresolved_missing_imports": []
+          },
+          {
+            "detail": "*** Warnings: 3",
+            "module": "APReadersWriters",
+            "reason": "sany_invalid",
+            "repo": "tlaplus/Examples",
+            "source_path": "specifications/ReadersWriters/APReadersWriters.tla",
+            "staged_modules": [
+              "ReadersWriters"
+            ],
+            "unresolved_missing_imports": []
           }
         ],
         "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
         "skipped": {
-          "not_autoprover_candidate": 1629,
-          "sany_invalid": 329
+          "not_autoprover_candidate": 1675,
+          "sany_invalid": 274
         },
         "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
         "source_rows": 2108,
@@ -725,83 +738,89 @@
       "summary_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json"
     },
     "ai4fm_public_seed_prover_funnel": {
-      "bytes": 6203,
+      "bytes": 6202,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_funnel_report",
       "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
       "rows": null,
-      "sha256": "7fc2cac23129bbdef40e05a8ac34d7208ebed5b2d80e341d57631e2159011894"
+      "sha256": "20a9798c0dc45e5dadb9e423dc08a8b206f7e08d13204dd867ab81e2d08a0c45"
     },
     "ai4fm_public_seed_prover_recovery_probe_v1": {
-      "bytes": 37935,
+      "bytes": 19797,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_recovery_probe",
       "path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
-      "rows": 18,
-      "sha256": "cdce9182aa3bea1bfd136e288f110c2fb01d6c57573781d1567e71957e690dcb",
+      "rows": 9,
+      "sha256": "2dbefcf5754689601e547a7d203379ca994631f721d2e59c7b6750072321b1bb",
       "summary": {
+        "final_error_family_counts": {
+          "missing_substitution": 1,
+          "unknown_operator": 8
+        },
         "full_source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
-        "generated_at": "2026-06-29T18:35:37.277565+00:00",
+        "generated_at": "2026-06-29T19:23:40.272024+00:00",
         "helper_source_paths": [
           "data/processed/formalllm_public_tla_modules_v1.jsonl",
           "data/processed/tlapm_public_tla_modules_v1.jsonl"
         ],
         "helper_source_rows": 515,
-        "jsonl_sha256": "cdce9182aa3bea1bfd136e288f110c2fb01d6c57573781d1567e71957e690dcb",
-        "kept_rows": 18,
-        "measured_conclusion": "The current public seed candidate builder does not yet recover any rows from the remaining repair queue; the residual gap is dominated by unresolved imports after staging, with a smaller post-staging non-import SANY bucket.",
+        "jsonl_sha256": "2dbefcf5754689601e547a7d203379ca994631f721d2e59c7b6750072321b1bb",
+        "kept_rows": 9,
+        "measured_conclusion": "The current public seed candidate builder only partially closes the remaining repair queue: some rows still fail on missing transitive imports after staging, while the dominant residual bucket is now post-staging non-import SANY failures.",
         "out": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl",
         "probe_status_counts": {
-          "post_stage_non_import_error": 18
+          "post_stage_non_import_error": 9
         },
         "repair_queue_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
         "rows_missing_full_source_row": 0,
-        "rows_post_stage_non_import_error": 18,
+        "rows_post_stage_non_import_error": 9,
         "rows_recovered_current_builder": 0,
         "rows_still_missing_imports_after_staging": 0,
         "schema": "chattla_ai4fm_public_seed_prover_recovery_probe_v1",
         "status_by_recommended_action": {
           "stage_cross_repo_seed_helpers": {
-            "post_stage_non_import_error": 4
+            "post_stage_non_import_error": 2
           },
           "stage_same_repo_seed_helpers": {
             "post_stage_non_import_error": 5
           },
           "stage_tlaps_standard_module": {
-            "post_stage_non_import_error": 9
+            "post_stage_non_import_error": 2
           }
         },
+        "top_final_error_details": [
+          {
+            "detail": "Unknown operator: `vars'.",
+            "rows": 3
+          },
+          {
+            "detail": "Unknown operator: `Reduce'.",
+            "rows": 2
+          },
+          {
+            "detail": "Substitution missing for symbol Value declared at line 4, col 10 to line 4, col 14 of module Consensus",
+            "rows": 1
+          },
+          {
+            "detail": "Unknown operator: `SumFunctionOnSet'.",
+            "rows": 1
+          },
+          {
+            "detail": "Unknown operator: `Transpose'.",
+            "rows": 1
+          },
+          {
+            "detail": "Unknown operator: `Max'.",
+            "rows": 1
+          }
+        ],
         "top_final_errors": [
           {
-            "error": "line 66, col 24 to line 66, col 36 of module Consensus",
-            "rows": 2
+            "error": "line 947, col 49 to line 947, col 52 of module VoteProof",
+            "rows": 3
           },
           {
-            "error": "line 309, col 33 to line 309, col 35 of module VoteProof",
-            "rows": 2
-          },
-          {
-            "error": "line 342, col 16 to line 342, col 19 of module Bakery",
-            "rows": 1
-          },
-          {
-            "error": "line 146, col 18 to line 146, col 19 of module BinarySearch",
-            "rows": 1
-          },
-          {
-            "error": "line 138, col 42 to line 138, col 45 of module Quicksort",
-            "rows": 1
-          },
-          {
-            "error": "line 149, col 14 to line 149, col 15 of module Simple",
-            "rows": 1
-          },
-          {
-            "error": "line 170, col 18 to line 170, col 19 of module SimpleRegular",
-            "rows": 1
-          },
-          {
-            "error": "line 319, col 12 to line 319, col 13 of module VoteProof",
+            "error": "line 543, col 1 to line 543, col 48 of module Paxos",
             "rows": 1
           },
           {
@@ -819,16 +838,20 @@
           {
             "error": "line 133, col 6 to line 133, col 11 of module EWD998",
             "rows": 1
+          },
+          {
+            "error": "line 15, col 8 to line 15, col 13 of module EWD998Chan",
+            "rows": 1
           }
         ],
         "top_repos": [
           {
             "repo": "tlaplus/Examples",
-            "rows": 14
+            "rows": 6
           },
           {
             "repo": "tlaplus/tlaplus",
-            "rows": 3
+            "rows": 2
           },
           {
             "repo": "tlaplus/DrTLAPlus",
@@ -840,39 +863,39 @@
       "summary_path": "data/processed/ai4fm_public_seed_prover_recovery_probe_v1.summary.json"
     },
     "ai4fm_public_seed_prover_repair_queue_v1": {
-      "bytes": 34289,
+      "bytes": 16798,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_repair_queue",
       "path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
-      "rows": 18,
-      "sha256": "b7dc001571354716f57c7da0735f395da7f16e6c752bc399b813f081bc329c55",
+      "rows": 9,
+      "sha256": "7203619671fcd916f73503805140621ef5975e5d23f277f79025b9ca092d8e1d",
       "summary": {
         "blocked_on_missing_public_dependency_rows": 0,
-        "generated_at": "2026-06-29T18:35:27.207828+00:00",
+        "generated_at": "2026-06-29T19:23:29.515766+00:00",
         "helper_source_paths": [
           "data/processed/formalllm_public_tla_modules_v1.jsonl",
           "data/processed/tlapm_public_tla_modules_v1.jsonl"
         ],
         "helper_source_rows": 515,
-        "jsonl_sha256": "b7dc001571354716f57c7da0735f395da7f16e6c752bc399b813f081bc329c55",
-        "kept_rows": 18,
+        "jsonl_sha256": "7203619671fcd916f73503805140621ef5975e5d23f277f79025b9ca092d8e1d",
+        "kept_rows": 9,
         "missing_import_availability_counts": {
-          "cross_repo_seed_module": 4,
+          "cross_repo_seed_module": 2,
           "same_repo_seed_module": 5,
-          "tlaps_standard_module": 9
+          "tlaps_standard_module": 2
         },
         "out": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl",
         "priority_counts": {
-          "p1": 9,
+          "p1": 2,
           "p2": 5,
-          "p3": 4
+          "p3": 2
         },
         "recommended_action_counts": {
-          "stage_cross_repo_seed_helpers": 4,
+          "stage_cross_repo_seed_helpers": 2,
           "stage_same_repo_seed_helpers": 5,
-          "stage_tlaps_standard_module": 9
+          "stage_tlaps_standard_module": 2
         },
-        "recoverable_without_new_source_rows": 18,
+        "recoverable_without_new_source_rows": 9,
         "schema": "chattla_ai4fm_public_seed_prover_repair_queue_v1",
         "seed_modules_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
         "source_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
@@ -881,7 +904,7 @@
             "note": "Highest-leverage rows: missing only the standard TLAPS helper module.",
             "priority": "p1",
             "recommended_action": "stage_tlaps_standard_module",
-            "rows": 9
+            "rows": 2
           },
           {
             "note": "Rows recoverable by staging helper modules already present in the same public repo.",
@@ -893,7 +916,7 @@
             "note": "Rows recoverable by staging helper modules already visible elsewhere in the public seed surface.",
             "priority": "p3",
             "recommended_action": "stage_cross_repo_seed_helpers",
-            "rows": 4
+            "rows": 2
           },
           {
             "note": "Rows still blocked because at least one required helper module is missing from the current public seed surface.",
@@ -905,14 +928,10 @@
         "top_missing_modules": [
           {
             "module": "TLAPS",
-            "rows": 9
-          },
-          {
-            "module": "Utils",
             "rows": 2
           },
           {
-            "module": "FiniteSetTheorems",
+            "module": "Utils",
             "rows": 2
           },
           {
@@ -928,7 +947,7 @@
             "rows": 1
           },
           {
-            "module": "SequenceTheorems",
+            "module": "FiniteSetTheorems",
             "rows": 1
           },
           {
@@ -939,11 +958,11 @@
         "top_repos": [
           {
             "repo": "tlaplus/Examples",
-            "rows": 14
+            "rows": 6
           },
           {
             "repo": "tlaplus/tlaplus",
-            "rows": 3
+            "rows": 2
           },
           {
             "repo": "tlaplus/DrTLAPlus",
@@ -954,26 +973,26 @@
       "summary_path": "data/processed/ai4fm_public_seed_prover_repair_queue_v1.summary.json"
     },
     "ai4fm_public_seed_prover_repair_surface": {
-      "bytes": 11512,
+      "bytes": 9049,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_prover_repair_surface_report",
       "path": "outputs/manifests/ai4fm_public_seed_prover_repair_surface.json",
       "rows": null,
-      "sha256": "6f595d8c2e0ccf1ed44467e808b22a6e4c73ba01c9f5a59c5e1c612d2a64a87e"
+      "sha256": "6ea16b22ce7423864d12c44d296960feadd0b45d52daf291024552010100813c"
     },
     "ai4fm_public_seed_prover_shape_ready_not_sany_v1": {
-      "bytes": 516621,
+      "bytes": 359994,
       "exists": true,
       "kind": "public_ai4fm_seed_repo_autoprover_shape_repair_target_corpus",
       "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
-      "rows": 18,
-      "sha256": "ca9fe2c3dccff2fc33878de548f873ba7bc3fd897aed6cbe93c0d7e7f7d9841f",
+      "rows": 9,
+      "sha256": "497034502aacfb21df1cf98383c10386852d67e48b33f080fa53d78fe89607a0",
       "summary": {
         "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "excluded_sany_clean_rows": 150,
-        "generated_at": "2026-06-29T18:35:02.932224+00:00",
-        "jsonl_sha256": "ca9fe2c3dccff2fc33878de548f873ba7bc3fd897aed6cbe93c0d7e7f7d9841f",
-        "kept_rows": 18,
+        "excluded_sany_clean_rows": 159,
+        "generated_at": "2026-06-29T19:23:05.836330+00:00",
+        "jsonl_sha256": "497034502aacfb21df1cf98383c10386852d67e48b33f080fa53d78fe89607a0",
+        "kept_rows": 9,
         "out": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl",
         "schema": "chattla_ai4fm_public_seed_prover_shape_ready_not_sany_v1",
         "shape_ready_source_rows": 168,
@@ -982,18 +1001,18 @@
         "top_repos": [
           {
             "repo": "tlaplus/Examples",
-            "rows": 14
+            "rows": 6
           },
           {
             "repo": "tlaplus/tlaplus",
-            "rows": 3
+            "rows": 2
           },
           {
             "repo": "tlaplus/DrTLAPlus",
             "rows": 1
           }
         ],
-        "unique_modules": 16
+        "unique_modules": 9
       },
       "summary_path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
     },
@@ -1006,7 +1025,7 @@
       "sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
       "summary": {
         "candidate_source_path": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "generated_at": "2026-06-29T18:35:02.929678+00:00",
+        "generated_at": "2026-06-29T19:23:05.834405+00:00",
         "jsonl_sha256": "56c2be0f0e0e53fbcb3a31e687aa1e2aa682e52dd1a74c4004c6c4eaa64777bb",
         "kept_rows": 168,
         "out": "data/processed/ai4fm_public_seed_prover_shape_ready_v1.jsonl",
@@ -1932,28 +1951,28 @@
       "summary_path": "data/processed/benchmark_repair_pairs_fc128best.summary.json"
     },
     "chattla_tla_prover_sft_public_all_v1": {
-      "bytes": 13906451,
+      "bytes": 14062874,
       "exists": true,
       "kind": "full_public_ai4fm_expanded_prover_sft_dataset",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-      "rows": 2490,
-      "sha256": "7631a627f62825b99ff6bfd0f715a410b914d8492294ec9264d00ea540437668",
+      "rows": 2499,
+      "sha256": "9dfbeeec60e2a85d11f2d16602621fef28666f51183967b667ba5ded0e4a491a",
       "summary": {
         "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "formalllm": "data/processed/formalllm_eval_v1.jsonl",
         "formalllm_rows": 205,
-        "generated_at": "2026-06-29T18:35:37.650151+00:00",
-        "jsonl_sha256": "7631a627f62825b99ff6bfd0f715a410b914d8492294ec9264d00ea540437668",
+        "generated_at": "2026-06-29T19:23:40.718412+00:00",
+        "jsonl_sha256": "9dfbeeec60e2a85d11f2d16602621fef28666f51183967b667ba5ded0e4a491a",
         "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
         "public_import": "data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl",
         "public_import_rows": 1010,
         "public_import_weight": 1,
         "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "public_seed_candidates_rows": 150,
+        "public_seed_candidates_rows": 159,
         "public_seed_candidates_weight": 1,
         "seed": 20260627,
-        "total_rows": 2490,
+        "total_rows": 2499,
         "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
@@ -1961,28 +1980,28 @@
       "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json"
     },
     "chattla_tla_prover_sft_public_expanded_v1": {
-      "bytes": 13864660,
+      "bytes": 14021083,
       "exists": true,
       "kind": "public_ai4fm_expanded_prover_sft_dataset",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-      "rows": 2485,
-      "sha256": "5a98b448d4db524c224664aeff2eff71d548aae2695ea7db0bf7d703068fc365",
+      "rows": 2494,
+      "sha256": "f6751edd9177a32d102bb7a153af0791af146a0ae734beb2f2d135e4d7d8d3db",
       "summary": {
         "base": "data/processed/diamond_sft_v3.jsonl",
         "base_rows": 1053,
         "formalllm": "data/processed/formalllm_eval_v1.jsonl",
         "formalllm_rows": 205,
-        "generated_at": "2026-06-29T18:35:37.470226+00:00",
-        "jsonl_sha256": "5a98b448d4db524c224664aeff2eff71d548aae2695ea7db0bf7d703068fc365",
+        "generated_at": "2026-06-29T19:23:40.498805+00:00",
+        "jsonl_sha256": "f6751edd9177a32d102bb7a153af0791af146a0ae734beb2f2d135e4d7d8d3db",
         "out": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
         "public_import": "data/processed/ai4fm_public_tlaprove_import_v1.jsonl",
         "public_import_rows": 1005,
         "public_import_weight": 1,
         "public_seed_candidates": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
-        "public_seed_candidates_rows": 150,
+        "public_seed_candidates_rows": 159,
         "public_seed_candidates_weight": 1,
         "seed": 20260627,
-        "total_rows": 2485,
+        "total_rows": 2494,
         "verified_tlaps": "data/processed/tla_prover/verified_tlaps_sft_seed.jsonl",
         "verified_tlaps_rows": 18,
         "verified_tlaps_weight": 4
@@ -2642,12 +2661,12 @@
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_experiment_matrix": {
-      "bytes": 5502,
+      "bytes": 5497,
       "exists": true,
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "74673f522536b51c30b6ec1e7138f14cf9c95618251f5e2b5aca17182b66de55"
+      "sha256": "18d666a579821653351f442500786075c7bf53a597083933084d4506712219ee"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7143,
@@ -2675,7 +2694,7 @@
               "missing_rows": 0,
               "ok": true,
               "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
-              "rows": 2479
+              "rows": 2494
             },
             {
               "extra_occurrences_over_formalllm_rows": 0,
@@ -2685,7 +2704,7 @@
               "missing_rows": 0,
               "ok": true,
               "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
-              "rows": 2484
+              "rows": 2499
             }
           ],
           "formalllm_path": "data/processed/formalllm_eval_v1.jsonl",
@@ -2694,7 +2713,7 @@
         }
       },
       "rows": null,
-      "sha256": "2cd38d54c1d304dee2bc498ce7d189152c9b1e5cb5ae08c0cd997ff608f3951b"
+      "sha256": "9604e00e37fbbdae78e76d5352e79b24d1025552284d322695eebff89be150cb"
     },
     "tla_prover_full_dataset_failure_analysis": {
       "bytes": 20913,
@@ -2800,7 +2819,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T18:41:47.955407+00:00",
+  "generated_at": "2026-06-29T19:23:41.465283+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

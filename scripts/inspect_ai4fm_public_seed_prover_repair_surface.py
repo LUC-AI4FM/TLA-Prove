@@ -161,10 +161,13 @@ def build_report(
             )
             staged_modules = list(staged_info.get("staged_modules", []))
             staged_unresolved = list(staged_info.get("unresolved_missing_imports", []))
+            final_missing_imports = list(staged_info.get("final_missing_imports", []))
             final_errors = [str(item) for item in getattr(result, "errors", [])]
             final_raw_output = str(getattr(result, "raw_output", ""))
             first_error = _first_meaningful_error(final_errors, final_raw_output)
-            if staged_unresolved:
+            if final_missing_imports:
+                missing = list(final_missing_imports)
+            elif staged_unresolved:
                 missing = list(staged_unresolved)
         availabilities = [_availability(name, row_repo=repo, module_to_repos=module_to_repos) for name in missing]
         category = _category(first_error, missing)

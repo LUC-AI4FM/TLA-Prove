@@ -1,13 +1,22 @@
 {
   "dependency_staging": {
     "attempted_rows": 840,
-    "recovered_rows": 52,
+    "recovered_rows": 61,
     "sample_recovered": [
       {
         "module": "AddTwo",
         "reason": "dependency_staging_recovered",
         "repo": "tlaplus/Examples",
         "source_path": "specifications/LearnProofs/AddTwo.tla",
+        "staged_modules": [
+          "TLAPS"
+        ]
+      },
+      {
+        "module": "Bakery",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/Bakery-Boulangerie/Bakery.tla",
         "staged_modules": [
           "TLAPS"
         ]
@@ -35,6 +44,15 @@
         "staged_modules": [
           "Folds",
           "Functions"
+        ]
+      },
+      {
+        "module": "BinarySearch",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/LoopInvariance/BinarySearch.tla",
+        "staged_modules": [
+          "TLAPS"
         ]
       },
       {
@@ -75,6 +93,34 @@
         "module": "Consensus",
         "reason": "dependency_staging_recovered",
         "repo": "tlaplus/Examples",
+        "source_path": "specifications/byzpaxos/Consensus.tla",
+        "staged_modules": [
+          "FiniteSetTheorems",
+          "Folds",
+          "Functions",
+          "NaturalsInduction",
+          "TLAPS",
+          "WellFoundedInduction"
+        ]
+      },
+      {
+        "module": "Consensus",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
+        "source_path": "specifications/Paxos/Consensus.tla",
+        "staged_modules": [
+          "FiniteSetTheorems",
+          "Folds",
+          "Functions",
+          "NaturalsInduction",
+          "TLAPS",
+          "WellFoundedInduction"
+        ]
+      },
+      {
+        "module": "Consensus",
+        "reason": "dependency_staging_recovered",
+        "repo": "tlaplus/Examples",
         "source_path": "specifications/PaxosHowToWinATuringAward/Consensus.tla",
         "staged_modules": [
           "FiniteSetTheorems",
@@ -93,55 +139,13 @@
         "staged_modules": [
           "TLAPS"
         ]
-      },
-      {
-        "module": "DieHardTLA",
-        "reason": "dependency_staging_recovered",
-        "repo": "tlaplus/tlaplus",
-        "source_path": "tlatools/org.lamport.tlatools/test-model/DieHardTLA.tla",
-        "staged_modules": [
-          "_Possible"
-        ]
-      },
-      {
-        "module": "DistributedReplicatedLog",
-        "reason": "dependency_staging_recovered",
-        "repo": "tlaplus/Examples",
-        "source_path": "specifications/FiniteMonotonic/DistributedReplicatedLog.tla",
-        "staged_modules": [
-          "FiniteSetsExt",
-          "Folds",
-          "Functions",
-          "SequencesExt"
-        ]
-      },
-      {
-        "module": "DistributedReplicatedLog",
-        "reason": "dependency_staging_recovered",
-        "repo": "tlaplus/tlaplus",
-        "source_path": "tlatools/org.lamport.tlatools/test-model/examples/FiniteMonotonic/DistributedReplicatedLog.tla",
-        "staged_modules": [
-          "FiniteSetsExt",
-          "Folds",
-          "Functions",
-          "SequencesExt"
-        ]
-      },
-      {
-        "module": "Echo",
-        "reason": "dependency_staging_recovered",
-        "repo": "tlaplus/Examples",
-        "source_path": "specifications/echo/Echo.tla",
-        "staged_modules": [
-          "Relation"
-        ]
       }
     ]
   },
   "duplicate_modules": {
     "AsyncTerminationDetection": 2,
     "BufferedRandomAccessFile": 3,
-    "Consensus": 2,
+    "Consensus": 4,
     "DieHard": 2,
     "DistributedReplicatedLog": 2,
     "EWD840": 8,
@@ -173,14 +177,14 @@
     "spanning": 2,
     "test211": 3
   },
-  "generated_at": "2026-06-29T18:30:45.977961+00:00",
+  "generated_at": "2026-06-29T19:16:43.239201+00:00",
   "helper_source_paths": [
     "data/processed/formalllm_public_tla_modules_v1.jsonl",
     "data/processed/tlapm_public_tla_modules_v1.jsonl"
   ],
   "helper_source_rows": 515,
-  "jsonl_sha256": "cda2c1c34782cb58278b63ad5b049b78ae2c64bd95d4107e5857591d7109965b",
-  "kept_rows": 150,
+  "jsonl_sha256": "cfa94e3a1aa14280cbd207bf4c87b94a3e64c16795f867070c2fb4fccde68b71",
+  "kept_rows": 159,
   "out": "data/processed/ai4fm_public_seed_prover_candidates_v1.jsonl",
   "rows_considered": 2108,
   "sample_not_autoprover_candidate": [
@@ -322,50 +326,48 @@
       "source_path": "toolbox/org.lamport.tla.toolbox.uitest/farsite/AdditionalMathOperators.tla"
     },
     {
-      "detail": "Cannot find source file for module Folds imported in module Functions.",
-      "module": "AllocatorImplementation_proof",
-      "reason": "sany_invalid",
-      "repo": "tlaplus/Examples",
-      "source_path": "specifications/allocator/AllocatorImplementation_proof.tla",
-      "staged_modules": [
-        "AllocatorImplementation",
-        "FiniteSetTheorems",
-        "Functions",
-        "NaturalsInduction",
-        "SchedulingAllocator",
-        "SequenceTheorems",
-        "TLAPS",
-        "WellFoundedInduction"
-      ],
-      "unresolved_missing_imports": []
-    },
-    {
-      "detail": "Cannot find source file for module CSVTests imported in module AllTests.",
+      "detail": "Cannot find source file for module GraphVizTests imported in module AllTests.",
       "module": "AllTests",
       "reason": "sany_invalid",
       "repo": "tlaplus/CommunityModules",
       "source_path": "tests/AllTests.tla",
       "staged_modules": [
+        "BagsExtTests",
         "BitwiseTests",
+        "CSVTests",
+        "CombinatoricsTests",
+        "DyadicRationalsTests",
         "FiniteSetsExtTests",
+        "FoldsTests",
         "FunctionsTests",
+        "GraphsTests",
         "IOUtilsTests",
         "JsonTests",
         "RelationTests",
         "SVGTests",
-        "SequencesExtTests"
+        "SequencesExtTests",
+        "StatisticsTests",
+        "VectorClocksTests"
       ],
       "unresolved_missing_imports": []
     },
     {
-      "detail": "Cannot find source file for module FiniteSetsExtTests imported in module AllTests.",
+      "detail": "Cannot find source file for module StatisticsTests imported in module AllTests.",
       "module": "AllTestsUnix",
       "reason": "sany_invalid",
       "repo": "tlaplus/CommunityModules",
       "source_path": "tests/AllTestsUnix.tla",
       "staged_modules": [
         "AllTests",
+        "BagsExtTests",
         "BitwiseTests",
+        "CSVTests",
+        "CombinatoricsTests",
+        "DyadicRationalsTests",
+        "FiniteSetsExtTests",
+        "FoldsTests",
+        "FunctionsTests",
+        "GraphsTests",
         "IOUtilsTests",
         "IOUtilsUnixTests",
         "JsonTests",
@@ -459,12 +461,23 @@
         "Stubs"
       ],
       "unresolved_missing_imports": []
+    },
+    {
+      "detail": "*** Warnings: 3",
+      "module": "APReadersWriters",
+      "reason": "sany_invalid",
+      "repo": "tlaplus/Examples",
+      "source_path": "specifications/ReadersWriters/APReadersWriters.tla",
+      "staged_modules": [
+        "ReadersWriters"
+      ],
+      "unresolved_missing_imports": []
     }
   ],
   "schema": "chattla_ai4fm_public_seed_prover_candidates_v1",
   "skipped": {
-    "not_autoprover_candidate": 1629,
-    "sany_invalid": 329
+    "not_autoprover_candidate": 1675,
+    "sany_invalid": 274
   },
   "source_path": "data/processed/ai4fm_public_seed_tla_modules_v1.jsonl",
   "source_rows": 2108,

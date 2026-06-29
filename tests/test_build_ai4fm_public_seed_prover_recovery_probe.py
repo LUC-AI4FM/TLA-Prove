@@ -110,14 +110,14 @@ def test_build_probe_measures_current_builder_outcomes(tmp_path: Path) -> None:
         workers=1,
     )
 
-    assert [row["probe_status"] for row in rows] == [
-        "post_stage_non_import_error",
-        "still_missing_imports_after_staging",
-        "still_missing_imports_after_staging",
-    ]
-    assert rows[0]["staged_modules"] == ["TLAPS"]
-    assert rows[1]["staged_modules"] == ["SharedHelper"]
-    assert rows[1]["unresolved_missing_imports"] == ["AnotherHelper"]
+    rows_by_module = {row["module"]: row for row in rows}
+    assert rows_by_module["SpecA"]["probe_status"] == "post_stage_non_import_error"
+    assert rows_by_module["SpecB"]["probe_status"] == "still_missing_imports_after_staging"
+    assert rows_by_module["SpecC"]["probe_status"] == "still_missing_imports_after_staging"
+    assert rows_by_module["SpecA"]["staged_modules"] == ["TLAPS"]
+    assert rows_by_module["SpecB"]["staged_modules"] == ["SharedHelper"]
+    assert rows_by_module["SpecB"]["unresolved_missing_imports"] == ["AnotherHelper"]
+    assert rows_by_module["SpecA"]["final_error_family"] == "other_post_stage_sany_error"
     assert summary["rows_recovered_current_builder"] == 0
     assert summary["probe_status_counts"] == {
         "post_stage_non_import_error": 1,
@@ -125,6 +125,78 @@ def test_build_probe_measures_current_builder_outcomes(tmp_path: Path) -> None:
     }
     assert summary["status_by_recommended_action"]["stage_tlaps_standard_module"]["post_stage_non_import_error"] == 1
     assert summary["top_unresolved_missing_modules"][0]["module"] in {"AnotherHelper", "MissingHelper"}
+
+
+def test_build_probe_tracks_final_missing_imports_after_staging(tmp_path: Path) -> None:
+    repair_queue = tmp_path / "repair_queue.jsonl"
+    full_source = tmp_path / "full_source.jsonl"
+    helper_source = tmp_path / "helper.jsonl"
+    _write_jsonl(
+        repair_queue,
+        [
+            {
+                "repo": "org/repo-a",
+                "module": "SpecA",
+                "source_path": "SpecA.tla",
+                "content_sha256": "aaa",
+                "repair_priority": "p1",
+                "recommended_action": "stage_tlaps_standard_module",
+            }
+        ],
+    )
+    _write_jsonl(
+        full_source,
+        [
+            {
+                "repo": "org/repo-a",
+                "module": "SpecA",
+                "source_path": "SpecA.tla",
+                "content_sha256": "aaa",
+                "content": "---- MODULE SpecA ----\n====\n",
+            }
+        ],
+    )
+    _write_jsonl(
+        helper_source,
+        [
+            {
+                "repo": "tlaplus/tlapm",
+                "module": "TLAPS",
+                "source_path": "library/TLAPS.tla",
+                "content_sha256": "tlaps",
+                "content": "---- MODULE TLAPS ----\n====\n",
+            }
+        ],
+    )
+
+    def fake_validate_module(_content: str, *, module_name: str):
+        assert module_name == "SpecA"
+        return _Sany(
+            False,
+            ["Cannot find source file for module TLAPS imported in module SpecA."],
+            "Cannot find source file for module TLAPS imported in module SpecA.\n",
+        )
+
+    def fake_validate_file(_path: Path):
+        return _Sany(
+            False,
+            ["Cannot find source file for module Followup imported in module SpecA."],
+            "Cannot find source file for module Followup imported in module SpecA.\n",
+        )
+
+    rows, summary = build_probe(
+        repair_queue=repair_queue,
+        full_source=full_source,
+        helper_source_paths=[helper_source],
+        validate_module=fake_validate_module,
+        validate_file=fake_validate_file,
+        workers=1,
+    )
+
+    assert rows[0]["probe_status"] == "still_missing_imports_after_staging"
+    assert rows[0]["final_missing_imports"] == ["Followup"]
+    assert rows[0]["final_error_family"] == "missing_import_after_staging"
+    assert summary["rows_still_missing_imports_after_staging"] == 1
 
 
 def test_cli_writes_recovery_probe(tmp_path: Path) -> None:

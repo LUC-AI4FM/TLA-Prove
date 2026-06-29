@@ -26,7 +26,10 @@ from src.validators.sany_validator import validate_string as validate_sany_strin
 DEFAULT_SOURCE = REPO / "data" / "processed" / "ai4fm_public_seed_tla_modules_v1.jsonl"
 DEFAULT_OUT = REPO / "data" / "processed" / "ai4fm_public_seed_prover_candidates_v1.jsonl"
 MAX_SUMMARY_SAMPLES = 12
-MAX_IMPORT_STAGING_ROUNDS = 8
+# Real public proof modules can require long helper chains before SANY reaches the
+# first non-import error. Keep this bounded, but high enough to cover the current
+# public seed surface without silently truncating recoverable rows.
+MAX_IMPORT_STAGING_ROUNDS = 16
 MISSING_IMPORT_RE = re.compile(r"Cannot find source file for module ([A-Za-z0-9_]+) imported in module ([A-Za-z0-9_]+)\.")
 TLAPS_STUB = """---- MODULE TLAPS ----
 PTL == TRUE
@@ -142,21 +145,25 @@ def _resolve_import(
     by_module: dict[str, list[dict[str, Any]]],
 ) -> str | None:
     if module == "TLAPS":
-        return TLAPS_STUB
+        tlapm_standard = by_repo_module.get(("tlaplus/tlapm", "TLAPS"))
+        if tlapm_standard is not None:
+            content = tlapm_standard.get("content")
+            if isinstance(content, str):
+                return content
     same_repo = by_repo_module.get((row_repo, module))
     if same_repo is not None:
         content = same_repo.get("content")
         return str(content) if isinstance(content, str) else None
     candidates = by_module.get(module, [])
     if not candidates:
-        return None
+        return TLAPS_STUB if module == "TLAPS" else None
     ranked = sorted(
         (row for row in candidates if isinstance(row.get("content"), str)),
         key=lambda row: _candidate_rank(row, row_repo=row_repo, row_source_path=row_source_path),
         reverse=True,
     )
     if not ranked:
-        return None
+        return TLAPS_STUB if module == "TLAPS" else None
     return str(ranked[0].get("content"))
 
 
@@ -220,12 +227,15 @@ def _validate_with_staged_imports(
             "recovered": False,
             "staged_modules": [],
             "unresolved_missing_imports": sorted(set(initial_missing_imports)),
+            "final_missing_imports": sorted(set(initial_missing_imports)),
         }
+    final_missing_imports = _missing_imports(str(getattr(last_result, "raw_output", "")))
     return last_result, {
         "attempted": attempted,
         "recovered": False,
         "staged_modules": sorted(name for name in staged_modules if name != module),
         "unresolved_missing_imports": sorted(set(unresolved)),
+        "final_missing_imports": final_missing_imports,
     }
 
 
