@@ -1662,7 +1662,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-29T13:29:36.259231+00:00",
+        "generated_at": "2026-06-29T13:37:27.558524+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -1702,7 +1702,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "7b870765c2a460f8a9aa104120556f04e4fde9aa7016d4c48411d993b2bfc552"
+      "sha256": "aaf550e2cf13e7957034b34c7815093678d3cd38dd556223cf687c57ff26d603"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -1712,7 +1712,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-29T13:29:36.322331+00:00",
+        "generated_at": "2026-06-29T13:37:27.619197+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -1953,7 +1953,7 @@
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "46908e52fdb363cfca8217945f003d7f5a7ce232c0c15f651a594a0e34866928"
+      "sha256": "61c677229026bc50870d2daa56f1f3764f9cc44793d02ead1451f2f5e0624590"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7142,
@@ -2000,7 +2000,39 @@
         }
       },
       "rows": null,
-      "sha256": "a693471c1b224148e10514fa72428767d113ebcb2013ff27f790bbc0da311eb2"
+      "sha256": "9f7237d29142065a7a9cadc5042752ea8920aafa7b0a5aaddfb4a7b8d54ac567"
+    },
+    "tla_prover_repair_train_v1": {
+      "bytes": 103885,
+      "exists": true,
+      "kind": "merged_tla_prover_repair_training_corpus",
+      "path": "data/processed/tla_prover_repair_train_v1.jsonl",
+      "rows": 19,
+      "sha256": "a4725822903ac6bbbd949d6853dee61f889959abe2032c0eed7c46ad49a62ef9",
+      "summary": {
+        "difficulty_counts": {
+          "easy": 19,
+          "hard": 0,
+          "medium": 0
+        },
+        "duplicate_repair_ids": [],
+        "kept_rows_by_source": {
+          "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19
+        },
+        "missing_sources": [
+          "data/processed/ralph_repair_pairs.jsonl"
+        ],
+        "rows": 19,
+        "schema": "chattla_tla_prover_repair_train_summary_v1",
+        "source_defaults": {
+          "benchmark_repair_pairs_fc128best": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+          "ralph_repair_pairs": "data/processed/ralph_repair_pairs.jsonl"
+        },
+        "source_rows": {
+          "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19
+        }
+      },
+      "summary_path": "data/processed/tla_prover_repair_train_v1.summary.json"
     },
     "tlaps_verified_autoprover_traces_v1": {
       "bytes": 98180,
@@ -2042,7 +2074,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-29T13:29:36.961887+00:00",
+  "generated_at": "2026-06-29T13:37:28.261194+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -2061,6 +2093,7 @@
     "build_tla_prover_corpus_experiment_matrix": "python3 scripts/build_tla_prover_corpus_experiment_matrix.py",
     "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
     "build_tla_prover_finetune_corpus_public_all": "python3 scripts/build_tla_prover_finetune_corpus.py --public-import data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl --public-import-weight 1 --public-seed-candidates-weight 1 --out data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+    "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
     "collect_direct_results": "scripts/collect_tla_prover_direct_results.sh",
     "collect_remote_results": "scripts/collect_tla_prover_remote_results.sh",
     "diagnose_sany_tlc_pass_corpus": "python3 scripts/diagnose_sany_tlc_pass_corpus.py",

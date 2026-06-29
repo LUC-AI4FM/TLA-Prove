@@ -106,6 +106,11 @@ ARTIFACTS = {
         "summary": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
         "kind": "benchmark_repair_pair_corpus",
     },
+    "tla_prover_repair_train_v1": {
+        "path": "data/processed/tla_prover_repair_train_v1.jsonl",
+        "summary": "data/processed/tla_prover_repair_train_v1.summary.json",
+        "kind": "merged_tla_prover_repair_training_corpus",
+    },
     "ai4fm_public_seed_prover_funnel": {
         "path": "outputs/manifests/ai4fm_public_seed_prover_funnel.json",
         "kind": "public_ai4fm_seed_repo_prover_funnel_report",
@@ -313,6 +318,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "python3 scripts/build_benchmark_repair_pairs.py "
                 "--benchmark-model chattla:20b-fc128best"
             ),
+            "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
             "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",
         },

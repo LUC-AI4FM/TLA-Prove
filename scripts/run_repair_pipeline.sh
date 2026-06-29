@@ -62,6 +62,13 @@ else
     echo "[$(ts)] Phase 1b SKIPPED: no fresh fc128best full benchmark CSV present" | tee -a "$LOG"
 fi
 
+echo "[$(ts)] Phase 1c: Building merged repair-training corpus..." | tee -a "$LOG"
+.venv/bin/python -u scripts/build_tla_prover_repair_corpus.py \
+    2>&1 | tee -a "$LOG" || {
+        echo "[$(ts)] Repair-training corpus build FAILED" | tee -a "$LOG"
+        exit 1
+    }
+
 # ─── Phase 2: Unload Ollama, free VRAM for training ───────────────────────
 echo "[$(ts)] Unloading Ollama models for GRPO training..." | tee -a "$LOG"
 curl -s http://localhost:11434/api/generate -d '{"model":"chattla:20b","keep_alive":0}' > /dev/null 2>&1 || true
@@ -88,7 +95,7 @@ echo "[$(ts)] Phase 3: Repair GRPO training (4 gens, 384 completion, filtered)..
     --min-before-score 0.10 \
     --max-before-score 0.80 \
     --difficulty all \
-    --include-benchmark-repair-pairs \
+    --trajectory-file data/processed/tla_prover_repair_train_v1.jsonl \
     --save-steps 25 \
     2>&1 | tee -a "$LOG" || {
         echo "[$(ts)] Repair GRPO failed at 4x384 — retrying at 2x384" | tee -a "$LOG"
@@ -100,7 +107,7 @@ echo "[$(ts)] Phase 3: Repair GRPO training (4 gens, 384 completion, filtered)..
             --min-before-score 0.10 \
             --max-before-score 0.80 \
             --difficulty all \
-            --include-benchmark-repair-pairs \
+            --trajectory-file data/processed/tla_prover_repair_train_v1.jsonl \
             --save-steps 25 \
             2>&1 | tee -a "$LOG" || {
                 echo "[$(ts)] Repair GRPO FAILED" | tee -a "$LOG"
