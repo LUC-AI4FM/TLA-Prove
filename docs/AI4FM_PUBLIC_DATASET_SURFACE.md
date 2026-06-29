@@ -174,6 +174,11 @@ path:
       import lane
 - the default tracked import lane stays unchanged; this is a non-default audit
   / expansion path
+- there is now a matching non-default prover-corpus build on top of that wider
+  normalized import:
+  - `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl`
+  - `2438` total rows (`1330` baseline prover stack + `1010` full-public
+    normalized import + `98` seed prover-candidate replays)
 
 That gives us a clean two-lane setup:
 
