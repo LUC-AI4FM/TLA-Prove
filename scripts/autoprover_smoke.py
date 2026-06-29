@@ -962,10 +962,14 @@ def _ensure_extends_tlaps(src: str) -> str:
 
 
 def _inject_typeok_theorem(src: str, proof: str) -> str:
+    return _inject_safety_theorem(src, theorem_name="ChatTLA_TypeOKSafety", invariant_name="TypeOK", proof=proof)
+
+
+def _inject_safety_theorem(src: str, *, theorem_name: str, invariant_name: str, proof: str) -> str:
     src = _ensure_extends_tlaps(src)
     block = (
         "\n"
-        "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\n"
+        f"THEOREM {theorem_name} == Spec => []{invariant_name}\n"
         "PROOF\n"
         f"{proof.rstrip()}\n"
     )
@@ -990,6 +994,27 @@ def _should_retry_inductive_timeout(src: str, error: str | None) -> bool:
     if not error or not error.startswith("TLC timed out after"):
         return False
     return len(_declared_variables(src)) <= 2
+
+
+def _post_spec_zero_arity_invariants(src: str) -> list[str]:
+    matches = list(
+        re.finditer(r"^\s*([A-Za-z_]\w*)(?:\([^)]*\))?\s*==", src, re.MULTILINE)
+    )
+    names: list[str] = []
+    seen_spec = False
+    excluded = {"Init", "Next", "Spec", "TypeOK", "vars"}
+    for match in matches:
+        name = match.group(1)
+        line = match.group(0)
+        has_args = "(" in line
+        if name == "Spec":
+            seen_spec = True
+            continue
+        if not seen_spec or has_args or name in excluded:
+            continue
+        if name not in names:
+            names.append(name)
+    return names
 
 
 def progress_summary(
@@ -1037,6 +1062,7 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
         "module_path": rel,
         "module": module,
         "target": "Spec => []TypeOK",
+        "invariant_name": "TypeOK",
         "status": "started",
     }
     if not module:
@@ -1059,30 +1085,53 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
         row.update(status="skipped", reason=enum_issue)
         return row
 
-    ind = check_inductive(src, "TypeOK", timeout=tlc_timeout)
-    if _should_retry_inductive_timeout(src, ind.error):
-        retry_timeout = max(tlc_timeout * 6, 120)
-        ind = check_inductive(src, "TypeOK", timeout=retry_timeout)
-    row["tlc_inductive"] = ind.inductive
-    row["tlc_error"] = ind.error
-    row["cti_preview"] = (ind.cti or "")[:600]
+    primary = check_inductive(src, "TypeOK", timeout=tlc_timeout)
+    chosen_name = "TypeOK"
+    chosen = primary
+    if primary.error or not primary.inductive:
+        for candidate in _post_spec_zero_arity_invariants(src):
+            attempted = check_inductive(src, candidate, timeout=tlc_timeout)
+            if attempted.error or not attempted.inductive:
+                continue
+            chosen_name = candidate
+            chosen = attempted
+            row["target"] = f"Spec => []{candidate}"
+            row["invariant_name"] = candidate
+            break
+        if chosen_name == "TypeOK" and _should_retry_inductive_timeout(src, primary.error):
+            retry_timeout = max(tlc_timeout * 6, 120)
+            chosen = check_inductive(src, "TypeOK", timeout=retry_timeout)
 
-    if ind.error:
+    row["tlc_inductive"] = chosen.inductive
+    row["tlc_error"] = chosen.error
+    row["cti_preview"] = (chosen.cti or "")[:600]
+    if chosen_name != "TypeOK":
+        row["typeok_tlc_inductive"] = primary.inductive
+        row["typeok_tlc_error"] = primary.error
+        row["typeok_cti_preview"] = (primary.cti or "")[:600]
+
+    if chosen.error:
         row.update(status="tlc_error", runtime_seconds=round(time.time() - started, 3))
         return row
-    if not ind.inductive:
+    if not chosen.inductive:
         row.update(status="not_inductive", runtime_seconds=round(time.time() - started, 3))
         return row
 
     proof = safety_proof_skeleton(
         SafetySkeletonSpec(
-            invariant_name="TypeOK",
+            invariant_name=chosen_name,
             next_action_names=["Next"],
             property_name=None,
             vars_name="vars",
         )
     )
-    proof_module = _inject_typeok_theorem(src, proof)
+    theorem_name = "ChatTLA_TypeOKSafety" if chosen_name == "TypeOK" else f"ChatTLA_{chosen_name}Safety"
+    proof_module = _inject_safety_theorem(
+        src,
+        theorem_name=theorem_name,
+        invariant_name=chosen_name,
+        proof=proof,
+    )
     row["skeleton_chars"] = len(proof)
     row["proof_module_chars"] = len(proof_module)
 
