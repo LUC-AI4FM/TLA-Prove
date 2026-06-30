@@ -596,6 +596,39 @@ def test_build_report_flags_stale_formalllm_preflight_count(tmp_path: Path) -> N
     )
 
 
+def test_build_report_flags_stale_formalllm_canonical_clean_count(tmp_path: Path) -> None:
+    _write_manifests(tmp_path)
+    _write(tmp_path / "README.md", "")
+    _write(tmp_path / "docs/AI4FM_PUBLIC_DATASET_SURFACE.md", "")
+    _write(tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md", "")
+    _write(
+        tmp_path / "data/processed/formalllm_public_module_manifest_v1.summary.json",
+        json.dumps(
+            {
+                "kept_rows": 666,
+                "repo_tla_files": 503,
+                "repo_cfg_files": 163,
+                "canonical_tree_tla_files": 410,
+                "canonical_clean_tla_files": 204,
+            }
+        ),
+    )
+    _write_bundle_copy(
+        tmp_path,
+        "formalllm_public_module_manifest_v1.summary.json",
+        "data/processed/formalllm_public_module_manifest_v1.summary.json",
+    )
+
+    report = build_report(repo=tmp_path)
+
+    assert report["ok"] is False
+    assert any(
+        finding["path"] == "data/processed/formalllm_public_module_manifest_v1.summary.json"
+        and "canonical_clean_tla_files == 205" in finding["expected"]
+        for finding in report["findings"]
+    )
+
+
 def test_build_report_flags_stale_public_corpus_doc_counts(tmp_path: Path) -> None:
     _write_manifests(tmp_path)
     _write(tmp_path / "README.md", "")

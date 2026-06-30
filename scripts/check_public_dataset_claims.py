@@ -198,8 +198,14 @@ def _formalllm_surface_consistency_findings(repo: Path) -> list[dict[str, str]]:
     dataset_surface_path = repo / "outputs/manifests/ai4fm_public_dataset_surface.json"
     preflight_path = repo / "outputs/manifests/tla_prover_corpus_preflight.json"
     formalllm_summary_path = repo / "data/processed/formalllm_eval_v1.summary.json"
+    formalllm_public_manifest_path = repo / "data/processed/formalllm_public_module_manifest_v1.summary.json"
 
-    if not dataset_surface_path.exists() or not preflight_path.exists() or not formalllm_summary_path.exists():
+    if (
+        not dataset_surface_path.exists()
+        or not preflight_path.exists()
+        or not formalllm_summary_path.exists()
+        or not formalllm_public_manifest_path.exists()
+    ):
         return findings
 
     dataset_surface = _read_json(dataset_surface_path)
@@ -210,6 +216,9 @@ def _formalllm_surface_consistency_findings(repo: Path) -> list[dict[str, str]]:
     expected_rows = int(_read_json(formalllm_summary_path).get("rows", 0))
     preflight_rows = int(
         _read_json(preflight_path).get("formalllm_coverage", {}).get("formalllm_rows", 0)
+    )
+    public_manifest_rows = int(
+        _read_json(formalllm_public_manifest_path).get("canonical_clean_tla_files", 0)
     )
     split_total = formalllm_surface.get("split_files", {}).get("total")
 
@@ -236,6 +245,14 @@ def _formalllm_surface_consistency_findings(repo: Path) -> list[dict[str, str]]:
             {
                 "path": str(preflight_path.relative_to(repo)),
                 "expected": f"formalllm_coverage.formalllm_rows == {expected_rows}",
+            }
+        )
+
+    if public_manifest_rows != expected_rows:
+        findings.append(
+            {
+                "path": str(formalllm_public_manifest_path.relative_to(repo)),
+                "expected": f"canonical_clean_tla_files == {expected_rows}",
             }
         )
 
