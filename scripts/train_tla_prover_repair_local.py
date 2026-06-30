@@ -56,6 +56,12 @@ def _resolve_python_executable() -> str:
     return "python3"
 
 
+def _all_missing_runtime_errors_are_timeouts(missing: list[dict[str, Any]]) -> bool:
+    if not missing:
+        return False
+    return all("TimeoutExpired:" in str(entry.get("error") or "") for entry in missing)
+
+
 def _bootstrap_recommendation(
     *,
     repo: Path,
@@ -66,6 +72,16 @@ def _bootstrap_recommendation(
     missing = list(runtime_dependencies.get("missing") or [])
     if not missing:
         return None
+    if _all_missing_runtime_errors_are_timeouts(missing):
+        return {
+            "reason": "selected_python_runtime_import_timeouts",
+            "selected_python": python_executable,
+            "command": None,
+            "message": (
+                "Selected Python timed out while importing required repair-training modules. "
+                "This looks like a native import/runtime blocker; bootstrap alone may not resolve native import/runtime blockers."
+            ),
+        }
     try:
         selected = Path(python_executable).resolve()
     except FileNotFoundError:

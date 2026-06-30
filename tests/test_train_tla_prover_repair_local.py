@@ -402,9 +402,54 @@ def test_compact_plan_surfaces_runtime_readiness_and_missing_modules(tmp_path: P
     assert compact["preflight_ok"] is False
     assert compact["local_runtime_ready"] is False
     assert compact["runtime_missing_modules"] == ["datasets.Dataset", "peft.LoraConfig"]
-    assert compact["bootstrap_recommendation"]["command"] == (
-        "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup"
+    assert compact["bootstrap_recommendation"]["reason"] == "selected_python_runtime_import_timeouts"
+    assert compact["bootstrap_recommendation"]["command"] is None
+    assert "timed out while importing required repair-training modules" in compact["bootstrap_recommendation"]["message"]
+
+
+def test_build_run_plan_surfaces_timeout_recommendation_when_runtime_imports_hang(
+    tmp_path: Path, monkeypatch
+) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
+        '{"repair_id":"R1","before_score":0.2}\n',
     )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        '{"rows": 1, "health": {"ok": true, "warnings": []}, "kept_rows_by_source": {"benchmark": 1}}\n',
+    )
+    _write(tmp_path / ".venv/bin/python")
+    monkeypatch.delenv("CHATTLA_PYTHON", raising=False)
+    monkeypatch.delenv("PYTHON", raising=False)
+    monkeypatch.setattr("scripts.train_tla_prover_repair_local.REPO", tmp_path)
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        lambda **_kwargs: {
+            "ok": False,
+            "runtime_dependencies": {
+                "ok": False,
+                "available": ["torch", "yaml"],
+                "missing": [
+                    {"module": "datasets.Dataset", "error": "TimeoutExpired: import timed out after 2.0s"},
+                    {"module": "trl.GRPOTrainer", "error": "TimeoutExpired: import timed out after 2.0s"},
+                ],
+            },
+        },
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+        refresh_corpus=False,
+    )
+
+    assert plan["bootstrap_recommendation"]["reason"] == "selected_python_runtime_import_timeouts"
+    assert plan["bootstrap_recommendation"]["command"] is None
+    assert "bootstrap alone may not resolve native import/runtime blockers" in plan["bootstrap_recommendation"]["message"]
 
 
 def test_cli_can_write_and_compact_plan_json(tmp_path: Path) -> None:

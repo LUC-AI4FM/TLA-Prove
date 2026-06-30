@@ -592,8 +592,8 @@ def test_build_report_surfaces_local_repair_status_from_manifest(tmp_path: Path)
             "schema": "chattla_tla_prover_local_repair_plan_v1",
             "generated_at": "2026-06-30T11:36:05.155392+00:00",
             "bootstrap_recommendation": {
-                "command": "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup",
-                "reason": "selected_python_missing_training_dependencies",
+                "command": None,
+                "reason": "selected_python_runtime_import_timeouts",
             },
             "preflight_report": {
                 "ok": False,
@@ -618,9 +618,10 @@ def test_build_report_surfaces_local_repair_status_from_manifest(tmp_path: Path)
         "peft.LoraConfig",
     ]
     assert report["local_repair_status"]["bootstrap_recommendation"]["reason"] == (
-        "selected_python_missing_training_dependencies"
+        "selected_python_runtime_import_timeouts"
     )
     assert "Local repair preflight is currently not ready on this machine" in report["rationale"]
+    assert "missing runtime imports: datasets.Dataset, peft.LoraConfig" in report["rationale"]
 
 
 def test_compact_report_surfaces_local_repair_status_when_manifest_exists(tmp_path: Path) -> None:
