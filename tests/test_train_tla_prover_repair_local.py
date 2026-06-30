@@ -51,6 +51,8 @@ def test_build_run_plan_defaults_to_merged_repair_corpus_and_preflight(tmp_path:
     assert plan["output_dir"].endswith("outputs/checkpoints_rl_repair")
     assert plan["preflight_report"]["ok"] is True
     assert plan["preflight_report"]["merged_summary"]["rows"] == 510
+    assert plan["preflight_report"]["requested_python_executable"] == "/tmp/test-python"
+    assert plan["preflight_report"]["runtime_dependencies"]["requested_python_executable"] == "/tmp/test-python"
     assert plan["python_executable"] == "/tmp/test-python"
     assert plan["bootstrap_recommendation"] is None
     assert plan["command"] == [
@@ -203,6 +205,8 @@ def test_build_run_plan_resolves_preflight_report_via_selected_python(tmp_path: 
     assert plan["preflight_report"]["ok"] is True
     assert captured["python_executable"] == "/tmp/test-python"
     assert captured["extra_args"] == ["--smoke"]
+    assert plan["preflight_report"]["requested_python_executable"] == "/tmp/test-python"
+    assert plan["preflight_report"]["runtime_dependencies"]["requested_python_executable"] == "/tmp/test-python"
 
 
 def test_build_run_plan_prefers_repo_venv_python_when_env_unset(tmp_path: Path, monkeypatch) -> None:
@@ -238,6 +242,11 @@ def test_build_run_plan_prefers_repo_venv_python_when_env_unset(tmp_path: Path, 
 
     assert plan["python_executable"] == str(tmp_path / ".venv/bin/python")
     assert plan["preflight_report"]["selected_python"] == str(tmp_path / ".venv/bin/python")
+    assert plan["preflight_report"]["requested_python_executable"] == str(tmp_path / ".venv/bin/python")
+    assert (
+        plan["preflight_report"]["runtime_dependencies"]["requested_python_executable"]
+        == str(tmp_path / ".venv/bin/python")
+    )
 
 
 def test_build_run_plan_surfaces_bootstrap_recommendation_for_missing_repo_venv_deps(

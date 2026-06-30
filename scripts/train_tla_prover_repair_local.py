@@ -78,6 +78,26 @@ def _bootstrap_recommendation(
     }
 
 
+def _annotate_preflight_report_with_requested_python(
+    report: dict[str, Any],
+    *,
+    python_executable: str,
+) -> dict[str, Any]:
+    annotated = dict(report)
+    try:
+        resolved_python = str(Path(python_executable).resolve())
+    except FileNotFoundError:
+        resolved_python = python_executable
+    annotated["requested_python_executable"] = python_executable
+    annotated["requested_python_executable_resolved"] = resolved_python
+    runtime_dependencies = dict(annotated.get("runtime_dependencies") or {})
+    if runtime_dependencies:
+        runtime_dependencies.setdefault("requested_python_executable", python_executable)
+        runtime_dependencies.setdefault("requested_python_executable_resolved", resolved_python)
+        annotated["runtime_dependencies"] = runtime_dependencies
+    return annotated
+
+
 def _safe_label(value: str | None) -> str:
     if not value:
         return "custom"
@@ -195,6 +215,10 @@ def build_run_plan(
         trajectory_files=trajectory_files,
         include_benchmark_repair_pairs=include_benchmark_repair_pairs,
         extra_args=extra_args,
+    )
+    preflight_report = _annotate_preflight_report_with_requested_python(
+        preflight_report,
+        python_executable=resolved_python,
     )
     bootstrap_recommendation = _bootstrap_recommendation(
         repo=repo,
