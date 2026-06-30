@@ -49,6 +49,7 @@ def test_build_run_plan_defaults_to_merged_repair_corpus_and_preflight(tmp_path:
     )
 
     assert plan["resolved_trajectory_files"] == ["data/processed/tla_prover_repair_train_v1.jsonl"]
+    assert plan["repair_corpus_profile"] == "default"
     assert plan["using_merged_default"] is True
     assert plan["output_dir"].endswith("outputs/checkpoints_rl_repair")
     assert plan["preflight_report"]["ok"] is True
@@ -102,6 +103,7 @@ def test_build_run_plan_uses_custom_sources_and_separate_output_dir(tmp_path: Pa
         "custom/repair_pairs.jsonl",
         "data/processed/benchmark_repair_pairs_fc128best.jsonl",
     ]
+    assert plan["repair_corpus_profile"] == "default"
     assert plan["using_merged_default"] is False
     assert plan["output_dir"].endswith("outputs/checkpoints_rl_repair_custom-repair-pairs-jsonl")
     assert plan["command"] == [
@@ -116,6 +118,59 @@ def test_build_run_plan_uses_custom_sources_and_separate_output_dir(tmp_path: Pa
         str(tmp_path / "outputs/checkpoints_rl_repair_custom-repair-pairs-jsonl"),
         "--difficulty",
         "hard",
+    ]
+
+
+def test_build_run_plan_can_target_proof_repair_primary_profile(tmp_path: Path, monkeypatch) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl",
+        '{"repair_id":"P1","before_score":0.4,"repair_bucket":"proof_repair"}\n',
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_proof_repair_primary_v1.summary.json",
+        (
+            '{"rows": 35, "profile": "proof_repair_primary", "focus_bucket": "proof_repair", '
+            '"rows_by_repair_bucket": {"proof_repair": 15}, "rows_without_repair_bucket": 20, '
+            '"health": {"ok": true, "warnings": []}}\n'
+        ),
+    )
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        lambda **_kwargs: {
+            "ok": True,
+            "runtime_dependencies": {"ok": True, "available": ["torch"], "missing": []},
+            "merged_summary": {"rows": 35, "profile": "proof_repair_primary"},
+        },
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+        refresh_corpus=True,
+        python_executable="/tmp/test-python",
+        repair_corpus_profile="proof_repair_primary",
+    )
+
+    assert plan["repair_corpus_profile"] == "proof_repair_primary"
+    assert plan["resolved_trajectory_files"] == [
+        "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl"
+    ]
+    assert plan["using_merged_default"] is False
+    assert plan["output_dir"].endswith("outputs/checkpoints_rl_repair_proof-repair-primary")
+    assert plan["refresh_command"].endswith("--profile proof_repair_primary")
+    assert plan["command"] == [
+        "/tmp/test-python",
+        "-m",
+        "scripts.train_rl_repair",
+        "--trajectory-file",
+        "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl",
+        "--output-dir",
+        str(tmp_path / "outputs/checkpoints_rl_repair_proof-repair-primary"),
+        "--preflight-only",
     ]
 
 
@@ -445,6 +500,25 @@ def test_run_refresh_pipeline_executes_steps_in_order(tmp_path: Path) -> None:
             "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl",
         ],
         ["python3", "scripts/build_tla_prover_repair_corpus.py"],
+    ]
+
+
+def test_run_refresh_pipeline_passes_profile_to_corpus_builder(tmp_path: Path) -> None:
+    seen: list[list[str]] = []
+
+    def fake_runner(cmd: list[str], *, cwd: Path, check: bool):
+        seen.append(list(cmd))
+        assert cwd == tmp_path
+        assert check is True
+        return None
+
+    run_refresh_pipeline(repo=tmp_path, runner=fake_runner, repair_corpus_profile="proof_repair_primary")
+
+    assert seen[-1] == [
+        "python3",
+        "scripts/build_tla_prover_repair_corpus.py",
+        "--profile",
+        "proof_repair_primary",
     ]
 
 

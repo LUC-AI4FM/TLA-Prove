@@ -334,12 +334,20 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
     assert report["recommended_action"] == "repair"
     assert report["recommended_local_command"] == (
         "python3 scripts/train_tla_prover_repair_local.py "
-        "--preflight --refresh-corpus --runtime-import-timeout-s 10"
+        "--preflight --refresh-corpus --repair-corpus-profile proof_repair_primary "
+        "--runtime-import-timeout-s 10"
     )
     assert report["repair_workflow"]["refresh_command"].startswith(
         "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
     )
-    assert report["repair_workflow"]["train_command"] == "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
+    assert report["repair_workflow"]["refresh_command"].endswith(
+        "python3 scripts/build_tla_prover_repair_corpus.py --profile proof_repair_primary"
+    )
+    assert report["repair_workflow"]["recommended_profile"] == "proof_repair_primary"
+    assert report["repair_workflow"]["train_command"] == (
+        "python3 scripts/train_tla_prover_repair_local.py "
+        "--refresh-corpus --repair-corpus-profile proof_repair_primary"
+    )
     assert report["repair_workflow"]["full_dataset_repair_queue_command"] == (
         "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
     )

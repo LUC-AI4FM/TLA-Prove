@@ -218,6 +218,7 @@
     "diamond_gen_v2/WriteBuffer::2f72a28dbaf8::synthetic::remove_extends",
     "diamond_gen_v2/WriteThroughCache::50063c1965c4::synthetic::drop_unchanged"
   ],
+  "focus_bucket": null,
   "health": {
     "benchmark_only": false,
     "ok": true,
@@ -234,12 +235,28 @@
     "data/processed/ralph_repair_pairs.jsonl",
     "data/processed/ralph_repair_pairs_long_latest.jsonl"
   ],
+  "profile": "default",
+  "profile_excluded_rows": {},
   "rows": 541,
+  "rows_by_repair_bucket": {
+    "inductiveness_repair": 3,
+    "proof_repair": 15,
+    "skip_harness_repair": 8,
+    "tlc_repair": 4
+  },
+  "rows_by_source_kind": {
+    "benchmark_repair_pairs_fc128best": 20,
+    "full_dataset_harness_repair_pairs": 8,
+    "full_dataset_validated_repair_pairs": 22,
+    "synthetic_repair_pairs": 491
+  },
+  "rows_without_repair_bucket": 511,
   "schema": "chattla_tla_prover_repair_train_summary_v1",
   "source_defaults": {
     "benchmark_repair_pairs_fc128best": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
     "full_dataset_harness_repair_pairs": "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl",
     "full_dataset_validated_repair_pairs": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
+    "profile_default_out": "data/processed/tla_prover_repair_train_v1.jsonl",
     "ralph_repair_pairs": "data/processed/ralph_repair_pairs.jsonl",
     "ralph_repair_pairs_long_latest": "data/processed/ralph_repair_pairs_long_latest.jsonl",
     "synthetic_repair_pairs": "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"

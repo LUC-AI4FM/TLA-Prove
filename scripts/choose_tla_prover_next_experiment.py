@@ -35,6 +35,8 @@ LOCAL_REPAIR_STATUS_COMMAND = (
 )
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
 CORPUS_EXPANSION_SEQUENCE = ("default", "expanded", "full-public")
+DEFAULT_REPAIR_CORPUS_PROFILE = "default"
+PROOF_REPAIR_PRIMARY_PROFILE = "proof_repair_primary"
 TIMEOUT_ERROR_RE = re.compile(r"timed out after (?P<seconds>\d+(?:\.\d+)?)s", re.IGNORECASE)
 
 if str(REPO) not in sys.path:
@@ -262,11 +264,26 @@ def _public_benchmark_correctness_status(
     }
 
 
-def _repair_command() -> str:
-    return "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
+def _repair_profile_args(repair_corpus_profile: str) -> str:
+    if repair_corpus_profile == DEFAULT_REPAIR_CORPUS_PROFILE:
+        return ""
+    return f" --repair-corpus-profile {repair_corpus_profile}"
 
 
-def _repair_refresh_command() -> str:
+def _repair_corpus_builder_profile_args(repair_corpus_profile: str) -> str:
+    if repair_corpus_profile == DEFAULT_REPAIR_CORPUS_PROFILE:
+        return ""
+    return f" --profile {repair_corpus_profile}"
+
+
+def _repair_command(repair_corpus_profile: str = DEFAULT_REPAIR_CORPUS_PROFILE) -> str:
+    return (
+        "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
+        f"{_repair_profile_args(repair_corpus_profile)}"
+    )
+
+
+def _repair_refresh_command(repair_corpus_profile: str = DEFAULT_REPAIR_CORPUS_PROFILE) -> str:
     return (
         "python3 scripts/build_tla_prover_full_dataset_repair_queue.py "
         "&& python3 scripts/build_tla_prover_full_dataset_repair_evidence.py "
@@ -277,12 +294,15 @@ def _repair_refresh_command() -> str:
         "--only-bucket skip_harness_repair "
         "--out data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl "
         "&& python3 scripts/build_tla_prover_repair_corpus.py"
+        f"{_repair_corpus_builder_profile_args(repair_corpus_profile)}"
     )
 
 
-def _repair_local_preflight_command() -> str:
+def _repair_local_preflight_command(repair_corpus_profile: str = DEFAULT_REPAIR_CORPUS_PROFILE) -> str:
+    profile_args = _repair_profile_args(repair_corpus_profile)
     return (
-        "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus "
+        "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus"
+        f"{profile_args} "
         f"--runtime-import-timeout-s {LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S}"
     )
 
@@ -305,8 +325,23 @@ def _patch_packets_summary(payload: dict[str, Any] | None) -> dict[str, Any] | N
     }
 
 
-def _repair_local_train_command() -> str:
-    return "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
+def _repair_local_train_command(repair_corpus_profile: str = DEFAULT_REPAIR_CORPUS_PROFILE) -> str:
+    return (
+        "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
+        f"{_repair_profile_args(repair_corpus_profile)}"
+    )
+
+
+def _recommended_repair_corpus_profile(
+    patch_packets: dict[str, Any] | None,
+    patch_worklist: dict[str, Any] | None,
+) -> str:
+    primary_focus = dict((patch_packets or {}).get("primary_focus") or {})
+    if not primary_focus:
+        primary_focus = dict((patch_worklist or {}).get("primary_focus") or {})
+    if str(primary_focus.get("repair_bucket") or "").strip() == "proof_repair":
+        return PROOF_REPAIR_PRIMARY_PROFILE
+    return DEFAULT_REPAIR_CORPUS_PROFILE
 
 
 def _full_dataset_repair_queue_command() -> str:
@@ -470,6 +505,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     published_proof_summary = _read_optional_json(repo, PUBLISHED_PROOF_SUMMARY_PATH)
     handoff_status, handoff_prerequisite = _handoff_guidance(repo)
     local_repair_status = _local_repair_status(repo)
+    repair_corpus_profile = _recommended_repair_corpus_profile(patch_packets, patch_worklist)
     repair_health = dict((repair_summary or {}).get("health") or {})
     repair_corpus_summary = {
         "rows": (repair_summary or {}).get("rows"),
@@ -479,9 +515,10 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     proof_artifact_status = _published_proof_status(published_proof_summary)
     public_benchmark_correctness_status = _public_benchmark_correctness_status(readiness, readiness_fc128best)
     repair_workflow = {
-        "refresh_command": _repair_refresh_command(),
-        "preflight_command": _repair_local_preflight_command(),
-        "train_command": _repair_local_train_command(),
+        "recommended_profile": repair_corpus_profile,
+        "refresh_command": _repair_refresh_command(repair_corpus_profile),
+        "preflight_command": _repair_local_preflight_command(repair_corpus_profile),
+        "train_command": _repair_local_train_command(repair_corpus_profile),
         "full_dataset_repair_queue_command": _full_dataset_repair_queue_command(),
         "full_dataset_repair_queue_summary": full_dataset_repair_queue_summary,
         "full_dataset_repair_evidence_command": _full_dataset_repair_evidence_command(),
@@ -509,8 +546,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
 
     if _decision_blocks_sft(decision):
         recommended_action = "repair"
-        recommended_command = _repair_command()
-        recommended_local_command = _repair_local_preflight_command()
+        recommended_command = _repair_command(repair_corpus_profile)
+        recommended_local_command = _repair_local_preflight_command(repair_corpus_profile)
         rationale = "Remote decision still blocks SFT, so the next move is to rebuild repair data and continue repair training."
     else:
         preferred_publish_model, publish_command = _publish_choice(readiness, readiness_fc128best)
@@ -522,7 +559,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
             preferred_sft_lane = _preferred_sft_lane(matrix)
             if preferred_sft_lane is None:
                 recommended_action = "repair"
-                recommended_command = _repair_command()
+                recommended_command = _repair_command(repair_corpus_profile)
                 rationale = "No trainable comparison lane is available, so the next move falls back to repair work."
             else:
                 recommended_action = "sft-preflight"

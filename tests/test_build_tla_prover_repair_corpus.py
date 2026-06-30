@@ -11,8 +11,8 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
             handle.write(json.dumps(row) + "\n")
 
 
-def _row(repair_id: str, before_score: float) -> dict:
-    return {
+def _row(repair_id: str, before_score: float, **overrides: object) -> dict:
+    row = {
         "repair_id": repair_id,
         "nl": f"nl {repair_id}",
         "broken_spec": "---- MODULE Broken ----\n====",
@@ -22,6 +22,8 @@ def _row(repair_id: str, before_score: float) -> dict:
         "repaired_spec": "---- MODULE Fixed ----\n====",
         "after_score": 1.0,
     }
+    row.update(overrides)
+    return row
 
 
 def test_build_corpus_merges_sources_and_preserves_source_counts(tmp_path: Path) -> None:
@@ -159,3 +161,48 @@ def test_build_corpus_can_merge_harness_only_validated_pairs(tmp_path: Path) -> 
     assert summary["source_defaults"]["full_dataset_harness_repair_pairs"] == (
         "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl"
     )
+
+
+def test_build_corpus_can_shape_proof_repair_primary_profile(tmp_path: Path) -> None:
+    benchmark = tmp_path / "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+    validated = tmp_path / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl"
+    harness = tmp_path / "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl"
+    synthetic = tmp_path / "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
+    _write_jsonl(benchmark, [_row("B1", 0.15), _row("B2", 0.25)])
+    _write_jsonl(
+        validated,
+        [
+            _row("P1", 0.45, repair_bucket="proof_repair", module="AtomicRegister", validated_tier="gold"),
+            _row("P2", 0.55, repair_bucket="proof_repair", module="Arp", validated_tier="gold"),
+            _row("T1", 0.35, repair_bucket="tlc_repair", module="LamportMutex", validated_tier="silver"),
+        ],
+    )
+    _write_jsonl(
+        harness,
+        [
+            _row("H1", 0.15, repair_bucket="skip_harness_repair", module="AlternatingBit", validated_tier="gold"),
+        ],
+    )
+    _write_jsonl(synthetic, [_row("S1", 0.65)])
+
+    rows, summary = build_corpus(
+        repair_pair_files=[benchmark, validated, harness, synthetic],
+        repo=tmp_path,
+        profile="proof_repair_primary",
+    )
+
+    assert [row["repair_id"] for row in rows] == ["B1", "B2", "P1", "P2"]
+    assert summary["profile"] == "proof_repair_primary"
+    assert summary["focus_bucket"] == "proof_repair"
+    assert summary["rows"] == 4
+    assert summary["rows_by_repair_bucket"] == {"proof_repair": 2}
+    assert summary["rows_without_repair_bucket"] == 2
+    assert summary["rows_by_source_kind"] == {
+        "benchmark_repair_pairs_fc128best": 2,
+        "full_dataset_validated_repair_pairs": 2,
+    }
+    assert summary["profile_excluded_rows"] == {
+        "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl": 1,
+        "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 1,
+        "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 1,
+    }

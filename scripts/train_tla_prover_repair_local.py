@@ -25,6 +25,7 @@ from scripts.train_rl_repair import (
     build_runtime_config,
     resolve_trajectory_files,
 )
+from scripts.build_tla_prover_repair_corpus import DEFAULT_PROFILE, VALID_PROFILES, default_out_for_profile
 
 BOOTSTRAP_ENV_COMMAND = "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup"
 DEFAULT_PLAN_OUT = REPO / "outputs" / "manifests" / "tla_prover_local_repair_plan.json"
@@ -158,9 +159,17 @@ def _safe_label(value: str | None) -> str:
     return "".join(ch if ch.isalnum() else "-" for ch in value).strip("-").lower() or "custom"
 
 
-def _default_output_dir(repo: Path, resolved_trajectory_files: list[str]) -> Path:
+def _profile_default_trajectory_file(repo: Path, repair_corpus_profile: str) -> str:
+    return str(default_out_for_profile(repair_corpus_profile, repo=repo).relative_to(repo))
+
+
+def _default_output_dir(repo: Path, resolved_trajectory_files: list[str], repair_corpus_profile: str) -> Path:
     if resolved_trajectory_files == [DEFAULT_MERGED_REPAIR_PAIRS]:
         return repo / "outputs" / "checkpoints_rl_repair"
+    if repair_corpus_profile != DEFAULT_PROFILE and resolved_trajectory_files == [
+        _profile_default_trajectory_file(repo, repair_corpus_profile)
+    ]:
+        return repo / "outputs" / f"checkpoints_rl_repair_{_safe_label(repair_corpus_profile)}"
 
     primary = next(
         (
@@ -173,16 +182,21 @@ def _default_output_dir(repo: Path, resolved_trajectory_files: list[str]) -> Pat
     return repo / "outputs" / f"checkpoints_rl_repair_{_safe_label(primary)}"
 
 
-def _refresh_steps() -> list[list[str]]:
-    return [list(step) for step in REPAIR_REFRESH_STEPS]
+def _refresh_steps(repair_corpus_profile: str = DEFAULT_PROFILE) -> list[list[str]]:
+    steps = [list(step) for step in REPAIR_REFRESH_STEPS[:-1]]
+    final_step = list(REPAIR_REFRESH_STEPS[-1])
+    if repair_corpus_profile != DEFAULT_PROFILE:
+        final_step.extend(["--profile", repair_corpus_profile])
+    steps.append(final_step)
+    return steps
 
 
-def _refresh_command() -> str:
-    return " && ".join(shlex.join(step) for step in _refresh_steps())
+def _refresh_command(repair_corpus_profile: str = DEFAULT_PROFILE) -> str:
+    return " && ".join(shlex.join(step) for step in _refresh_steps(repair_corpus_profile))
 
 
-def run_refresh_pipeline(*, repo: Path, runner=subprocess.run) -> None:
-    for step in _refresh_steps():
+def run_refresh_pipeline(*, repo: Path, repair_corpus_profile: str = DEFAULT_PROFILE, runner=subprocess.run) -> None:
+    for step in _refresh_steps(repair_corpus_profile):
         runner(step, cwd=repo, check=True)
 
 
@@ -273,6 +287,7 @@ def build_run_plan(
     repo: Path,
     trajectory_files: list[str] | None,
     include_benchmark_repair_pairs: bool,
+    repair_corpus_profile: str = DEFAULT_PROFILE,
     output_dir: str | None,
     extra_args: list[str],
     preflight_only: bool,
@@ -280,19 +295,28 @@ def build_run_plan(
     python_executable: str | None = None,
     runtime_import_timeout_s: float | None = None,
 ) -> dict[str, Any]:
+    if repair_corpus_profile not in VALID_PROFILES:
+        raise ValueError(f"repair_corpus_profile must be one of {VALID_PROFILES}, got {repair_corpus_profile!r}")
     args = _build_args(
         trajectory_files=trajectory_files,
         include_benchmark_repair_pairs=include_benchmark_repair_pairs,
     )
-    resolved_trajectory_files = resolve_trajectory_files(args, repo_root=repo)
-    final_output_dir = Path(output_dir) if output_dir else _default_output_dir(repo, resolved_trajectory_files)
+    if trajectory_files:
+        resolved_trajectory_files = resolve_trajectory_files(args, repo_root=repo)
+    else:
+        resolved_trajectory_files = [_profile_default_trajectory_file(repo, repair_corpus_profile)]
+    final_output_dir = Path(output_dir) if output_dir else _default_output_dir(
+        repo,
+        resolved_trajectory_files,
+        repair_corpus_profile,
+    )
     resolved_python = python_executable or _resolve_python_executable()
     effective_runtime_import_timeout_s = _resolve_runtime_import_timeout_s(runtime_import_timeout_s)
     preflight_report = _resolve_preflight_report(
         repo=repo,
         python_executable=resolved_python,
-        trajectory_files=trajectory_files,
-        include_benchmark_repair_pairs=include_benchmark_repair_pairs,
+        trajectory_files=resolved_trajectory_files,
+        include_benchmark_repair_pairs=False,
         extra_args=extra_args,
         runtime_import_timeout_s=effective_runtime_import_timeout_s,
     )
@@ -318,9 +342,10 @@ def build_run_plan(
         "schema": "chattla_tla_prover_local_repair_plan_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repo": str(repo),
+        "repair_corpus_profile": repair_corpus_profile,
         "refresh_corpus": refresh_corpus,
-        "refresh_steps": _refresh_steps() if refresh_corpus else [],
-        "refresh_command": _refresh_command() if refresh_corpus else None,
+        "refresh_steps": _refresh_steps(repair_corpus_profile) if refresh_corpus else [],
+        "refresh_command": _refresh_command(repair_corpus_profile) if refresh_corpus else None,
         "resolved_trajectory_files": resolved_trajectory_files,
         "using_merged_default": resolved_trajectory_files == [DEFAULT_MERGED_REPAIR_PAIRS],
         "include_benchmark_repair_pairs": include_benchmark_repair_pairs,
@@ -346,6 +371,7 @@ def compact_plan(plan: dict[str, Any]) -> dict[str, Any]:
         "schema": "chattla_tla_prover_local_repair_plan_compact_v1",
         "generated_at": plan.get("generated_at"),
         "repo": plan.get("repo"),
+        "repair_corpus_profile": plan.get("repair_corpus_profile"),
         "preflight_only": plan.get("preflight_only"),
         "refresh_corpus": plan.get("refresh_corpus"),
         "using_merged_default": plan.get("using_merged_default"),
@@ -365,6 +391,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--trajectory-file", action="append", default=None)
     parser.add_argument("--include-benchmark-repair-pairs", action="store_true")
+    parser.add_argument("--repair-corpus-profile", choices=VALID_PROFILES, default=DEFAULT_PROFILE)
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--runtime-import-timeout-s", type=float, default=None)
@@ -383,6 +410,7 @@ def main() -> int:
         repo=REPO,
         trajectory_files=args.trajectory_file,
         include_benchmark_repair_pairs=args.include_benchmark_repair_pairs,
+        repair_corpus_profile=args.repair_corpus_profile,
         output_dir=args.output_dir,
         extra_args=extra_args,
         preflight_only=args.preflight,
@@ -398,7 +426,7 @@ def main() -> int:
         return 0
 
     if args.refresh_corpus:
-        run_refresh_pipeline(repo=REPO)
+        run_refresh_pipeline(repo=REPO, repair_corpus_profile=args.repair_corpus_profile)
 
     completed = subprocess.run(plan["command"], cwd=REPO)
     return int(completed.returncode)
