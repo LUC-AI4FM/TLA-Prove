@@ -56,13 +56,15 @@ DEFAULT_MERGED_REPAIR_SUMMARY = "data/processed/tla_prover_repair_train_v1.summa
 DEFAULT_REPAIR_PAIRS = "data/processed/ralph_repair_pairs.jsonl"
 DEFAULT_BENCHMARK_REPAIR_PAIRS = "data/processed/benchmark_repair_pairs_fc128best.jsonl"
 DEFAULT_SMOKE_MODEL = "sshleifer/tiny-gpt2"
-REQUIRED_RUNTIME_DEPENDENCIES = (
-    "torch",
-    "yaml",
-    "datasets",
-    "peft",
-    "transformers",
-    "trl",
+REQUIRED_RUNTIME_PROBES = (
+    ("torch", "import torch\n"),
+    ("yaml", "import yaml\n"),
+    ("datasets.Dataset", "from datasets import Dataset\n"),
+    ("peft.LoraConfig", "from peft import LoraConfig\n"),
+    ("transformers.AutoModelForCausalLM", "from transformers import AutoModelForCausalLM\n"),
+    ("transformers.AutoTokenizer", "from transformers import AutoTokenizer\n"),
+    ("trl.GRPOConfig", "from trl import GRPOConfig\n"),
+    ("trl.GRPOTrainer", "from trl import GRPOTrainer\n"),
 )
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
@@ -103,7 +105,7 @@ def _count_repair_rows(path: Path) -> tuple[int, set[str]]:
 
 
 def _probe_runtime_dependencies(
-    module_names: tuple[str, ...] = REQUIRED_RUNTIME_DEPENDENCIES,
+    probes: tuple[tuple[str, str], ...] = REQUIRED_RUNTIME_PROBES,
     *,
     python_executable: str | None = None,
     timeout_s: float | None = None,
@@ -113,11 +115,7 @@ def _probe_runtime_dependencies(
     timings: list[dict[str, Any]] = []
     python = python_executable or sys.executable
     timeout = timeout_s if timeout_s is not None else float(os.environ.get("CHATTLA_RUNTIME_IMPORT_TIMEOUT_S", "120"))
-    for module_name in module_names:
-        probe_script = (
-            "import importlib\n"
-            f"importlib.import_module({module_name!r})\n"
-        )
+    for label, probe_script in probes:
         started_at = time.monotonic()
         try:
             completed = subprocess.run(
@@ -130,32 +128,32 @@ def _probe_runtime_dependencies(
             elapsed_s = round(time.monotonic() - started_at, 2)
             missing.append(
                 {
-                    "module": module_name,
+                    "module": label,
                     "error": f"TimeoutExpired: import timed out after {timeout}s",
                 }
             )
-            timings.append({"module": module_name, "ok": False, "elapsed_s": elapsed_s})
+            timings.append({"module": label, "ok": False, "elapsed_s": elapsed_s})
             continue
         except Exception as exc:
             elapsed_s = round(time.monotonic() - started_at, 2)
             missing.append(
                 {
-                    "module": module_name,
+                    "module": label,
                     "error": f"{type(exc).__name__}: {exc}",
                 }
             )
-            timings.append({"module": module_name, "ok": False, "elapsed_s": elapsed_s})
+            timings.append({"module": label, "ok": False, "elapsed_s": elapsed_s})
             continue
 
         elapsed_s = round(time.monotonic() - started_at, 2)
         if completed.returncode == 0:
-            available.append(module_name)
-            timings.append({"module": module_name, "ok": True, "elapsed_s": elapsed_s})
+            available.append(label)
+            timings.append({"module": label, "ok": True, "elapsed_s": elapsed_s})
             continue
 
         detail = completed.stderr.strip() or completed.stdout.strip() or f"rc={completed.returncode}"
-        missing.append({"module": module_name, "error": detail})
-        timings.append({"module": module_name, "ok": False, "elapsed_s": elapsed_s})
+        missing.append({"module": label, "error": detail})
+        timings.append({"module": label, "ok": False, "elapsed_s": elapsed_s})
     return {
         "ok": not missing,
         "available": available,

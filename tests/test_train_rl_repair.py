@@ -6,6 +6,7 @@ from scripts.train_rl_repair import (
     DEFAULT_MERGED_REPAIR_PAIRS,
     DEFAULT_MERGED_REPAIR_SUMMARY,
     DEFAULT_REPAIR_PAIRS,
+    REQUIRED_RUNTIME_PROBES,
     build_preflight_report,
     build_arg_parser,
     build_runtime_config,
@@ -167,9 +168,10 @@ def test_build_runtime_config_preserves_explicit_runtime_choices_for_smoke(monke
 
 
 def test_probe_runtime_dependencies_reports_timeout(monkeypatch) -> None:
+    probes = (("torch", "import torch\n"),)
+
     def fake_run(cmd, **kwargs):
-        module_name = cmd[-1].split("importlib.import_module(", 1)[1].split(")", 1)[0].strip("'\"")
-        assert module_name == "torch"
+        assert cmd == ["/tmp/python", "-c", "import torch\n"]
         raise subprocess.TimeoutExpired(
             cmd=cmd,
             timeout=3.0,
@@ -177,7 +179,7 @@ def test_probe_runtime_dependencies_reports_timeout(monkeypatch) -> None:
 
     monkeypatch.setattr("scripts.train_rl_repair.subprocess.run", fake_run)
 
-    report = _probe_runtime_dependencies(module_names=("torch",), python_executable="/tmp/python", timeout_s=3.0)
+    report = _probe_runtime_dependencies(probes=probes, python_executable="/tmp/python", timeout_s=3.0)
 
     assert report["python_executable"] == "/tmp/python"
     assert report["timeout_s"] == 3.0
@@ -190,6 +192,13 @@ def test_probe_runtime_dependencies_reports_timeout(monkeypatch) -> None:
 
 
 def test_probe_runtime_dependencies_continues_after_timeout(monkeypatch) -> None:
+    probes = (
+        ("yaml", "import yaml\n"),
+        ("datasets.Dataset", "from datasets import Dataset\n"),
+        ("peft.LoraConfig", "from peft import LoraConfig\n"),
+        ("transformers.AutoTokenizer", "from transformers import AutoTokenizer\n"),
+    )
+
     class _Completed:
         def __init__(self, returncode: int = 0, stderr: str = "", stdout: str = "") -> None:
             self.returncode = returncode
@@ -197,28 +206,46 @@ def test_probe_runtime_dependencies_continues_after_timeout(monkeypatch) -> None
             self.stdout = stdout
 
     def fake_run(cmd, **kwargs):
-        module_name = cmd[-1].split("importlib.import_module(", 1)[1].split(")", 1)[0].strip("'\"")
-        if module_name == "datasets":
+        probe_script = cmd[-1]
+        if probe_script == "from datasets import Dataset\n":
             raise subprocess.TimeoutExpired(cmd=cmd, timeout=3.0)
-        if module_name == "peft":
+        if probe_script == "from peft import LoraConfig\n":
             return _Completed(returncode=1, stderr="ModuleNotFoundError: No module named peft")
         return _Completed()
 
     monkeypatch.setattr("scripts.train_rl_repair.subprocess.run", fake_run)
 
     report = _probe_runtime_dependencies(
-        module_names=("yaml", "datasets", "peft", "transformers"),
+        probes=probes,
         python_executable="/tmp/python",
         timeout_s=3.0,
     )
 
-    assert report["available"] == ["yaml", "transformers"]
+    assert report["available"] == ["yaml", "transformers.AutoTokenizer"]
     assert report["missing"] == [
-        {"module": "datasets", "error": "TimeoutExpired: import timed out after 3.0s"},
-        {"module": "peft", "error": "ModuleNotFoundError: No module named peft"},
+        {"module": "datasets.Dataset", "error": "TimeoutExpired: import timed out after 3.0s"},
+        {"module": "peft.LoraConfig", "error": "ModuleNotFoundError: No module named peft"},
     ]
-    assert [entry["module"] for entry in report["timings"]] == ["yaml", "datasets", "peft", "transformers"]
+    assert [entry["module"] for entry in report["timings"]] == [
+        "yaml",
+        "datasets.Dataset",
+        "peft.LoraConfig",
+        "transformers.AutoTokenizer",
+    ]
     assert report["ok"] is False
+
+
+def test_required_runtime_probes_match_train_entrypoint_imports() -> None:
+    assert REQUIRED_RUNTIME_PROBES == (
+        ("torch", "import torch\n"),
+        ("yaml", "import yaml\n"),
+        ("datasets.Dataset", "from datasets import Dataset\n"),
+        ("peft.LoraConfig", "from peft import LoraConfig\n"),
+        ("transformers.AutoModelForCausalLM", "from transformers import AutoModelForCausalLM\n"),
+        ("transformers.AutoTokenizer", "from transformers import AutoTokenizer\n"),
+        ("trl.GRPOConfig", "from trl import GRPOConfig\n"),
+        ("trl.GRPOTrainer", "from trl import GRPOTrainer\n"),
+    )
 
 
 def test_build_preflight_report_marks_missing_runtime_dependencies(tmp_path, monkeypatch) -> None:
