@@ -71,6 +71,8 @@ data/processed/*
 !data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json
 !data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl
 !data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json
+!data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl
+!data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json
 !data/processed/tla_prover_repair_train_v1.jsonl
 !data/processed/tla_prover_repair_train_v1.summary.json
 !data/processed/tla_prover/

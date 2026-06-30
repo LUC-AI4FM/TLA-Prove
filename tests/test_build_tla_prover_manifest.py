@@ -75,6 +75,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     _write_jsonl(
+        repo / "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl",
+        [{"repair_id": "SYN001", "before_score": 0.25, "after_score": 1.0}],
+    )
+    (repo / "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json").write_text(
+        json.dumps({"rows": 1, "difficulty_counts": {"easy": 0, "medium": 1, "hard": 0}}),
+        encoding="utf-8",
+    )
+    _write_jsonl(
         repo / "data/processed/tla_prover_repair_train_v1.jsonl",
         [
             {
@@ -369,6 +377,12 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "benchmark_repair_pair_corpus"
     )
     assert manifest["artifacts"]["benchmark_repair_pairs_fc128best"]["summary"]["rows"] == 1
+    assert manifest["artifacts"]["tla_prover_synthetic_repair_pairs_v1"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_synthetic_repair_pairs_v1"]["rows"] == 1
+    assert manifest["artifacts"]["tla_prover_synthetic_repair_pairs_v1"]["kind"] == (
+        "synthetic_tla_prover_repair_pair_corpus"
+    )
+    assert manifest["artifacts"]["tla_prover_synthetic_repair_pairs_v1"]["summary"]["rows"] == 1
     assert manifest["artifacts"]["tla_prover_repair_train_v1"]["exists"] is True
     assert manifest["artifacts"]["tla_prover_repair_train_v1"]["rows"] == 1
     assert manifest["artifacts"]["tla_prover_repair_train_v1"]["kind"] == (
@@ -535,6 +549,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["build_benchmark_repair_pairs_fc128best"] == (
         "python3 scripts/build_benchmark_repair_pairs.py "
         "--benchmark-model chattla:20b-fc128best"
+    )
+    assert manifest["remote_next_steps"]["build_tla_prover_synthetic_repair_pairs_v1"] == (
+        "python3 scripts/build_tla_prover_synthetic_repair_pairs.py"
     )
     assert manifest["remote_next_steps"]["build_tla_prover_repair_train_v1"] == (
         "python3 scripts/build_tla_prover_repair_corpus.py"

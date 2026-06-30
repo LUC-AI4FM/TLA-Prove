@@ -81,6 +81,37 @@ def test_build_corpus_prefers_available_long_ralph_source(tmp_path: Path) -> Non
     }
 
 
+def test_build_corpus_treats_synthetic_pairs_as_valid_non_benchmark_fallback(tmp_path: Path) -> None:
+    synthetic = tmp_path / "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
+    benchmark = tmp_path / "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+    _write_jsonl(synthetic, [_row("S1", 0.25), _row("S2", 0.45)])
+    _write_jsonl(benchmark, [_row("B1", 0.05)])
+
+    rows, summary = build_corpus(
+        repair_pair_files=[
+            tmp_path / "data/processed/ralph_repair_pairs.jsonl",
+            tmp_path / "data/processed/ralph_repair_pairs_long_latest.jsonl",
+            synthetic,
+            benchmark,
+        ],
+        repo=tmp_path,
+    )
+
+    assert [row["repair_id"] for row in rows] == ["B1", "S1", "S2"]
+    assert summary["health"]["ok"] is True
+    assert summary["health"]["warnings"] == []
+    assert summary["health"]["benchmark_only"] is False
+    assert summary["health"]["only_easy_rows"] is False
+    assert summary["missing_sources"] == [
+        "data/processed/ralph_repair_pairs.jsonl",
+        "data/processed/ralph_repair_pairs_long_latest.jsonl",
+    ]
+    assert summary["kept_rows_by_source"] == {
+        "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 2,
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl": 1,
+    }
+
+
 def test_build_corpus_flags_degraded_benchmark_only_easy_mix(tmp_path: Path) -> None:
     benchmark = tmp_path / "data/processed/benchmark_repair_pairs_fc128best.jsonl"
     _write_jsonl(benchmark, [_row("B1", 0.01), _row("B2", 0.05)])

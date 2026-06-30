@@ -23,6 +23,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
     "data/processed/formalllm_eval_v1.summary.json",
     "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
+    "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json",
     "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
     "outputs/autoprover/tlaps_verify_published_161016/summary.json",
     "outputs/manifests/ai4fm_org_surface.json",
@@ -72,6 +73,7 @@ PY_COMPILE_FILES = [
     "scripts/doctor_tla_prover_handoff.py",
     "scripts/inspect_hf_publish_readiness.py",
     "scripts/build_benchmark_repair_pairs.py",
+    "scripts/build_tla_prover_synthetic_repair_pairs.py",
     "scripts/build_tla_prover_repair_corpus.py",
     "scripts/build_tla_prover_full_dataset_failure_analysis.py",
     "scripts/sync_hf_publish_corpora_metadata.py",
@@ -92,13 +94,6 @@ PYTEST_FILES = [
     "tests/test_legacy_prover_chunk_pipeline_paths.py",
     "tests/test_inspect_ai4fm_public_tlaprove_corpora.py",
     "tests/test_materialize_processed_tla_corpus.py",
-    "tests/test_remote_handoff_script.py",
-    "tests/test_collect_tla_prover_remote_results.py",
-    "tests/test_preflight_tla_prover_remote.py",
-    "tests/test_wait_handoff_launchagent_installer.py",
-    "tests/test_status_tla_prover_handoff.py",
-    "tests/test_probe_tla_prover_control_planes.py",
-    "tests/test_submit_tla_prover_remote_jobs.py",
     "tests/test_qsub_sft_preflight.py",
     "tests/test_qsub_fc128_artifact_preflight.py",
     "tests/test_build_tla_prover_corpus_experiment_matrix.py",
@@ -113,13 +108,23 @@ PYTEST_FILES = [
     "tests/test_inspect_hf_publish_readiness.py",
     "tests/test_sany_validator.py",
     "tests/test_build_benchmark_repair_pairs.py",
+    "tests/test_build_tla_prover_synthetic_repair_pairs.py",
     "tests/test_build_tla_prover_repair_corpus.py",
     "tests/test_build_tla_prover_full_dataset_failure_analysis.py",
     "tests/test_upload_v11.py",
-    "tests/test_doctor_tla_prover_handoff.py",
     "tests/test_publish_hf.py",
     "tests/test_repair_dataset.py",
     "tests/test_train_rl_repair.py",
+]
+SLOW_PYTEST_FILES = [
+    "tests/test_collect_tla_prover_remote_results.py",
+    "tests/test_preflight_tla_prover_remote.py",
+    "tests/test_wait_handoff_launchagent_installer.py",
+    "tests/test_status_tla_prover_handoff.py",
+    "tests/test_probe_tla_prover_control_planes.py",
+    "tests/test_remote_handoff_script.py",
+    "tests/test_submit_tla_prover_remote_jobs.py",
+    "tests/test_doctor_tla_prover_handoff.py",
 ]
 
 
@@ -192,14 +197,17 @@ def scan_files(paths: list[Path]) -> list[dict[str, Any]]:
     return findings
 
 
-def build_commands() -> list[list[str]]:
-    return [
+def build_commands(*, include_slow_pytest: bool = False) -> list[list[str]]:
+    commands = [
         ["python3", "-m", "py_compile", *PY_COMPILE_FILES],
         ["python3", "scripts/check_public_dataset_claims.py"],
         ["python3", "scripts/status_tla_prover_handoff.py", "--no-live", "--compact"],
         ["python3", "scripts/doctor_tla_prover_handoff.py", "--dry-run", "--no-live", "--compact"],
         ["python3", "-m", "pytest", *PYTEST_FILES, "-q"],
     ]
+    if include_slow_pytest:
+        commands.append(["python3", "-m", "pytest", *SLOW_PYTEST_FILES, "-q"])
+    return commands
 
 
 def run_commands(commands: list[list[str]], *, repo: Path = REPO) -> list[dict[str, Any]]:
@@ -241,9 +249,10 @@ def build_report(
     repo: Path = REPO,
     run_tests: bool = True,
     include_untracked_scripts: bool = False,
+    include_slow_pytest: bool = False,
 ) -> dict[str, Any]:
     findings = scan_files(readiness_files(repo, include_untracked_scripts=include_untracked_scripts))
-    command_results = run_commands(build_commands(), repo=repo) if run_tests else []
+    command_results = run_commands(build_commands(include_slow_pytest=include_slow_pytest), repo=repo) if run_tests else []
     commands_ok = all(item["returncode"] == 0 for item in command_results)
     fixes = recommended_fixes(command_results)
     return {
@@ -258,6 +267,8 @@ def build_report(
         },
         "commands": command_results,
         "recommended_fixes": fixes,
+        "slow_pytest_included": include_slow_pytest,
+        "slow_pytest_files": SLOW_PYTEST_FILES,
         "tests_ran": run_tests,
     }
 
@@ -272,12 +283,18 @@ def main() -> int:
         action="store_true",
         help="Also scan untracked files under scripts/ for private/site-specific values.",
     )
+    parser.add_argument(
+        "--include-slow-pytest",
+        action="store_true",
+        help="Also run the slower remote-handoff pytest slice.",
+    )
     args = parser.parse_args()
 
     report = build_report(
         repo=args.repo,
         run_tests=not args.scan_only,
         include_untracked_scripts=args.include_untracked_scripts,
+        include_slow_pytest=args.include_slow_pytest,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")

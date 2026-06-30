@@ -19,6 +19,7 @@ from src.rlvr_canary.repair_dataset import (
 )
 
 DEFAULT_LONG_RALPH_REPAIR_PAIRS = "data/processed/ralph_repair_pairs_long_latest.jsonl"
+DEFAULT_SYNTHETIC_REPAIR_PAIRS = "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
 DEFAULT_OUT = REPO / "data" / "processed" / "tla_prover_repair_train_v1.jsonl"
 
 
@@ -83,8 +84,12 @@ def build_corpus(
     rows.sort(key=lambda item: (float(item.get("before_score", 0.0)), str(item.get("repair_id", ""))))
     benchmark_only = bool(rows) and all(_is_benchmark_source(source_key) for source_key in kept_rows_by_source)
     only_easy_rows = bool(rows) and difficulty_counts["easy"] == len(rows)
+    non_benchmark_sources = [
+        source_key for source_key, kept_rows in kept_rows_by_source.items()
+        if kept_rows > 0 and not _is_benchmark_source(source_key)
+    ]
     warnings: list[str] = []
-    if any("ralph_repair_pairs" in source for source in missing_sources):
+    if any("ralph_repair_pairs" in source for source in missing_sources) and not non_benchmark_sources:
         warnings.append("missing_ralph_sources")
     if len(kept_rows_by_source) == 1 and rows:
         warnings.append("single_source_repair_corpus")
@@ -103,6 +108,7 @@ def build_corpus(
         "source_defaults": {
             "ralph_repair_pairs": DEFAULT_REPAIR_PAIRS,
             "ralph_repair_pairs_long_latest": DEFAULT_LONG_RALPH_REPAIR_PAIRS,
+            "synthetic_repair_pairs": DEFAULT_SYNTHETIC_REPAIR_PAIRS,
             "benchmark_repair_pairs_fc128best": DEFAULT_BENCHMARK_REPAIR_PAIRS,
         },
         "health": {
@@ -131,6 +137,7 @@ def main() -> int:
         help=(
             "Repair-pair JSONL to include. Repeat to mix sources. "
             f"Defaults to `{DEFAULT_REPAIR_PAIRS}`, `{DEFAULT_LONG_RALPH_REPAIR_PAIRS}`, "
+            f"`{DEFAULT_SYNTHETIC_REPAIR_PAIRS}`, "
             f"and `{DEFAULT_BENCHMARK_REPAIR_PAIRS}`."
         ),
     )
@@ -139,7 +146,12 @@ def main() -> int:
 
     repair_pair_files = list(
         args.repair_pair_file
-        or [DEFAULT_REPAIR_PAIRS, DEFAULT_LONG_RALPH_REPAIR_PAIRS, DEFAULT_BENCHMARK_REPAIR_PAIRS]
+        or [
+            DEFAULT_REPAIR_PAIRS,
+            DEFAULT_LONG_RALPH_REPAIR_PAIRS,
+            DEFAULT_SYNTHETIC_REPAIR_PAIRS,
+            DEFAULT_BENCHMARK_REPAIR_PAIRS,
+        ]
     )
     rows, summary = build_corpus(repair_pair_files=repair_pair_files)
     _write_jsonl(args.out, rows)

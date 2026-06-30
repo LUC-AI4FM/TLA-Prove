@@ -3,6 +3,7 @@ from pathlib import Path
 import subprocess
 
 from scripts.check_tla_prover_pr_ready import (
+    SLOW_PYTEST_FILES,
     SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND,
     build_commands,
     build_report,
@@ -56,11 +57,11 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/materialize_processed_tla_corpus.py" in joined
     assert "scripts/inspect_hf_publish_readiness.py" in joined
     assert "scripts/build_benchmark_repair_pairs.py" in joined
+    assert "scripts/build_tla_prover_synthetic_repair_pairs.py" in joined
     assert "scripts/build_tla_prover_repair_corpus.py" in joined
     assert "scripts/build_tla_prover_full_dataset_failure_analysis.py" in joined
     assert "scripts/sync_hf_publish_corpora_metadata.py" in joined
     assert "scripts/upload_v11.py" in joined
-    assert "tests/test_remote_handoff_script.py" in joined
     assert "tests/test_build_ai4fm_public_discovery_manifest.py" in joined
     assert "tests/test_inspect_ai4fm_org_surface.py" in joined
     assert "tests/test_inspect_ai4fm_public_tlaprove_corpora.py" in joined
@@ -70,6 +71,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_inspect_hf_publish_readiness.py" in joined
     assert "tests/test_sany_validator.py" in joined
     assert "tests/test_build_benchmark_repair_pairs.py" in joined
+    assert "tests/test_build_tla_prover_synthetic_repair_pairs.py" in joined
     assert "tests/test_build_tla_prover_repair_corpus.py" in joined
     assert "tests/test_build_tla_prover_full_dataset_failure_analysis.py" in joined
     assert "tests/test_repair_dataset.py" in joined
@@ -81,7 +83,6 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_sync_hf_publish_corpora_metadata.py" in joined
     assert "tests/test_upload_v11.py" in joined
     assert "tests/test_materialize_processed_tla_corpus.py" in joined
-    assert "tests/test_preflight_tla_prover_remote.py" in joined
     assert "tests/test_build_tla_prover_manifest.py" in joined
     assert "tests/test_build_ai4fm_public_tlaprove_import.py" in joined
     assert "tests/test_build_ai4fm_public_seed_file_manifest.py" in joined
@@ -92,6 +93,33 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_check_public_dataset_claims.py" in joined
     assert "tests/test_legacy_prover_chunk_pipeline_paths.py" in joined
     assert "tests/test_publish_hf.py" in joined
+    assert "tests/test_remote_handoff_script.py" not in joined
+    assert "tests/test_collect_tla_prover_remote_results.py" not in joined
+    assert "tests/test_preflight_tla_prover_remote.py" not in joined
+    assert "tests/test_wait_handoff_launchagent_installer.py" not in joined
+    assert "tests/test_status_tla_prover_handoff.py" not in joined
+    assert "tests/test_probe_tla_prover_control_planes.py" not in joined
+    assert "tests/test_submit_tla_prover_remote_jobs.py" not in joined
+    assert "tests/test_doctor_tla_prover_handoff.py" not in joined
+
+
+def test_build_commands_can_include_slow_remote_handoff_suite() -> None:
+    commands = build_commands(include_slow_pytest=True)
+    joined = "\n".join(" ".join(command) for command in commands)
+
+    assert "tests/test_remote_handoff_script.py" in joined
+    assert "tests/test_submit_tla_prover_remote_jobs.py" in joined
+    assert "tests/test_collect_tla_prover_remote_results.py" in joined
+    assert SLOW_PYTEST_FILES == [
+        "tests/test_collect_tla_prover_remote_results.py",
+        "tests/test_preflight_tla_prover_remote.py",
+        "tests/test_wait_handoff_launchagent_installer.py",
+        "tests/test_status_tla_prover_handoff.py",
+        "tests/test_probe_tla_prover_control_planes.py",
+        "tests/test_remote_handoff_script.py",
+        "tests/test_submit_tla_prover_remote_jobs.py",
+        "tests/test_doctor_tla_prover_handoff.py",
+    ]
 
 
 def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None:
@@ -102,6 +130,8 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     raw_summary = tmp_path / "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json"
     raw_summary.parent.mkdir(parents=True, exist_ok=True)
     raw_summary.write_text("{}\n", encoding="utf-8")
+    synthetic_summary = tmp_path / "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json"
+    synthetic_summary.write_text("{}\n", encoding="utf-8")
 
     for rel in [
         "outputs/autoprover/tlaps_verify_published_161016/manifest.json",
@@ -132,6 +162,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     assert "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json" in paths
     assert "outputs/manifests/tla_prover_corpus_experiment_matrix.json" in paths
     assert "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json" in paths
+    assert "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json" in paths
 
 
 def test_readiness_files_can_include_untracked_scripts_but_not_outputs(tmp_path: Path) -> None:

@@ -79,9 +79,12 @@ If a local long-Ralph run exists, the tracked repair-corpus builder also folds
 in `data/processed/ralph_repair_pairs_long_latest.jsonl` automatically.
 
 Check `data/processed/tla_prover_repair_train_v1.summary.json` before launch:
-the current checked-in merged repair corpus is benchmark-only (`19` easy rows)
-because both Ralph sources are absent, so that state should be treated as a
-degraded repair curriculum rather than a strong next candidate.
+the current checked-in merged repair corpus is no longer benchmark-only even
+when both Ralph sources are absent: it now falls back to
+`data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl`, giving a
+`510`-row mixed repair lane (`491` synthetic + `19` benchmark-derived rows)
+with cleared health warnings. Treat missing Ralph artifacts as a data-quality
+gap worth backfilling, but not as a blocker for local repair runs.
 
 Any future comparison should record the exact Ollama tag used and should
 benchmark a canonically registered model tag if the result is meant to speak

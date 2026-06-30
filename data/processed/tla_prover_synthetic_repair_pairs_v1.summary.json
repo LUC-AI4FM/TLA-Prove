@@ -1,0 +1,27 @@
+{
+  "difficulty_counts": {
+    "easy": 462,
+    "hard": 419,
+    "medium": 128
+  },
+  "generated_at": "2026-06-30T01:21:55.918930+00:00",
+  "mutation_counts": {
+    "drop_terminator": 102,
+    "drop_unchanged": 38,
+    "duplicate_module_header": 86,
+    "init_false": 125,
+    "markdown_fence": 114,
+    "next_false": 74,
+    "remove_extends": 90,
+    "semicolons": 74,
+    "spec_empty_frame": 82,
+    "think_block": 86,
+    "typeok_true": 138
+  },
+  "out": "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl",
+  "rows": 1009,
+  "schema": "chattla_tla_prover_synthetic_repair_pairs_summary_v1",
+  "skipped_rows": 321,
+  "source": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+  "source_rows": 1330
+}

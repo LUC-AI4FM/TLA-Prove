@@ -131,6 +131,11 @@ ARTIFACTS = {
         "summary": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
         "kind": "benchmark_repair_pair_corpus",
     },
+    "tla_prover_synthetic_repair_pairs_v1": {
+        "path": "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl",
+        "summary": "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json",
+        "kind": "synthetic_tla_prover_repair_pair_corpus",
+    },
     "tla_prover_repair_train_v1": {
         "path": "data/processed/tla_prover_repair_train_v1.jsonl",
         "summary": "data/processed/tla_prover_repair_train_v1.summary.json",
@@ -365,6 +370,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "build_benchmark_repair_pairs_fc128best": (
                 "python3 scripts/build_benchmark_repair_pairs.py "
                 "--benchmark-model chattla:20b-fc128best"
+            ),
+            "build_tla_prover_synthetic_repair_pairs_v1": (
+                "python3 scripts/build_tla_prover_synthetic_repair_pairs.py"
             ),
             "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
             "build_tla_prover_full_dataset_failure_analysis": (
