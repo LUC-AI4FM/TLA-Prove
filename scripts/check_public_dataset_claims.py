@@ -386,6 +386,21 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             f"- `{raw_rows}` raw public rows across the tracked corpora",
             f"- `{normalized_rows}` kept ChatTLA-format rows after normalization and exact final-spec dedupe",
             (
+                f"- the local `{normalized_rows}` normalized `ai4fm_public_tlaprove_import_v1` rows and `{candidate_rows}`\n"
+                "  `ai4fm_public_seed_prover_candidates_v1` rows are ChatTLA-derived downstream\n"
+                "  corpora, not counts published by the two upstream repos above"
+            ),
+            (
+                f"- `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl`\n"
+                f"  - `{full_public_expanded_sft_rows}` total rows (`{mixed_sft_rows}` baseline prover stack + `{full_public_expanded_public_import_rows}` full-public\n"
+                f"    normalized import + `{expanded_seed_candidate_rows}` seed prover-candidate replays)"
+            ),
+            (
+                f"  exposing a `{expanded_sft_rows}`-row public-AI4FM expansion lane (`{mixed_sft_rows}` default prover SFT\n"
+                f"  rows + `{expanded_public_import_rows}` normalized public import rows + `{expanded_seed_candidate_rows}` public seed prover-candidate\n"
+                "  replays)."
+            ),
+            (
                 f"- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: "
                 f"`{all_public_rows}` committed `TLA-Prove` JSONL rows, `{raw_tla_files}` public seed `.tla` files, or `{usable_module_rows}` usable seed modules"
             ),
@@ -397,6 +412,8 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             f"- `{raw_tla_files}` public `.tla` files",
             f"- `{usable_module_rows}` usable module rows",
             "- `4` of the `5` shipped search queries still return zero repositories",
+            f"  non-default `{full_public_expanded_sft_rows}`-row experiment lane for the broader committed-public",
+            f"2. run verifier-backed experiments on the `{full_public_expanded_sft_rows}`-row full-public lane before",
         ],
         "docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md": [
             (

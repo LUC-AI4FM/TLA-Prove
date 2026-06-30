@@ -104,7 +104,7 @@ Important interpretation:
   - `403` were skipped
   - `7` were TLC-repair candidates
   - `0` reached TLAPS-partial or inductiveness evidence in that lane
-- the local `1005` normalized `ai4fm_public_tlaprove_import_v1` rows and `98`
+- the local `1005` normalized `ai4fm_public_tlaprove_import_v1` rows and `168`
   `ai4fm_public_seed_prover_candidates_v1` rows are ChatTLA-derived downstream
   corpora, not counts published by the two upstream repos above
 - the older `1800+` language appears to describe an earlier or broader internal
@@ -220,8 +220,8 @@ path:
 - there is now a matching non-default prover-corpus build on top of that wider
   normalized import:
   - `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl`
-  - `2490` total rows (`1330` baseline prover stack + `1010` full-public
-    normalized import + `150` seed prover-candidate replays)
+  - `2508` total rows (`1330` baseline prover stack + `1010` full-public
+    normalized import + `168` seed prover-candidate replays)
 
 That gives us a clean two-lane setup:
 
@@ -363,8 +363,8 @@ the public prover corpus without relaxing the current `Init` / `Next` / `Spec`
   via:
   `python3 scripts/build_tla_prover_finetune_corpus.py --public-import-weight 1 --public-seed-candidates-weight 1 --out data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl`
   This keeps the current default `chattla_tla_prover_sft_v1` stable while
-  exposing a `2485`-row public-AI4FM expansion lane (`1330` default prover SFT
-  rows + `1005` normalized public import rows + `150` public seed prover-candidate
+  exposing a `2503`-row public-AI4FM expansion lane (`1330` default prover SFT
+  rows + `1005` normalized public import rows + `168` public seed prover-candidate
   replays).
 
 ## Rebuild

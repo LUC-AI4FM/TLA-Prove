@@ -79,7 +79,7 @@ def test_resolve_remote_sft_corpus_metadata_reads_lane_details_from_matrix(tmp_p
     _write(
         tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
         (
-            '{"lanes":{"full-public":{"rows":2490,"default_publish_lane":false,'
+            '{"lanes":{"full-public":{"rows":2508,"default_publish_lane":false,'
             '"intended_role":"maximal_committed_public_comparison_train","trainable":true}}}\n'
         ),
     )
@@ -88,7 +88,7 @@ def test_resolve_remote_sft_corpus_metadata_reads_lane_details_from_matrix(tmp_p
 
     assert metadata["alias"] == "full-public"
     assert metadata["resolved_train_file"] == FULL_PUBLIC_LOCAL_SFT_TRAIN
-    assert metadata["rows"] == 2490
+    assert metadata["rows"] == 2508
     assert metadata["default_publish_lane"] is False
     assert metadata["intended_role"] == "maximal_committed_public_comparison_train"
     assert metadata["experiment_matrix_lane_found"] is True
