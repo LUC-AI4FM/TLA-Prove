@@ -182,6 +182,29 @@ def _default_output_dir(repo: Path, resolved_trajectory_files: list[str], repair
     return repo / "outputs" / f"checkpoints_rl_repair_{_safe_label(primary)}"
 
 
+def _preflight_trajectory_files(
+    *,
+    repo: Path,
+    trajectory_files: list[str] | None,
+    include_benchmark_repair_pairs: bool,
+    resolved_trajectory_files: list[str],
+    repair_corpus_profile: str,
+    refresh_corpus: bool,
+) -> list[str]:
+    if trajectory_files:
+        return list(resolved_trajectory_files)
+    if repair_corpus_profile == DEFAULT_PROFILE or not refresh_corpus:
+        return list(resolved_trajectory_files)
+    if all((repo / path).is_file() for path in resolved_trajectory_files):
+        return list(resolved_trajectory_files)
+
+    fallback_args = _build_args(
+        trajectory_files=None,
+        include_benchmark_repair_pairs=include_benchmark_repair_pairs,
+    )
+    return resolve_trajectory_files(fallback_args, repo_root=repo)
+
+
 def _refresh_steps(repair_corpus_profile: str = DEFAULT_PROFILE) -> list[list[str]]:
     steps = [list(step) for step in REPAIR_REFRESH_STEPS[:-1]]
     final_step = list(REPAIR_REFRESH_STEPS[-1])
@@ -305,6 +328,14 @@ def build_run_plan(
         resolved_trajectory_files = resolve_trajectory_files(args, repo_root=repo)
     else:
         resolved_trajectory_files = [_profile_default_trajectory_file(repo, repair_corpus_profile)]
+    preflight_trajectory_files = _preflight_trajectory_files(
+        repo=repo,
+        trajectory_files=trajectory_files,
+        include_benchmark_repair_pairs=include_benchmark_repair_pairs,
+        resolved_trajectory_files=resolved_trajectory_files,
+        repair_corpus_profile=repair_corpus_profile,
+        refresh_corpus=refresh_corpus,
+    )
     final_output_dir = Path(output_dir) if output_dir else _default_output_dir(
         repo,
         resolved_trajectory_files,
@@ -315,7 +346,7 @@ def build_run_plan(
     preflight_report = _resolve_preflight_report(
         repo=repo,
         python_executable=resolved_python,
-        trajectory_files=resolved_trajectory_files,
+        trajectory_files=preflight_trajectory_files,
         include_benchmark_repair_pairs=False,
         extra_args=extra_args,
         runtime_import_timeout_s=effective_runtime_import_timeout_s,
@@ -347,6 +378,7 @@ def build_run_plan(
         "refresh_steps": _refresh_steps(repair_corpus_profile) if refresh_corpus else [],
         "refresh_command": _refresh_command(repair_corpus_profile) if refresh_corpus else None,
         "resolved_trajectory_files": resolved_trajectory_files,
+        "preflight_trajectory_files": preflight_trajectory_files,
         "using_merged_default": resolved_trajectory_files == [DEFAULT_MERGED_REPAIR_PAIRS],
         "include_benchmark_repair_pairs": include_benchmark_repair_pairs,
         "preflight_only": preflight_only,
@@ -375,6 +407,7 @@ def compact_plan(plan: dict[str, Any]) -> dict[str, Any]:
         "preflight_only": plan.get("preflight_only"),
         "refresh_corpus": plan.get("refresh_corpus"),
         "using_merged_default": plan.get("using_merged_default"),
+        "preflight_trajectory_files": plan.get("preflight_trajectory_files"),
         "python_executable": plan.get("python_executable"),
         "runtime_import_timeout_s": plan.get("runtime_import_timeout_s"),
         "output_dir": plan.get("output_dir"),

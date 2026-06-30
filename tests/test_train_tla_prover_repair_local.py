@@ -159,6 +159,9 @@ def test_build_run_plan_can_target_proof_repair_primary_profile(tmp_path: Path, 
     assert plan["resolved_trajectory_files"] == [
         "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl"
     ]
+    assert plan["preflight_trajectory_files"] == [
+        "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl"
+    ]
     assert plan["using_merged_default"] is False
     assert plan["output_dir"].endswith("outputs/checkpoints_rl_repair_proof-repair-primary")
     assert plan["refresh_command"].endswith("--profile proof_repair_primary")
@@ -171,6 +174,49 @@ def test_build_run_plan_can_target_proof_repair_primary_profile(tmp_path: Path, 
         "--output-dir",
         str(tmp_path / "outputs/checkpoints_rl_repair_proof-repair-primary"),
         "--preflight-only",
+    ]
+
+
+def test_build_run_plan_can_preflight_profile_refresh_before_profile_exists(tmp_path: Path, monkeypatch) -> None:
+    _write(
+        tmp_path / "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+        '{"repair_id":"B1","before_score":0.1}\n',
+    )
+    captured: dict[str, object] = {}
+
+    def fake_resolve_preflight_report(**kwargs):
+        captured.update(kwargs)
+        return {
+            "ok": True,
+            "runtime_dependencies": {"ok": True, "available": ["torch"], "missing": []},
+            "merged_summary": None,
+        }
+
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        fake_resolve_preflight_report,
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+        refresh_corpus=True,
+        python_executable="/tmp/test-python",
+        repair_corpus_profile="proof_repair_primary",
+    )
+
+    assert plan["resolved_trajectory_files"] == [
+        "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl"
+    ]
+    assert plan["preflight_trajectory_files"] == [
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+    ]
+    assert captured["trajectory_files"] == [
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl"
     ]
 
 
