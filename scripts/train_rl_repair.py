@@ -46,6 +46,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from scripts.build_tla_prover_repair_corpus import DEFAULT_PROFILE, VALID_PROFILES, default_out_for_profile
+
 os.environ.setdefault("USE_TF", "0")
 os.environ.setdefault("USE_JAX", "0")
 os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
@@ -233,6 +235,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--trajectory-file", action="append", default=None,
                         help="Path to a repair-pairs JSONL. Repeat to mix multiple corpora. "
                         f"Defaults to `{DEFAULT_MERGED_REPAIR_PAIRS}` when present, otherwise the available component corpora.")
+    parser.add_argument("--repair-corpus-profile", choices=VALID_PROFILES, default=DEFAULT_PROFILE,
+                        help="Named repair-corpus profile to prefer when no explicit trajectory file is supplied.")
+    parser.add_argument("--allowed-repair-bucket", action="append", default=None,
+                        help="Optional repair bucket filter applied while loading repair prompts. Repeat to allow multiple buckets.")
     parser.add_argument("--include-benchmark-repair-pairs", action="store_true",
                         help="Also load the benchmark-derived repair corpus at "
                         f"`{DEFAULT_BENCHMARK_REPAIR_PAIRS}`.")
@@ -279,6 +285,12 @@ def resolve_trajectory_files(args: argparse.Namespace, repo_root: Path = _REPO_R
         if args.include_benchmark_repair_pairs and DEFAULT_BENCHMARK_REPAIR_PAIRS not in files:
             files.append(DEFAULT_BENCHMARK_REPAIR_PAIRS)
         return files
+
+    repair_corpus_profile = str(getattr(args, "repair_corpus_profile", DEFAULT_PROFILE) or DEFAULT_PROFILE)
+    if repair_corpus_profile != DEFAULT_PROFILE:
+        profile_path = str(default_out_for_profile(repair_corpus_profile, repo=repo_root).relative_to(repo_root))
+        if path_exists(profile_path):
+            return [profile_path]
 
     if path_exists(DEFAULT_MERGED_REPAIR_PAIRS):
         return [DEFAULT_MERGED_REPAIR_PAIRS]
@@ -335,6 +347,14 @@ def build_preflight_report(
     return {
         "schema": "chattla_tla_prover_repair_preflight_v1",
         "ok": ok,
+        "repair_corpus_profile": str(getattr(args, "repair_corpus_profile", DEFAULT_PROFILE) or DEFAULT_PROFILE),
+        "allowed_repair_buckets": sorted(
+            {
+                str(bucket).strip()
+                for bucket in list(getattr(args, "allowed_repair_bucket", None) or [])
+                if str(bucket).strip()
+            }
+        ),
         "trajectory_files": trajectory_files,
         "missing_files": missing_files,
         "raw_rows": raw_rows,
@@ -400,6 +420,7 @@ def main() -> int:
         max_before_score=args.max_before_score,
         max_prompt_tokens=runtime["max_prompt_tokens"],
         tokenizer=tokenizer,
+        allowed_repair_buckets=args.allowed_repair_bucket,
     )
     if not examples:
         sys.exit(

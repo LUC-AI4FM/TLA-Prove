@@ -1,5 +1,4 @@
 import subprocess
-
 from scripts.train_rl_repair import (
     DEFAULT_SMOKE_MODEL,
     DEFAULT_BENCHMARK_REPAIR_PAIRS,
@@ -25,6 +24,27 @@ def test_resolve_trajectory_files_defaults_to_merged_repair_corpus_when_present(
 def test_resolve_trajectory_files_falls_back_to_available_component_sources(monkeypatch) -> None:
     parser = build_arg_parser()
     args = parser.parse_args(["--include-benchmark-repair-pairs"])
+    monkeypatch.setattr(
+        "scripts.train_rl_repair._path_exists",
+        lambda path: path in {DEFAULT_BENCHMARK_REPAIR_PAIRS},
+    )
+    assert resolve_trajectory_files(args) == [DEFAULT_BENCHMARK_REPAIR_PAIRS]
+
+
+def test_resolve_trajectory_files_prefers_selected_profile_when_present(monkeypatch) -> None:
+    parser = build_arg_parser()
+    args = parser.parse_args(["--repair-corpus-profile", "proof_repair_primary"])
+    proof_profile = "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl"
+    monkeypatch.setattr(
+        "scripts.train_rl_repair._path_exists",
+        lambda path: path == proof_profile,
+    )
+    assert resolve_trajectory_files(args) == [proof_profile]
+
+
+def test_resolve_trajectory_files_profile_falls_back_when_profile_missing(monkeypatch) -> None:
+    parser = build_arg_parser()
+    args = parser.parse_args(["--repair-corpus-profile", "proof_repair_primary", "--include-benchmark-repair-pairs"])
     monkeypatch.setattr(
         "scripts.train_rl_repair._path_exists",
         lambda path: path in {DEFAULT_BENCHMARK_REPAIR_PAIRS},
@@ -100,6 +120,8 @@ def test_build_preflight_report_uses_merged_summary_for_default_corpus(tmp_path,
     assert report["merged_summary"]["health"]["ok"] is True
     assert report["merged_summary"]["kept_rows_by_source"] == {"synthetic": 491, "benchmark": 19}
     assert report["merged_summary"]["missing_sources"] == ["data/processed/ralph_repair_pairs.jsonl"]
+    assert report["repair_corpus_profile"] == "default"
+    assert report["allowed_repair_buckets"] == []
 
 
 def test_build_preflight_report_flags_missing_selected_corpus(tmp_path, monkeypatch) -> None:
@@ -121,6 +143,38 @@ def test_build_preflight_report_flags_missing_selected_corpus(tmp_path, monkeypa
     assert report["missing_files"] == ["missing.jsonl"]
     assert report["raw_rows"] == 0
     assert report["unique_repair_ids"] == 0
+
+
+def test_build_preflight_report_records_profile_and_bucket_filters(tmp_path, monkeypatch) -> None:
+    parser = build_arg_parser()
+    args = parser.parse_args(
+        [
+            "--repair-corpus-profile",
+            "proof_repair_primary",
+            "--allowed-repair-bucket",
+            "proof_repair",
+        ]
+    )
+    proof_profile = "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl"
+    profile_path = tmp_path / proof_profile
+    profile_path.parent.mkdir(parents=True, exist_ok=True)
+    profile_path.write_text('{"repair_id":"P1","before_score":0.7,"repair_bucket":"proof_repair"}\n', encoding="utf-8")
+    monkeypatch.setattr(
+        "scripts.train_rl_repair._probe_runtime_dependencies",
+        lambda: {
+            "ok": True,
+            "available": ["torch", "yaml", "datasets", "peft", "transformers", "trl"],
+            "missing": [],
+            "timings": [],
+        },
+    )
+
+    report = build_preflight_report(args, repo_root=tmp_path)
+
+    assert report["ok"] is True
+    assert report["trajectory_files"] == [proof_profile]
+    assert report["repair_corpus_profile"] == "proof_repair_primary"
+    assert report["allowed_repair_buckets"] == ["proof_repair"]
 
 
 def test_build_runtime_config_uses_tiny_cpu_defaults_for_implicit_smoke_model(monkeypatch) -> None:
