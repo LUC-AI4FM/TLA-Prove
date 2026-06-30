@@ -21,6 +21,7 @@ FAILURE_ANALYSIS_PATH = "outputs/manifests/tla_prover_full_dataset_failure_analy
 FULL_DATASET_REPAIR_QUEUE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json"
 FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json"
 PATCH_WORKLIST_PATH = "outputs/manifests/tla_prover_patch_worklist.json"
+PATCH_PACKETS_PATH = "outputs/manifests/tla_prover_patch_packets.json"
 FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH = "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
 FULL_DATASET_HARNESS_REPAIR_PAIRS_SUMMARY_PATH = "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json"
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
@@ -273,6 +274,20 @@ def _patch_worklist_command() -> str:
     return "python3 scripts/build_tla_prover_patch_worklist.py"
 
 
+def _patch_packets_command() -> str:
+    return "python3 scripts/build_tla_prover_patch_packets.py"
+
+
+def _patch_packets_summary(payload: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(payload, dict):
+        return None
+    return {
+        "primary_focus": dict(payload.get("primary_focus") or {}),
+        "counts_by_bucket": dict(payload.get("counts_by_bucket") or {}),
+        "recommended_next_step": payload.get("recommended_next_step"),
+    }
+
+
 def _repair_local_train_command() -> str:
     return "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
 
@@ -418,6 +433,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     full_dataset_repair_queue_summary = _read_optional_json(repo, FULL_DATASET_REPAIR_QUEUE_SUMMARY_PATH)
     full_dataset_repair_evidence_summary = _read_optional_json(repo, FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH)
     patch_worklist = _read_optional_json(repo, PATCH_WORKLIST_PATH)
+    patch_packets = _read_optional_json(repo, PATCH_PACKETS_PATH)
     full_dataset_validated_repair_pairs_summary = _read_optional_json(
         repo, FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH
     )
@@ -445,6 +461,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "full_dataset_repair_evidence_summary": full_dataset_repair_evidence_summary,
         "patch_worklist_command": _patch_worklist_command(),
         "patch_worklist": patch_worklist,
+        "patch_packets_command": _patch_packets_command(),
+        "patch_packets_summary": _patch_packets_summary(patch_packets),
         "full_dataset_validated_repair_pairs_command": _full_dataset_validated_repair_pairs_command(),
         "full_dataset_validated_repair_pairs_summary": full_dataset_validated_repair_pairs_summary,
         "full_dataset_harness_repair_pairs_command": _full_dataset_harness_repair_pairs_command(),

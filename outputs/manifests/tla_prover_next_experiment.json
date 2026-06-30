@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T13:29:15.597081+00:00",
+  "generated_at": "2026-06-30T13:38:00.968162+00:00",
   "handoff_prerequisite": null,
   "handoff_status": {
     "artifact_verdict": "missing",
@@ -584,6 +584,29 @@
         "gold": 18,
         "silver": 5
       }
+    },
+    "patch_packets_command": "python3 scripts/build_tla_prover_patch_packets.py",
+    "patch_packets_summary": {
+      "counts_by_bucket": {
+        "inductiveness_repair": 4,
+        "proof_repair": 5,
+        "skip_harness_repair": 5,
+        "tlc_repair": 5
+      },
+      "primary_focus": {
+        "pair_ready_rows": 18,
+        "queue_rows": 79,
+        "reason": "Highest-priority immediate repair bucket with pair-ready targets available now.",
+        "repair_bucket": "proof_repair",
+        "top_modules": [
+          "AtomicRegister",
+          "BinaryHeap",
+          "BinarySemaphore",
+          "BlocksWorld",
+          "BloomCounter"
+        ]
+      },
+      "recommended_next_step": "Start with proof_repair because it is the highest-priority immediate bucket with 18 pair-ready rows ready for patch work now."
     },
     "patch_worklist": {
       "blocked_row_counts": {

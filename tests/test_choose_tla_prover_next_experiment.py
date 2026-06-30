@@ -308,6 +308,22 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
             }
         },
     )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_patch_packets.json",
+        {
+            "primary_focus": {
+                "repair_bucket": "proof_repair",
+                "pair_ready_rows": 18,
+            },
+            "counts_by_bucket": {
+                "proof_repair": 5,
+                "inductiveness_repair": 4,
+                "tlc_repair": 5,
+                "skip_harness_repair": 5,
+            },
+            "recommended_next_step": "Start with proof_repair.",
+        },
+    )
 
     report = build_report(tmp_path)
 
@@ -344,6 +360,11 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
         "python3 scripts/build_tla_prover_patch_worklist.py"
     )
     assert report["repair_workflow"]["patch_worklist"]["primary_focus"]["repair_bucket"] == "proof_repair"
+    assert report["repair_workflow"]["patch_packets_command"] == (
+        "python3 scripts/build_tla_prover_patch_packets.py"
+    )
+    assert report["repair_workflow"]["patch_packets_summary"]["primary_focus"]["repair_bucket"] == "proof_repair"
+    assert report["repair_workflow"]["patch_packets_summary"]["counts_by_bucket"]["proof_repair"] == 5
     assert report["repair_workflow"]["benchmark_gold_coverage"] == {
         "failed_rows_seen": 20,
         "covered_failed_rows": 19,
