@@ -180,6 +180,8 @@ def test_probe_runtime_dependencies_reports_timeout(monkeypatch) -> None:
 
     report = _probe_runtime_dependencies(module_names=("yaml", "torch"), python_executable="/tmp/python", timeout_s=3.0)
 
+    assert report["python_executable"] == "/tmp/python"
+    assert report["timeout_s"] == 3.0
     assert report["available"] == ["yaml"]
     assert report["missing"] == [
         {"module": "torch", "error": "TimeoutExpired: import timed out after 3.0s"}

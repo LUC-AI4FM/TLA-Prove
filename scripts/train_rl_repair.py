@@ -149,6 +149,8 @@ def _probe_runtime_dependencies(
         "ok": not missing,
         "available": available,
         "missing": missing,
+        "python_executable": python,
+        "timeout_s": timeout,
     }
 
 
