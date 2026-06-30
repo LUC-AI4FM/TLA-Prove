@@ -172,6 +172,39 @@ def test_build_pairs_can_include_harness_and_non_gold_tiers(tmp_path: Path) -> N
     assert summary["kept_by_bucket"] == {"skip_harness_repair": 1}
 
 
+def test_build_pairs_omits_empty_only_buckets_from_summary(tmp_path: Path) -> None:
+    evidence = tmp_path / "repair_evidence.jsonl"
+    _write_jsonl(
+        evidence,
+        [
+            {
+                "module": "AtomicRegister",
+                "module_path": "broken/AtomicRegister.tla",
+                "repair_bucket": "proof_repair",
+                "repair_priority": "p1",
+                "pair_ready": True,
+                "evidence_status": "pair_ready",
+                "nl": "Write an atomic register spec.",
+                "broken_spec": "---- MODULE AtomicRegister ----\nVARIABLES x\n====\n",
+                "repaired_spec": "---- MODULE AtomicRegister ----\nEXTENDS Naturals\n====\n",
+                "errors_rendered": "TLAPS partial proof.",
+                "verify_summary": "status=tlaps_partial bucket=proof_repair priority=p1",
+                "before_score": 0.7,
+                "gold_source_kind": "diamond_eval_holdout",
+                "prompt_source_kind": "diamond_eval_holdout",
+            }
+        ],
+    )
+
+    _rows, summary = build_pairs(
+        evidence_path=evidence,
+        validate_spec=lambda spec, *, module_name, timeout: _Validation("gold", 1.0),
+        allowed_tiers=("gold",),
+    )
+
+    assert "only_buckets" not in summary
+
+
 def test_build_pairs_can_filter_to_specific_bucket(tmp_path: Path) -> None:
     evidence = tmp_path / "repair_evidence.jsonl"
     _write_jsonl(

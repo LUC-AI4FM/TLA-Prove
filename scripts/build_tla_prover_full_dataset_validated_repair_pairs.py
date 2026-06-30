@@ -161,12 +161,13 @@ def build_pairs(
         "rows": len(rows),
         "allowed_tiers": list(allowed),
         "include_harness": include_harness,
-        "only_buckets": sorted(only_bucket_set),
         "validated_tier_counts": dict(sorted(validated_tier_counts.items())),
         "excluded_counts": dict(sorted(excluded_counts.items())),
         "kept_by_bucket": dict(sorted(kept_by_bucket.items())),
         "kept_by_gold_source_kind": dict(sorted(kept_by_gold_source_kind.items())),
     }
+    if only_bucket_set:
+        summary["only_buckets"] = sorted(only_bucket_set)
     return rows, summary
 
 
