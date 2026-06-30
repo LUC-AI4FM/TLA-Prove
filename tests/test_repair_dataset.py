@@ -108,3 +108,61 @@ def test_load_repair_prompts_applies_length_filter_across_sources(tmp_path: Path
     assert [example.repair_id for example in examples] == ["short"]
     prompt = format_repair_prompt(examples[0], tokenizer)
     assert "<!-- repair:short -->" in prompt
+
+
+def test_load_repair_prompts_preserves_repair_metadata(tmp_path: Path) -> None:
+    source = tmp_path / "validated.jsonl"
+    _write_jsonl(
+        source,
+        [
+            {
+                **_row("proof-1", before_score=0.45, suffix="proof"),
+                "repair_bucket": "proof_repair",
+                "module": "AtomicRegister",
+                "validated_tier": "gold",
+                "gold_source_kind": "diamond_eval_holdout",
+            }
+        ],
+    )
+
+    examples, before_scores = load_repair_prompts(
+        trajectory_file=[source],
+        difficulty="all",
+        min_before_score=0.02,
+        max_before_score=0.80,
+    )
+
+    assert before_scores == {"proof-1": 0.45}
+    assert examples[0].repair_bucket == "proof_repair"
+    assert examples[0].module == "AtomicRegister"
+    assert examples[0].validated_tier == "gold"
+    assert examples[0].gold_source_kind == "diamond_eval_holdout"
+
+
+def test_load_repair_prompts_can_filter_allowed_repair_buckets(tmp_path: Path) -> None:
+    source = tmp_path / "mixed.jsonl"
+    _write_jsonl(
+        source,
+        [
+            {
+                **_row("proof-1", before_score=0.45, suffix="proof"),
+                "repair_bucket": "proof_repair",
+            },
+            {
+                **_row("tlc-1", before_score=0.25, suffix="tlc"),
+                "repair_bucket": "tlc_repair",
+            },
+            _row("benchmark-1", before_score=0.15, suffix="benchmark"),
+        ],
+    )
+
+    examples, before_scores = load_repair_prompts(
+        trajectory_file=[source],
+        difficulty="all",
+        min_before_score=0.02,
+        max_before_score=0.80,
+        allowed_repair_buckets=["proof_repair"],
+    )
+
+    assert [example.repair_id for example in examples] == ["proof-1"]
+    assert before_scores == {"proof-1": 0.45}

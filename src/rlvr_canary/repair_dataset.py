@@ -50,6 +50,10 @@ class RepairExample:
     verify_summary: str
     before_score: float
     source_file: str
+    repair_bucket: str | None = None
+    module: str | None = None
+    validated_tier: str | None = None
+    gold_source_kind: str | None = None
 
 
 def resolve_repair_pair_paths(
@@ -89,6 +93,7 @@ def load_repair_prompts(
     max_before_score: float = 0.80,
     max_prompt_tokens: int | None = None,
     tokenizer=None,
+    allowed_repair_buckets: Sequence[str] | None = None,
 ) -> tuple[list[RepairExample], dict[str, float]]:
     """Load repair examples and their before_scores.
 
@@ -120,7 +125,13 @@ def load_repair_prompts(
     n_score_drop = 0
     n_len_drop = 0
     n_diff_drop = 0
+    n_bucket_drop = 0
     seen_repair_ids: set[str] = set()
+    allowed_bucket_set = {
+        str(bucket).strip()
+        for bucket in list(allowed_repair_buckets or [])
+        if str(bucket).strip()
+    }
 
     for path in paths:
         with path.open(encoding="utf-8") as f:
@@ -133,6 +144,11 @@ def load_repair_prompts(
                 if repair_id in seen_repair_ids:
                     continue
                 score = row["before_score"]
+                repair_bucket = str(row.get("repair_bucket") or "").strip() or None
+
+                if allowed_bucket_set and repair_bucket not in allowed_bucket_set:
+                    n_bucket_drop += 1
+                    continue
 
                 # Filter by difficulty
                 if difficulty == "easy" and score >= 0.10:
@@ -158,6 +174,10 @@ def load_repair_prompts(
                     verify_summary=row["verify_summary"],
                     before_score=score,
                     source_file=_display_path(path),
+                    repair_bucket=repair_bucket,
+                    module=str(row.get("module") or "").strip() or None,
+                    validated_tier=str(row.get("validated_tier") or "").strip() or None,
+                    gold_source_kind=str(row.get("gold_source_kind") or "").strip() or None,
                 )
 
                 # Length filter (requires tokenizer)
@@ -176,8 +196,10 @@ def load_repair_prompts(
         if max_examples and len(examples) >= max_examples:
             break
 
-    print(f"[repair_dataset] kept {len(examples)} | dropped: "
-          f"score={n_score_drop} len={n_len_drop} difficulty={n_diff_drop}")
+    print(
+        f"[repair_dataset] kept {len(examples)} | dropped: "
+        f"score={n_score_drop} len={n_len_drop} difficulty={n_diff_drop} bucket={n_bucket_drop}"
+    )
 
     # Sort by before_score ascending (easy first) for curriculum
     examples.sort(key=lambda x: x.before_score)
