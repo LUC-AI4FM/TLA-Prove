@@ -406,6 +406,7 @@ def test_build_run_plan_surfaces_refresh_pipeline(tmp_path: Path, monkeypatch) -
     assert plan["refresh_corpus"] is True
     assert plan["refresh_steps"][0] == ["python3", "scripts/build_tla_prover_full_dataset_repair_queue.py"]
     assert "--allowed-tier silver" in plan["refresh_command"]
+    assert "--include-harness --only-bucket skip_harness_repair" in plan["refresh_command"]
 
 
 def test_run_refresh_pipeline_executes_steps_in_order(tmp_path: Path) -> None:
@@ -429,6 +430,19 @@ def test_run_refresh_pipeline_executes_steps_in_order(tmp_path: Path) -> None:
             "gold",
             "--allowed-tier",
             "silver",
+        ],
+        [
+            "python3",
+            "scripts/build_tla_prover_full_dataset_validated_repair_pairs.py",
+            "--allowed-tier",
+            "gold",
+            "--allowed-tier",
+            "silver",
+            "--include-harness",
+            "--only-bucket",
+            "skip_harness_repair",
+            "--out",
+            "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl",
         ],
         ["python3", "scripts/build_tla_prover_repair_corpus.py"],
     ]
