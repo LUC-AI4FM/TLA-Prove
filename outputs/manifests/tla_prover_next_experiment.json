@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T13:38:00.968162+00:00",
+  "generated_at": "2026-06-30T13:44:30.324118+00:00",
   "handoff_prerequisite": null,
   "handoff_status": {
     "artifact_verdict": "missing",
@@ -589,9 +589,9 @@
     "patch_packets_summary": {
       "counts_by_bucket": {
         "inductiveness_repair": 4,
-        "proof_repair": 5,
-        "skip_harness_repair": 5,
-        "tlc_repair": 5
+        "proof_repair": 18,
+        "skip_harness_repair": 8,
+        "tlc_repair": 7
       },
       "primary_focus": {
         "pair_ready_rows": 18,

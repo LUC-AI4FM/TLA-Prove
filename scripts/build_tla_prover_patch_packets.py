@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from scripts.build_tla_prover_patch_worklist import IMMEDIATE_BUCKETS, _target_sort_key
+
 DEFAULT_PATCH_WORKLIST = REPO / "outputs" / "manifests" / "tla_prover_patch_worklist.json"
 DEFAULT_REPAIR_QUEUE = REPO / "outputs" / "manifests" / "tla_prover_full_dataset_repair_queue.jsonl"
 DEFAULT_REPAIR_EVIDENCE = REPO / "outputs" / "manifests" / "tla_prover_full_dataset_repair_evidence.jsonl"
@@ -95,23 +101,32 @@ def build_packets(
     evidence_rows = _load_jsonl(repair_evidence)
 
     queue_by_key = {_row_key(row.get("module_path"), row.get("module")): row for row in queue_rows}
-    evidence_by_key = {_row_key(row.get("module_path"), row.get("module")): row for row in evidence_rows}
+    evidence_by_bucket: dict[str, list[dict[str, Any]]] = {bucket: [] for bucket in IMMEDIATE_BUCKETS}
+    for row in evidence_rows:
+        bucket = str(row.get("repair_bucket") or "")
+        if bucket not in evidence_by_bucket or not bool(row.get("pair_ready")):
+            continue
+        evidence_by_bucket[bucket].append(row)
 
     packets_by_bucket: dict[str, list[dict[str, Any]]] = {}
     counts_by_bucket: dict[str, int] = {}
-    for bucket, targets in dict(worklist.get("top_targets_by_bucket") or {}).items():
+    for bucket in IMMEDIATE_BUCKETS:
+        evidence_bucket_rows = list(evidence_by_bucket.get(bucket) or [])
+        if not evidence_bucket_rows:
+            continue
         bucket_packets: list[dict[str, Any]] = []
-        for target in targets:
-            key = _row_key(target.get("module_path"), target.get("module"))
+        for evidence_row in evidence_bucket_rows:
+            key = _row_key(evidence_row.get("module_path"), evidence_row.get("module"))
             bucket_packets.append(
                 _build_packet(
-                    target=target,
+                    target=evidence_row,
                     queue_row=queue_by_key.get(key),
-                    evidence_row=evidence_by_key.get(key),
+                    evidence_row=evidence_row,
                     repo=repo,
                 )
             )
         if bucket_packets:
+            bucket_packets.sort(key=lambda item, current=bucket: _target_sort_key(current, item))
             packets_by_bucket[str(bucket)] = bucket_packets
             counts_by_bucket[str(bucket)] = len(bucket_packets)
 

@@ -85,6 +85,18 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
                 "tlapm": {"obligations_failed": 2, "obligations_total": 10},
             },
             {
+                "module": "Barrier",
+                "module_path": "outputs/diamond_gen/synchronization_work/Barrier.tla",
+                "repair_bucket": "proof_repair",
+                "repair_priority": "p1",
+                "recommended_action": "collect_proof_repair_pair",
+                "status": "tlaps_partial",
+                "failure_excerpt": "[ERROR]: Could not prove or check:",
+                "runtime_seconds": 19.839,
+                "target": "Spec => []TypeOK",
+                "tlapm": {"obligations_failed": 1, "obligations_total": 10},
+            },
+            {
                 "module": "LamportMutex",
                 "module_path": "data/FormaLLM/data/lamport_mutex/tla/LamportMutex.tla",
                 "repair_bucket": "tlc_repair",
@@ -144,6 +156,27 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
                 "nl": "arp prompt",
             },
             {
+                "module": "Barrier",
+                "module_path": "outputs/diamond_gen/synchronization_work/Barrier.tla",
+                "repair_bucket": "proof_repair",
+                "repair_priority": "p1",
+                "pair_ready": True,
+                "evidence_status": "pair_ready",
+                "before_score": 0.9,
+                "prompt_source_kind": "diamond_eval_holdout",
+                "prompt_source_path": "data/processed/diamond_eval_holdout.jsonl",
+                "prompt_source_prompt_id": "barrier-broken",
+                "gold_source_kind": "diamond_eval_holdout",
+                "gold_source_path": "data/processed/diamond_eval_holdout.jsonl",
+                "gold_source_repo": None,
+                "broken_spec_path": "outputs/diamond_gen/synchronization_work/Barrier.tla",
+                "broken_spec_sha256": "broken-barrier",
+                "repaired_spec_sha256": "repaired-barrier",
+                "repaired_spec_chars": 700,
+                "errors_rendered": "1/10 obligations failed",
+                "nl": "barrier prompt",
+            },
+            {
                 "module": "LamportMutex",
                 "module_path": "data/FormaLLM/data/lamport_mutex/tla/LamportMutex.tla",
                 "repair_bucket": "tlc_repair",
@@ -179,9 +212,10 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
     assert payload["primary_focus_packets"][0]["obligations_failed"] == 3
     assert payload["primary_focus_packets"][0]["prompt_source_path"] == "data/processed/diamond_eval_holdout.jsonl"
     assert payload["primary_focus_packets"][1]["module"] == "Arp"
+    assert payload["primary_focus_packets"][2]["module"] == "Barrier"
     assert payload["packets_by_bucket"]["tlc_repair"][0]["module"] == "LamportMutex"
     assert payload["packets_by_bucket"]["tlc_repair"][0]["gold_source_repo"] == "FormaLLM"
-    assert payload["counts_by_bucket"] == {"proof_repair": 2, "tlc_repair": 1}
+    assert payload["counts_by_bucket"] == {"proof_repair": 3, "tlc_repair": 1}
 
 
 def test_cli_writes_patch_packet_manifest(tmp_path: Path) -> None:
