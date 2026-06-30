@@ -29,6 +29,9 @@ SYNTHETIC_REPAIR_SUMMARY = "data/processed/tla_prover_synthetic_repair_pairs_v1.
 FULL_DATASET_VALIDATED_REPAIR_SUMMARY = (
     "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
 )
+FULL_DATASET_HARNESS_REPAIR_SUMMARY = (
+    "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json"
+)
 SHAPE_READY_SUMMARY = "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json"
 SHAPE_READY_NOT_SANY_SUMMARY = (
     "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
@@ -235,14 +238,19 @@ def _repair_corpus_status(
     benchmark_summary: dict[str, Any],
     synthetic_summary: dict[str, Any],
     full_dataset_validated_summary: dict[str, Any],
+    full_dataset_harness_summary: dict[str, Any] | None,
 ) -> dict[str, Any]:
     benchmark_path = "data/processed/benchmark_repair_pairs_fc128best.jsonl"
     synthetic_path = "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
     full_dataset_path = "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl"
+    full_dataset_harness_path = "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl"
     benchmark_rows = _repair_source_rows(repair_summary, benchmark_path)
     synthetic_rows = _repair_source_rows(repair_summary, synthetic_path)
     full_dataset_rows = _repair_source_rows(repair_summary, full_dataset_path)
+    full_dataset_harness_rows = _repair_source_rows(repair_summary, full_dataset_harness_path)
     total_rows = int(repair_summary.get("rows", 0) or 0)
+    combined_validated_rows = full_dataset_rows + full_dataset_harness_rows
+    harness_summary = full_dataset_harness_summary or {}
     return {
         "path": "data/processed/tla_prover_repair_train_v1.jsonl",
         "summary_path": REPAIR_TRAIN_SUMMARY,
@@ -272,10 +280,19 @@ def _repair_corpus_status(
                 "validated_tier_counts": dict(full_dataset_validated_summary.get("validated_tier_counts") or {}),
                 "kept_by_bucket": dict(full_dataset_validated_summary.get("kept_by_bucket") or {}),
             },
+            "full_dataset_harness_repair": {
+                "rows_in_merged_corpus": full_dataset_harness_rows,
+                "source_rows": int(harness_summary.get("rows", 0) or 0),
+                "candidate_rows": harness_summary.get("candidate_rows"),
+                "validated_tier_counts": dict(harness_summary.get("validated_tier_counts") or {}),
+                "kept_by_bucket": dict(harness_summary.get("kept_by_bucket") or {}),
+            },
         },
         "comparisons": {
             "rows_beyond_benchmark_only": total_rows - benchmark_rows,
-            "validated_rows_added_beyond_benchmark": full_dataset_rows,
+            "strict_validated_rows_added_beyond_benchmark": full_dataset_rows,
+            "harness_validated_rows_added_beyond_benchmark": full_dataset_harness_rows,
+            "validated_rows_added_beyond_benchmark": combined_validated_rows,
             "synthetic_rows_added_beyond_benchmark": synthetic_rows,
         },
     }
@@ -289,6 +306,7 @@ def build_report(repo: Path = REPO) -> dict[str, Any]:
     benchmark_repair_summary = _read_json(repo, BENCHMARK_REPAIR_SUMMARY)
     synthetic_repair_summary = _read_json(repo, SYNTHETIC_REPAIR_SUMMARY)
     full_dataset_validated_repair_summary = _read_json(repo, FULL_DATASET_VALIDATED_REPAIR_SUMMARY)
+    full_dataset_harness_repair_summary = _read_optional_json(repo, FULL_DATASET_HARNESS_REPAIR_SUMMARY)
     shape_ready_summary = _read_json(repo, SHAPE_READY_SUMMARY)
     shape_ready_not_sany_summary = _read_json(repo, SHAPE_READY_NOT_SANY_SUMMARY)
     funnel = _read_json(repo, FUNNEL_PATH)
@@ -395,11 +413,12 @@ def build_report(repo: Path = REPO) -> dict[str, Any]:
             "interpretation_status": dataset_surface["public_1800_plus_interpretation"]["status"],
         },
         "repair_corpus_status": _repair_corpus_status(
-            repair_summary=repair_summary,
-            benchmark_summary=benchmark_repair_summary,
-            synthetic_summary=synthetic_repair_summary,
-            full_dataset_validated_summary=full_dataset_validated_repair_summary,
-        ),
+        repair_summary=repair_summary,
+        benchmark_summary=benchmark_repair_summary,
+        synthetic_summary=synthetic_repair_summary,
+        full_dataset_validated_summary=full_dataset_validated_repair_summary,
+        full_dataset_harness_summary=full_dataset_harness_repair_summary,
+    ),
         "local_repair_runtime_status": _local_repair_runtime_status(repo),
         "publish_readiness": {
             "default_model": _readiness_snapshot(readiness),

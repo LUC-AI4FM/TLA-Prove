@@ -47,13 +47,14 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     _write(
         tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
         {
-            "rows": 533,
-            "difficulty_counts": {"easy": 248, "medium": 61, "hard": 224},
+            "rows": 541,
+            "difficulty_counts": {"easy": 256, "medium": 61, "hard": 224},
             "health": {"ok": True, "warnings": [], "benchmark_only": False, "only_easy_rows": False},
             "kept_rows_by_source": {
                 "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
                 "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491,
                 "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
+                "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl": 8,
             },
             "missing_sources": [
                 "data/processed/ralph_repair_pairs.jsonl",
@@ -83,6 +84,15 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
             "candidate_rows": 37,
             "validated_tier_counts": {"gold": 18, "silver": 5, "bronze": 6},
             "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3, "tlc_repair": 4},
+        },
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json",
+        {
+            "rows": 8,
+            "candidate_rows": 8,
+            "validated_tier_counts": {"gold": 4, "silver": 4},
+            "kept_by_bucket": {"skip_harness_repair": 8},
         },
     )
     _write(
@@ -274,13 +284,17 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     assert report["public_ai4fm_scope"]["all_public_tlaprove_rows"] == 2757
     assert report["public_ai4fm_scope"]["public_seed_tla_files"] == 2110
     assert report["public_ai4fm_scope"]["usable_public_seed_modules"] == 2108
-    assert report["repair_corpus_status"]["rows"] == 533
+    assert report["repair_corpus_status"]["rows"] == 541
     assert report["repair_corpus_status"]["sources"]["benchmark_fc128best"]["rows_in_merged_corpus"] == 20
     assert report["repair_corpus_status"]["sources"]["synthetic"]["rows_in_merged_corpus"] == 491
     assert report["repair_corpus_status"]["sources"]["full_dataset_validated"]["rows_in_merged_corpus"] == 22
     assert report["repair_corpus_status"]["sources"]["full_dataset_validated"]["candidate_rows"] == 37
-    assert report["repair_corpus_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 22
-    assert report["repair_corpus_status"]["comparisons"]["rows_beyond_benchmark_only"] == 513
+    assert report["repair_corpus_status"]["sources"]["full_dataset_harness_repair"]["rows_in_merged_corpus"] == 8
+    assert report["repair_corpus_status"]["sources"]["full_dataset_harness_repair"]["candidate_rows"] == 8
+    assert report["repair_corpus_status"]["comparisons"]["strict_validated_rows_added_beyond_benchmark"] == 22
+    assert report["repair_corpus_status"]["comparisons"]["harness_validated_rows_added_beyond_benchmark"] == 8
+    assert report["repair_corpus_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 30
+    assert report["repair_corpus_status"]["comparisons"]["rows_beyond_benchmark_only"] == 521
     assert report["local_repair_runtime_status"] == {
         "path": "outputs/manifests/tla_prover_local_repair_plan.json",
         "present": True,

@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T13:08:52.748576+00:00",
+  "generated_at": "2026-06-30T13:29:15.597081+00:00",
   "handoff_prerequisite": null,
   "handoff_status": {
     "artifact_verdict": "missing",
@@ -195,9 +195,11 @@
   },
   "repair_expansion_status": {
     "comparisons": {
+      "harness_validated_rows_added_beyond_benchmark": 8,
       "rows_beyond_benchmark_only": 521,
+      "strict_validated_rows_added_beyond_benchmark": 22,
       "synthetic_rows_added_beyond_benchmark": 491,
-      "validated_rows_added_beyond_benchmark": 22
+      "validated_rows_added_beyond_benchmark": 30
     },
     "health": {
       "benchmark_only": false,
@@ -217,6 +219,18 @@
         "missing_gold_benchmark_ids": [],
         "rows_in_merged_corpus": 20,
         "source_rows": 20
+      },
+      "full_dataset_harness_repair": {
+        "candidate_rows": 8,
+        "kept_by_bucket": {
+          "skip_harness_repair": 8
+        },
+        "rows_in_merged_corpus": 8,
+        "source_rows": 8,
+        "validated_tier_counts": {
+          "gold": 4,
+          "silver": 4
+        }
       },
       "full_dataset_validated": {
         "candidate_rows": 37,

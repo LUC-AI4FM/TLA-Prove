@@ -13,7 +13,7 @@
     "default_train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "diamond_eval_holdout_leakage_ok": true
   },
-  "generated_at": "2026-06-30T13:08:52.695944+00:00",
+  "generated_at": "2026-06-30T13:29:15.519469+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -200,9 +200,11 @@
   },
   "repair_corpus_status": {
     "comparisons": {
+      "harness_validated_rows_added_beyond_benchmark": 8,
       "rows_beyond_benchmark_only": 521,
+      "strict_validated_rows_added_beyond_benchmark": 22,
       "synthetic_rows_added_beyond_benchmark": 491,
-      "validated_rows_added_beyond_benchmark": 22
+      "validated_rows_added_beyond_benchmark": 30
     },
     "difficulty_counts": {
       "easy": 256,
@@ -228,6 +230,18 @@
         "missing_gold_benchmark_ids": [],
         "rows_in_merged_corpus": 20,
         "source_rows": 20
+      },
+      "full_dataset_harness_repair": {
+        "candidate_rows": 8,
+        "kept_by_bucket": {
+          "skip_harness_repair": 8
+        },
+        "rows_in_merged_corpus": 8,
+        "source_rows": 8,
+        "validated_tier_counts": {
+          "gold": 4,
+          "silver": 4
+        }
       },
       "full_dataset_validated": {
         "candidate_rows": 37,
