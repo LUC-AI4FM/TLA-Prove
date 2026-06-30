@@ -66,6 +66,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"schema": "chattla_tla_prover_corpus_experiment_matrix_v1", "publish_baseline_lane": "default"}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/tla_prover_lane_comparison_plan.json").write_text(
+        json.dumps({"comparison_id": "default-vs-expanded-local", "row_delta": 1173}),
+        encoding="utf-8",
+    )
     _write_jsonl(
         repo / "data/processed/benchmark_repair_pairs_fc128best.jsonl",
         [{"repair_id": "BM001::chattla_20b_fc128best", "before_score": 0.0, "after_score": 1.0}],
@@ -346,6 +350,10 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["tla_prover_corpus_experiment_matrix"]["kind"] == (
         "corpus_experiment_matrix_report"
     )
+    assert manifest["artifacts"]["tla_prover_lane_comparison_plan"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_lane_comparison_plan"]["kind"] == (
+        "prover_corpus_lane_comparison_plan"
+    )
     assert manifest["artifacts"]["tla_prover_corpus_preflight"]["exists"] is True
     assert manifest["artifacts"]["tla_prover_corpus_preflight"]["report_excerpt"] == {
         "formalllm_coverage": {
@@ -470,6 +478,11 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["train_tla_prover_local"] == (
         "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded"
+    )
+    assert manifest["remote_next_steps"]["build_tla_prover_lane_comparison_plan"] == (
+        "python3 scripts/build_tla_prover_lane_comparison_plan.py "
+        "--baseline default --candidate expanded --mode local "
+        "--out outputs/manifests/tla_prover_lane_comparison_plan.json"
     )
     assert manifest["remote_next_steps"]["train_tla_prover_repair_local"] == (
         "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight"

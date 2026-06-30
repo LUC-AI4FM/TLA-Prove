@@ -195,6 +195,10 @@ ARTIFACTS = {
         "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
         "kind": "corpus_experiment_matrix_report",
     },
+    "tla_prover_lane_comparison_plan": {
+        "path": "outputs/manifests/tla_prover_lane_comparison_plan.json",
+        "kind": "prover_corpus_lane_comparison_plan",
+    },
 }
 
 REPORT_EXCERPT_KEYS = {
@@ -368,6 +372,11 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             ),
             "train_tla_prover_local": (
                 "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded"
+            ),
+            "build_tla_prover_lane_comparison_plan": (
+                "python3 scripts/build_tla_prover_lane_comparison_plan.py "
+                "--baseline default --candidate expanded --mode local "
+                "--out outputs/manifests/tla_prover_lane_comparison_plan.json"
             ),
             "train_tla_prover_repair_local": (
                 "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight"

@@ -2586,6 +2586,14 @@
       "rows": null,
       "sha256": "5fc5cb7203898e2fbe90683ccacbf55e9fda52826e96509708676c5d936556ca"
     },
+    "tla_prover_lane_comparison_plan": {
+      "bytes": 3487,
+      "exists": true,
+      "kind": "prover_corpus_lane_comparison_plan",
+      "path": "outputs/manifests/tla_prover_lane_comparison_plan.json",
+      "rows": null,
+      "sha256": "8a758f6ed24a2e5347cb4216e22813e6e0c7995810251813ff1d6c2ca0d761a9"
+    },
     "tla_prover_repair_train_v1": {
       "bytes": 2277997,
       "exists": true,
@@ -2941,7 +2949,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-30T03:25:27.687080+00:00",
+  "generated_at": "2026-06-30T03:36:45.783966+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -2965,6 +2973,7 @@
     "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
     "build_tla_prover_finetune_corpus_public_all": "python3 scripts/build_tla_prover_finetune_corpus.py --public-import data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl --public-import-weight 1 --public-seed-candidates-weight 1 --out data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
     "build_tla_prover_full_dataset_failure_analysis": "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py",
+    "build_tla_prover_lane_comparison_plan": "python3 scripts/build_tla_prover_lane_comparison_plan.py --baseline default --candidate expanded --mode local --out outputs/manifests/tla_prover_lane_comparison_plan.json",
     "build_tla_prover_next_experiment": "python3 scripts/choose_tla_prover_next_experiment.py --out outputs/manifests/tla_prover_next_experiment.json",
     "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
     "build_tla_prover_synthetic_repair_pairs_v1": "python3 scripts/build_tla_prover_synthetic_repair_pairs.py",

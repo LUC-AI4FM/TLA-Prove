@@ -1,0 +1,91 @@
+{
+  "baseline": {
+    "command": [
+      "python3",
+      "-m",
+      "src.training.train",
+      "--prover",
+      "--sft-corpus",
+      "default",
+      "--output-dir",
+      "outputs/checkpoints_prover",
+      "--experiment-name",
+      "ChatTLA-Prover-gpt-oss-20b"
+    ],
+    "experiment_name": "ChatTLA-Prover-gpt-oss-20b",
+    "generated_at": "2026-06-30T03:36:45.762495+00:00",
+    "output_dir": "outputs/checkpoints_prover",
+    "repo": ".",
+    "requested_corpus": "default",
+    "resolved_corpus": {
+      "alias": "default",
+      "checked_paths": [
+        "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
+      ],
+      "default_publish_lane": true,
+      "experiment_matrix_lane_found": true,
+      "experiment_matrix_path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+      "experiment_matrix_present": true,
+      "intended_role": "current_publish_baseline",
+      "requested": "default",
+      "requested_path": null,
+      "resolved_train_file": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+      "rows": 1330,
+      "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json",
+      "trainable": true
+    },
+    "schema": "chattla_tla_prover_local_train_plan_v1",
+    "train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl"
+  },
+  "candidate": {
+    "command": [
+      "python3",
+      "-m",
+      "src.training.train",
+      "--prover",
+      "--sft-corpus",
+      "expanded",
+      "--output-dir",
+      "outputs/checkpoints_prover_expanded",
+      "--experiment-name",
+      "ChatTLA-Prover-gpt-oss-20b-expanded"
+    ],
+    "experiment_name": "ChatTLA-Prover-gpt-oss-20b-expanded",
+    "generated_at": "2026-06-30T03:36:45.763193+00:00",
+    "output_dir": "outputs/checkpoints_prover_expanded",
+    "repo": ".",
+    "requested_corpus": "expanded",
+    "resolved_corpus": {
+      "alias": "expanded",
+      "checked_paths": [
+        "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
+      ],
+      "default_publish_lane": false,
+      "experiment_matrix_lane_found": true,
+      "experiment_matrix_path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+      "experiment_matrix_present": true,
+      "intended_role": "bounded_public_comparison_train",
+      "requested": "expanded",
+      "requested_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+      "resolved_train_file": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+      "rows": 2503,
+      "summary_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json",
+      "trainable": true
+    },
+    "schema": "chattla_tla_prover_local_train_plan_v1",
+    "train_path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl"
+  },
+  "comparison_id": "default-vs-expanded-local",
+  "follow_up": {
+    "collect_command": "scripts/collect_tla_prover_remote_results.sh",
+    "evaluate_command": "python3 scripts/evaluate_tla_prover_remote_results.py",
+    "status_command": "python3 scripts/choose_tla_prover_next_experiment.py",
+    "watch_command": "scripts/watch_tla_prover_remote_results.sh"
+  },
+  "generated_at": "2026-06-30T03:36:45.763386+00:00",
+  "mode": "local",
+  "repo": ".",
+  "row_delta": 1173,
+  "schema": "chattla_tla_prover_lane_comparison_plan_v1"
+}

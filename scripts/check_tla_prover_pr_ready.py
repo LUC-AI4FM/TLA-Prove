@@ -38,6 +38,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",
     "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+    "outputs/manifests/tla_prover_lane_comparison_plan.json",
     "outputs/manifests/tla_prover_next_experiment.json",
 )
 
@@ -82,6 +83,7 @@ PY_COMPILE_FILES = [
     "scripts/build_tla_prover_repair_corpus.py",
     "scripts/train_rl_repair.py",
     "scripts/build_tla_prover_full_dataset_failure_analysis.py",
+    "scripts/build_tla_prover_lane_comparison_plan.py",
     "scripts/sync_hf_publish_corpora_metadata.py",
     "scripts/upload_v11.py",
     "scripts/train_tla_prover_local.py",
@@ -122,6 +124,7 @@ PYTEST_FILES = [
     "tests/test_build_tla_prover_synthetic_repair_pairs.py",
     "tests/test_build_tla_prover_repair_corpus.py",
     "tests/test_build_tla_prover_full_dataset_failure_analysis.py",
+    "tests/test_build_tla_prover_lane_comparison_plan.py",
     "tests/test_upload_v11.py",
     "tests/test_publish_hf.py",
     "tests/test_repair_dataset.py",
