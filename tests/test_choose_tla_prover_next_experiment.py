@@ -527,6 +527,11 @@ def test_compact_report_surfaces_handoff_prerequisite_and_core_fields(tmp_path: 
     assert compact["handoff_state"] == "not_started"
     assert compact["handoff_prerequisite_action"] == "install_wait_launchagent"
     assert compact["handoff_prerequisite_command"] == "scripts/install_wait_handoff_launchagent.sh"
+    assert compact["local_repair_status_present"] is False
+    assert compact["local_repair_status_command"] == (
+        "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run "
+        "--out outputs/manifests/tla_prover_local_repair_plan.json"
+    )
     assert compact["repair_rows"] == 533
 
 
@@ -564,3 +569,88 @@ def test_cli_compact_outputs_small_next_experiment_packet(tmp_path: Path) -> Non
     assert payload["recommended_action"] == "repair"
     assert payload["handoff_prerequisite_action"] == "install_wait_launchagent"
     assert "repair_corpus_summary" not in payload
+
+
+def test_build_report_surfaces_local_repair_status_from_manifest(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "patch",
+            "full_dataset_verdict": "patch",
+            "next_action": "Do not launch SFT. Patch prover harness/data first.",
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {"ready_to_publish": False},
+    )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_local_repair_plan.json",
+        {
+            "schema": "chattla_tla_prover_local_repair_plan_v1",
+            "generated_at": "2026-06-30T11:36:05.155392+00:00",
+            "bootstrap_recommendation": {
+                "command": "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup",
+                "reason": "selected_python_missing_training_dependencies",
+            },
+            "preflight_report": {
+                "ok": False,
+                "runtime_dependencies": {
+                    "ok": False,
+                    "missing": [
+                        {"module": "datasets.Dataset", "error": "TimeoutExpired: import timed out after 2.0s"},
+                        {"module": "peft.LoraConfig", "error": "TimeoutExpired: import timed out after 2.0s"},
+                    ],
+                },
+            },
+        },
+    )
+
+    report = build_report(tmp_path)
+
+    assert report["local_repair_status"]["present"] is True
+    assert report["local_repair_status"]["preflight_ok"] is False
+    assert report["local_repair_status"]["local_runtime_ready"] is False
+    assert report["local_repair_status"]["runtime_missing_modules"] == [
+        "datasets.Dataset",
+        "peft.LoraConfig",
+    ]
+    assert report["local_repair_status"]["bootstrap_recommendation"]["reason"] == (
+        "selected_python_missing_training_dependencies"
+    )
+    assert "Local repair preflight is currently not ready on this machine" in report["rationale"]
+
+
+def test_compact_report_surfaces_local_repair_status_when_manifest_exists(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "patch",
+            "full_dataset_verdict": "patch",
+            "next_action": "Do not launch SFT. Patch prover harness/data first.",
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {"ready_to_publish": False},
+    )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_local_repair_plan.json",
+        {
+            "schema": "chattla_tla_prover_local_repair_plan_v1",
+            "preflight_report": {
+                "ok": True,
+                "runtime_dependencies": {"ok": True, "missing": []},
+            },
+        },
+    )
+
+    compact = compact_report(build_report(tmp_path))
+
+    assert compact["local_repair_status_present"] is True
+    assert compact["local_runtime_ready"] is True
+    assert compact["local_runtime_missing_modules"] == []

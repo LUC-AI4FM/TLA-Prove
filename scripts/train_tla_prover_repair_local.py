@@ -27,6 +27,7 @@ from scripts.train_rl_repair import (
 )
 
 BOOTSTRAP_ENV_COMMAND = "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup"
+DEFAULT_PLAN_OUT = REPO / "outputs" / "manifests" / "tla_prover_local_repair_plan.json"
 REPAIR_REFRESH_STEPS: tuple[tuple[str, ...], ...] = (
     ("python3", "scripts/build_tla_prover_full_dataset_repair_queue.py"),
     ("python3", "scripts/build_tla_prover_full_dataset_repair_evidence.py"),
@@ -281,14 +282,42 @@ def build_run_plan(
     }
 
 
+def compact_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    preflight_report = dict(plan.get("preflight_report") or {})
+    runtime_dependencies = dict(preflight_report.get("runtime_dependencies") or {})
+    runtime_missing_modules = [
+        str(entry.get("module"))
+        for entry in list(runtime_dependencies.get("missing") or [])
+        if str(entry.get("module") or "").strip()
+    ]
+    return {
+        "schema": "chattla_tla_prover_local_repair_plan_compact_v1",
+        "generated_at": plan.get("generated_at"),
+        "repo": plan.get("repo"),
+        "preflight_only": plan.get("preflight_only"),
+        "refresh_corpus": plan.get("refresh_corpus"),
+        "using_merged_default": plan.get("using_merged_default"),
+        "python_executable": plan.get("python_executable"),
+        "output_dir": plan.get("output_dir"),
+        "preflight_ok": preflight_report.get("ok"),
+        "local_runtime_ready": runtime_dependencies.get("ok"),
+        "runtime_missing_modules": runtime_missing_modules,
+        "bootstrap_recommendation": plan.get("bootstrap_recommendation"),
+        "model": preflight_report.get("model"),
+        "command": plan.get("command"),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--trajectory-file", action="append", default=None)
     parser.add_argument("--include-benchmark-repair-pairs", action="store_true")
     parser.add_argument("--output-dir", default=None)
+    parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--preflight", action="store_true")
     parser.add_argument("--refresh-corpus", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--compact", action="store_true")
     parser.add_argument("extra_args", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
@@ -305,7 +334,11 @@ def main() -> int:
         preflight_only=args.preflight,
         refresh_corpus=args.refresh_corpus,
     )
-    print(json.dumps(plan, indent=2, sort_keys=True))
+    payload = compact_plan(plan) if args.compact else plan
+    if args.out is not None:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps(payload, indent=2, sort_keys=True))
     if args.dry_run:
         return 0
 

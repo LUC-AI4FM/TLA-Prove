@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 from scripts.train_rl_repair import DEFAULT_SMOKE_MODEL
-from scripts.train_tla_prover_repair_local import build_run_plan, run_refresh_pipeline
+from scripts.train_tla_prover_repair_local import build_run_plan, compact_plan, run_refresh_pipeline
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "train_tla_prover_repair_local.py"
@@ -360,3 +360,77 @@ def test_run_refresh_pipeline_executes_steps_in_order(tmp_path: Path) -> None:
         ],
         ["python3", "scripts/build_tla_prover_repair_corpus.py"],
     ]
+
+
+def test_compact_plan_surfaces_runtime_readiness_and_missing_modules(tmp_path: Path, monkeypatch) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
+        '{"repair_id":"R1","before_score":0.2}\n',
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        '{"rows": 1, "health": {"ok": true, "warnings": []}, "kept_rows_by_source": {"benchmark": 1}}\n',
+    )
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        lambda **_kwargs: {
+            "ok": False,
+            "runtime_dependencies": {
+                "ok": False,
+                "available": ["torch", "yaml"],
+                "missing": [
+                    {"module": "datasets.Dataset", "error": "TimeoutExpired: import timed out after 2.0s"},
+                    {"module": "peft.LoraConfig", "error": "TimeoutExpired: import timed out after 2.0s"},
+                ],
+            },
+        },
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+        refresh_corpus=False,
+        python_executable=str(tmp_path / ".venv/bin/python"),
+    )
+
+    compact = compact_plan(plan)
+
+    assert compact["preflight_ok"] is False
+    assert compact["local_runtime_ready"] is False
+    assert compact["runtime_missing_modules"] == ["datasets.Dataset", "peft.LoraConfig"]
+    assert compact["bootstrap_recommendation"]["command"] == (
+        "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup"
+    )
+
+
+def test_cli_can_write_and_compact_plan_json(tmp_path: Path) -> None:
+    out = tmp_path / "repair-plan.json"
+    completed = subprocess.run(
+        [
+            "python3",
+            str(SCRIPT),
+            "--preflight",
+            "--dry-run",
+            "--out",
+            str(out),
+            "--compact",
+        ],
+        cwd=REPO,
+        text=True,
+        capture_output=True,
+        env={
+            **os.environ,
+            "CHATTLA_RUNTIME_IMPORT_TIMEOUT_S": "2",
+        },
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(completed.stdout)
+    assert payload["schema"] == "chattla_tla_prover_local_repair_plan_compact_v1"
+    assert "local_runtime_ready" in payload
+    persisted = json.loads(out.read_text(encoding="utf-8"))
+    assert persisted["schema"] == "chattla_tla_prover_local_repair_plan_v1"

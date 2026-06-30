@@ -22,6 +22,11 @@ FULL_DATASET_REPAIR_QUEUE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_data
 FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json"
 FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH = "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
+LOCAL_REPAIR_PLAN_PATH = "outputs/manifests/tla_prover_local_repair_plan.json"
+LOCAL_REPAIR_STATUS_COMMAND = (
+    "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run "
+    "--out outputs/manifests/tla_prover_local_repair_plan.json"
+)
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
 CORPUS_EXPANSION_SEQUENCE = ("default", "expanded", "full-public")
 
@@ -336,6 +341,32 @@ def _handoff_guidance(repo: Path) -> tuple[dict[str, Any], dict[str, Any] | None
     return compact_status, None
 
 
+def _local_repair_status(repo: Path) -> dict[str, Any]:
+    plan = _read_optional_json(repo, LOCAL_REPAIR_PLAN_PATH)
+    if not isinstance(plan, dict):
+        return {
+            "present": False,
+            "path": LOCAL_REPAIR_PLAN_PATH,
+        }
+    preflight_report = dict(plan.get("preflight_report") or {})
+    runtime_dependencies = dict(preflight_report.get("runtime_dependencies") or {})
+    runtime_missing_modules = [
+        str(entry.get("module"))
+        for entry in list(runtime_dependencies.get("missing") or [])
+        if str(entry.get("module") or "").strip()
+    ]
+    return {
+        "present": True,
+        "path": LOCAL_REPAIR_PLAN_PATH,
+        "generated_at": plan.get("generated_at"),
+        "preflight_ok": preflight_report.get("ok"),
+        "local_runtime_ready": runtime_dependencies.get("ok"),
+        "runtime_missing_modules": runtime_missing_modules,
+        "bootstrap_recommendation": plan.get("bootstrap_recommendation"),
+        "python_executable": plan.get("python_executable"),
+    }
+
+
 def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str, Any]:
     requested_intent = requested_intent.strip().lower()
     if requested_intent not in VALID_INTENTS:
@@ -355,6 +386,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     )
     published_proof_summary = _read_optional_json(repo, PUBLISHED_PROOF_SUMMARY_PATH)
     handoff_status, handoff_prerequisite = _handoff_guidance(repo)
+    local_repair_status = _local_repair_status(repo)
     repair_health = dict((repair_summary or {}).get("health") or {})
     repair_corpus_summary = {
         "rows": (repair_summary or {}).get("rows"),
@@ -414,6 +446,20 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
             f"{rationale} Operational prerequisite: {handoff_prerequisite['reason']} "
             f"({handoff_prerequisite['command']})."
         )
+    if recommended_action == "repair" and local_repair_status.get("present") and not local_repair_status.get("preflight_ok"):
+        bootstrap = dict(local_repair_status.get("bootstrap_recommendation") or {})
+        if bootstrap.get("command"):
+            rationale = (
+                f"{rationale} Local repair preflight is currently not ready on this machine; "
+                f"rerun the local bootstrap path first ({bootstrap['command']})."
+            )
+        else:
+            missing_modules = list(local_repair_status.get("runtime_missing_modules") or [])
+            if missing_modules:
+                rationale = (
+                    f"{rationale} Local repair preflight is currently not ready on this machine; "
+                    f"missing runtime imports: {', '.join(missing_modules)}."
+                )
 
     intent_allowed = requested_intent in {"auto", recommended_action}
     return {
@@ -427,6 +473,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "recommended_local_command": recommended_local_command,
         "handoff_status": handoff_status,
         "handoff_prerequisite": handoff_prerequisite,
+        "local_repair_status": local_repair_status,
+        "local_repair_status_command": LOCAL_REPAIR_STATUS_COMMAND,
         "rationale": rationale,
         "preferred_sft_lane": preferred_sft_lane,
         "preferred_publish_model": preferred_publish_model,
@@ -464,6 +512,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
 def compact_report(report: dict[str, Any]) -> dict[str, Any]:
     handoff_status = dict(report.get("handoff_status") or {})
     handoff_prerequisite = dict(report.get("handoff_prerequisite") or {})
+    local_repair_status = dict(report.get("local_repair_status") or {})
     public_benchmark = dict(report.get("public_benchmark_correctness_status") or {})
     repair_corpus_summary = dict(report.get("repair_corpus_summary") or {})
     return {
@@ -477,6 +526,10 @@ def compact_report(report: dict[str, Any]) -> dict[str, Any]:
         "handoff_next_action": handoff_status.get("next_action"),
         "handoff_prerequisite_action": handoff_prerequisite.get("action"),
         "handoff_prerequisite_command": handoff_prerequisite.get("command"),
+        "local_repair_status_present": local_repair_status.get("present"),
+        "local_runtime_ready": local_repair_status.get("local_runtime_ready"),
+        "local_runtime_missing_modules": local_repair_status.get("runtime_missing_modules"),
+        "local_repair_status_command": report.get("local_repair_status_command"),
         "supports_public_benchmark_100_percent_claim": public_benchmark.get(
             "supports_public_benchmark_100_percent_claim"
         ),
