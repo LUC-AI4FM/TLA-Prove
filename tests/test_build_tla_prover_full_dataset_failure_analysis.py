@@ -21,6 +21,11 @@ def test_build_failure_analysis_classifies_action_buckets(tmp_path: Path) -> Non
         jsonl,
         [
             {
+                "module": "ReplayReady",
+                "module_path": "specs/ReplayReady.tla",
+                "status": "no_tlapm",
+            },
+            {
                 "module": "ProofA",
                 "module_path": "specs/ProofA.tla",
                 "status": "tlaps_partial",
@@ -65,6 +70,7 @@ def test_build_failure_analysis_classifies_action_buckets(tmp_path: Path) -> Non
 
     assert payload["job_id"] == "170004"
     assert payload["action_bucket_counts"] == {
+        "proof_replay_ready": 1,
         "proof_repair": 1,
         "inductiveness_repair": 1,
         "tlc_repair": 1,
@@ -73,7 +79,7 @@ def test_build_failure_analysis_classifies_action_buckets(tmp_path: Path) -> Non
         "skip_sany_invalid": 1,
         "skip_other": 0,
     }
-    assert payload["immediate_repair_rows"] == 4
+    assert payload["immediate_repair_rows"] == 5
     assert payload["skip_reason_families"]["skip_missing_contract_operators"] == 1
     assert payload["top_tlaps_partial_by_failed_obligations"][0]["module"] == "ProofA"
     assert payload["action_bucket_samples"]["skip_sany_invalid"][0]["sany_errors"] == ["bad parse"]
@@ -86,6 +92,11 @@ def test_build_failure_analysis_cli_writes_manifest(tmp_path: Path) -> None:
     _write_jsonl(
         jsonl,
         [
+            {
+                "module": "ReplayReady",
+                "module_path": "specs/ReplayReady.tla",
+                "status": "skeleton_emitted",
+            },
             {
                 "module": "ProofA",
                 "module_path": "specs/ProofA.tla",
@@ -122,5 +133,6 @@ def test_build_failure_analysis_cli_writes_manifest(tmp_path: Path) -> None:
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["source_jsonl"] == str(jsonl)
     assert payload["source_summary"] == str(summary)
+    assert payload["action_bucket_counts"]["proof_replay_ready"] == 1
     assert payload["action_bucket_counts"]["proof_repair"] == 1
     assert payload["action_bucket_counts"]["skip_harness_repair"] == 1

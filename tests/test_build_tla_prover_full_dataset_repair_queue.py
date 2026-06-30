@@ -20,6 +20,13 @@ def test_build_queue_prioritizes_full_dataset_repair_rows(tmp_path: Path) -> Non
         source,
         [
             {
+                "module": "ReplayReady",
+                "module_path": "specs/ReplayReady.tla",
+                "status": "no_tlapm",
+                "runtime_seconds": 2.1,
+                "target": "proof",
+            },
+            {
                 "module": "ProofA",
                 "module_path": "specs/ProofA.tla",
                 "status": "tlaps_partial",
@@ -89,19 +96,22 @@ def test_build_queue_prioritizes_full_dataset_repair_rows(tmp_path: Path) -> Non
 
     rows, summary = build_queue(jsonl_path=source)
 
-    assert [row["module"] for row in rows] == ["ProofA", "ProofB", "InductiveA", "TlcA", "HarnessA"]
-    assert [row["repair_priority"] for row in rows] == ["p1", "p1", "p2", "p3", "p4"]
+    assert [row["module"] for row in rows] == ["ProofA", "ProofB", "ReplayReady", "InductiveA", "TlcA", "HarnessA"]
+    assert [row["repair_priority"] for row in rows] == ["p1", "p1", "p1", "p2", "p3", "p4"]
     assert rows[0]["recommended_action"] == "collect_proof_repair_pair"
-    assert rows[2]["recommended_action"] == "collect_inductiveness_repair_pair"
-    assert rows[3]["recommended_action"] == "collect_tlc_repair_pair"
-    assert rows[4]["recommended_action"] == "patch_harness_and_replay"
+    assert rows[2]["recommended_action"] == "rerun_with_tlaps"
+    assert rows[3]["recommended_action"] == "collect_inductiveness_repair_pair"
+    assert rows[4]["recommended_action"] == "collect_tlc_repair_pair"
+    assert rows[5]["recommended_action"] == "patch_harness_and_replay"
     assert rows[0]["tlapm"]["obligations_failed"] == 5
-    assert rows[2]["failure_excerpt"] == "Invariant TypeOK is violated."
-    assert rows[3]["tlc_error_family"] == "function_or_operator_shape"
-    assert rows[4]["skip_reason_family"] == "skip_missing_variable_domain"
-    assert summary["rows"] == 5
-    assert summary["priority_counts"] == {"p1": 2, "p2": 1, "p3": 1, "p4": 1}
+    assert rows[2]["failure_excerpt"].startswith("Inductiveness and harness checks now pass locally")
+    assert rows[3]["failure_excerpt"] == "Invariant TypeOK is violated."
+    assert rows[4]["tlc_error_family"] == "function_or_operator_shape"
+    assert rows[5]["skip_reason_family"] == "skip_missing_variable_domain"
+    assert summary["rows"] == 6
+    assert summary["priority_counts"] == {"p1": 3, "p2": 1, "p3": 1, "p4": 1}
     assert summary["repair_bucket_counts"] == {
+        "proof_replay_ready": 1,
         "proof_repair": 2,
         "inductiveness_repair": 1,
         "tlc_repair": 1,

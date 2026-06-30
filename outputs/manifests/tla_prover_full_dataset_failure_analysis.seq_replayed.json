@@ -1,0 +1,585 @@
+{
+  "action_bucket_counts": {
+    "inductiveness_repair": 23,
+    "proof_repair": 79,
+    "proof_replay_ready": 12,
+    "skip_harness_repair": 23,
+    "skip_missing_contract": 270,
+    "skip_other": 0,
+    "skip_sany_invalid": 191,
+    "tlc_repair": 12
+  },
+  "action_bucket_descriptions": {
+    "inductiveness_repair": "TLC counterexample rows: useful for invariant/repair loops.",
+    "proof_repair": "TLAPS partials: best immediate repair/training evidence.",
+    "proof_replay_ready": "Inductiveness/harness now passes; rerun with a TLAPS-enabled environment to collect proof outcomes.",
+    "skip_harness_repair": "Skips caused by bounded-domain or harness-shape gaps.",
+    "skip_missing_contract": "Rows outside the current autoprover contract (missing Init/Next/Spec/TypeOK/vars).",
+    "skip_other": "Other skip reasons that still need manual review.",
+    "skip_sany_invalid": "Rows rejected by SANY before proof work begins.",
+    "tlc_repair": "Verifier/runtime failures that need TLC-side repair or better pre-skips."
+  },
+  "action_bucket_samples": {
+    "inductiveness_repair": [
+      {
+        "cti_preview": "Invariant TypeOK is violated.\nError: The behavior up to this point is:\nState 1: <Initial predicate>\n/\\ fromSpace = {}\n/\\ phase = \"copy\"\n/\\ toSpace = {}\n/\\ rooted = {1}\n\nState 2: <Copy line 45, col 5 to line 49, col 23 of module CopyingGc>\n/\\ fromSpace = {}\n/\\ phase = \"done\"\n/\\ to",
+        "module": "CopyingGc",
+        "module_path": "outputs/diamond_gen/memory_caches_work/CopyingGc.tla",
+        "reason": null,
+        "runtime_seconds": 12.692,
+        "status": "not_inductive"
+      },
+      {
+        "cti_preview": "Invariant TypeOK is violated.\nError: The behavior up to this point is:\nState 1: <Initial predicate>\n/\\ pending = (v1 :> 0 @@ v2 :> 0 @@ v3 :> 1)\n/\\ mem = (v1 :> 0 @@ v2 :> 0 @@ v3 :> 0)\n/\\ issued = 0\n\nState 2: <Propagate(v3) line 40, col 5 to line 43, col 23 of module Numa>\n/\\ pe",
+        "module": "Numa",
+        "module_path": "outputs/diamond_gen/memory_caches_work/Numa.tla",
+        "reason": null,
+        "runtime_seconds": 13.272,
+        "status": "not_inductive"
+      },
+      {
+        "cti_preview": "Invariant TypeOK is violated.\nError: The behavior up to this point is:\nState 1: <Initial predicate>\n/\\ rc = <<0, 0, 0>>\n/\\ freed = <<FALSE, FALSE, FALSE>>\n\nState 2: <Free(1) line 40, col 12 to line 43, col 26 of module RefCountGc>\n/\\ rc = <<0, 0, 0>>\n/\\ freed = <<TRUE, FALSE, FAL",
+        "module": "RefCountGc",
+        "module_path": "outputs/diamond_gen/memory_caches_work/RefCountGc.tla",
+        "reason": null,
+        "runtime_seconds": 12.844,
+        "status": "not_inductive"
+      },
+      {
+        "cti_preview": "Invariant TypeOK is violated.\nError: The behavior up to this point is:\nState 1: <Initial predicate>\n/\\ nextSeq = 1\n/\\ sb = <<>>\n/\\ mem = <<1>>\n\nState 2: <Issue line 25, col 10 to line 29, col 25 of module StoreBufferTSO>\n/\\ nextSeq = 2\n/\\ sb = <<1>>\n/\\ mem = <<1>>",
+        "module": "StoreBufferTSO",
+        "module_path": "outputs/diamond_gen/memory_caches_work/StoreBufferTSO.tla",
+        "reason": null,
+        "runtime_seconds": 1.182,
+        "status": "not_inductive"
+      },
+      {
+        "cti_preview": "Invariant TypeOK is violated.\nError: The behavior up to this point is:\nState 1: <Initial predicate>\ncolor = <<\"gray\", \"white\", \"white\">>\n\nState 2: <Scan(1) line 37, col 5 to line 41, col 34 of module TricolorGc>\ncolor = <<\"black\", \"white\", \"white\">>",
+        "module": "TricolorGc",
+        "module_path": "outputs/diamond_gen/memory_caches_work/TricolorGc.tla",
+        "reason": null,
+        "runtime_seconds": 11.897,
+        "status": "not_inductive"
+      }
+    ],
+    "proof_repair": [
+      {
+        "module": "Arp",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/Arp.tla",
+        "reason": null,
+        "runtime_seconds": 36.439,
+        "status": "tlaps_partial",
+        "tlapm": {
+          "obligations_failed": 2,
+          "obligations_proved": 8,
+          "obligations_total": 10,
+          "tier": "partial"
+        }
+      },
+      {
+        "module": "AtomicRegister",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla",
+        "reason": null,
+        "runtime_seconds": 48.442,
+        "status": "tlaps_partial",
+        "tlapm": {
+          "obligations_failed": 3,
+          "obligations_proved": 7,
+          "obligations_total": 10,
+          "tier": "partial"
+        }
+      },
+      {
+        "module": "CircuitBreaker",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/CircuitBreaker.tla",
+        "reason": null,
+        "runtime_seconds": 81.134,
+        "status": "tlaps_partial",
+        "tlapm": {
+          "obligations_failed": 3,
+          "obligations_proved": 7,
+          "obligations_total": 10,
+          "tier": "partial"
+        }
+      },
+      {
+        "module": "CsmaCd",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/CsmaCd.tla",
+        "reason": null,
+        "runtime_seconds": 92.265,
+        "status": "tlaps_partial",
+        "tlapm": {
+          "obligations_failed": 2,
+          "obligations_proved": 8,
+          "obligations_total": 10,
+          "tier": "partial"
+        }
+      },
+      {
+        "module": "HeartbeatFailureDetector",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/HeartbeatFailureDetector.tla",
+        "reason": null,
+        "runtime_seconds": 118.13,
+        "status": "tlaps_partial",
+        "tlapm": {
+          "obligations_failed": 3,
+          "obligations_proved": 7,
+          "obligations_total": 10,
+          "tier": "partial"
+        }
+      }
+    ],
+    "proof_replay_ready": [
+      {
+        "module": "Channel",
+        "module_path": "outputs/diamond_gen/concurrency_primitives_work/Channel.tla",
+        "reason": null,
+        "runtime_seconds": 0.497,
+        "status": "skeleton_emitted"
+      },
+      {
+        "module": "MCSLock",
+        "module_path": "outputs/diamond_gen/concurrency_primitives_work/MCSLock.tla",
+        "reason": null,
+        "runtime_seconds": 0.475,
+        "status": "skeleton_emitted"
+      },
+      {
+        "module": "BoundedQueue",
+        "module_path": "outputs/diamond_gen/data_structures_work/BoundedQueue.tla",
+        "reason": null,
+        "runtime_seconds": 0.481,
+        "status": "skeleton_emitted"
+      },
+      {
+        "module": "BoundedStack",
+        "module_path": "outputs/diamond_gen/data_structures_work/BoundedStack.tla",
+        "reason": null,
+        "runtime_seconds": 0.453,
+        "status": "skeleton_emitted"
+      },
+      {
+        "module": "DoubleEndedQueue",
+        "module_path": "outputs/diamond_gen/data_structures_work/DoubleEndedQueue.tla",
+        "reason": null,
+        "runtime_seconds": 0.464,
+        "status": "skeleton_emitted"
+      }
+    ],
+    "skip_harness_repair": [
+      {
+        "module": "AlternatingBit",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/AlternatingBit.tla",
+        "reason": "typeok_missing_variable_domain_delivered",
+        "runtime_seconds": null,
+        "status": "skipped"
+      },
+      {
+        "module": "CausalBroadcast",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/CausalBroadcast.tla",
+        "reason": "typeok_init_state_space_too_large",
+        "runtime_seconds": null,
+        "status": "skipped"
+      },
+      {
+        "module": "DhcpLease",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/DhcpLease.tla",
+        "reason": "typeok_missing_variable_domain_msgs",
+        "runtime_seconds": null,
+        "status": "skipped"
+      },
+      {
+        "module": "GoBackN",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/GoBackN.tla",
+        "reason": "typeok_missing_variable_domain_delivered",
+        "runtime_seconds": null,
+        "status": "skipped"
+      },
+      {
+        "module": "OrderedMulticast",
+        "module_path": "outputs/diamond_gen/communication_protocols_work/OrderedMulticast.tla",
+        "reason": "typeok_missing_variable_domain_broadcast",
+        "runtime_seconds": null,
+        "status": "skipped"
+      }
+    ],
+    "skip_missing_contract": [
+      {
+        "module": "MCBakery",
+        "module_path": "data/FormaLLM/data/Bakery-Boulangerie/tla/MCBakery.tla",
+        "reason": "missing_init_next_spec_typeok_vars",
+        "runtime_seconds": null,
+        "status": "skipped"
+      },
+      {
+        "module": "MCBakery",
+        "module_path": "data/FormaLLM/data/Bakery-Boulangerie/tla/MCBakery_clean.tla",
+        "reason": "missing_init_next_spec_typeok_vars",
+        "runtime_seconds": null,
+        "status": "skipped"
+      },
+      {
+        "module": "MCBoulanger",
+        "module_path": "data/FormaLLM/data/Bakery-Boulangerie/tla/MCBoulanger.tla",
+        "reason": "missing_init_next_spec_typeok_vars",
+        "runtime_seconds": null,
+        "status": "skipped"
+      },
+      {
+        "module": "MCBoulanger",
+        "module_path": "data/FormaLLM/data/Bakery-Boulangerie/tla/MCBoulanger_clean.tla",
+        "reason": "missing_init_next_spec_typeok_vars",
+        "runtime_seconds": null,
+        "status": "skipped"
+      },
+      {
+        "module": "CarTalkPuzzle",
+        "module_path": "data/FormaLLM/data/CarTalkPuzzle/tla/CarTalkPuzzle.tla",
+        "reason": "missing_init_next_spec_typeok_vars",
+        "runtime_seconds": null,
+        "status": "skipped"
+      }
+    ],
+    "skip_sany_invalid": [
+      {
+        "module": "TowersOfHanoi",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/TowersOfHanoi.tla",
+        "reason": "sany_parse_or_semantic_invalid",
+        "runtime_seconds": 0.595,
+        "sany_errors": [
+          "Error occurred during initialization of VM"
+        ],
+        "status": "skipped"
+      },
+      {
+        "module": "WaterJugs",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/WaterJugs.tla",
+        "reason": "sany_parse_or_semantic_invalid",
+        "runtime_seconds": 0.546,
+        "sany_errors": [
+          "Error occurred during initialization of VM"
+        ],
+        "status": "skipped"
+      },
+      {
+        "module": "WolfGoatCabbage",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/WolfGoatCabbage.tla",
+        "reason": "sany_parse_or_semantic_invalid",
+        "runtime_seconds": 0.334,
+        "sany_errors": [
+          "Error occurred during initialization of VM"
+        ],
+        "status": "skipped"
+      },
+      {
+        "module": "AdmissionControl",
+        "module_path": "outputs/diamond_gen/scheduling_resources_work/AdmissionControl.tla",
+        "reason": "sany_parse_or_semantic_invalid",
+        "runtime_seconds": 0.484,
+        "sany_errors": [
+          "Error occurred during initialization of VM"
+        ],
+        "status": "skipped"
+      },
+      {
+        "module": "BackpressureChannel",
+        "module_path": "outputs/diamond_gen/scheduling_resources_work/BackpressureChannel.tla",
+        "reason": "sany_parse_or_semantic_invalid",
+        "runtime_seconds": 0.491,
+        "sany_errors": [
+          "Error occurred during initialization of VM"
+        ],
+        "status": "skipped"
+      }
+    ],
+    "tlc_repair": [
+      {
+        "module": "DmaTransfer",
+        "module_path": "outputs/diamond_gen/memory_caches_work/DmaTransfer.tla",
+        "reason": null,
+        "runtime_seconds": 11.03,
+        "status": "tlc_error",
+        "tlc_error": "TLC produced no conclusive result:",
+        "tlc_error_family": "tlc_error_no_conclusive_result"
+      },
+      {
+        "module": "MemoryFence",
+        "module_path": "outputs/diamond_gen/memory_caches_work/MemoryFence.tla",
+        "reason": null,
+        "runtime_seconds": 11.684,
+        "status": "tlc_error",
+        "tlc_error": "TLC produced no conclusive result:",
+        "tlc_error_family": "tlc_error_no_conclusive_result"
+      },
+      {
+        "module": "KnightsTour",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/KnightsTour.tla",
+        "reason": null,
+        "runtime_seconds": 65.414,
+        "status": "tlc_error",
+        "tlc_error": "TLC timed out after 60s (INIT-as-predicate state space too large to enumerate).",
+        "tlc_error_family": "tlc_error_init_state_space_timeout"
+      },
+      {
+        "module": "RiverCrossingFamily",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/RiverCrossingFamily.tla",
+        "reason": null,
+        "runtime_seconds": 15.248,
+        "status": "tlc_error",
+        "tlc_error": "TLC produced no conclusive result:",
+        "tlc_error_family": "tlc_error_no_conclusive_result"
+      },
+      {
+        "module": "RubiksFace",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/RubiksFace.tla",
+        "reason": null,
+        "runtime_seconds": 66.054,
+        "status": "tlc_error",
+        "tlc_error": "TLC timed out after 60s (INIT-as-predicate state space too large to enumerate).",
+        "tlc_error_family": "tlc_error_init_state_space_timeout"
+      }
+    ]
+  },
+  "generated_at": "2026-06-30T07:22:12.993121+00:00",
+  "immediate_repair_rows": 149,
+  "job_id": null,
+  "rows": 610,
+  "schema": "chattla_tla_prover_full_dataset_failure_analysis_v1",
+  "skip_reason_families": {
+    "skip_infinite_builtin_domain": 5,
+    "skip_init_state_space_too_large": 5,
+    "skip_missing_contract_operators": 270,
+    "skip_missing_variable_domain": 13,
+    "skip_sany_parse_or_semantic_invalid": 191
+  },
+  "skip_reasons": {
+    "missing_init_next_spec_typeok_vars": 270,
+    "sany_parse_or_semantic_invalid": 191,
+    "typeok_infinite_builtin_domain_allocCount": 1,
+    "typeok_infinite_builtin_domain_head": 1,
+    "typeok_infinite_builtin_domain_moves": 1,
+    "typeok_infinite_builtin_domain_primer": 2,
+    "typeok_init_state_space_too_large": 5,
+    "typeok_missing_variable_domain_broadcast": 1,
+    "typeok_missing_variable_domain_channel": 2,
+    "typeok_missing_variable_domain_delivered": 4,
+    "typeok_missing_variable_domain_msgs": 2,
+    "typeok_missing_variable_domain_pc": 1,
+    "typeok_missing_variable_domain_prnt": 2,
+    "typeok_missing_variable_domain_q1": 1
+  },
+  "source_jsonl": "outputs/autoprover/full_dataset_smoke_161031_seq_replayed.jsonl",
+  "source_prefixes": {
+    "('data', 'FormaLLM')": 410,
+    "('outputs', 'diamond_gen')": 200
+  },
+  "source_summary": "outputs/autoprover/full_dataset_smoke_161031_seq_replayed.summary.json",
+  "statuses": {
+    "not_inductive": 23,
+    "skeleton_emitted": 12,
+    "skipped": 484,
+    "tlaps_partial": 79,
+    "tlc_error": 12
+  },
+  "tlaps_checked": 79,
+  "tlaps_failed_obligations": 227,
+  "tlaps_proved_obligations": 563,
+  "tlaps_total_obligations": 790,
+  "tlc_error_families": {
+    "tlc_error_init_state_space_timeout": 2,
+    "tlc_error_no_conclusive_result": 10
+  },
+  "tlc_error_samples": {
+    "tlc_error_init_state_space_timeout": [
+      {
+        "module": "KnightsTour",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/KnightsTour.tla",
+        "tlc_error": "TLC timed out after 60s (INIT-as-predicate state space too large to enumerate)."
+      },
+      {
+        "module": "RubiksFace",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/RubiksFace.tla",
+        "tlc_error": "TLC timed out after 60s (INIT-as-predicate state space too large to enumerate)."
+      }
+    ],
+    "tlc_error_no_conclusive_result": [
+      {
+        "module": "DmaTransfer",
+        "module_path": "outputs/diamond_gen/memory_caches_work/DmaTransfer.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      },
+      {
+        "module": "MemoryFence",
+        "module_path": "outputs/diamond_gen/memory_caches_work/MemoryFence.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      },
+      {
+        "module": "RiverCrossingFamily",
+        "module_path": "outputs/diamond_gen/puzzles_classical_work/RiverCrossingFamily.tla",
+        "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+      }
+    ]
+  },
+  "top_tlaps_partial_by_failed_obligations": [
+    {
+      "module": "AtomicRegister",
+      "module_path": "outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 48.442
+    },
+    {
+      "module": "CircuitBreaker",
+      "module_path": "outputs/diamond_gen/communication_protocols_work/CircuitBreaker.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 81.134
+    },
+    {
+      "module": "HeartbeatFailureDetector",
+      "module_path": "outputs/diamond_gen/communication_protocols_work/HeartbeatFailureDetector.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 118.13
+    },
+    {
+      "module": "LamportClock",
+      "module_path": "outputs/diamond_gen/communication_protocols_work/LamportClock.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 19.594
+    },
+    {
+      "module": "RetryWithBackoff",
+      "module_path": "outputs/diamond_gen/communication_protocols_work/RetryWithBackoff.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 98.585
+    },
+    {
+      "module": "TcpClose",
+      "module_path": "outputs/diamond_gen/communication_protocols_work/TcpClose.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 109.597
+    },
+    {
+      "module": "TcpHandshake",
+      "module_path": "outputs/diamond_gen/communication_protocols_work/TcpHandshake.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 132.735
+    },
+    {
+      "module": "TokenRing",
+      "module_path": "outputs/diamond_gen/communication_protocols_work/TokenRing.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 132.625
+    },
+    {
+      "module": "Barrier",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/Barrier.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 19.839
+    },
+    {
+      "module": "BinarySemaphore",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/BinarySemaphore.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 20.31
+    },
+    {
+      "module": "CountDownLatch",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/CountDownLatch.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 24.646
+    },
+    {
+      "module": "CountingSemaphore",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/CountingSemaphore.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 25.587
+    },
+    {
+      "module": "Futex",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/Futex.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 26.263
+    },
+    {
+      "module": "Monitor",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/Monitor.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 15.752
+    },
+    {
+      "module": "Mutex",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/Mutex.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 21.43
+    },
+    {
+      "module": "Once",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/Once.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 27.827
+    },
+    {
+      "module": "ProducerConsumer",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/ProducerConsumer.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 26.584
+    },
+    {
+      "module": "PromiseFuture",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/PromiseFuture.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 28.08
+    },
+    {
+      "module": "ReadWriteLock",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/ReadWriteLock.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 16.604
+    },
+    {
+      "module": "ReentrantMutex",
+      "module_path": "outputs/diamond_gen/concurrency_primitives_work/ReentrantMutex.tla",
+      "obligations_failed": 3,
+      "obligations_proved": 7,
+      "obligations_total": 10,
+      "runtime_seconds": 28.085
+    }
+  ]
+}

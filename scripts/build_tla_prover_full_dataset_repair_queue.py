@@ -21,6 +21,7 @@ DEFAULT_JSONL = REPO / "outputs" / "autoprover" / "full_dataset_smoke_161031.jso
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_full_dataset_repair_queue.jsonl"
 
 PRIORITY_BY_BUCKET = {
+    "proof_replay_ready": ("p1", "rerun_with_tlaps"),
     "proof_repair": ("p1", "collect_proof_repair_pair"),
     "inductiveness_repair": ("p2", "collect_inductiveness_repair_pair"),
     "tlc_repair": ("p3", "collect_tlc_repair_pair"),
@@ -118,6 +119,10 @@ def build_queue(*, jsonl_path: Path) -> tuple[list[dict[str, Any]], dict[str, An
                 "obligations_failed": int(tlapm.get("obligations_failed") or 0),
             }
             item["failure_excerpt"] = _proof_excerpt(row)
+        elif bucket == "proof_replay_ready":
+            item["failure_excerpt"] = (
+                "Inductiveness and harness checks now pass locally; rerun this module with TLAPS enabled to collect proof outcomes."
+            )
         elif bucket == "inductiveness_repair":
             item["failure_excerpt"] = _inductiveness_excerpt(row)
             if row.get("cti_preview"):
@@ -157,6 +162,13 @@ def build_queue(*, jsonl_path: Path) -> tuple[list[dict[str, Any]], dict[str, An
         "tlc_error_family_counts": dict(sorted(tlc_error_family_counts.items())),
         "top_modules_by_bucket": top_modules_by_bucket,
         "stage_plan": [
+            {
+                "priority": "p1",
+                "bucket": "proof_replay_ready",
+                "recommended_action": "rerun_with_tlaps",
+                "rows": repair_bucket_counts.get("proof_replay_ready", 0),
+                "note": "Local harness/inductiveness replay succeeded; run in a TLAPS-enabled environment to surface proof outcomes.",
+            },
             {
                 "priority": "p1",
                 "bucket": "proof_repair",

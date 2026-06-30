@@ -21,6 +21,7 @@ DEFAULT_SUMMARY = REPO / "outputs" / "autoprover" / "full_dataset_smoke_161031.s
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_full_dataset_failure_analysis.json"
 
 ACTION_BUCKETS = {
+    "proof_replay_ready": "Inductiveness/harness now passes; rerun with a TLAPS-enabled environment to collect proof outcomes.",
     "proof_repair": "TLAPS partials: best immediate repair/training evidence.",
     "inductiveness_repair": "TLC counterexample rows: useful for invariant/repair loops.",
     "tlc_repair": "Verifier/runtime failures that need TLC-side repair or better pre-skips.",
@@ -40,6 +41,8 @@ def _display_path(path: Path) -> str:
 
 def _action_bucket(row: dict[str, Any]) -> str:
     status = row.get("status")
+    if status in {"skeleton_emitted", "no_tlapm"}:
+        return "proof_replay_ready"
     if status == "tlaps_partial":
         return "proof_repair"
     if status == "not_inductive":
@@ -124,6 +127,7 @@ def build_failure_analysis(
         key=lambda item: (-item["obligations_failed"], item["module_path"] or "", item["module"] or "")
     )
     priority_order = [
+        "proof_replay_ready",
         "proof_repair",
         "inductiveness_repair",
         "tlc_repair",
@@ -152,7 +156,8 @@ def build_failure_analysis(
         "action_bucket_counts": {key: bucket_counts.get(key, 0) for key in priority_order},
         "action_bucket_samples": {key: bucket_samples.get(key, []) for key in priority_order if bucket_samples.get(key)},
         "immediate_repair_rows": (
-            bucket_counts.get("proof_repair", 0)
+            bucket_counts.get("proof_replay_ready", 0)
+            + bucket_counts.get("proof_repair", 0)
             + bucket_counts.get("inductiveness_repair", 0)
             + bucket_counts.get("tlc_repair", 0)
             + bucket_counts.get("skip_harness_repair", 0)
