@@ -150,6 +150,7 @@ class ChatTLAClient:
         self.reasoning = reasoning
         self._client   = ollama.Client(host=host)
         self._temp_override: Optional[float] = None  # set by benchmark for multi-attempt
+        self._last_plan_used: bool = False
 
     # Lazily-initialized BM25 retriever over verified specs. Set to None to
     # disable RAG augmentation; otherwise the retriever is built once per
@@ -195,6 +196,7 @@ class ChatTLAClient:
         str   The extracted TLA+ module text (---- MODULE ... ====).
               Returns the raw output if delimiters cannot be found.
         """
+        self._last_plan_used = False
         user_content = nl_description.strip()
         if module_name:
             user_content += f"\n\nUse module name: {module_name}"
@@ -291,6 +293,7 @@ class ChatTLAClient:
         first, then write the body conditioned on it.
         """
         plan = self.generate_plan(nl_description, module_name=module_name)
+        self._last_plan_used = plan is not None
         if plan is None:
             # Soft failure — fall back to single-shot so the pipeline never
             # blocks on a malformed planning response.
@@ -337,6 +340,8 @@ class ChatTLAClient:
         self,
         nl_description: str,
         max_retries: int = 3,
+        use_plan: bool = False,
+        module_name: Optional[str] = None,
     ) -> tuple[str, str]:
         """
         Generate a spec and run TLC validation.  If TLC reports errors,
@@ -352,7 +357,13 @@ class ChatTLAClient:
         from src.validators.sany_validator import validate_string as sany_validate
         from src.validators.tlc_validator import validate_string
 
-        spec = self.generate_spec(nl_description)
+        if use_plan:
+            _plan_obj, spec = self.generate_with_plan(
+                nl_description,
+                module_name=module_name,
+            )
+        else:
+            spec = self.generate_spec(nl_description, module_name=module_name)
 
         # Pre-process: strip common generation artefacts before validation
         spec = _sanitize_spec(spec)

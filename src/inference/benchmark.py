@@ -172,7 +172,8 @@ def _run_single_attempt(
     semantic = None
 
     if use_self_correct:
-        spec, tier = client.validate_and_generate(description, max_retries=3)
+        spec, tier = client.validate_and_generate(description, max_retries=3, use_plan=use_plan)
+        plan_used = bool(getattr(client, "_last_plan_used", False))
         # validate_and_generate doesn't return semantic; re-run validate_string
         # to capture per-component verdicts for the chosen final spec.
         m = re.search(r"----\s*MODULE\s+(\w+)", spec)

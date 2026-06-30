@@ -123,6 +123,77 @@ class SpecPlan:
 _FENCED_JSON_RE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL)
 
 
+def _repair_json_like_text(text: str) -> str:
+    """Repair common LLM JSON breakage without changing structure.
+
+    The planning model often emits raw TLA operators like `\\in` or `/\\` inside
+    JSON strings, which makes the payload invalid JSON due to lone backslashes.
+    It also sometimes inserts literal newlines inside quoted strings.
+    """
+    out: list[str] = []
+    in_string = False
+    i = 0
+    valid_escape_starters = {'"', "\\", "/", "b", "f", "n", "r", "t", "u"}
+
+    while i < len(text):
+        ch = text[i]
+        if not in_string:
+            out.append(ch)
+            if ch == '"':
+                in_string = True
+            i += 1
+            continue
+
+        if ch == '"':
+            out.append(ch)
+            in_string = False
+            i += 1
+            continue
+
+        if ch == "\\":
+            nxt = text[i + 1] if i + 1 < len(text) else ""
+            if nxt and nxt in valid_escape_starters:
+                out.append("\\")
+                out.append(nxt)
+                i += 2
+                continue
+            out.append("\\\\")
+            i += 1
+            continue
+
+        if ch == "\n":
+            out.append("\\n")
+            i += 1
+            continue
+        if ch == "\r":
+            out.append("\\r")
+            i += 1
+            continue
+        if ch == "\t":
+            out.append("\\t")
+            i += 1
+            continue
+
+        out.append(ch)
+        i += 1
+
+    return "".join(out)
+
+
+def _parse_plan_dict(candidate: str) -> Optional[SpecPlan]:
+    for payload in (candidate, _repair_json_like_text(candidate)):
+        try:
+            decoded = json.loads(payload)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if isinstance(decoded, dict) and "module_name" in decoded:
+            try:
+                return SpecPlan.from_dict(decoded)
+            except (TypeError, KeyError):
+                continue
+    return None
+
+
 def parse_plan(text: str) -> Optional[SpecPlan]:
     """Extract a SpecPlan from raw model output. Returns None on failure.
 
@@ -141,18 +212,16 @@ def parse_plan(text: str) -> Optional[SpecPlan]:
         return None
 
     # 1. whole-text
-    try:
-        return SpecPlan.from_dict(json.loads(text))
-    except (json.JSONDecodeError, TypeError, KeyError):
-        pass
+    parsed = _parse_plan_dict(text)
+    if parsed is not None:
+        return parsed
 
     # 2. fenced
     m = _FENCED_JSON_RE.search(text)
     if m:
-        try:
-            return SpecPlan.from_dict(json.loads(m.group(1)))
-        except (json.JSONDecodeError, TypeError, KeyError):
-            pass
+        parsed = _parse_plan_dict(m.group(1))
+        if parsed is not None:
+            return parsed
 
     # 3. brace-balanced scan
     start = text.find("{")
@@ -166,12 +235,9 @@ def parse_plan(text: str) -> Optional[SpecPlan]:
                 depth -= 1
                 if depth == 0:
                     candidate = text[start:i + 1]
-                    try:
-                        d = json.loads(candidate)
-                        if isinstance(d, dict) and "module_name" in d:
-                            return SpecPlan.from_dict(d)
-                    except (json.JSONDecodeError, TypeError, KeyError):
-                        pass
+                    parsed = _parse_plan_dict(candidate)
+                    if parsed is not None:
+                        return parsed
                     break
         start = text.find("{", start + 1)
 
