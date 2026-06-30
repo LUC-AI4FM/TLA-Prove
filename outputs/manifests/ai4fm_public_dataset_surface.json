@@ -3,7 +3,7 @@
     "sany_clean_seed_prover_candidates": {
       "detail": "Public seed modules that are already SANY-clean and prover-candidate shaped.",
       "path": "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json",
-      "rows": 124
+      "rows": 168
     },
     "seed_repo_tla_files": {
       "detail": "Public `.tla` files visible across the committed seed-repo lane.",
@@ -13,7 +13,7 @@
     "shape_ready_not_sany_rows": {
       "detail": "Immediate repair-target subset: shape-ready but not yet SANY-clean.",
       "path": "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json",
-      "rows": 44
+      "rows": 0
     },
     "shape_ready_seed_rows": {
       "detail": "Shape-ready public seed rows for repair/eval work; current unique module count is 114.",
@@ -61,7 +61,7 @@
     "tla_files": 410,
     "unique_models": 191
   },
-  "generated_at": "2026-06-29T16:54:09.093453+00:00",
+  "generated_at": "2026-06-30T00:33:06.586157+00:00",
   "integration_recommendation": {
     "formalllm_role": "canonical prompt/spec supervised corpus",
     "pipeline_role": "broader public extraction/parsing discovery surface",

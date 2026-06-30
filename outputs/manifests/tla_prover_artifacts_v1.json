@@ -9,12 +9,12 @@
       "sha256": "67bd3ebeef1e1f292380f5cda2017fb053aafa6d1618421346c8a327e6df1134"
     },
     "ai4fm_public_dataset_surface": {
-      "bytes": 5323,
+      "bytes": 5322,
       "exists": true,
       "kind": "public_ai4fm_dataset_surface_report",
       "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
       "rows": null,
-      "sha256": "5efcb3dbb1a27bb7cd51bea3cadee5171c4fc1e01c7685801913cdc44de5c88e"
+      "sha256": "953effcfd45df4680e8a6966895b4fcd58974a92f18498e965f81f16e2778900"
     },
     "ai4fm_public_discovery_manifest_v1": {
       "bytes": 7034,
@@ -2238,7 +2238,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-30T00:06:41.456089+00:00",
+        "generated_at": "2026-06-30T00:36:41.879585+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -2278,7 +2278,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "824b4533f79f66931179cee485b8b25f793d75003f2b67fa25e3c57f6adf6a00"
+      "sha256": "509b6b1e7695e86017d12655018f0348670d8982f57b188c7f1344edf164e308"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -2288,7 +2288,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-30T00:06:41.531773+00:00",
+        "generated_at": "2026-06-30T00:36:41.943950+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -2529,7 +2529,7 @@
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "de2cc7b5a49724afcf6777c58afc1d29c9f4434d0a402cc20d4edf081b1c3559"
+      "sha256": "03b1eb99b6ad3fcd8799739f0c5a5b65a8d429fd106dc6828edbe42a7cb5a31b"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7143,
@@ -2576,7 +2576,7 @@
         }
       },
       "rows": null,
-      "sha256": "c2a33ccd5e4cbd6dc89bb832c54eb34cfe200bb5e32cd5e9f3d56878f433bb56"
+      "sha256": "f7767a09e03405026402c7d525c709c611ac9dcbf5d6f712feec12c6def34402"
     },
     "tla_prover_full_dataset_failure_analysis": {
       "bytes": 20913,
@@ -2694,7 +2694,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-30T00:06:42.308900+00:00",
+  "generated_at": "2026-06-30T00:46:07.543028+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

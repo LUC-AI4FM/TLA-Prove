@@ -145,6 +145,15 @@ def _write_manifests(repo: Path) -> None:
                     "pull": {"nfiles": 2628},
                     "parse_output": {"nfiles": 3979},
                 }
+                ,
+                "broader_public_lanes": {
+                    "tla_prove_committed_public_jsonl": {"rows": 2757},
+                    "seed_repo_tla_files": {"rows": 2110},
+                    "usable_seed_modules": {"rows": 2108},
+                    "sany_clean_seed_prover_candidates": {"rows": 150},
+                    "shape_ready_seed_rows": {"rows": 168},
+                    "shape_ready_not_sany_rows": {"rows": 18},
+                },
             }
         ),
     )
@@ -494,5 +503,55 @@ def test_build_report_flags_missing_or_stale_hf_bundle_metadata(tmp_path: Path) 
     assert any(
         finding["path"] == "outputs/hf_publish/chattla-tla-prover-corpora-v1/metadata/tla_prover_artifacts_v1.json"
         and "exact content match for outputs/manifests/tla_prover_artifacts_v1.json" in finding["expected"]
+        for finding in report["findings"]
+    )
+
+
+def test_build_report_flags_stale_ai4fm_public_dataset_surface_counts(tmp_path: Path) -> None:
+    _write_manifests(tmp_path)
+    _write(tmp_path / "README.md", "")
+    _write(tmp_path / "docs/AI4FM_PUBLIC_DATASET_SURFACE.md", "")
+    _write(tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md", "")
+    _write(
+        tmp_path / "outputs/manifests/ai4fm_public_dataset_surface.json",
+        json.dumps(
+            {
+                "formalllm": {
+                    "tla_files": 410,
+                    "clean_tla_files": 205,
+                    "nonclean_tla_files": 205,
+                },
+                "pipeline": {
+                    "pull": {"nfiles": 2628},
+                    "parse_output": {"nfiles": 3979},
+                },
+                "broader_public_lanes": {
+                    "tla_prove_committed_public_jsonl": {"rows": 2757},
+                    "seed_repo_tla_files": {"rows": 2110},
+                    "usable_seed_modules": {"rows": 2108},
+                    "sany_clean_seed_prover_candidates": {"rows": 124},
+                    "shape_ready_seed_rows": {"rows": 168},
+                    "shape_ready_not_sany_rows": {"rows": 44},
+                },
+            }
+        ),
+    )
+    _write_bundle_copy(
+        tmp_path,
+        "ai4fm_public_dataset_surface.json",
+        "outputs/manifests/ai4fm_public_dataset_surface.json",
+    )
+
+    report = build_report(repo=tmp_path)
+
+    assert report["ok"] is False
+    assert any(
+        finding["path"] == "outputs/manifests/ai4fm_public_dataset_surface.json"
+        and "broader_public_lanes.sany_clean_seed_prover_candidates.rows == 150" in finding["expected"]
+        for finding in report["findings"]
+    )
+    assert any(
+        finding["path"] == "outputs/manifests/ai4fm_public_dataset_surface.json"
+        and "broader_public_lanes.shape_ready_not_sany_rows.rows == 18" in finding["expected"]
         for finding in report["findings"]
     )

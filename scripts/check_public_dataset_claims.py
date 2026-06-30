@@ -115,6 +115,64 @@ def _find_public_dataset_layer_count_mismatch(readme_text: str) -> tuple[int, in
     return None
 
 
+def _dataset_surface_consistency_findings(repo: Path) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    path = repo / "outputs/manifests/ai4fm_public_dataset_surface.json"
+    if not path.exists():
+        return findings
+
+    surface = _read_json(path)
+    broader = surface.get("broader_public_lanes")
+    if not isinstance(broader, dict):
+        return findings
+
+    tlaprove = _read_json(repo / "outputs/manifests/ai4fm_public_tlaprove_corpora.json")
+    seed_files = _read_json(repo / "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json")
+    seed_modules = _read_json(repo / "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json")
+    seed_candidates = _read_json(repo / "data/processed/ai4fm_public_seed_prover_candidates_v1.summary.json")
+    shape_ready = _read_json(repo / "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json")
+    shape_ready_not_sany = _read_json(
+        repo / "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
+    )
+
+    expected_rows = {
+        "tla_prove_committed_public_jsonl": int(
+            tlaprove.get("aggregate", {}).get("all_public_jsonl_rows", 0)
+        ),
+        "seed_repo_tla_files": int(seed_files.get("totals", {}).get("tla", 0)),
+        "usable_seed_modules": int(seed_modules.get("rows", seed_modules.get("kept_rows", 0))),
+        "sany_clean_seed_prover_candidates": int(seed_candidates.get("kept_rows", 0)),
+        "shape_ready_seed_rows": int(shape_ready.get("kept_rows", shape_ready.get("rows", 0))),
+        "shape_ready_not_sany_rows": int(
+            shape_ready_not_sany.get("rows", shape_ready_not_sany.get("kept_rows", 0))
+        ),
+    }
+
+    for lane_name, expected in expected_rows.items():
+        lane = broader.get(lane_name)
+        if not isinstance(lane, dict):
+            findings.append(
+                {
+                    "path": str(path.relative_to(repo)),
+                    "expected": f"broader_public_lanes.{lane_name}.rows == {expected}",
+                }
+            )
+            continue
+        actual = lane.get("rows")
+        try:
+            actual_int = int(actual)
+        except (TypeError, ValueError):
+            actual_int = None
+        if actual_int != expected:
+            findings.append(
+                {
+                    "path": str(path.relative_to(repo)),
+                    "expected": f"broader_public_lanes.{lane_name}.rows == {expected}",
+                }
+            )
+    return findings
+
+
 def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     formalllm = _read_json(repo / "data/processed/formalllm_eval_v1.summary.json")
     tlaprove = _read_json(repo / "outputs/manifests/ai4fm_public_tlaprove_corpora.json")
@@ -484,6 +542,7 @@ def build_report(*, repo: Path = REPO) -> dict[str, Any]:
                     "expected": f"exact content match for {source_rel}",
                 }
             )
+    findings.extend(_dataset_surface_consistency_findings(repo))
     return {
         "ok": not findings,
         "generated_at": datetime.now(timezone.utc).isoformat(),

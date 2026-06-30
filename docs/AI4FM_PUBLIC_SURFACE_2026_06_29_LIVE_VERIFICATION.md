@@ -89,7 +89,7 @@ The current public AI4FM surface still supports ChatTLA's existing split:
   interpretation:
   - `2110` public `.tla` files
   - `2108` usable module rows
-  - `98` SANY-clean prover-candidate rows
+  - `168` SANY-clean prover-candidate rows
 
 ## Interpretation
 
@@ -109,7 +109,7 @@ That means the existing ChatTLA wording is still directionally correct:
   `tla-dataset-pipeline` seed/DVC recipe, not the canonical `FormaLLM`
   metadata file;
 - when someone means the broader public GitHub surface, use the reproducible
-  higher-signal lanes (`2757`, `2110`, `2108`, `18`) instead of repeating the
+  higher-signal lanes (`2757`, `2110`, `2108`, `168`) instead of repeating the
   stale `1800+` shorthand.
 
 ## Next move
@@ -130,13 +130,9 @@ The corpus decision is now clearer than it was at the start of this audit:
 
 That makes the next high-yield public-data options:
 
-1. keep widening the seed-module to prover-candidate funnel beyond the current
-   `150` SANY-clean rows; the new funnel report shows `168` rows already match
-   the current autoprover shape, so the immediate public headroom is the `18`
-   shape-ready rows still blocked by SANY rather than by missing operators;
-   ChatTLA now materializes those two intermediate lanes directly as
-   `ai4fm_public_seed_prover_shape_ready_v1` (`168` rows) and
-   `ai4fm_public_seed_prover_shape_ready_not_sany_v1` (`18` rows);
+1. keep the seed-module to prover-candidate funnel at its current `168`
+   SANY-clean rows and use `ai4fm_public_seed_prover_shape_ready_not_sany_v1`
+   (`0` rows) as a regression sentinel if helper-selection behavior slips;
 2. run verifier-backed experiments on the `2490`-row full-public lane before
    changing any default training path;
 3. keep Hugging Face publish decisions gated on verified model quality rather

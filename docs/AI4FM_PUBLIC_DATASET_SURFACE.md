@@ -124,18 +124,16 @@ Important interpretation:
     eliminated
 - the remaining public seed repair queue is now materialized directly as
   `data/processed/ai4fm_public_seed_prover_repair_queue_v1.jsonl`:
-  - `18` remaining shape-ready-but-not-SANY rows total
-  - all `18` are recoverable from the current public helper surface after
-    transitive helper staging is taken into account
-  - action split: `9` TLAPS-stub-only, `5` same-repo helper staging, and `4`
-    cross-repo helper staging
+  - `0` remaining shape-ready-but-not-SANY rows total
+  - `0` rows are still waiting on additional public helper staging
+  - the queue is currently exhausted and should be treated as a regression
+    sentinel rather than an active backlog
 - measured replay against the current public candidate builder is stricter than
   that first-pass queue:
-  - `data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl` currently
-    shows `0/18` rows recovered by the existing builder
+  - `data/processed/ai4fm_public_seed_prover_recovery_probe_v1.jsonl` is
+    currently empty because the repair queue itself is empty
   - `0` remain blocked on unresolved imports after current staging
-  - all `18` now move past import staging but still fail with non-import SANY
-    errors
+  - `0` rows remain in a post-staging non-import SANY bucket
 - repo-level license provenance across the `11` committed public seed repos is
   mixed:
   - `3` Apache-2.0 repos covering `525` tracked `.tla` files
@@ -311,16 +309,13 @@ without private infrastructure.
 Current reconciled live summary:
 
 - `2108` module rows considered
-- `98` kept prover-candidate rows
-- `1004` rows rejected by SANY
-- `1006` rows rejected as not matching the current autoprover candidate shape
+- `168` kept prover-candidate rows
 - `0` rows now land in the stale `missing_module_content` bucket
 - the new checked-in funnel report at
   `outputs/manifests/ai4fm_public_seed_prover_funnel.json` makes the next
   expansion ceiling explicit:
   - `168` rows already match the current autoprover shape
-  - `70` of those shape-ready rows are still blocked by SANY rather than by
-    missing `Init` / `Next` / `Spec` / `TypeOK`
+  - all `168` of those shape-ready rows are now also SANY-clean
   - the largest missing-shape bucket is still the fully incompatible surface:
     `994` rows missing all four required operators plus the `vars` / temporal
     spec shape
@@ -332,11 +327,10 @@ from that funnel:
   - `168` rows that already satisfy the current autoprover shape contract
   - `114` unique modules
 - `data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.jsonl`
-  - `70` rows that satisfy the autoprover shape contract but are not in the
-    current SANY-clean prover-candidate lane
-  - `46` unique modules
-  - dominated by `tlaplus/Examples` (`42` rows), `tlaplus/tlaplus` (`20`), and
-    `apalache-mc/apalache` (`7`)
+  - `0` rows right now; the lane is currently empty because every shape-ready
+    public seed row is already in the SANY-clean prover-candidate lane
+  - treat it as a canary for helper-selection or builder regressions rather
+    than as an active repair backlog
 
 Those are the cleanest currently committed repair-target surfaces for widening
 the public prover corpus without relaxing the current `Init` / `Next` / `Spec`
