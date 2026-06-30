@@ -44,6 +44,17 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
                 "tracked_tlaprove_public_rows": 2350,
                 "all_public_tlaprove_rows": 2757,
             },
+            "repair_corpus_status": {
+                "rows": 529,
+                "health": {"ok": True, "warnings": []},
+                "missing_sources": ["data/processed/ralph_repair_pairs.jsonl"],
+                "sources": {
+                    "benchmark_fc128best": {"rows_in_merged_corpus": 20},
+                    "synthetic": {"rows_in_merged_corpus": 491},
+                    "full_dataset_validated": {"rows_in_merged_corpus": 18, "candidate_rows": 37},
+                },
+                "comparisons": {"validated_rows_added_beyond_benchmark": 18},
+            },
         },
     )
     _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
@@ -68,6 +79,7 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
     assert report["repair_corpus_summary"]["rows"] is None
     assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
     assert report["corpus_expansion_status"]["public_ai4fm_scope"]["all_public_tlaprove_rows"] == 2757
+    assert report["repair_expansion_status"]["sources"]["full_dataset_validated"]["rows_in_merged_corpus"] == 18
     assert report["comparison_plan_commands"][0]["comparison_id"] == "default-vs-expanded-local"
     assert report["comparison_plan_commands"][1]["comparison_id"] == "expanded-vs-full-public-local"
     assert "--baseline default --candidate expanded --mode local" in report["comparison_plan_commands"][0]["command"]
@@ -102,7 +114,18 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
                     "rows": 2508,
                     "trainable": True,
                 }
-            }
+            },
+            "repair_corpus_status": {
+                "rows": 529,
+                "health": {"ok": True, "warnings": []},
+                "missing_sources": [],
+                "sources": {
+                    "benchmark_fc128best": {"rows_in_merged_corpus": 20},
+                    "synthetic": {"rows_in_merged_corpus": 491},
+                    "full_dataset_validated": {"rows_in_merged_corpus": 18},
+                },
+                "comparisons": {"validated_rows_added_beyond_benchmark": 18},
+            },
         },
     )
     _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
@@ -119,6 +142,7 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
     assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_local.py --sft-corpus expanded"
     assert report["preferred_sft_lane_summary"]["trainable"] is True
     assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
+    assert report["repair_expansion_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 18
     assert report["comparison_plan_commands"][0]["comparison_id"] == "default-vs-expanded-local"
 
 

@@ -45,6 +45,47 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
         },
     )
     _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        {
+            "rows": 529,
+            "difficulty_counts": {"easy": 248, "medium": 57, "hard": 224},
+            "health": {"ok": True, "warnings": [], "benchmark_only": False, "only_easy_rows": False},
+            "kept_rows_by_source": {
+                "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+                "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491,
+                "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
+            },
+            "missing_sources": [
+                "data/processed/ralph_repair_pairs.jsonl",
+                "data/processed/ralph_repair_pairs_long_latest.jsonl",
+            ],
+        },
+    )
+    _write(
+        tmp_path / "data/processed/benchmark_repair_pairs_fc128best.summary.json",
+        {
+            "rows": 20,
+            "failed_rows_seen": 20,
+            "gold_coverage": {"covered_failed_rows": 20, "missing_gold_benchmark_ids": []},
+        },
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json",
+        {
+            "rows": 1009,
+            "difficulty_counts": {"easy": 462, "medium": 128, "hard": 419},
+        },
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
+        {
+            "rows": 18,
+            "candidate_rows": 37,
+            "validated_tier_counts": {"gold": 18, "silver": 5, "bronze": 6},
+            "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3},
+        },
+    )
+    _write(
         tmp_path / "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json",
         {
             "kept_rows": 168,
@@ -210,6 +251,13 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     assert report["public_ai4fm_scope"]["all_public_tlaprove_rows"] == 2757
     assert report["public_ai4fm_scope"]["public_seed_tla_files"] == 2110
     assert report["public_ai4fm_scope"]["usable_public_seed_modules"] == 2108
+    assert report["repair_corpus_status"]["rows"] == 529
+    assert report["repair_corpus_status"]["sources"]["benchmark_fc128best"]["rows_in_merged_corpus"] == 20
+    assert report["repair_corpus_status"]["sources"]["synthetic"]["rows_in_merged_corpus"] == 491
+    assert report["repair_corpus_status"]["sources"]["full_dataset_validated"]["rows_in_merged_corpus"] == 18
+    assert report["repair_corpus_status"]["sources"]["full_dataset_validated"]["candidate_rows"] == 37
+    assert report["repair_corpus_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 18
+    assert report["repair_corpus_status"]["comparisons"]["rows_beyond_benchmark_only"] == 509
     assert report["publish_readiness"]["default_model"]["benchmark_model"] == "chattla:20b"
     assert report["publish_readiness"]["fc128best_model"]["ready_to_publish"] is False
     assert report["named_corpora"]["full-public"].endswith("chattla_tla_prover_sft_public_all_v1.jsonl")

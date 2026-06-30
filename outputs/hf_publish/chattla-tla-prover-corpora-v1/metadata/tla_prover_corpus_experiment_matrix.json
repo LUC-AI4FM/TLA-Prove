@@ -13,7 +13,7 @@
     "default_train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "diamond_eval_holdout_leakage_ok": true
   },
-  "generated_at": "2026-06-30T02:44:38.371940+00:00",
+  "generated_at": "2026-06-30T06:39:43.991566+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -177,6 +177,63 @@
       "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv",
       "tlc": 0
     }
+  },
+  "repair_corpus_status": {
+    "comparisons": {
+      "rows_beyond_benchmark_only": 509,
+      "synthetic_rows_added_beyond_benchmark": 491,
+      "validated_rows_added_beyond_benchmark": 18
+    },
+    "difficulty_counts": {
+      "easy": 248,
+      "hard": 224,
+      "medium": 57
+    },
+    "health": {
+      "benchmark_only": false,
+      "ok": true,
+      "only_easy_rows": false,
+      "warnings": []
+    },
+    "missing_sources": [
+      "data/processed/ralph_repair_pairs.jsonl",
+      "data/processed/ralph_repair_pairs_long_latest.jsonl"
+    ],
+    "path": "data/processed/tla_prover_repair_train_v1.jsonl",
+    "rows": 529,
+    "sources": {
+      "benchmark_fc128best": {
+        "covered_failed_rows": 20,
+        "failed_rows_seen": 20,
+        "missing_gold_benchmark_ids": [],
+        "rows_in_merged_corpus": 20,
+        "source_rows": 20
+      },
+      "full_dataset_validated": {
+        "candidate_rows": 37,
+        "kept_by_bucket": {
+          "inductiveness_repair": 3,
+          "proof_repair": 15
+        },
+        "rows_in_merged_corpus": 18,
+        "source_rows": 18,
+        "validated_tier_counts": {
+          "bronze": 6,
+          "gold": 18,
+          "silver": 5
+        }
+      },
+      "synthetic": {
+        "difficulty_counts": {
+          "easy": 462,
+          "hard": 419,
+          "medium": 128
+        },
+        "rows_in_merged_corpus": 491,
+        "source_rows": 1009
+      }
+    },
+    "summary_path": "data/processed/tla_prover_repair_train_v1.summary.json"
   },
   "repo": ".",
   "schema": "chattla_tla_prover_corpus_experiment_matrix_v1",

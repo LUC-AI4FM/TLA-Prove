@@ -23,6 +23,12 @@ DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_corpus_experiment_mat
 DEFAULT_SUMMARY = "data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json"
 EXPANDED_SUMMARY = "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json"
 FULL_PUBLIC_SUMMARY = "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json"
+REPAIR_TRAIN_SUMMARY = "data/processed/tla_prover_repair_train_v1.summary.json"
+BENCHMARK_REPAIR_SUMMARY = "data/processed/benchmark_repair_pairs_fc128best.summary.json"
+SYNTHETIC_REPAIR_SUMMARY = "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json"
+FULL_DATASET_VALIDATED_REPAIR_SUMMARY = (
+    "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
+)
 SHAPE_READY_SUMMARY = "data/processed/ai4fm_public_seed_prover_shape_ready_v1.summary.json"
 SHAPE_READY_NOT_SANY_SUMMARY = (
     "data/processed/ai4fm_public_seed_prover_shape_ready_not_sany_v1.summary.json"
@@ -175,10 +181,71 @@ def _attach_train_lane_contract(
     return lane
 
 
+def _repair_source_rows(repair_summary: dict[str, Any], path: str) -> int:
+    source_rows = dict(repair_summary.get("kept_rows_by_source") or {})
+    return int(source_rows.get(path, 0) or 0)
+
+
+def _repair_corpus_status(
+    *,
+    repair_summary: dict[str, Any],
+    benchmark_summary: dict[str, Any],
+    synthetic_summary: dict[str, Any],
+    full_dataset_validated_summary: dict[str, Any],
+) -> dict[str, Any]:
+    benchmark_path = "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+    synthetic_path = "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
+    full_dataset_path = "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl"
+    benchmark_rows = _repair_source_rows(repair_summary, benchmark_path)
+    synthetic_rows = _repair_source_rows(repair_summary, synthetic_path)
+    full_dataset_rows = _repair_source_rows(repair_summary, full_dataset_path)
+    total_rows = int(repair_summary.get("rows", 0) or 0)
+    return {
+        "path": "data/processed/tla_prover_repair_train_v1.jsonl",
+        "summary_path": REPAIR_TRAIN_SUMMARY,
+        "rows": total_rows,
+        "difficulty_counts": dict(repair_summary.get("difficulty_counts") or {}),
+        "health": dict(repair_summary.get("health") or {}),
+        "missing_sources": list(repair_summary.get("missing_sources") or []),
+        "sources": {
+            "benchmark_fc128best": {
+                "rows_in_merged_corpus": benchmark_rows,
+                "source_rows": int(benchmark_summary.get("rows", 0) or 0),
+                "failed_rows_seen": benchmark_summary.get("failed_rows_seen"),
+                "covered_failed_rows": dict(benchmark_summary.get("gold_coverage") or {}).get("covered_failed_rows"),
+                "missing_gold_benchmark_ids": list(
+                    dict(benchmark_summary.get("gold_coverage") or {}).get("missing_gold_benchmark_ids", [])
+                ),
+            },
+            "synthetic": {
+                "rows_in_merged_corpus": synthetic_rows,
+                "source_rows": int(synthetic_summary.get("rows", 0) or 0),
+                "difficulty_counts": dict(synthetic_summary.get("difficulty_counts") or {}),
+            },
+            "full_dataset_validated": {
+                "rows_in_merged_corpus": full_dataset_rows,
+                "source_rows": int(full_dataset_validated_summary.get("rows", 0) or 0),
+                "candidate_rows": full_dataset_validated_summary.get("candidate_rows"),
+                "validated_tier_counts": dict(full_dataset_validated_summary.get("validated_tier_counts") or {}),
+                "kept_by_bucket": dict(full_dataset_validated_summary.get("kept_by_bucket") or {}),
+            },
+        },
+        "comparisons": {
+            "rows_beyond_benchmark_only": total_rows - benchmark_rows,
+            "validated_rows_added_beyond_benchmark": full_dataset_rows,
+            "synthetic_rows_added_beyond_benchmark": synthetic_rows,
+        },
+    }
+
+
 def build_report(repo: Path = REPO) -> dict[str, Any]:
     default_summary = _read_json(repo, DEFAULT_SUMMARY)
     expanded_summary = _read_json(repo, EXPANDED_SUMMARY)
     full_public_summary = _read_json(repo, FULL_PUBLIC_SUMMARY)
+    repair_summary = _read_json(repo, REPAIR_TRAIN_SUMMARY)
+    benchmark_repair_summary = _read_json(repo, BENCHMARK_REPAIR_SUMMARY)
+    synthetic_repair_summary = _read_json(repo, SYNTHETIC_REPAIR_SUMMARY)
+    full_dataset_validated_repair_summary = _read_json(repo, FULL_DATASET_VALIDATED_REPAIR_SUMMARY)
     shape_ready_summary = _read_json(repo, SHAPE_READY_SUMMARY)
     shape_ready_not_sany_summary = _read_json(repo, SHAPE_READY_NOT_SANY_SUMMARY)
     funnel = _read_json(repo, FUNNEL_PATH)
@@ -284,6 +351,12 @@ def build_report(repo: Path = REPO) -> dict[str, Any]:
             "usable_public_seed_modules": int(seed_modules.get("rows", seed_modules.get("kept_rows", 0))),
             "interpretation_status": dataset_surface["public_1800_plus_interpretation"]["status"],
         },
+        "repair_corpus_status": _repair_corpus_status(
+            repair_summary=repair_summary,
+            benchmark_summary=benchmark_repair_summary,
+            synthetic_summary=synthetic_repair_summary,
+            full_dataset_validated_summary=full_dataset_validated_repair_summary,
+        ),
         "publish_readiness": {
             "default_model": _readiness_snapshot(readiness),
             "fc128best_model": _readiness_snapshot(readiness_fc128best),

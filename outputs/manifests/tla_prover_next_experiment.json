@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T06:28:36.477752+00:00",
+  "generated_at": "2026-06-30T06:39:44.073593+00:00",
   "intent_allowed": true,
   "preferred_publish_model": null,
   "preferred_sft_lane": null,
@@ -130,6 +130,56 @@
       "data/processed/ralph_repair_pairs_long_latest.jsonl"
     ],
     "rows": 529
+  },
+  "repair_expansion_status": {
+    "comparisons": {
+      "rows_beyond_benchmark_only": 509,
+      "synthetic_rows_added_beyond_benchmark": 491,
+      "validated_rows_added_beyond_benchmark": 18
+    },
+    "health": {
+      "benchmark_only": false,
+      "ok": true,
+      "only_easy_rows": false,
+      "warnings": []
+    },
+    "missing_sources": [
+      "data/processed/ralph_repair_pairs.jsonl",
+      "data/processed/ralph_repair_pairs_long_latest.jsonl"
+    ],
+    "rows": 529,
+    "sources": {
+      "benchmark_fc128best": {
+        "covered_failed_rows": 20,
+        "failed_rows_seen": 20,
+        "missing_gold_benchmark_ids": [],
+        "rows_in_merged_corpus": 20,
+        "source_rows": 20
+      },
+      "full_dataset_validated": {
+        "candidate_rows": 37,
+        "kept_by_bucket": {
+          "inductiveness_repair": 3,
+          "proof_repair": 15
+        },
+        "rows_in_merged_corpus": 18,
+        "source_rows": 18,
+        "validated_tier_counts": {
+          "bronze": 6,
+          "gold": 18,
+          "silver": 5
+        }
+      },
+      "synthetic": {
+        "difficulty_counts": {
+          "easy": 462,
+          "hard": 419,
+          "medium": 128
+        },
+        "rows_in_merged_corpus": 491,
+        "source_rows": 1009
+      }
+    }
   },
   "repair_workflow": {
     "benchmark_gold_coverage": {

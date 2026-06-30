@@ -132,6 +132,19 @@ def _comparison_plan_commands(matrix: dict[str, Any]) -> list[dict[str, Any]]:
     return commands
 
 
+def _repair_expansion_status(matrix: dict[str, Any]) -> dict[str, Any] | None:
+    status = matrix.get("repair_corpus_status")
+    if not isinstance(status, dict):
+        return None
+    return {
+        "rows": status.get("rows"),
+        "health": dict(status.get("health") or {}),
+        "missing_sources": list(status.get("missing_sources") or []),
+        "sources": dict(status.get("sources") or {}),
+        "comparisons": dict(status.get("comparisons") or {}),
+    }
+
+
 def _published_proof_status(summary: dict[str, Any] | None) -> dict[str, Any]:
     if summary is None:
         return {
@@ -414,6 +427,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "repair_corpus_summary": repair_corpus_summary,
         "repair_workflow": repair_workflow,
         "corpus_expansion_status": _corpus_expansion_status(matrix),
+        "repair_expansion_status": _repair_expansion_status(matrix),
         "comparison_plan_commands": _comparison_plan_commands(matrix),
         "proof_artifact_status": proof_artifact_status,
         "public_benchmark_correctness_status": public_benchmark_correctness_status,
