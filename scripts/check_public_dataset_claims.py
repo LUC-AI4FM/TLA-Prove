@@ -45,6 +45,9 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "tla_prover_full_dataset_validated_repair_pairs_v1.summary.json": (
             "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
         ),
+        "tla_prover_full_dataset_harness_repair_pairs_v1.summary.json": (
+            "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json"
+        ),
         "formalllm_public_module_manifest_v1.summary.json": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "formalllm_public_prover_surface_v1.summary.json": "data/processed/formalllm_public_prover_surface_v1.summary.json",
         "tlapm_public_tla_modules_v1.summary.json": "data/processed/tlapm_public_tla_modules_v1.summary.json",
@@ -328,6 +331,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     validated_repair_summary = _read_json(
         repo / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
     )
+    harness_repair_summary = _read_json(
+        repo / "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json"
+    )
 
     formalllm_rows = int(formalllm["rows"])
     formalllm_families = int(formalllm["families_seen"])
@@ -407,6 +413,10 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     repair_validated_rows = int(
         repair_train_by_source.get("data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl", 0)
     )
+    repair_harness_rows = int(
+        repair_train_by_source.get("data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl", 0)
+    )
+    repair_total_validated_rows = repair_validated_rows + repair_harness_rows
     validated_repair_rows = int(validated_repair_summary["rows"])
     validated_repair_candidate_rows = int(validated_repair_summary["candidate_rows"])
     validated_repair_proof_rows = int(validated_repair_summary["kept_by_bucket"].get("proof_repair", 0))
@@ -414,6 +424,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
         validated_repair_summary["kept_by_bucket"].get("inductiveness_repair", 0)
     )
     validated_repair_tlc_rows = int(validated_repair_summary["kept_by_bucket"].get("tlc_repair", 0))
+    harness_repair_rows = int(harness_repair_summary["rows"])
+    harness_repair_candidate_rows = int(harness_repair_summary["candidate_rows"])
+    harness_repair_bucket_rows = int(
+        harness_repair_summary.get("kept_by_bucket", {}).get("skip_harness_repair", 0)
+    )
 
     return {
         "README.md": [
@@ -653,9 +668,14 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"  repairs + `{validated_repair_tlc_rows}` TLC repairs)."
             ),
             (
+                "- `metadata/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json`: harness-only\n"
+                f"  validator-backed repair promotion summary (`{harness_repair_rows}` rows from `{harness_repair_candidate_rows}` pair-ready candidates;\n"
+                f"  `{harness_repair_bucket_rows}` remain in the `skip_harness_repair` bucket)."
+            ),
+            (
                 "- `metadata/tla_prover_repair_train_v1.summary.json`: merged repair-training\n"
                 f"  corpus summary (`{repair_train_rows}` rows total; `{repair_benchmark_rows}` benchmark-derived + `{repair_synthetic_rows}` synthetic +\n"
-                f"  `{repair_validated_rows}` validator-backed full-dataset rows)."
+                f"  `{repair_total_validated_rows}` validator-backed full-dataset rows (`{repair_validated_rows}` strict pair-ready + `{repair_harness_rows}` harness-repair))."
             ),
             f"- Mixed prover SFT corpus: `{mixed_sft_rows}` rows",
             (
@@ -699,7 +719,10 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"- Validator-backed full-dataset repair slice: `{validated_repair_rows}` rows from `{validated_repair_candidate_rows}` pair-ready candidates across gold/silver validation tiers."
             ),
             (
-                f"- Merged repair-training corpus: `{repair_train_rows}` rows total (`{repair_benchmark_rows}` benchmark-derived + `{repair_synthetic_rows}` synthetic + `{repair_validated_rows}` validator-backed full-dataset rows)."
+                f"- Harness-only validated repair slice: `{harness_repair_rows}` rows from `{harness_repair_candidate_rows}` pair-ready candidates, all in the `skip_harness_repair` bucket."
+            ),
+            (
+                f"- Merged repair-training corpus: `{repair_train_rows}` rows total (`{repair_benchmark_rows}` benchmark-derived + `{repair_synthetic_rows}` synthetic + `{repair_total_validated_rows}` validator-backed full-dataset rows, including `{repair_harness_rows}` harness-repair rows)."
             ),
             (
                 "The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; "

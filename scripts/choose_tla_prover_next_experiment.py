@@ -22,6 +22,7 @@ FULL_DATASET_REPAIR_QUEUE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_data
 FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json"
 PATCH_WORKLIST_PATH = "outputs/manifests/tla_prover_patch_worklist.json"
 FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH = "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
+FULL_DATASET_HARNESS_REPAIR_PAIRS_SUMMARY_PATH = "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json"
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
 LOCAL_REPAIR_PLAN_PATH = "outputs/manifests/tla_prover_local_repair_plan.json"
 LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S = 10
@@ -253,6 +254,10 @@ def _repair_refresh_command() -> str:
         "&& python3 scripts/build_tla_prover_full_dataset_repair_evidence.py "
         "&& python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
         "--allowed-tier gold --allowed-tier silver "
+        "&& python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
+        "--allowed-tier gold --allowed-tier silver --include-harness "
+        "--only-bucket skip_harness_repair "
+        "--out data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl "
         "&& python3 scripts/build_tla_prover_repair_corpus.py"
     )
 
@@ -284,6 +289,15 @@ def _full_dataset_validated_repair_pairs_command() -> str:
     return (
         "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
         "--allowed-tier gold --allowed-tier silver"
+    )
+
+
+def _full_dataset_harness_repair_pairs_command() -> str:
+    return (
+        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
+        "--allowed-tier gold --allowed-tier silver --include-harness "
+        "--only-bucket skip_harness_repair "
+        "--out data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl"
     )
 
 
@@ -407,6 +421,9 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     full_dataset_validated_repair_pairs_summary = _read_optional_json(
         repo, FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH
     )
+    full_dataset_harness_repair_pairs_summary = _read_optional_json(
+        repo, FULL_DATASET_HARNESS_REPAIR_PAIRS_SUMMARY_PATH
+    )
     published_proof_summary = _read_optional_json(repo, PUBLISHED_PROOF_SUMMARY_PATH)
     handoff_status, handoff_prerequisite = _handoff_guidance(repo)
     local_repair_status = _local_repair_status(repo)
@@ -430,6 +447,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "patch_worklist": patch_worklist,
         "full_dataset_validated_repair_pairs_command": _full_dataset_validated_repair_pairs_command(),
         "full_dataset_validated_repair_pairs_summary": full_dataset_validated_repair_pairs_summary,
+        "full_dataset_harness_repair_pairs_command": _full_dataset_harness_repair_pairs_command(),
+        "full_dataset_harness_repair_pairs_summary": full_dataset_harness_repair_pairs_summary,
         "benchmark_gold_coverage": _benchmark_gold_coverage(benchmark_repair_summary),
         "failure_priority": _failure_priority(failure_analysis),
         "repair_corpus_health": repair_health,

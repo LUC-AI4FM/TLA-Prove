@@ -41,6 +41,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
     "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json",
     "outputs/manifests/tla_prover_patch_worklist.json",
+    "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json",
     "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
     "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",

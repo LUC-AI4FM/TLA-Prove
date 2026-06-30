@@ -204,16 +204,29 @@ def _write_manifests(repo: Path) -> None:
         ),
     )
     _write(
+        repo / "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json",
+        json.dumps(
+            {
+                "rows": 8,
+                "candidate_rows": 8,
+                "validated_tier_counts": {"gold": 4, "silver": 4},
+                "kept_by_bucket": {"skip_harness_repair": 8},
+                "only_buckets": ["skip_harness_repair"],
+            }
+        ),
+    )
+    _write(
         repo / "data/processed/tla_prover_repair_train_v1.summary.json",
         json.dumps(
             {
-                "rows": 533,
+                "rows": 541,
                 "kept_rows_by_source": {
                     "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
                     "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491,
                     "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
+                    "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl": 8,
                 },
-                "difficulty_counts": {"easy": 248, "medium": 61, "hard": 224},
+                "difficulty_counts": {"easy": 256, "medium": 61, "hard": 224},
                 "health": {"ok": True, "benchmark_only": False, "only_easy_rows": False, "warnings": []},
             }
         ),
@@ -314,6 +327,7 @@ def _write_manifests(repo: Path) -> None:
         "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
         "tla_prover_repair_train_v1.summary.json": "data/processed/tla_prover_repair_train_v1.summary.json",
         "tla_prover_full_dataset_validated_repair_pairs_v1.summary.json": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
+        "tla_prover_full_dataset_harness_repair_pairs_v1.summary.json": "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json",
         "formalllm_public_module_manifest_v1.summary.json": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "formalllm_public_prover_surface_v1.summary.json": "data/processed/formalllm_public_prover_surface_v1.summary.json",
         "tlapm_public_tla_modules_v1.summary.json": "data/processed/tlapm_public_tla_modules_v1.summary.json",

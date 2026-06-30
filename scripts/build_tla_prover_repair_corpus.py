@@ -21,6 +21,7 @@ from src.rlvr_canary.repair_dataset import (
 DEFAULT_LONG_RALPH_REPAIR_PAIRS = "data/processed/ralph_repair_pairs_long_latest.jsonl"
 DEFAULT_SYNTHETIC_REPAIR_PAIRS = "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
 DEFAULT_FULL_DATASET_VALIDATED_REPAIR_PAIRS = "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl"
+DEFAULT_FULL_DATASET_HARNESS_REPAIR_PAIRS = "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl"
 DEFAULT_OUT = REPO / "data" / "processed" / "tla_prover_repair_train_v1.jsonl"
 
 
@@ -111,6 +112,7 @@ def build_corpus(
             "ralph_repair_pairs_long_latest": DEFAULT_LONG_RALPH_REPAIR_PAIRS,
             "synthetic_repair_pairs": DEFAULT_SYNTHETIC_REPAIR_PAIRS,
             "full_dataset_validated_repair_pairs": DEFAULT_FULL_DATASET_VALIDATED_REPAIR_PAIRS,
+            "full_dataset_harness_repair_pairs": DEFAULT_FULL_DATASET_HARNESS_REPAIR_PAIRS,
             "benchmark_repair_pairs_fc128best": DEFAULT_BENCHMARK_REPAIR_PAIRS,
         },
         "health": {
@@ -141,6 +143,7 @@ def main() -> int:
             f"Defaults to `{DEFAULT_REPAIR_PAIRS}`, `{DEFAULT_LONG_RALPH_REPAIR_PAIRS}`, "
             f"`{DEFAULT_SYNTHETIC_REPAIR_PAIRS}`, "
             f"`{DEFAULT_FULL_DATASET_VALIDATED_REPAIR_PAIRS}`, "
+            f"`{DEFAULT_FULL_DATASET_HARNESS_REPAIR_PAIRS}`, "
             f"and `{DEFAULT_BENCHMARK_REPAIR_PAIRS}`."
         ),
     )
@@ -154,6 +157,7 @@ def main() -> int:
             DEFAULT_LONG_RALPH_REPAIR_PAIRS,
             DEFAULT_SYNTHETIC_REPAIR_PAIRS,
             DEFAULT_FULL_DATASET_VALIDATED_REPAIR_PAIRS,
+            DEFAULT_FULL_DATASET_HARNESS_REPAIR_PAIRS,
             DEFAULT_BENCHMARK_REPAIR_PAIRS,
         ]
     )

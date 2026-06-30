@@ -131,3 +131,31 @@ def test_build_corpus_flags_degraded_benchmark_only_easy_mix(tmp_path: Path) -> 
     assert "missing_ralph_sources" in summary["health"]["warnings"]
     assert "single_source_repair_corpus" in summary["health"]["warnings"]
     assert "easy_only_repair_corpus" in summary["health"]["warnings"]
+
+
+def test_build_corpus_can_merge_harness_only_validated_pairs(tmp_path: Path) -> None:
+    strict_validated = tmp_path / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl"
+    harness_validated = tmp_path / "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl"
+    benchmark = tmp_path / "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+    _write_jsonl(strict_validated, [_row("V1", 0.35)])
+    _write_jsonl(harness_validated, [_row("H1", 0.05)])
+    _write_jsonl(benchmark, [_row("B1", 0.15)])
+
+    rows, summary = build_corpus(
+        repair_pair_files=[
+            strict_validated,
+            harness_validated,
+            benchmark,
+        ],
+        repo=tmp_path,
+    )
+
+    assert [row["repair_id"] for row in rows] == ["H1", "B1", "V1"]
+    assert summary["kept_rows_by_source"] == {
+        "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 1,
+        "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl": 1,
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl": 1,
+    }
+    assert summary["source_defaults"]["full_dataset_harness_repair_pairs"] == (
+        "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl"
+    )

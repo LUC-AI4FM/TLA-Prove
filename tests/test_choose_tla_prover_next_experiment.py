@@ -285,6 +285,17 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
         },
     )
     _write(
+        tmp_path / "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json",
+        {
+            "rows": 8,
+            "candidate_rows": 8,
+            "allowed_tiers": ["gold", "silver"],
+            "include_harness": True,
+            "only_buckets": ["skip_harness_repair"],
+            "kept_by_bucket": {"skip_harness_repair": 8},
+        },
+    )
+    _write(
         tmp_path / "outputs/manifests/tla_prover_patch_worklist.json",
         {
             "primary_focus": {
@@ -319,6 +330,13 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
         "--allowed-tier gold --allowed-tier silver"
     )
     assert report["repair_workflow"]["full_dataset_validated_repair_pairs_summary"]["rows"] == 22
+    assert report["repair_workflow"]["full_dataset_harness_repair_pairs_command"] == (
+        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
+        "--allowed-tier gold --allowed-tier silver --include-harness "
+        "--only-bucket skip_harness_repair "
+        "--out data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl"
+    )
+    assert report["repair_workflow"]["full_dataset_harness_repair_pairs_summary"]["rows"] == 8
     assert report["repair_workflow"]["patch_worklist_command"] == (
         "python3 scripts/build_tla_prover_patch_worklist.py"
     )

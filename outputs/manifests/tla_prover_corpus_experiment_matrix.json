@@ -13,7 +13,7 @@
     "default_train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "diamond_eval_holdout_leakage_ok": true
   },
-  "generated_at": "2026-06-30T08:47:22.549352+00:00",
+  "generated_at": "2026-06-30T13:08:52.695944+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -129,6 +129,26 @@
       "unique_modules": 0
     }
   },
+  "local_repair_runtime_status": {
+    "bootstrap_recommendation": {
+      "command": null,
+      "message": "Selected Python timed out while importing required repair-training modules. This looks like a native import/runtime blocker; bootstrap alone may not resolve native import/runtime blockers.",
+      "reason": "selected_python_runtime_import_timeouts"
+    },
+    "local_runtime_ready": false,
+    "path": "outputs/manifests/tla_prover_local_repair_plan.json",
+    "preflight_ok": false,
+    "present": true,
+    "runtime_import_timeout_s": null,
+    "runtime_missing_modules": [
+      "datasets.Dataset",
+      "peft.LoraConfig",
+      "transformers.AutoModelForCausalLM",
+      "transformers.AutoTokenizer",
+      "trl.GRPOConfig",
+      "trl.GRPOTrainer"
+    ]
+  },
   "named_corpora": {
     "default": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "expanded": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
@@ -180,12 +200,12 @@
   },
   "repair_corpus_status": {
     "comparisons": {
-      "rows_beyond_benchmark_only": 513,
+      "rows_beyond_benchmark_only": 521,
       "synthetic_rows_added_beyond_benchmark": 491,
       "validated_rows_added_beyond_benchmark": 22
     },
     "difficulty_counts": {
-      "easy": 248,
+      "easy": 256,
       "hard": 224,
       "medium": 61
     },
@@ -200,7 +220,7 @@
       "data/processed/ralph_repair_pairs_long_latest.jsonl"
     ],
     "path": "data/processed/tla_prover_repair_train_v1.jsonl",
-    "rows": 533,
+    "rows": 541,
     "sources": {
       "benchmark_fc128best": {
         "covered_failed_rows": 20,

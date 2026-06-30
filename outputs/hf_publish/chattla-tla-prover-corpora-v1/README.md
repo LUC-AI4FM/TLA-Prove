@@ -78,9 +78,12 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   full-dataset repair promotion summary (`22` rows from `37` pair-ready candidates
   across gold/silver validation tiers; `15` proof repairs + `3` inductiveness
   repairs + `4` TLC repairs).
+- `metadata/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json`: harness-only
+  validator-backed repair promotion summary (`8` rows from `8` pair-ready candidates;
+  `8` remain in the `skip_harness_repair` bucket).
 - `metadata/tla_prover_repair_train_v1.summary.json`: merged repair-training
-  corpus summary (`533` rows total; `20` benchmark-derived + `491` synthetic +
-  `22` validator-backed full-dataset rows).
+  corpus summary (`541` rows total; `20` benchmark-derived + `491` synthetic +
+  `30` validator-backed full-dataset rows (`22` strict pair-ready + `8` harness-repair)).
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public
   autoprover candidate subset (`168` rows).
 - `metadata/ai4fm_public_discovery_manifest_v1.summary.json`: live public repo
@@ -140,6 +143,7 @@ not bundle-local copies of every artifact named there.
 - Benchmark-derived repair curriculum: `20` rows covering `20` of `20`
   failed fresh-benchmark cases, with `0` missing gold target.
 - Validator-backed full-dataset repair slice: `22` rows from `37` pair-ready candidates across gold/silver validation tiers.
-- Merged repair-training corpus: `533` rows total (`20` benchmark-derived + `491` synthetic + `22` validator-backed full-dataset rows).
+- Harness-only validated repair slice: `8` rows from `8` pair-ready candidates, all in the `skip_harness_repair` bucket.
+- Merged repair-training corpus: `541` rows total (`20` benchmark-derived + `491` synthetic + `30` validator-backed full-dataset rows, including `8` harness-repair rows).
 
 Use the metadata files as the source of truth for checksums and replay status.

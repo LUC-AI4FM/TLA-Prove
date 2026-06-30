@@ -1,6 +1,6 @@
 {
   "difficulty_counts": {
-    "easy": 248,
+    "easy": 256,
     "hard": 224,
     "medium": 61
   },
@@ -226,6 +226,7 @@
   },
   "kept_rows_by_source": {
     "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+    "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl": 8,
     "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
     "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
   },
@@ -233,10 +234,11 @@
     "data/processed/ralph_repair_pairs.jsonl",
     "data/processed/ralph_repair_pairs_long_latest.jsonl"
   ],
-  "rows": 533,
+  "rows": 541,
   "schema": "chattla_tla_prover_repair_train_summary_v1",
   "source_defaults": {
     "benchmark_repair_pairs_fc128best": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+    "full_dataset_harness_repair_pairs": "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl",
     "full_dataset_validated_repair_pairs": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
     "ralph_repair_pairs": "data/processed/ralph_repair_pairs.jsonl",
     "ralph_repair_pairs_long_latest": "data/processed/ralph_repair_pairs_long_latest.jsonl",
@@ -244,6 +246,7 @@
   },
   "source_rows": {
     "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+    "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl": 8,
     "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
     "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 1009
   }

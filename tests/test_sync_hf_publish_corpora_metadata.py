@@ -21,6 +21,7 @@ def _write_sources(repo: Path) -> None:
         "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
         "tla_prover_repair_train_v1.summary.json": "data/processed/tla_prover_repair_train_v1.summary.json",
         "tla_prover_full_dataset_validated_repair_pairs_v1.summary.json": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
+        "tla_prover_full_dataset_harness_repair_pairs_v1.summary.json": "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json",
         "formalllm_public_module_manifest_v1.summary.json": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "formalllm_public_prover_surface_v1.summary.json": "data/processed/formalllm_public_prover_surface_v1.summary.json",
         "tlapm_public_tla_modules_v1.summary.json": "data/processed/tlapm_public_tla_modules_v1.summary.json",
@@ -78,6 +79,7 @@ def test_build_report_syncs_bundle_metadata(tmp_path: Path) -> None:
     assert target.exists()
     assert json.loads(target.read_text(encoding="utf-8")) == {"bundle_name": "tla_prover_artifacts_v1.json"}
     assert (bundle_root / "metadata" / "chattla_tla_prover_sft_public_expanded_v1.summary.json").exists()
+    assert (bundle_root / "metadata" / "tla_prover_full_dataset_harness_repair_pairs_v1.summary.json").exists()
     assert (bundle_root / "data" / "train" / "chattla_tla_prover_sft_v1.jsonl").exists()
     assert (bundle_root / "data" / "eval" / "prover_eval.jsonl").exists()
     assert (bundle_root / "data" / "traces" / "tlaps_verified_autoprover_traces_v1.jsonl").exists()

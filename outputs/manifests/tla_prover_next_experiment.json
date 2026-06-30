@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T12:56:17.124858+00:00",
+  "generated_at": "2026-06-30T13:08:52.748576+00:00",
   "handoff_prerequisite": null,
   "handoff_status": {
     "artifact_verdict": "missing",
@@ -183,6 +183,7 @@
   "repair_corpus_summary": {
     "kept_rows_by_source": {
       "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+      "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl": 8,
       "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
       "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
     },
@@ -190,11 +191,11 @@
       "data/processed/ralph_repair_pairs.jsonl",
       "data/processed/ralph_repair_pairs_long_latest.jsonl"
     ],
-    "rows": 533
+    "rows": 541
   },
   "repair_expansion_status": {
     "comparisons": {
-      "rows_beyond_benchmark_only": 513,
+      "rows_beyond_benchmark_only": 521,
       "synthetic_rows_added_beyond_benchmark": 491,
       "validated_rows_added_beyond_benchmark": 22
     },
@@ -208,7 +209,7 @@
       "data/processed/ralph_repair_pairs.jsonl",
       "data/processed/ralph_repair_pairs_long_latest.jsonl"
     ],
-    "rows": 533,
+    "rows": 541,
     "sources": {
       "benchmark_fc128best": {
         "covered_failed_rows": 20,
@@ -320,6 +321,38 @@
           "count": 12
         }
       ]
+    },
+    "full_dataset_harness_repair_pairs_command": "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py --allowed-tier gold --allowed-tier silver --include-harness --only-bucket skip_harness_repair --out data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl",
+    "full_dataset_harness_repair_pairs_summary": {
+      "allowed_tiers": [
+        "gold",
+        "silver"
+      ],
+      "candidate_rows": 8,
+      "evidence_path": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+      "excluded_counts": {
+        "excluded_not_pair_ready": 29
+      },
+      "generated_at": "2026-06-30T13:08:09.393810+00:00",
+      "include_harness": true,
+      "jsonl_sha256": "f72e7d9fb9b7bf6698eae7525919d6d75bef2bf3ee2b1b1e18deb878f4cd874c",
+      "kept_by_bucket": {
+        "skip_harness_repair": 8
+      },
+      "kept_by_gold_source_kind": {
+        "diamond_eval_holdout": 4,
+        "formalllm_public_module": 4
+      },
+      "only_buckets": [
+        "skip_harness_repair"
+      ],
+      "out": "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl",
+      "rows": 8,
+      "schema": "chattla_tla_prover_full_dataset_validated_repair_pairs_v1",
+      "validated_tier_counts": {
+        "gold": 4,
+        "silver": 4
+      }
     },
     "full_dataset_repair_evidence_command": "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py",
     "full_dataset_repair_evidence_summary": {
@@ -973,7 +1006,7 @@
     },
     "patch_worklist_command": "python3 scripts/build_tla_prover_patch_worklist.py",
     "preflight_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus --runtime-import-timeout-s 10",
-    "refresh_command": "python3 scripts/build_tla_prover_full_dataset_repair_queue.py && python3 scripts/build_tla_prover_full_dataset_repair_evidence.py && python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py --allowed-tier gold --allowed-tier silver && python3 scripts/build_tla_prover_repair_corpus.py",
+    "refresh_command": "python3 scripts/build_tla_prover_full_dataset_repair_queue.py && python3 scripts/build_tla_prover_full_dataset_repair_evidence.py && python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py --allowed-tier gold --allowed-tier silver && python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py --allowed-tier gold --allowed-tier silver --include-harness --only-bucket skip_harness_repair --out data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl && python3 scripts/build_tla_prover_repair_corpus.py",
     "repair_corpus_health": {
       "benchmark_only": false,
       "ok": true,
@@ -983,6 +1016,7 @@
     "repair_corpus_summary": {
       "kept_rows_by_source": {
         "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+        "data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl": 8,
         "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
         "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
       },
@@ -990,7 +1024,7 @@
         "data/processed/ralph_repair_pairs.jsonl",
         "data/processed/ralph_repair_pairs_long_latest.jsonl"
       ],
-      "rows": 533
+      "rows": 541
     },
     "train_command": "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
   },

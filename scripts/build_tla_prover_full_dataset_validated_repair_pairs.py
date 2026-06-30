@@ -68,11 +68,13 @@ def build_pairs(
     validate_spec: Callable[..., Any] = validate_string,
     allowed_tiers: Iterable[str] = ("gold",),
     include_harness: bool = False,
+    only_buckets: Iterable[str] = (),
     timeout: int = 30,
     repo: Path = REPO,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     evidence_rows = _load_jsonl(evidence_path)
     allowed = tuple(str(tier).strip().lower() for tier in allowed_tiers if str(tier).strip())
+    only_bucket_set = {str(bucket).strip() for bucket in only_buckets if str(bucket).strip()}
 
     rows: list[dict[str, Any]] = []
     excluded_counts: Counter[str] = Counter()
@@ -82,12 +84,14 @@ def build_pairs(
     candidate_rows = 0
 
     for row in evidence_rows:
+        bucket = str(row.get("repair_bucket") or "")
+        if only_bucket_set and bucket not in only_bucket_set:
+            continue
         if not row.get("pair_ready"):
             excluded_counts["excluded_not_pair_ready"] += 1
             continue
 
         candidate_rows += 1
-        bucket = str(row.get("repair_bucket") or "")
         if bucket == "skip_harness_repair" and not include_harness:
             excluded_counts["excluded_skip_harness_repair"] += 1
             continue
@@ -157,6 +161,7 @@ def build_pairs(
         "rows": len(rows),
         "allowed_tiers": list(allowed),
         "include_harness": include_harness,
+        "only_buckets": sorted(only_bucket_set),
         "validated_tier_counts": dict(sorted(validated_tier_counts.items())),
         "excluded_counts": dict(sorted(excluded_counts.items())),
         "kept_by_bucket": dict(sorted(kept_by_bucket.items())),
@@ -184,6 +189,7 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--allowed-tier", action="append", default=None)
     parser.add_argument("--include-harness", action="store_true")
+    parser.add_argument("--only-bucket", action="append", default=None)
     parser.add_argument("--timeout", type=int, default=30)
     args = parser.parse_args()
 
@@ -191,6 +197,7 @@ def main() -> int:
         evidence_path=args.evidence,
         allowed_tiers=tuple(args.allowed_tier or ("gold",)),
         include_harness=args.include_harness,
+        only_buckets=tuple(args.only_bucket or ()),
         timeout=args.timeout,
     )
     final_summary = _write_outputs(rows=rows, summary=summary, out=args.out)

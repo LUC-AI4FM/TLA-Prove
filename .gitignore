@@ -74,6 +74,8 @@ data/processed/*
 !data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json
 !data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl
 !data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json
+!data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.jsonl
+!data/processed/tla_prover_full_dataset_harness_repair_pairs_v1.summary.json
 !data/processed/tla_prover_repair_train_v1.jsonl
 !data/processed/tla_prover_repair_train_v1.summary.json
 !data/processed/tla_prover/
