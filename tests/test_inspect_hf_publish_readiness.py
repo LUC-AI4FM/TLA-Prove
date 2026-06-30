@@ -156,6 +156,8 @@ def test_build_report_blocks_degenerate_zero_pass_full_benchmark(tmp_path: Path)
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
         in report["blockers"]
     )
+    assert report["claim_status"]["supports_public_benchmark_100_percent_claim"] is False
+    assert "0/20 SANY and 0/20 TLC" in report["claim_status"]["reason"]
     assert report["failure_surface"]["rows"] == 1
     assert report["failure_surface"]["aggregate"]["rows_with_all_core_components"] == 0
 
@@ -188,6 +190,48 @@ def test_build_failure_surface_summarizes_missing_components_and_red_flags(tmp_p
     assert surface["red_flags"]["pseudo_tla_token_rows"] == 2
     assert surface["planning"]["plan_used_rows"] == 1
     assert surface["sample_benchmark_ids"]["no_core_components"] == ["BM001", "BM003"]
+
+
+def test_build_report_surfaces_supported_public_benchmark_claim(tmp_path: Path) -> None:
+    state_path = tmp_path / "hf_publish_state.json"
+    _write(
+        state_path,
+        json.dumps(
+            {
+                "last_published_version": 21,
+                "last_repo": "EricSpencer00/chattla-20b",
+                "note": "aligned",
+            }
+        ),
+    )
+    gguf_dir = tmp_path / "outputs" / "gguf"
+    _write(gguf_dir / "chattla-20b-Q8_0.gguf", "placeholder gguf")
+    readme = tmp_path / "outputs" / "hf_readme" / "README.md"
+    _write(readme, "# README\n")
+
+    report = build_report(
+        repo_id="EricSpencer00/chattla-20b",
+        gguf_dir=gguf_dir,
+        gguf_search_dirs=(gguf_dir,),
+        state_path=state_path,
+        readme_template=readme,
+        benchmark_max_age_hours=24,
+        fetch_remote_paths=lambda _repo: ["gguf/chattla-20b-v21-Q8_0.gguf"],
+        benchmark_stats={
+            "n": 20,
+            "sany": 20,
+            "tlc": 20,
+            "avg_struct": 1.0,
+            "source_csv": "benchmark_results_full.csv",
+            "source_path": str(tmp_path / "benchmark_results_full.csv"),
+            "mtime": 0,
+            "model": "chattla:20b",
+        },
+        now_fn=lambda: 3600,
+    )
+
+    assert report["claim_status"]["supports_public_benchmark_100_percent_claim"] is True
+    assert "20/20 SANY and 20/20 TLC" in report["claim_status"]["reason"]
 
 
 def test_build_report_requests_specific_benchmark_model(tmp_path: Path, monkeypatch) -> None:

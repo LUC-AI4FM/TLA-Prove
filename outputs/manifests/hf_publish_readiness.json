@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 1405.2118107175165,
+    "age_hours": 1418.5879361430805,
     "avg_struct": 0.70575,
     "fresh_within_hours": 24.0,
     "model": "chattla:20b",
@@ -12,9 +12,13 @@
   },
   "benchmark_model": "chattla:20b",
   "blockers": [
-    "latest full benchmark is stale at 1405.2h (limit 24.0h)",
+    "latest full benchmark is stale at 1418.6h (limit 24.0h)",
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
+  "claim_status": {
+    "reason": "Latest full benchmark reaches only 0/20 SANY and 0/20 TLC, so the public benchmark claim is unsupported.",
+    "supports_public_benchmark_100_percent_claim": false
+  },
   "failure_surface": {
     "aggregate": {
       "rows_with_all_core_components": 0,
@@ -50,7 +54,7 @@
       "obvious_placeholder_rows": []
     }
   },
-  "generated_at": "2026-06-29T13:10:21.880442+00:00",
+  "generated_at": "2026-06-30T02:32:57.239835+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [

@@ -63,6 +63,31 @@ _RED_FLAG_PATTERNS = {
 }
 
 
+def build_claim_status(
+    *,
+    blockers: list[str],
+    stats: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if stats is None:
+        return {
+            "supports_public_benchmark_100_percent_claim": False,
+            "reason": "No full benchmark CSV is available, so a public benchmark correctness claim is unsupported.",
+        }
+
+    rows = int(stats.get("n", 0) or 0)
+    sany = int(stats.get("sany", 0) or 0)
+    tlc = int(stats.get("tlc", 0) or 0)
+    if rows > 0 and not blockers and sany == rows and tlc == rows:
+        return {
+            "supports_public_benchmark_100_percent_claim": True,
+            "reason": f"Latest full benchmark reaches {sany}/{rows} SANY and {tlc}/{rows} TLC, so the public benchmark claim is supported.",
+        }
+    return {
+        "supports_public_benchmark_100_percent_claim": False,
+        "reason": f"Latest full benchmark reaches only {sany}/{rows} SANY and {tlc}/{rows} TLC, so the public benchmark claim is unsupported.",
+    }
+
+
 def default_out_path_for_benchmark_model(benchmark_model: str | None) -> Path:
     canonical_model = default_benchmark_model()
     if not benchmark_model or benchmark_model == canonical_model:
@@ -229,6 +254,7 @@ def build_report(
         benchmark_max_age_hours=benchmark_max_age_hours,
         now=now_fn(),
     )
+    claim_status = build_claim_status(blockers=blockers, stats=stats)
     if remote_last is not None and remote_last > local_last:
         warnings.append(
             f"local publish state v{local_last} lags remote GGUF state v{remote_last}"
@@ -243,6 +269,7 @@ def build_report(
         "benchmark_model": benchmark_model,
         "ready_to_publish": not blockers,
         "blockers": blockers,
+        "claim_status": claim_status,
         "warnings": warnings,
         "state": {
             "path": _display_path(state_path),
