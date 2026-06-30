@@ -209,7 +209,7 @@ def _derive_state(
             verdict = decision_data.get("verdict", "unknown")
             return "results_ready", f"Remote decision verdict={verdict}: {decision_data['next_action']}"
         return "results_ready", "Review known-18 summary and SFT preflight log before deciding the next training/prover step."
-    if decision_data and submission_data and decision_data.get("next_action"):
+    if decision_data and decision_data.get("next_action"):
         verdict = decision_data.get("verdict", "unknown")
         return "results_ready", f"Remote decision verdict={verdict}: {decision_data['next_action']}"
     if watch_data and watch_data.get("status") in {"collecting", "timeout"}:
@@ -362,8 +362,12 @@ def compact_status(status: dict[str, Any]) -> dict[str, Any]:
         "collection_errors": len(collection_data.get("errors") or []),
         "watch_status": watch_data.get("status"),
         "verdict": decision_data.get("verdict"),
+        "decision_next_action": decision_data.get("next_action"),
         "proof_artifact_revalidated": decision_data.get("proof_artifact_revalidated"),
         "artifact_verdict": decision_data.get("artifact_verdict"),
+        "full_dataset_verdict": decision_data.get("full_dataset_verdict"),
+        "full_dataset_error_rows": decision_data.get("full_dataset_error_rows"),
+        "full_dataset_statuses": decision_data.get("full_dataset_statuses"),
         "full_dataset_rows_so_far": full_dataset_progress.get("rows_so_far"),
         "full_dataset_modules_seen": full_dataset_progress.get("modules_seen"),
         "full_dataset_next_module_path": full_dataset_progress.get("next_module_path"),

@@ -227,6 +227,29 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
             }
         },
     )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_local_repair_plan.json",
+        {
+            "schema": "chattla_tla_prover_local_repair_plan_v1",
+            "runtime_import_timeout_s": 10.0,
+            "bootstrap_recommendation": {
+                "reason": "selected_python_runtime_import_timeouts",
+                "command": None,
+                "message": "native import blocker",
+                "selected_python": "/tmp/local/.venv/bin/python",
+            },
+            "preflight_report": {
+                "ok": False,
+                "runtime_dependencies": {
+                    "ok": False,
+                    "missing": [
+                        {"module": "datasets.Dataset"},
+                        {"module": "trl.GRPOTrainer"},
+                    ],
+                },
+            },
+        },
+    )
 
     report = build_report(tmp_path)
 
@@ -258,6 +281,19 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     assert report["repair_corpus_status"]["sources"]["full_dataset_validated"]["candidate_rows"] == 37
     assert report["repair_corpus_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 22
     assert report["repair_corpus_status"]["comparisons"]["rows_beyond_benchmark_only"] == 513
+    assert report["local_repair_runtime_status"] == {
+        "path": "outputs/manifests/tla_prover_local_repair_plan.json",
+        "present": True,
+        "preflight_ok": False,
+        "local_runtime_ready": False,
+        "runtime_import_timeout_s": 10.0,
+        "runtime_missing_modules": ["datasets.Dataset", "trl.GRPOTrainer"],
+        "bootstrap_recommendation": {
+            "reason": "selected_python_runtime_import_timeouts",
+            "command": None,
+            "message": "native import blocker",
+        },
+    }
     assert report["publish_readiness"]["default_model"]["benchmark_model"] == "chattla:20b"
     assert report["publish_readiness"]["fc128best_model"]["ready_to_publish"] is False
     assert report["named_corpora"]["full-public"].endswith("chattla_tla_prover_sft_public_all_v1.jsonl")

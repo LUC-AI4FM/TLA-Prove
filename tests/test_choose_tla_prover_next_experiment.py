@@ -72,13 +72,8 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
     assert report["recommended_action"] == "repair"
     assert report["intent_allowed"] is True
     assert report["recommended_command"] == "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
-    assert report["handoff_status"]["state"] == "not_started"
-    assert report["handoff_prerequisite"] == {
-        "action": "install_wait_launchagent",
-        "reason": "handoff has not submitted and wait LaunchAgent is not running",
-        "command": "scripts/install_wait_handoff_launchagent.sh",
-    }
-    assert "Operational prerequisite" in report["rationale"]
+    assert report["handoff_status"]["state"] == "results_ready"
+    assert report["handoff_prerequisite"] is None
     assert report["repair_corpus_health"]["ok"] is False
     assert report["repair_corpus_summary"]["rows"] is None
     assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
@@ -144,7 +139,7 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
     assert report["preferred_sft_lane"] == "expanded"
     assert "--sft-corpus expanded --submit-sft-preflight" in report["recommended_command"]
     assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_local.py --sft-corpus expanded"
-    assert report["handoff_prerequisite"]["action"] == "install_wait_launchagent"
+    assert report["handoff_prerequisite"] is None
     assert report["preferred_sft_lane_summary"]["trainable"] is True
     assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
     assert report["repair_expansion_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 22
@@ -171,7 +166,7 @@ def test_build_report_prefers_publish_when_candidate_readiness_clears(tmp_path: 
 
     assert report["recommended_action"] == "publish"
     assert "--benchmark-model chattla:20b-fc128best" in report["recommended_command"]
-    assert report["handoff_prerequisite"]["action"] == "install_wait_launchagent"
+    assert report["handoff_prerequisite"] is None
 
 
 def test_build_report_surfaces_repair_corpus_summary_fields(tmp_path: Path) -> None:
@@ -530,9 +525,9 @@ def test_compact_report_surfaces_handoff_prerequisite_and_core_fields(tmp_path: 
     compact = compact_report(build_report(tmp_path))
 
     assert compact["recommended_action"] == "repair"
-    assert compact["handoff_state"] == "not_started"
-    assert compact["handoff_prerequisite_action"] == "install_wait_launchagent"
-    assert compact["handoff_prerequisite_command"] == "scripts/install_wait_handoff_launchagent.sh"
+    assert compact["handoff_state"] == "results_ready"
+    assert compact["handoff_prerequisite_action"] is None
+    assert compact["handoff_prerequisite_command"] is None
     assert compact["local_repair_status_present"] is False
     assert compact["local_repair_status_command"] == (
         "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run "
@@ -574,7 +569,7 @@ def test_cli_compact_outputs_small_next_experiment_packet(tmp_path: Path) -> Non
 
     payload = json.loads(result.stdout)
     assert payload["recommended_action"] == "repair"
-    assert payload["handoff_prerequisite_action"] == "install_wait_launchagent"
+    assert payload["handoff_prerequisite_action"] is None
     assert "repair_corpus_summary" not in payload
 
 

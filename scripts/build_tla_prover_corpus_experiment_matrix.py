@@ -41,10 +41,53 @@ PUBLIC_TLAPROVE_PATH = "outputs/manifests/ai4fm_public_tlaprove_corpora.json"
 SEED_FILE_SUMMARY = "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json"
 SEED_MODULE_SUMMARY = "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json"
 DATASET_SURFACE_PATH = "outputs/manifests/ai4fm_public_dataset_surface.json"
+LOCAL_REPAIR_PLAN_PATH = "outputs/manifests/tla_prover_local_repair_plan.json"
 
 
 def _read_json(repo: Path, rel_path: str) -> dict[str, Any]:
     return json.loads((repo / rel_path).read_text(encoding="utf-8"))
+
+
+def _read_optional_json(repo: Path, rel_path: str) -> dict[str, Any] | None:
+    path = repo / rel_path
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _compact_bootstrap_recommendation(value: Any) -> dict[str, Any] | None:
+    if not isinstance(value, dict):
+        return None
+    compact = {
+        key: value.get(key)
+        for key in ("reason", "command", "message")
+        if key in value
+    }
+    return compact or None
+
+
+def _local_repair_runtime_status(repo: Path) -> dict[str, Any]:
+    payload = _read_optional_json(repo, LOCAL_REPAIR_PLAN_PATH)
+    if not isinstance(payload, dict):
+        return {"path": LOCAL_REPAIR_PLAN_PATH, "present": False}
+    preflight_report = dict(payload.get("preflight_report") or {})
+    runtime_dependencies = dict(preflight_report.get("runtime_dependencies") or {})
+    runtime_missing_modules = [
+        str(entry.get("module"))
+        for entry in list(runtime_dependencies.get("missing") or [])
+        if str(entry.get("module") or "").strip()
+    ]
+    return {
+        "path": LOCAL_REPAIR_PLAN_PATH,
+        "present": True,
+        "preflight_ok": preflight_report.get("ok"),
+        "local_runtime_ready": runtime_dependencies.get("ok"),
+        "runtime_import_timeout_s": payload.get("runtime_import_timeout_s"),
+        "runtime_missing_modules": runtime_missing_modules,
+        "bootstrap_recommendation": _compact_bootstrap_recommendation(
+            payload.get("bootstrap_recommendation")
+        ),
+    }
 
 
 def _lane_path(alias: str) -> str:
@@ -357,6 +400,7 @@ def build_report(repo: Path = REPO) -> dict[str, Any]:
             synthetic_summary=synthetic_repair_summary,
             full_dataset_validated_summary=full_dataset_validated_repair_summary,
         ),
+        "local_repair_runtime_status": _local_repair_runtime_status(repo),
         "publish_readiness": {
             "default_model": _readiness_snapshot(readiness),
             "fc128best_model": _readiness_snapshot(readiness_fc128best),

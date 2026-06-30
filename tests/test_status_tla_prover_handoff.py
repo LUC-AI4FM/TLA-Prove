@@ -140,6 +140,33 @@ def test_status_reports_results_ready_when_decision_exists_without_watch(tmp_pat
     assert "Run the full 610-row" in status["next_action"]
 
 
+def test_status_reports_results_ready_when_decision_exists_without_submission(tmp_path: Path) -> None:
+    manifest_dir = tmp_path / "outputs/manifests"
+    manifest_dir.mkdir(parents=True)
+    (manifest_dir / "tla_prover_remote_decision.json").write_text(
+        json.dumps(
+            {
+                "verdict": "patch",
+                "full_dataset_verdict": "patch",
+                "full_dataset_error_rows": 33,
+                "full_dataset_statuses": {
+                    "not_inductive": 21,
+                    "skipped": 498,
+                    "tlaps_partial": 79,
+                    "tlc_error": 12,
+                },
+                "next_action": "Do not launch SFT. Patch prover harness/data first.",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    status = build_status(tmp_path, launchctl_text="state = exited\n")
+
+    assert status["state"] == "results_ready"
+    assert "verdict=patch" in status["next_action"]
+
+
 def test_status_reports_full_smoke_running_when_current_job_is_in_qstat_snapshot(tmp_path: Path) -> None:
     manifest_dir = tmp_path / "outputs/manifests"
     manifest_dir.mkdir(parents=True)
@@ -453,6 +480,35 @@ def test_compact_status_carries_artifact_revalidation_flag(tmp_path: Path) -> No
     assert compact["job_ids"]["final_proof_verify_job_id"] == "170003.sophia-pbs-01"
     assert compact["proof_artifact_revalidated"] is True
     assert compact["artifact_verdict"] == "revalidated"
+
+
+def test_compact_status_surfaces_decision_next_action(tmp_path: Path) -> None:
+    manifest_dir = tmp_path / "outputs/manifests"
+    manifest_dir.mkdir(parents=True)
+    (manifest_dir / "tla_prover_remote_decision.json").write_text(
+        json.dumps(
+            {
+                "verdict": "patch",
+                "full_dataset_verdict": "patch",
+                "full_dataset_error_rows": 33,
+                "full_dataset_statuses": {
+                    "not_inductive": 21,
+                    "skipped": 498,
+                    "tlaps_partial": 79,
+                    "tlc_error": 12,
+                },
+                "next_action": "Do not launch SFT.",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    compact = compact_status(build_status(tmp_path, launchctl_text="state = exited\n"))
+
+    assert compact["decision_next_action"] == "Do not launch SFT."
+    assert compact["full_dataset_verdict"] == "patch"
+    assert compact["full_dataset_error_rows"] == 33
+    assert compact["full_dataset_statuses"]["tlc_error"] == 12
 
 
 def test_compact_status_carries_full_smoke_progress(tmp_path: Path) -> None:

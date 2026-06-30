@@ -45,6 +45,26 @@ def test_doctor_noops_while_full_smoke_is_running() -> None:
     assert "running" in decision["reason"]
 
 
+def test_doctor_noops_with_patch_reason_when_results_ready() -> None:
+    status = {
+        "state": "results_ready",
+        "launchagent": {"state": "exited"},
+        "reports": {
+            "decision": {
+                "data": {
+                    "verdict": "patch",
+                    "next_action": "Do not launch SFT. Patch prover harness/data first.",
+                }
+            }
+        },
+    }
+
+    decision = decide_action(status)
+
+    assert decision["action"] == "noop"
+    assert "Do not launch SFT." in decision["reason"]
+
+
 def test_doctor_decides_watch_when_partial_submit_has_known18_job() -> None:
     status = {
         "state": "partial_submit_waiting_for_results",

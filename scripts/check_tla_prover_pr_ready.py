@@ -16,6 +16,7 @@ DEFAULT_EXCLUDE_PREFIXES = ("data/", "outputs/")
 DEFAULT_EXCLUDE_FILES = {"memory.md", "docs/formallm.md"}
 DEFAULT_UNTRACKED_SCAN_PREFIXES = ("scripts/",)
 SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND = "python3 scripts/sync_hf_publish_corpora_metadata.py"
+LOCAL_REPAIR_PLAN_PATH = "outputs/manifests/tla_prover_local_repair_plan.json"
 TRACKED_SHARED_ARTIFACTS = (
     "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
     "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
@@ -226,6 +227,48 @@ def scan_files(paths: list[Path]) -> list[dict[str, Any]]:
     return findings
 
 
+def _read_optional_json(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _compact_bootstrap_recommendation(value: Any) -> dict[str, Any] | None:
+    if not isinstance(value, dict):
+        return None
+    compact = {
+        key: value.get(key)
+        for key in ("reason", "command", "message")
+        if key in value
+    }
+    return compact or None
+
+
+def _local_repair_runtime_status(repo: Path) -> dict[str, Any]:
+    path = repo / LOCAL_REPAIR_PLAN_PATH
+    payload = _read_optional_json(path)
+    if not isinstance(payload, dict):
+        return {"path": LOCAL_REPAIR_PLAN_PATH, "present": False}
+    preflight_report = dict(payload.get("preflight_report") or {})
+    runtime_dependencies = dict(preflight_report.get("runtime_dependencies") or {})
+    runtime_missing_modules = [
+        str(entry.get("module"))
+        for entry in list(runtime_dependencies.get("missing") or [])
+        if str(entry.get("module") or "").strip()
+    ]
+    return {
+        "path": LOCAL_REPAIR_PLAN_PATH,
+        "present": True,
+        "preflight_ok": preflight_report.get("ok"),
+        "local_runtime_ready": runtime_dependencies.get("ok"),
+        "runtime_import_timeout_s": payload.get("runtime_import_timeout_s"),
+        "runtime_missing_modules": runtime_missing_modules,
+        "bootstrap_recommendation": _compact_bootstrap_recommendation(
+            payload.get("bootstrap_recommendation")
+        ),
+    }
+
+
 def build_commands(*, include_slow_pytest: bool = False) -> list[list[str]]:
     commands = [
         ["python3", "-m", "py_compile", *PY_COMPILE_FILES],
@@ -259,7 +302,11 @@ def run_commands(commands: list[list[str]], *, repo: Path = REPO) -> list[dict[s
     return results
 
 
-def recommended_fixes(command_results: list[dict[str, Any]]) -> list[dict[str, str]]:
+def recommended_fixes(
+    command_results: list[dict[str, Any]],
+    *,
+    local_repair_runtime_status: dict[str, Any] | None = None,
+) -> list[dict[str, str]]:
     fixes: list[dict[str, str]] = []
     for item in command_results:
         command = item.get("command")
@@ -270,6 +317,15 @@ def recommended_fixes(command_results: list[dict[str, Any]]) -> list[dict[str, s
                     "command": SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND,
                 }
             )
+    local_status = dict(local_repair_runtime_status or {})
+    bootstrap = dict(local_status.get("bootstrap_recommendation") or {})
+    if local_status.get("present") and not local_status.get("local_runtime_ready"):
+        fixes.append(
+            {
+                "reason": "Local repair runtime is not ready on this machine.",
+                "command": str(bootstrap.get("command") or LOCAL_REPAIR_PLAN_PATH),
+            }
+        )
     return fixes
 
 
@@ -283,7 +339,11 @@ def build_report(
     findings = scan_files(readiness_files(repo, include_untracked_scripts=include_untracked_scripts))
     command_results = run_commands(build_commands(include_slow_pytest=include_slow_pytest), repo=repo) if run_tests else []
     commands_ok = all(item["returncode"] == 0 for item in command_results)
-    fixes = recommended_fixes(command_results)
+    local_repair_runtime_status = _local_repair_runtime_status(repo)
+    fixes = recommended_fixes(
+        command_results,
+        local_repair_runtime_status=local_repair_runtime_status,
+    )
     return {
         "ok": not findings and commands_ok,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -295,6 +355,7 @@ def build_report(
             "patterns": [name for name, _ in SENSITIVE_PATTERNS],
         },
         "commands": command_results,
+        "local_repair_runtime_status": local_repair_runtime_status,
         "recommended_fixes": fixes,
         "slow_pytest_included": include_slow_pytest,
         "slow_pytest_files": SLOW_PYTEST_FILES,

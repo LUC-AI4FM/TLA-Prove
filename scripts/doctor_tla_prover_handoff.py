@@ -17,6 +17,7 @@ from scripts.status_tla_prover_handoff import REPO, build_status, compact_status
 def decide_action(status: dict[str, Any]) -> dict[str, Any]:
     state = status.get("state")
     launch_state = (status.get("launchagent") or {}).get("state")
+    decision_data = dict(((status.get("reports") or {}).get("decision") or {}).get("data") or {})
 
     if state in {"waiting_for_relay", "waiting_for_macmini"} and launch_state == "running":
         return {
@@ -55,6 +56,12 @@ def decide_action(status: dict[str, Any]) -> dict[str, Any]:
             "command": "scripts/wait_for_macmini_and_handoff_known18.sh --mirror-report-only",
         }
     if state == "results_ready":
+        if decision_data.get("verdict") == "patch" and decision_data.get("next_action"):
+            return {
+                "action": "noop",
+                "reason": str(decision_data["next_action"]),
+                "command": None,
+            }
         return {
             "action": "noop",
             "reason": "remote result evidence is ready for review",
