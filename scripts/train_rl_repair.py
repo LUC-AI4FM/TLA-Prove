@@ -38,9 +38,11 @@ Default input behavior:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 os.environ.setdefault("USE_TF", "0")
 os.environ.setdefault("USE_JAX", "0")
@@ -48,17 +50,45 @@ os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MERGED_REPAIR_PAIRS = "data/processed/tla_prover_repair_train_v1.jsonl"
+DEFAULT_MERGED_REPAIR_SUMMARY = "data/processed/tla_prover_repair_train_v1.summary.json"
 DEFAULT_REPAIR_PAIRS = "data/processed/ralph_repair_pairs.jsonl"
 DEFAULT_BENCHMARK_REPAIR_PAIRS = "data/processed/benchmark_repair_pairs_fc128best.jsonl"
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 
-def _path_exists(path_str: str) -> bool:
+def _resolve_repo_path(path_str: str, repo_root: Path = _REPO_ROOT) -> Path:
     path = Path(path_str)
     if not path.is_absolute():
-        path = _REPO_ROOT / path
-    return path.is_file()
+        path = repo_root / path
+    return path
+
+
+def _path_exists(path_str: str) -> bool:
+    return _resolve_repo_path(path_str).is_file()
+
+
+def _read_optional_json(path: Path) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _count_repair_rows(path: Path) -> tuple[int, set[str]]:
+    rows = 0
+    repair_ids: set[str] = set()
+    if not path.is_file():
+        return rows, repair_ids
+    with path.open(encoding="utf-8") as handle:
+        for raw in handle:
+            line = raw.strip()
+            if not line:
+                continue
+            rows += 1
+            repair_id = json.loads(line).get("repair_id")
+            if repair_id is not None:
+                repair_ids.add(str(repair_id))
+    return rows, repair_ids
 
 
 def _resolve_base_model() -> str:
@@ -123,22 +153,25 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--include-benchmark-repair-pairs", action="store_true",
                         help="Also load the benchmark-derived repair corpus at "
                         f"`{DEFAULT_BENCHMARK_REPAIR_PAIRS}`.")
+    parser.add_argument("--preflight-only", action="store_true",
+                        help="Print a cheap local repair-corpus report and exit before loading tokenizer/model deps.")
     parser.add_argument("--smoke", action="store_true",
                         help="2 steps, no checkpoint, sanity-check the wiring")
     return parser
 
 
-def resolve_trajectory_files(args: argparse.Namespace) -> list[str]:
+def resolve_trajectory_files(args: argparse.Namespace, repo_root: Path = _REPO_ROOT) -> list[str]:
+    path_exists = _path_exists if repo_root == _REPO_ROOT else lambda path: _resolve_repo_path(path, repo_root).is_file()
     if args.trajectory_file:
         files = list(args.trajectory_file)
         if args.include_benchmark_repair_pairs and DEFAULT_BENCHMARK_REPAIR_PAIRS not in files:
             files.append(DEFAULT_BENCHMARK_REPAIR_PAIRS)
         return files
 
-    if _path_exists(DEFAULT_MERGED_REPAIR_PAIRS):
+    if path_exists(DEFAULT_MERGED_REPAIR_PAIRS):
         return [DEFAULT_MERGED_REPAIR_PAIRS]
 
-    files = [path for path in [DEFAULT_REPAIR_PAIRS, DEFAULT_BENCHMARK_REPAIR_PAIRS] if _path_exists(path)]
+    files = [path for path in [DEFAULT_REPAIR_PAIRS, DEFAULT_BENCHMARK_REPAIR_PAIRS] if path_exists(path)]
     if not files:
         files = [DEFAULT_REPAIR_PAIRS]
     if args.include_benchmark_repair_pairs and DEFAULT_BENCHMARK_REPAIR_PAIRS not in files:
@@ -146,12 +179,68 @@ def resolve_trajectory_files(args: argparse.Namespace) -> list[str]:
     return files
 
 
-def main() -> None:
+def build_preflight_report(args: argparse.Namespace, repo_root: Path = _REPO_ROOT) -> dict[str, Any]:
+    trajectory_files = resolve_trajectory_files(args, repo_root=repo_root)
+    raw_rows = 0
+    unique_repair_ids: set[str] = set()
+    file_reports: list[dict[str, Any]] = []
+    missing_files: list[str] = []
+
+    for path_str in trajectory_files:
+        path = _resolve_repo_path(path_str, repo_root)
+        exists = path.is_file()
+        rows, ids = _count_repair_rows(path)
+        raw_rows += rows
+        unique_repair_ids.update(ids)
+        if not exists:
+            missing_files.append(path_str)
+        file_reports.append(
+            {
+                "path": path_str,
+                "exists": exists,
+                "rows": rows,
+                "unique_repair_ids": len(ids),
+            }
+        )
+
+    using_merged_default = trajectory_files == [DEFAULT_MERGED_REPAIR_PAIRS]
+    merged_summary_path = _resolve_repo_path(DEFAULT_MERGED_REPAIR_SUMMARY, repo_root)
+    merged_summary = _read_optional_json(merged_summary_path) if using_merged_default else None
+    ok = not missing_files and raw_rows > 0
+    if merged_summary is not None:
+        ok = ok and bool(dict(merged_summary.get("health") or {}).get("ok"))
+
+    return {
+        "schema": "chattla_tla_prover_repair_preflight_v1",
+        "ok": ok,
+        "trajectory_files": trajectory_files,
+        "missing_files": missing_files,
+        "raw_rows": raw_rows,
+        "unique_repair_ids": len(unique_repair_ids),
+        "using_merged_default": using_merged_default,
+        "files": file_reports,
+        "merged_summary_path": DEFAULT_MERGED_REPAIR_SUMMARY if using_merged_default else None,
+        "merged_summary": {
+            "rows": merged_summary.get("rows"),
+            "health": merged_summary.get("health"),
+            "kept_rows_by_source": merged_summary.get("kept_rows_by_source"),
+            "missing_sources": merged_summary.get("missing_sources"),
+        } if merged_summary is not None else None,
+    }
+
+
+def main() -> int:
     parser = build_arg_parser()
     args = parser.parse_args()
 
     if args.model is None:
         args.model = _resolve_base_model()
+
+    if args.preflight_only:
+        report = build_preflight_report(args)
+        report["model"] = args.model
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return 0 if report["ok"] else 2
 
     import torch
     import yaml
@@ -290,7 +379,8 @@ def main() -> None:
     # Save final checkpoint
     trainer.save_model(args.output_dir + "/final")
     print(f"[rl-repair] done -> {args.output_dir}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

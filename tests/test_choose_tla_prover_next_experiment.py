@@ -45,8 +45,10 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
     assert report["intent_allowed"] is True
     assert "build_benchmark_repair_pairs.py" in report["recommended_command"]
     assert "build_tla_prover_repair_corpus.py" in report["recommended_command"]
+    assert "--preflight-only" in report["recommended_command"]
     assert "scripts.train_rl_repair" in report["recommended_command"]
     assert report["repair_corpus_health"]["ok"] is False
+    assert report["repair_corpus_summary"]["rows"] is None
 
 
 def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: Path) -> None:
@@ -102,3 +104,35 @@ def test_build_report_prefers_publish_when_candidate_readiness_clears(tmp_path: 
 
     assert report["recommended_action"] == "publish"
     assert "--benchmark-model chattla:20b-fc128best" in report["recommended_command"]
+
+
+def test_build_report_surfaces_repair_corpus_summary_fields(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "patch",
+            "full_dataset_verdict": "patch",
+            "next_action": "Do not launch SFT. Patch prover harness/data first.",
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {"ready_to_publish": False},
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        {
+            "rows": 510,
+            "kept_rows_by_source": {"synthetic": 491, "benchmark": 19},
+            "missing_sources": ["data/processed/ralph_repair_pairs.jsonl"],
+            "health": {"ok": True, "warnings": []},
+        },
+    )
+
+    report = build_report(tmp_path)
+
+    assert report["repair_corpus_summary"]["rows"] == 510
+    assert report["repair_corpus_summary"]["kept_rows_by_source"] == {"synthetic": 491, "benchmark": 19}
+    assert report["repair_corpus_summary"]["missing_sources"] == ["data/processed/ralph_repair_pairs.jsonl"]

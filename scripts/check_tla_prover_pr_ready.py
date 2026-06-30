@@ -79,6 +79,7 @@ PY_COMPILE_FILES = [
     "scripts/build_benchmark_repair_pairs.py",
     "scripts/build_tla_prover_synthetic_repair_pairs.py",
     "scripts/build_tla_prover_repair_corpus.py",
+    "scripts/train_rl_repair.py",
     "scripts/build_tla_prover_full_dataset_failure_analysis.py",
     "scripts/sync_hf_publish_corpora_metadata.py",
     "scripts/upload_v11.py",

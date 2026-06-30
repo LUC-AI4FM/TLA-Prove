@@ -1,7 +1,9 @@
 from scripts.train_rl_repair import (
     DEFAULT_BENCHMARK_REPAIR_PAIRS,
     DEFAULT_MERGED_REPAIR_PAIRS,
+    DEFAULT_MERGED_REPAIR_SUMMARY,
     DEFAULT_REPAIR_PAIRS,
+    build_preflight_report,
     build_arg_parser,
     resolve_trajectory_files,
 )
@@ -40,3 +42,57 @@ def test_resolve_trajectory_files_appends_benchmark_pairs() -> None:
         "custom_b.jsonl",
         DEFAULT_BENCHMARK_REPAIR_PAIRS,
     ]
+
+
+def test_build_preflight_report_uses_merged_summary_for_default_corpus(tmp_path) -> None:
+    parser = build_arg_parser()
+    args = parser.parse_args([])
+
+    merged_path = tmp_path / DEFAULT_MERGED_REPAIR_PAIRS
+    merged_path.parent.mkdir(parents=True, exist_ok=True)
+    merged_path.write_text(
+        "\n".join(
+            [
+                '{"repair_id":"R1","before_score":0.1}',
+                '{"repair_id":"R2","before_score":0.2}',
+                '{"repair_id":"R1","before_score":0.3}',
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    summary_path = tmp_path / DEFAULT_MERGED_REPAIR_SUMMARY
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(
+        (
+            '{"rows": 510, "health": {"ok": true, "warnings": []}, '
+            '"kept_rows_by_source": {"synthetic": 491, "benchmark": 19}, '
+            '"missing_sources": ["data/processed/ralph_repair_pairs.jsonl"]}'
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    report = build_preflight_report(args, repo_root=tmp_path)
+
+    assert report["ok"] is True
+    assert report["trajectory_files"] == [DEFAULT_MERGED_REPAIR_PAIRS]
+    assert report["raw_rows"] == 3
+    assert report["unique_repair_ids"] == 2
+    assert report["using_merged_default"] is True
+    assert report["merged_summary"]["rows"] == 510
+    assert report["merged_summary"]["health"]["ok"] is True
+    assert report["merged_summary"]["kept_rows_by_source"] == {"synthetic": 491, "benchmark": 19}
+    assert report["merged_summary"]["missing_sources"] == ["data/processed/ralph_repair_pairs.jsonl"]
+
+
+def test_build_preflight_report_flags_missing_selected_corpus(tmp_path) -> None:
+    parser = build_arg_parser()
+    args = parser.parse_args(["--trajectory-file", "missing.jsonl"])
+
+    report = build_preflight_report(args, repo_root=tmp_path)
+
+    assert report["ok"] is False
+    assert report["missing_files"] == ["missing.jsonl"]
+    assert report["raw_rows"] == 0
+    assert report["unique_repair_ids"] == 0

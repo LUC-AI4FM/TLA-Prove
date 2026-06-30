@@ -68,6 +68,7 @@ def _repair_command() -> str:
     return (
         "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best "
         "&& python3 scripts/build_tla_prover_repair_corpus.py "
+        "&& python3 -m scripts.train_rl_repair --preflight-only "
         "&& python3 -m scripts.train_rl_repair"
     )
 
@@ -90,6 +91,11 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     readiness_fc128best = _read_json(repo, HF_READINESS_FC128BEST_PATH)
     repair_summary = _read_optional_json(repo, REPAIR_SUMMARY_PATH)
     repair_health = dict((repair_summary or {}).get("health") or {})
+    repair_corpus_summary = {
+        "rows": (repair_summary or {}).get("rows"),
+        "kept_rows_by_source": (repair_summary or {}).get("kept_rows_by_source", {}),
+        "missing_sources": (repair_summary or {}).get("missing_sources", []),
+    }
 
     recommended_action: str
     recommended_command: str
@@ -150,6 +156,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
             },
         },
         "repair_corpus_health": repair_health,
+        "repair_corpus_summary": repair_corpus_summary,
     }
 
 

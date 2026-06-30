@@ -61,6 +61,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/build_benchmark_repair_pairs.py" in joined
     assert "scripts/build_tla_prover_synthetic_repair_pairs.py" in joined
     assert "scripts/build_tla_prover_repair_corpus.py" in joined
+    assert "scripts/train_rl_repair.py" in joined
     assert "scripts/build_tla_prover_full_dataset_failure_analysis.py" in joined
     assert "scripts/sync_hf_publish_corpora_metadata.py" in joined
     assert "scripts/upload_v11.py" in joined
