@@ -464,6 +464,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["remote_next_steps"]["choose_tla_prover_next_experiment"] == (
         "python3 scripts/choose_tla_prover_next_experiment.py"
     )
+    assert manifest["remote_next_steps"]["train_tla_prover_local"] == (
+        "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded"
+    )
     assert manifest["remote_next_steps"]["pr_ready_check"] == "python3 scripts/check_tla_prover_pr_ready.py"
     assert manifest["remote_next_steps"]["build_tla_prover_eval_corpus"] == (
         "python3 scripts/build_tla_prover_eval_corpus.py"
