@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T12:45:47.585217+00:00",
+  "generated_at": "2026-06-30T12:56:17.124858+00:00",
   "handoff_prerequisite": null,
   "handoff_status": {
     "artifact_verdict": "missing",
@@ -538,6 +538,440 @@
         "silver": 5
       }
     },
+    "patch_worklist": {
+      "blocked_row_counts": {
+        "skip_missing_contract": 270,
+        "skip_other": 0,
+        "skip_sany_invalid": 191
+      },
+      "bucket_summary": {
+        "inductiveness_repair": {
+          "evidence_status_counts": {
+            "no_evidence": 17,
+            "pair_ready": 4
+          },
+          "pair_ready_rows": 4,
+          "queue_rows": 21
+        },
+        "proof_repair": {
+          "evidence_status_counts": {
+            "no_evidence": 58,
+            "pair_ready": 18,
+            "reference_spec_only": 3
+          },
+          "pair_ready_rows": 18,
+          "queue_rows": 79
+        },
+        "skip_harness_repair": {
+          "evidence_status_counts": {
+            "no_evidence": 28,
+            "pair_ready": 8,
+            "prompt_only": 1
+          },
+          "pair_ready_rows": 8,
+          "queue_rows": 37
+        },
+        "tlc_repair": {
+          "evidence_status_counts": {
+            "no_evidence": 5,
+            "pair_ready": 7
+          },
+          "pair_ready_rows": 7,
+          "queue_rows": 12
+        }
+      },
+      "generated_at": "2026-06-30T12:56:17.013368+00:00",
+      "immediate_repair_rows": 149,
+      "primary_focus": {
+        "pair_ready_rows": 18,
+        "queue_rows": 79,
+        "reason": "Highest-priority immediate repair bucket with pair-ready targets available now.",
+        "repair_bucket": "proof_repair",
+        "top_modules": [
+          "AtomicRegister",
+          "BinaryHeap",
+          "BinarySemaphore",
+          "BlocksWorld",
+          "BloomCounter"
+        ]
+      },
+      "recommended_next_step": "Start with proof_repair because it is the highest-priority immediate bucket with 18 pair-ready rows ready for patch work now.",
+      "schema": "chattla_tla_prover_patch_worklist_v1",
+      "secondary_focuses": [
+        {
+          "pair_ready_rows": 4,
+          "queue_rows": 21,
+          "repair_bucket": "inductiveness_repair",
+          "top_modules": [
+            "AdaptiveMutex",
+            "AndersonMutex",
+            "CopyingGc",
+            "DijkstraMutex"
+          ]
+        },
+        {
+          "pair_ready_rows": 7,
+          "queue_rows": 12,
+          "repair_bucket": "tlc_repair",
+          "top_modules": [
+            "AsyncTerminationDetection",
+            "LamportMutex",
+            "nbacc_ray97",
+            "nbacg_guer01"
+          ]
+        },
+        {
+          "pair_ready_rows": 8,
+          "queue_rows": 37,
+          "repair_bucket": "skip_harness_repair",
+          "top_modules": [
+            "ArenaAllocator",
+            "clean",
+            "AlternatingBit",
+            "spanning"
+          ]
+        }
+      ],
+      "sources": {
+        "failure_analysis": "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
+        "repair_evidence": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+        "repair_queue": "outputs/manifests/tla_prover_full_dataset_repair_queue.jsonl"
+      },
+      "top_targets_by_bucket": {
+        "inductiveness_repair": [
+          {
+            "before_score": 0.35,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "Invariant TypeOK is violated.",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "AdaptiveMutex",
+            "module_path": "outputs/diamond_gen/mutual_exclusion_work/AdaptiveMutex.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "collect_inductiveness_repair_pair",
+            "repair_bucket": "inductiveness_repair",
+            "repair_priority": "p2",
+            "skip_reason_family": null,
+            "status": "not_inductive",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.35,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "Invariant TypeOK is violated.",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "AndersonMutex",
+            "module_path": "outputs/diamond_gen/mutual_exclusion_work/AndersonMutex.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "collect_inductiveness_repair_pair",
+            "repair_bucket": "inductiveness_repair",
+            "repair_priority": "p2",
+            "skip_reason_family": null,
+            "status": "not_inductive",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.35,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "Invariant TypeOK is violated.",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "CopyingGc",
+            "module_path": "outputs/diamond_gen/memory_caches_work/CopyingGc.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "collect_inductiveness_repair_pair",
+            "repair_bucket": "inductiveness_repair",
+            "repair_priority": "p2",
+            "skip_reason_family": null,
+            "status": "not_inductive",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.35,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "Invariant TypeOK is violated.",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "DijkstraMutex",
+            "module_path": "outputs/diamond_gen/mutual_exclusion_work/DijkstraMutex.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "collect_inductiveness_repair_pair",
+            "repair_bucket": "inductiveness_repair",
+            "repair_priority": "p2",
+            "skip_reason_family": null,
+            "status": "not_inductive",
+            "tlc_error_family": null
+          }
+        ],
+        "proof_repair": [
+          {
+            "before_score": 0.7,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "[ERROR]: Could not prove or check:",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "AtomicRegister",
+            "module_path": "outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla",
+            "obligations_failed": 3,
+            "obligations_total": 10,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "collect_proof_repair_pair",
+            "repair_bucket": "proof_repair",
+            "repair_priority": "p1",
+            "skip_reason_family": null,
+            "status": "tlaps_partial",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.7,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "[ERROR]: Could not prove or check:",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "BinaryHeap",
+            "module_path": "outputs/diamond_gen/data_structures_work/BinaryHeap.tla",
+            "obligations_failed": 3,
+            "obligations_total": 10,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "collect_proof_repair_pair",
+            "repair_bucket": "proof_repair",
+            "repair_priority": "p1",
+            "skip_reason_family": null,
+            "status": "tlaps_partial",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.7,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "[ERROR]: Could not prove or check:",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "BinarySemaphore",
+            "module_path": "outputs/diamond_gen/concurrency_primitives_work/BinarySemaphore.tla",
+            "obligations_failed": 3,
+            "obligations_total": 10,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "collect_proof_repair_pair",
+            "repair_bucket": "proof_repair",
+            "repair_priority": "p1",
+            "skip_reason_family": null,
+            "status": "tlaps_partial",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.7,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "[ERROR]: Could not prove or check:",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "BlocksWorld",
+            "module_path": "outputs/diamond_gen/puzzles_classical_work/BlocksWorld.tla",
+            "obligations_failed": 3,
+            "obligations_total": 10,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "collect_proof_repair_pair",
+            "repair_bucket": "proof_repair",
+            "repair_priority": "p1",
+            "skip_reason_family": null,
+            "status": "tlaps_partial",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.7,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "[ERROR]: Could not prove or check:",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "BloomCounter",
+            "module_path": "outputs/diamond_gen/data_structures_work/BloomCounter.tla",
+            "obligations_failed": 3,
+            "obligations_total": 10,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "collect_proof_repair_pair",
+            "repair_bucket": "proof_repair",
+            "repair_priority": "p1",
+            "skip_reason_family": null,
+            "status": "tlaps_partial",
+            "tlc_error_family": null
+          }
+        ],
+        "skip_harness_repair": [
+          {
+            "before_score": 0.05,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "typeok_infinite_builtin_domain_allocCount",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "ArenaAllocator",
+            "module_path": "outputs/diamond_gen/memory_caches_work/ArenaAllocator.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "patch_harness_and_replay",
+            "repair_bucket": "skip_harness_repair",
+            "repair_priority": "p4",
+            "skip_reason_family": "skip_infinite_builtin_domain",
+            "status": "skipped",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.05,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "typeok_infinite_builtin_domain_primer",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "clean",
+            "module_path": "data/FormaLLM/data/glowingRaccoon/tla/clean.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "patch_harness_and_replay",
+            "repair_bucket": "skip_harness_repair",
+            "repair_priority": "p4",
+            "skip_reason_family": "skip_infinite_builtin_domain",
+            "status": "skipped",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.05,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "typeok_infinite_builtin_domain_primer",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "clean",
+            "module_path": "data/FormaLLM/data/glowingRaccoon/tla/clean_clean.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "patch_harness_and_replay",
+            "repair_bucket": "skip_harness_repair",
+            "repair_priority": "p4",
+            "skip_reason_family": "skip_infinite_builtin_domain",
+            "status": "skipped",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.05,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "typeok_missing_variable_domain_delivered",
+            "gold_source_kind": "diamond_eval_holdout",
+            "module": "AlternatingBit",
+            "module_path": "outputs/diamond_gen/communication_protocols_work/AlternatingBit.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "diamond_eval_holdout",
+            "recommended_action": "patch_harness_and_replay",
+            "repair_bucket": "skip_harness_repair",
+            "repair_priority": "p4",
+            "skip_reason_family": "skip_missing_variable_domain",
+            "status": "skipped",
+            "tlc_error_family": null
+          },
+          {
+            "before_score": 0.05,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "typeok_missing_variable_domain_prnt",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "spanning",
+            "module_path": "data/FormaLLM/data/spanning/tla/spanning.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "patch_harness_and_replay",
+            "repair_bucket": "skip_harness_repair",
+            "repair_priority": "p4",
+            "skip_reason_family": "skip_missing_variable_domain",
+            "status": "skipped",
+            "tlc_error_family": null
+          }
+        ],
+        "tlc_repair": [
+          {
+            "before_score": 0.15,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "TLC produced no conclusive result:",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "AsyncTerminationDetection",
+            "module_path": "data/FormaLLM/data/ewd998/tla/AsyncTerminationDetection.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "collect_tlc_repair_pair",
+            "repair_bucket": "tlc_repair",
+            "repair_priority": "p3",
+            "skip_reason_family": null,
+            "status": "tlc_error",
+            "tlc_error_family": "tlc_error_no_conclusive_result"
+          },
+          {
+            "before_score": 0.15,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "TLC produced no conclusive result:",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "AsyncTerminationDetection",
+            "module_path": "data/FormaLLM/data/ewd998/tla/AsyncTerminationDetection_clean.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "collect_tlc_repair_pair",
+            "repair_bucket": "tlc_repair",
+            "repair_priority": "p3",
+            "skip_reason_family": null,
+            "status": "tlc_error",
+            "tlc_error_family": "tlc_error_no_conclusive_result"
+          },
+          {
+            "before_score": 0.15,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "TLC produced no conclusive result:",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "LamportMutex",
+            "module_path": "data/FormaLLM/data/lamport_mutex/tla/LamportMutex.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "collect_tlc_repair_pair",
+            "repair_bucket": "tlc_repair",
+            "repair_priority": "p3",
+            "skip_reason_family": null,
+            "status": "tlc_error",
+            "tlc_error_family": "tlc_error_no_conclusive_result"
+          },
+          {
+            "before_score": 0.15,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "TLC produced no conclusive result:",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "nbacc_ray97",
+            "module_path": "data/FormaLLM/data/nbacc_ray97/tla/nbacc_ray97.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "collect_tlc_repair_pair",
+            "repair_bucket": "tlc_repair",
+            "repair_priority": "p3",
+            "skip_reason_family": null,
+            "status": "tlc_error",
+            "tlc_error_family": "tlc_error_no_conclusive_result"
+          },
+          {
+            "before_score": 0.15,
+            "evidence_status": "pair_ready",
+            "failure_excerpt": "TLC produced no conclusive result:",
+            "gold_source_kind": "formalllm_public_module",
+            "module": "nbacg_guer01",
+            "module_path": "data/FormaLLM/data/nbacg_guer01/tla/nbacg_guer01.tla",
+            "obligations_failed": null,
+            "obligations_total": null,
+            "prompt_source_kind": "formalllm_eval",
+            "recommended_action": "collect_tlc_repair_pair",
+            "repair_bucket": "tlc_repair",
+            "repair_priority": "p3",
+            "skip_reason_family": null,
+            "status": "tlc_error",
+            "tlc_error_family": "tlc_error_no_conclusive_result"
+          }
+        ]
+      }
+    },
+    "patch_worklist_command": "python3 scripts/build_tla_prover_patch_worklist.py",
     "preflight_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus --runtime-import-timeout-s 10",
     "refresh_command": "python3 scripts/build_tla_prover_full_dataset_repair_queue.py && python3 scripts/build_tla_prover_full_dataset_repair_evidence.py && python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py --allowed-tier gold --allowed-tier silver && python3 scripts/build_tla_prover_repair_corpus.py",
     "repair_corpus_health": {

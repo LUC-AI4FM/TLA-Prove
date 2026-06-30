@@ -20,6 +20,7 @@ BENCHMARK_REPAIR_SUMMARY_PATH = "data/processed/benchmark_repair_pairs_fc128best
 FAILURE_ANALYSIS_PATH = "outputs/manifests/tla_prover_full_dataset_failure_analysis.json"
 FULL_DATASET_REPAIR_QUEUE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json"
 FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json"
+PATCH_WORKLIST_PATH = "outputs/manifests/tla_prover_patch_worklist.json"
 FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH = "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
 LOCAL_REPAIR_PLAN_PATH = "outputs/manifests/tla_prover_local_repair_plan.json"
@@ -263,6 +264,10 @@ def _repair_local_preflight_command() -> str:
     )
 
 
+def _patch_worklist_command() -> str:
+    return "python3 scripts/build_tla_prover_patch_worklist.py"
+
+
 def _repair_local_train_command() -> str:
     return "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
 
@@ -398,6 +403,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     failure_analysis = _read_optional_json(repo, FAILURE_ANALYSIS_PATH)
     full_dataset_repair_queue_summary = _read_optional_json(repo, FULL_DATASET_REPAIR_QUEUE_SUMMARY_PATH)
     full_dataset_repair_evidence_summary = _read_optional_json(repo, FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH)
+    patch_worklist = _read_optional_json(repo, PATCH_WORKLIST_PATH)
     full_dataset_validated_repair_pairs_summary = _read_optional_json(
         repo, FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH
     )
@@ -420,6 +426,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "full_dataset_repair_queue_summary": full_dataset_repair_queue_summary,
         "full_dataset_repair_evidence_command": _full_dataset_repair_evidence_command(),
         "full_dataset_repair_evidence_summary": full_dataset_repair_evidence_summary,
+        "patch_worklist_command": _patch_worklist_command(),
+        "patch_worklist": patch_worklist,
         "full_dataset_validated_repair_pairs_command": _full_dataset_validated_repair_pairs_command(),
         "full_dataset_validated_repair_pairs_summary": full_dataset_validated_repair_pairs_summary,
         "benchmark_gold_coverage": _benchmark_gold_coverage(benchmark_repair_summary),

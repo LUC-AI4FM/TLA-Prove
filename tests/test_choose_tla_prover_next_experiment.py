@@ -284,6 +284,16 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
             "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3, "tlc_repair": 4},
         },
     )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_patch_worklist.json",
+        {
+            "primary_focus": {
+                "repair_bucket": "proof_repair",
+                "pair_ready_rows": 18,
+                "top_modules": ["AtomicRegister", "CircuitBreaker", "LamportClock"],
+            }
+        },
+    )
 
     report = build_report(tmp_path)
 
@@ -309,6 +319,10 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
         "--allowed-tier gold --allowed-tier silver"
     )
     assert report["repair_workflow"]["full_dataset_validated_repair_pairs_summary"]["rows"] == 22
+    assert report["repair_workflow"]["patch_worklist_command"] == (
+        "python3 scripts/build_tla_prover_patch_worklist.py"
+    )
+    assert report["repair_workflow"]["patch_worklist"]["primary_focus"]["repair_bucket"] == "proof_repair"
     assert report["repair_workflow"]["benchmark_gold_coverage"] == {
         "failed_rows_seen": 20,
         "covered_failed_rows": 19,

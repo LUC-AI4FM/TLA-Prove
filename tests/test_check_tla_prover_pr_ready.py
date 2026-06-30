@@ -71,6 +71,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/build_tla_prover_full_dataset_failure_analysis.py" in joined
     assert "scripts/build_tla_prover_full_dataset_repair_queue.py" in joined
     assert "scripts/build_tla_prover_full_dataset_repair_evidence.py" in joined
+    assert "scripts/build_tla_prover_patch_worklist.py" in joined
     assert "scripts/build_tla_prover_full_dataset_validated_repair_pairs.py" in joined
     assert "scripts/sync_hf_publish_corpora_metadata.py" in joined
     assert "scripts/upload_v11.py" in joined
@@ -94,6 +95,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_build_tla_prover_full_dataset_failure_analysis.py" in joined
     assert "tests/test_build_tla_prover_full_dataset_repair_queue.py" in joined
     assert "tests/test_build_tla_prover_full_dataset_repair_evidence.py" in joined
+    assert "tests/test_build_tla_prover_patch_worklist.py" in joined
     assert "tests/test_build_tla_prover_full_dataset_validated_repair_pairs.py" in joined
     assert "tests/test_repair_dataset.py" in joined
     assert "tests/test_train_rl_repair.py" in joined
@@ -177,6 +179,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
         "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json",
         "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
         "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json",
+        "outputs/manifests/tla_prover_patch_worklist.json",
         "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
         "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
         "outputs/manifests/tla_prover_lane_comparison_plan.json",
@@ -201,6 +204,7 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     assert "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json" in paths
     assert "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl" in paths
     assert "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json" in paths
+    assert "outputs/manifests/tla_prover_patch_worklist.json" in paths
     assert "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json" in paths
     assert "outputs/manifests/tla_prover_corpus_experiment_matrix.json" in paths
     assert "outputs/manifests/tla_prover_lane_comparison_plan.json" in paths
