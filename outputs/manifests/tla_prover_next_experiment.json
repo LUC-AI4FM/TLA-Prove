@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T03:25:18.479568+00:00",
+  "generated_at": "2026-06-30T04:07:51.752897+00:00",
   "intent_allowed": true,
   "preferred_publish_model": null,
   "preferred_sft_lane": null,
@@ -67,22 +67,20 @@
   },
   "repair_corpus_summary": {
     "kept_rows_by_source": {
-      "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19,
+      "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
       "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
     },
     "missing_sources": [
       "data/processed/ralph_repair_pairs.jsonl",
       "data/processed/ralph_repair_pairs_long_latest.jsonl"
     ],
-    "rows": 510
+    "rows": 511
   },
   "repair_workflow": {
     "benchmark_gold_coverage": {
-      "covered_failed_rows": 19,
+      "covered_failed_rows": 20,
       "failed_rows_seen": 20,
-      "missing_gold_benchmark_ids": [
-        "BM020"
-      ]
+      "missing_gold_benchmark_ids": []
     },
     "failure_priority": {
       "action_bucket_counts": {
@@ -166,14 +164,14 @@
     },
     "repair_corpus_summary": {
       "kept_rows_by_source": {
-        "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19,
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
         "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
       },
       "missing_sources": [
         "data/processed/ralph_repair_pairs.jsonl",
         "data/processed/ralph_repair_pairs_long_latest.jsonl"
       ],
-      "rows": 510
+      "rows": 511
     },
     "train_command": "python3 scripts/train_tla_prover_repair_local.py"
   },

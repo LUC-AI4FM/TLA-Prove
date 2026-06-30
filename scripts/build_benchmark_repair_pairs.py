@@ -11,12 +11,14 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 DEFAULT_BENCHMARK_SUITE = REPO / "data" / "benchmarks" / "benchmark_suite.json"
+DEFAULT_BENCHMARK_TO_MODULE = REPO / "data" / "benchmarks" / "benchmark_to_module.json"
 DEFAULT_BENCHMARK_DIRS = (
     REPO / "outputs" / "benchmark_results",
     REPO / "outputs" / "benchmark_results" / "RL-loop",
 )
 DEFAULT_FAILED_CSV = REPO / "outputs" / "benchmark_results" / "benchmark_results_fc128best_full_20260628_235102.csv"
 DEFAULT_OUT = REPO / "data" / "processed" / "benchmark_repair_pairs_fc128best.jsonl"
+DEFAULT_PUBLIC_GOLD_CANDIDATES = REPO / "data" / "processed" / "ai4fm_public_seed_prover_candidates_v1.jsonl"
 CORE_COMPONENT_FIELDS = (
     ("init_present", "Init"),
     ("next_present", "Next"),
@@ -38,6 +40,15 @@ RED_FLAG_PATTERNS = (
 def _read_csv(path: Path) -> list[dict[str, str]]:
     with path.open(encoding="utf-8", newline="") as handle:
         return list(csv.DictReader(handle))
+
+
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    with path.open(encoding="utf-8") as handle:
+        for raw in handle:
+            if raw.strip():
+                rows.append(json.loads(raw))
+    return rows
 
 
 def _is_truthy(value: object) -> bool:
@@ -100,6 +111,71 @@ def _best_gold_specs(benchmark_dirs: tuple[Path, ...]) -> dict[str, dict[str, An
     return best
 
 
+def _benchmark_module_map(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    mappings = payload.get("mappings", [])
+    result: dict[str, str] = {}
+    for row in mappings:
+        benchmark_id = str(row.get("benchmark_id") or "").strip()
+        module_name = str(row.get("module_name") or "").strip()
+        if benchmark_id and module_name:
+            result[benchmark_id] = module_name
+    return result
+
+
+def _public_gold_specs(
+    *,
+    benchmark_to_module_path: Path,
+    public_candidates_path: Path,
+) -> dict[str, dict[str, Any]]:
+    if not benchmark_to_module_path.exists() or not public_candidates_path.exists():
+        return {}
+
+    benchmark_to_module = _benchmark_module_map(benchmark_to_module_path)
+    if not benchmark_to_module:
+        return {}
+
+    module_to_candidate: dict[str, dict[str, Any]] = {}
+    for row in _read_jsonl(public_candidates_path):
+        module_name = str(row.get("module") or "").strip()
+        content = str(row.get("content") or "").strip()
+        if not module_name or not content:
+            continue
+        candidate = {
+            "benchmark_id": None,
+            "spec": content,
+            "structural_score": 1.0,
+            "source_csv": public_candidates_path.name,
+            "source_kind": "public_seed_prover_candidate",
+            "source_module": module_name,
+            "source_repo": row.get("repo"),
+            "source_path": row.get("source_path"),
+        }
+        current = module_to_candidate.get(module_name)
+        if current is None:
+            module_to_candidate[module_name] = candidate
+            continue
+        current_key = (
+            1 if str(current.get("source_repo")) == "tlaplus/Examples" else 0,
+            -len(str(current.get("spec") or "")),
+        )
+        candidate_key = (
+            1 if str(candidate.get("source_repo")) == "tlaplus/Examples" else 0,
+            -len(content),
+        )
+        if candidate_key > current_key:
+            module_to_candidate[module_name] = candidate
+
+    result: dict[str, dict[str, Any]] = {}
+    for benchmark_id, module_name in benchmark_to_module.items():
+        candidate = module_to_candidate.get(module_name)
+        if candidate is not None:
+            result[benchmark_id] = dict(candidate, benchmark_id=benchmark_id)
+    return result
+
+
 def _diagnostics(row: dict[str, str]) -> str:
     missing = [label for field, label in CORE_COMPONENT_FIELDS if not _is_truthy(row.get(field))]
     lines = [
@@ -156,14 +232,20 @@ def _repair_row(
         "benchmark_id": benchmark_id,
         "benchmark_model": benchmark_model,
         "gold_source_csv": gold["source_csv"],
+        "gold_source_kind": gold.get("source_kind", "benchmark_gold_csv"),
+        "gold_source_module": gold.get("source_module"),
+        "gold_source_repo": gold.get("source_repo"),
+        "gold_source_path": gold.get("source_path"),
     }
 
 
 def build_pairs(
     *,
     benchmark_suite_path: Path = DEFAULT_BENCHMARK_SUITE,
+    benchmark_to_module_path: Path = DEFAULT_BENCHMARK_TO_MODULE,
     failed_csv_path: Path = DEFAULT_FAILED_CSV,
     benchmark_dirs: tuple[Path, ...] = DEFAULT_BENCHMARK_DIRS,
+    public_candidates_path: Path = DEFAULT_PUBLIC_GOLD_CANDIDATES,
     benchmark_model: str,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     benchmarks = json.loads(benchmark_suite_path.read_text(encoding="utf-8"))
@@ -174,13 +256,22 @@ def build_pairs(
         and not (_is_truthy(row.get("sany_pass")) and _is_truthy(row.get("tlc_pass")))
     ]
     gold_by_id = _best_gold_specs(benchmark_dirs)
+    public_gold_by_id = _public_gold_specs(
+        benchmark_to_module_path=benchmark_to_module_path,
+        public_candidates_path=public_candidates_path,
+    )
 
     rows: list[dict[str, Any]] = []
     missing_gold: set[str] = set()
+    public_fallback_ids: list[str] = []
     for failed_row in failed_rows:
         benchmark_id = str(failed_row.get("benchmark_id", "")).strip()
         benchmark = benchmarks_by_id.get(benchmark_id)
         gold = gold_by_id.get(benchmark_id)
+        if gold is None:
+            gold = public_gold_by_id.get(benchmark_id)
+            if gold is not None:
+                public_fallback_ids.append(benchmark_id)
         if benchmark is None or gold is None:
             if benchmark_id:
                 missing_gold.add(benchmark_id)
@@ -197,6 +288,7 @@ def build_pairs(
             "covered_failed_rows": len(rows),
             "missing_gold_benchmark_ids": sorted(missing_gold),
         },
+        "public_module_fallback_benchmark_ids": sorted(public_fallback_ids),
     }
     return rows, summary
 
@@ -211,15 +303,19 @@ def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--benchmark-suite", type=Path, default=DEFAULT_BENCHMARK_SUITE)
+    parser.add_argument("--benchmark-to-module", type=Path, default=DEFAULT_BENCHMARK_TO_MODULE)
     parser.add_argument("--failed-csv", type=Path, default=DEFAULT_FAILED_CSV)
+    parser.add_argument("--public-candidates", type=Path, default=DEFAULT_PUBLIC_GOLD_CANDIDATES)
     parser.add_argument("--benchmark-model", default="chattla:20b-fc128best")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
 
     rows, summary = build_pairs(
         benchmark_suite_path=args.benchmark_suite,
+        benchmark_to_module_path=args.benchmark_to_module,
         failed_csv_path=args.failed_csv,
         benchmark_dirs=DEFAULT_BENCHMARK_DIRS,
+        public_candidates_path=args.public_candidates,
         benchmark_model=args.benchmark_model,
     )
     _write_jsonl(args.out, rows)

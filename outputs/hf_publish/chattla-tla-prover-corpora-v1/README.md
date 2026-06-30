@@ -72,8 +72,8 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
   publish-readiness gate (`1` blocker; `20` rows still missing every core component,
   `8` with obvious placeholder text).
 - `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived
-  repair curriculum summary (`19` rows covering `19` of `20` failed fresh-benchmark
-  cases; `1` missing gold target).
+  repair curriculum summary (`20` rows covering `20` of `20` failed fresh-benchmark
+  cases; `0` missing gold target).
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public
   autoprover candidate subset (`168` rows).
 - `metadata/ai4fm_public_discovery_manifest_v1.summary.json`: live public repo
@@ -130,7 +130,7 @@ not bundle-local copies of every artifact named there.
   missing every core TLA component.
 - `fc128best` publish readiness gate: blocked, with `20` of `20` rows missing every core component
   and `8` obvious-placeholder failures.
-- Benchmark-derived repair curriculum: `19` rows covering `19` of `20`
-  failed fresh-benchmark cases, with `1` missing gold target.
+- Benchmark-derived repair curriculum: `20` rows covering `20` of `20`
+  failed fresh-benchmark cases, with `0` missing gold target.
 
 Use the metadata files as the source of truth for checksums and replay status.

@@ -177,12 +177,10 @@ def _write_manifests(repo: Path) -> None:
         repo / "data/processed/benchmark_repair_pairs_fc128best.summary.json",
         json.dumps(
             {
-                "rows": 19,
+                "rows": 20,
                 "failed_rows_seen": 20,
-                "gold_coverage": {
-                    "covered_failed_rows": 19,
-                    "missing_gold_benchmark_ids": ["BM020"],
-                },
+                "gold_coverage": {"covered_failed_rows": 20, "missing_gold_benchmark_ids": []},
+                "public_module_fallback_benchmark_ids": ["BM020"],
             }
         ),
     )
@@ -336,7 +334,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface.",
                 "The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone.",
                 "The checked-in broader `FormaLLM` repo surface is also materialized directly: `data/processed/formalllm_public_module_manifest_v1.jsonl` records 666 public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree, while `data/processed/formalllm_public_prover_surface_v1.jsonl` joins the 410 canonical `.tla` rows against the latest full-dataset smoke and currently isolates 7 TLC repair candidates.",
-                "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `19` repair pairs cover `19/20` failed benchmark rows, leaving only `BM020` without a public gold target today.",
+                "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `20` repair pairs now cover all `20/20` failed benchmark rows, including the `BM020` public-module fallback.",
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules.",
                 "Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown.",
                 "Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.",
@@ -438,9 +436,9 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "- `metadata/hf_publish_readiness.chattla_20b_fc128best.json`: fresh `fc128best`",
                 "  publish-readiness gate (`1` blocker; `20` rows still missing every core component,",
                 "  `8` with obvious placeholder text).",
-                "- `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived",
-                "  repair curriculum summary (`19` rows covering `19` of `20` failed fresh-benchmark",
-                "  cases; `1` missing gold target).",
+                    "- `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived",
+                    "  repair curriculum summary (`20` rows covering `20` of `20` failed fresh-benchmark",
+                    "  cases; `0` missing gold target).",
                 "- Mixed prover SFT corpus: `1330` rows",
                 "- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n  public-AI4FM expanded prover SFT summary (`2503` rows total; `1005` normalized import rows + `168` seed prover-candidate replays on top of the baseline prover stack).",
                 "- `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public\n  expanded prover SFT summary (`2508` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).",
@@ -455,8 +453,8 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "  missing every core TLA component.",
                 "- `fc128best` publish readiness gate: blocked, with `20` of `20` rows missing every core component",
                 "  and `8` obvious-placeholder failures.",
-                "- Benchmark-derived repair curriculum: `19` rows covering `19` of `20`",
-                "  failed fresh-benchmark cases, with `1` missing gold target.",
+                    "- Benchmark-derived repair curriculum: `20` rows covering `20` of `20`",
+                    "  failed fresh-benchmark cases, with `0` missing gold target.",
                 "The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; they are not yet mixed into `data/train/chattla_tla_prover_sft_v1.jsonl`.",
             ]
         ),

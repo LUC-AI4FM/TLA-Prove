@@ -1,6 +1,6 @@
 {
   "difficulty_counts": {
-    "easy": 247,
+    "easy": 248,
     "hard": 209,
     "medium": 54
   },
@@ -225,14 +225,14 @@
     "warnings": []
   },
   "kept_rows_by_source": {
-    "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19,
+    "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
     "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
   },
   "missing_sources": [
     "data/processed/ralph_repair_pairs.jsonl",
     "data/processed/ralph_repair_pairs_long_latest.jsonl"
   ],
-  "rows": 510,
+  "rows": 511,
   "schema": "chattla_tla_prover_repair_train_summary_v1",
   "source_defaults": {
     "benchmark_repair_pairs_fc128best": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
@@ -241,7 +241,7 @@
     "synthetic_repair_pairs": "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
   },
   "source_rows": {
-    "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19,
+    "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
     "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 1009
   }
 }

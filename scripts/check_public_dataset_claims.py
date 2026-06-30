@@ -273,7 +273,9 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     repair_pair_rows = int(repair_pairs_summary["rows"])
     repair_failed_rows_seen = int(repair_pairs_summary["failed_rows_seen"])
     repair_gold_coverage = int(repair_pairs_summary["gold_coverage"]["covered_failed_rows"])
-    repair_missing_gold = len(repair_pairs_summary["gold_coverage"]["missing_gold_benchmark_ids"])
+    repair_missing_gold_ids = repair_pairs_summary["gold_coverage"]["missing_gold_benchmark_ids"]
+    repair_missing_gold = len(repair_missing_gold_ids)
+    repair_public_fallback_ids = repair_pairs_summary.get("public_module_fallback_benchmark_ids", [])
 
     return {
         "README.md": [
@@ -338,7 +340,14 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in "
                 f"`data/processed/benchmark_repair_pairs_fc128best.summary.json`: `{repair_pair_rows}` repair pairs cover "
                 f"`{repair_gold_coverage}/{repair_failed_rows_seen}` failed benchmark rows, leaving only "
-                f"`{repair_pairs_summary['gold_coverage']['missing_gold_benchmark_ids'][0]}` without a public gold target today."
+                f"`{repair_missing_gold_ids[0]}` without a public gold target today."
+            )
+            if repair_missing_gold
+            else (
+                "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in "
+                f"`data/processed/benchmark_repair_pairs_fc128best.summary.json`: `{repair_pair_rows}` repair pairs now cover "
+                f"all `{repair_gold_coverage}/{repair_failed_rows_seen}` failed benchmark rows, including the "
+                f"`{', '.join(repair_public_fallback_ids)}` public-module fallback."
             ),
             (
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: "

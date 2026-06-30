@@ -1792,22 +1792,23 @@
       "summary_path": "data/processed/ai4fm_public_tlaprove_import_v1.summary.json"
     },
     "benchmark_repair_pairs_fc128best": {
-      "bytes": 102517,
+      "bytes": 109996,
       "exists": true,
       "kind": "benchmark_repair_pair_corpus",
       "path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
-      "rows": 19,
-      "sha256": "5b3ae964547054966948f8b4f8968983a169b035d327875a82bf1036bfb5143f",
+      "rows": 20,
+      "sha256": "5121d445ca84e03568f86dfba908b2029784738025bac80777b3dd9ba0df589c",
       "summary": {
         "benchmark_model": "chattla:20b-fc128best",
         "failed_rows_seen": 20,
         "gold_coverage": {
-          "covered_failed_rows": 19,
-          "missing_gold_benchmark_ids": [
-            "BM020"
-          ]
+          "covered_failed_rows": 20,
+          "missing_gold_benchmark_ids": []
         },
-        "rows": 19,
+        "public_module_fallback_benchmark_ids": [
+          "BM020"
+        ],
+        "rows": 20,
         "schema": "chattla_benchmark_repair_pairs_summary_v1",
         "source_csv": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv"
       },
@@ -2595,15 +2596,15 @@
       "sha256": "fc6cfd19095cd363b5a4ccb65544cc6edff5a6d3d166b2aef250668de592e785"
     },
     "tla_prover_repair_train_v1": {
-      "bytes": 2277997,
+      "bytes": 2285548,
       "exists": true,
       "kind": "merged_tla_prover_repair_training_corpus",
       "path": "data/processed/tla_prover_repair_train_v1.jsonl",
-      "rows": 510,
-      "sha256": "9aec99c2e98049e47dbac78ca76f0ed7936e71f46bcf663719a8e5ec20ddcf03",
+      "rows": 511,
+      "sha256": "e2887cb6536e536c35f100d2a3a59e1705db2761bb6de444391f0234891fa966",
       "summary": {
         "difficulty_counts": {
-          "easy": 247,
+          "easy": 248,
           "hard": 209,
           "medium": 54
         },
@@ -2828,14 +2829,14 @@
           "warnings": []
         },
         "kept_rows_by_source": {
-          "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19,
+          "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
           "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
         },
         "missing_sources": [
           "data/processed/ralph_repair_pairs.jsonl",
           "data/processed/ralph_repair_pairs_long_latest.jsonl"
         ],
-        "rows": 510,
+        "rows": 511,
         "schema": "chattla_tla_prover_repair_train_summary_v1",
         "source_defaults": {
           "benchmark_repair_pairs_fc128best": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
@@ -2844,7 +2845,7 @@
           "synthetic_repair_pairs": "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
         },
         "source_rows": {
-          "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19,
+          "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
           "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 1009
         }
       },
@@ -2949,7 +2950,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-30T03:53:47.084636+00:00",
+  "generated_at": "2026-06-30T04:07:22.032895+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
