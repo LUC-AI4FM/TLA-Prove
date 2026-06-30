@@ -23,8 +23,10 @@ FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_d
 FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH = "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
 LOCAL_REPAIR_PLAN_PATH = "outputs/manifests/tla_prover_local_repair_plan.json"
+LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S = 10
 LOCAL_REPAIR_STATUS_COMMAND = (
     "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run "
+    f"--runtime-import-timeout-s {LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S} "
     "--out outputs/manifests/tla_prover_local_repair_plan.json"
 )
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
@@ -36,6 +38,17 @@ if str(REPO) not in sys.path:
 from scripts.doctor_tla_prover_handoff import decide_action as decide_handoff_action
 from scripts.status_tla_prover_handoff import build_status as build_handoff_status
 from scripts.status_tla_prover_handoff import compact_status as compact_handoff_status
+
+
+def _compact_bootstrap_recommendation(value: Any) -> dict[str, Any] | None:
+    if not isinstance(value, dict):
+        return None
+    compact = {
+        key: value.get(key)
+        for key in ("reason", "command", "message")
+        if key in value
+    }
+    return compact or None
 
 
 def _read_json(repo: Path, rel_path: str) -> dict[str, Any]:
@@ -244,7 +257,10 @@ def _repair_refresh_command() -> str:
 
 
 def _repair_local_preflight_command() -> str:
-    return "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus"
+    return (
+        "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus "
+        f"--runtime-import-timeout-s {LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S}"
+    )
 
 
 def _repair_local_train_command() -> str:
@@ -362,8 +378,9 @@ def _local_repair_status(repo: Path) -> dict[str, Any]:
         "preflight_ok": preflight_report.get("ok"),
         "local_runtime_ready": runtime_dependencies.get("ok"),
         "runtime_missing_modules": runtime_missing_modules,
-        "bootstrap_recommendation": plan.get("bootstrap_recommendation"),
-        "python_executable": plan.get("python_executable"),
+        "bootstrap_recommendation": _compact_bootstrap_recommendation(
+            plan.get("bootstrap_recommendation")
+        ),
     }
 
 

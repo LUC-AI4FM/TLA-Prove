@@ -182,6 +182,14 @@ ARTIFACTS = {
         "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
         "kind": "sany_tlc_pass_corpus_quality_gate",
     },
+    "tla_prover_next_experiment": {
+        "path": "outputs/manifests/tla_prover_next_experiment.json",
+        "kind": "next_tla_prover_experiment_report",
+    },
+    "tla_prover_local_repair_plan": {
+        "path": "outputs/manifests/tla_prover_local_repair_plan.json",
+        "kind": "local_tla_prover_repair_preflight_plan",
+    },
     "ai4fm_public_dataset_surface": {
         "path": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "kind": "public_ai4fm_dataset_surface_report",
@@ -220,6 +228,7 @@ REPORT_EXCERPT_KEYS = {
     "hf_publish_readiness": ("ready_to_publish", "blockers", "failure_surface"),
     "hf_publish_readiness_fc128best": ("ready_to_publish", "blockers", "failure_surface"),
     "tla_prover_corpus_preflight": ("formalllm_coverage",),
+    "tla_prover_next_experiment": ("recommended_action", "recommended_command", "recommended_local_command"),
 }
 
 
@@ -254,6 +263,71 @@ def _read_report_excerpt(path: Path, keys: tuple[str, ...]) -> dict[str, Any] | 
     return excerpt or None
 
 
+def _compact_bootstrap_recommendation(value: Any) -> dict[str, Any] | None:
+    if not isinstance(value, dict):
+        return None
+    excerpt = {
+        key: value.get(key)
+        for key in ("reason", "command", "message")
+        if key in value
+    }
+    return excerpt or None
+
+
+def _local_repair_plan_excerpt(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    preflight_report = dict(payload.get("preflight_report") or {})
+    runtime_dependencies = dict(preflight_report.get("runtime_dependencies") or {})
+    runtime_missing_modules = [
+        str(entry.get("module"))
+        for entry in list(runtime_dependencies.get("missing") or [])
+        if str(entry.get("module") or "").strip()
+    ]
+    excerpt = {
+        "runtime_import_timeout_s": payload.get("runtime_import_timeout_s"),
+        "bootstrap_recommendation": _compact_bootstrap_recommendation(
+            payload.get("bootstrap_recommendation")
+        ),
+        "preflight_ok": preflight_report.get("ok"),
+        "local_runtime_ready": runtime_dependencies.get("ok"),
+        "runtime_missing_modules": runtime_missing_modules,
+    }
+    return excerpt
+
+
+def _next_experiment_excerpt(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    local_repair_status = dict(payload.get("local_repair_status") or {})
+    bootstrap = _compact_bootstrap_recommendation(local_repair_status.get("bootstrap_recommendation"))
+    safe_local_repair_status = {
+        key: local_repair_status.get(key)
+        for key in ("present", "local_runtime_ready", "runtime_missing_modules")
+        if key in local_repair_status
+    }
+    if bootstrap is not None:
+        safe_local_repair_status["bootstrap_recommendation"] = bootstrap
+    excerpt = {
+        "recommended_action": payload.get("recommended_action"),
+        "recommended_command": payload.get("recommended_command"),
+        "recommended_local_command": payload.get("recommended_local_command"),
+    }
+    if safe_local_repair_status:
+        excerpt["local_repair_status"] = safe_local_repair_status
+    if "local_repair_status_command" in payload:
+        excerpt["local_repair_status_command"] = payload.get("local_repair_status_command")
+    return excerpt
+
+
+CUSTOM_REPORT_EXCERPTS = {
+    "tla_prover_local_repair_plan": _local_repair_plan_excerpt,
+    "tla_prover_next_experiment": _next_experiment_excerpt,
+}
+
+
 def _sanitize_summary(value: Any, repo: Path) -> Any:
     if isinstance(value, dict):
         return {key: _sanitize_summary(item, repo) for key, item in value.items()}
@@ -281,8 +355,15 @@ def _artifact(name: str, repo: Path, spec: dict[str, str]) -> dict[str, Any]:
     if summary_path is not None:
         item["summary_path"] = str(summary_path.relative_to(repo))
         item["summary"] = _sanitize_summary(_read_summary(summary_path), repo)
-    report_excerpt_keys = REPORT_EXCERPT_KEYS.get(name)
-    if report_excerpt_keys is not None:
+    custom_report_excerpt = CUSTOM_REPORT_EXCERPTS.get(name)
+    if custom_report_excerpt is not None:
+        report_excerpt = custom_report_excerpt(path)
+        if report_excerpt is not None:
+            item["report_excerpt"] = _sanitize_summary(report_excerpt, repo)
+    else:
+        report_excerpt_keys = REPORT_EXCERPT_KEYS.get(name)
+        if report_excerpt_keys is None:
+            return item
         report_excerpt = _read_report_excerpt(path, report_excerpt_keys)
         if report_excerpt is not None:
             item["report_excerpt"] = _sanitize_summary(report_excerpt, repo)
@@ -385,6 +466,11 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "python3 scripts/choose_tla_prover_next_experiment.py "
                 "--out outputs/manifests/tla_prover_next_experiment.json"
             ),
+            "build_tla_prover_local_repair_plan": (
+                "python3 scripts/train_tla_prover_repair_local.py "
+                "--preflight --dry-run --runtime-import-timeout-s 10 "
+                "--out outputs/manifests/tla_prover_local_repair_plan.json"
+            ),
             "train_tla_prover_local": (
                 "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded"
             ),
@@ -394,7 +480,8 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "--out outputs/manifests/tla_prover_lane_comparison_plan.json"
             ),
             "train_tla_prover_repair_local": (
-                "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight --refresh-corpus"
+                "python3 scripts/train_tla_prover_repair_local.py "
+                "--dry-run --preflight --refresh-corpus --runtime-import-timeout-s 10"
             ),
             "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
             "inspect_hf_publish_readiness_fc128best": (

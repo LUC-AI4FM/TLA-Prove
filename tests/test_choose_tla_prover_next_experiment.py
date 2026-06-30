@@ -293,7 +293,10 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
     report = build_report(tmp_path)
 
     assert report["recommended_action"] == "repair"
-    assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus"
+    assert report["recommended_local_command"] == (
+        "python3 scripts/train_tla_prover_repair_local.py "
+        "--preflight --refresh-corpus --runtime-import-timeout-s 10"
+    )
     assert report["repair_workflow"]["refresh_command"].startswith(
         "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
     )
@@ -460,7 +463,10 @@ def test_cli_can_write_checked_in_next_experiment_manifest(tmp_path: Path) -> No
 
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["recommended_action"] == "repair"
-    assert payload["recommended_local_command"] == "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus"
+    assert payload["recommended_local_command"] == (
+        "python3 scripts/train_tla_prover_repair_local.py "
+        "--preflight --refresh-corpus --runtime-import-timeout-s 10"
+    )
 
 
 def test_build_report_omits_handoff_prerequisite_when_results_are_ready(tmp_path: Path) -> None:
@@ -530,6 +536,7 @@ def test_compact_report_surfaces_handoff_prerequisite_and_core_fields(tmp_path: 
     assert compact["local_repair_status_present"] is False
     assert compact["local_repair_status_command"] == (
         "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run "
+        "--runtime-import-timeout-s 10 "
         "--out outputs/manifests/tla_prover_local_repair_plan.json"
     )
     assert compact["repair_rows"] == 533
@@ -591,9 +598,11 @@ def test_build_report_surfaces_local_repair_status_from_manifest(tmp_path: Path)
         {
             "schema": "chattla_tla_prover_local_repair_plan_v1",
             "generated_at": "2026-06-30T11:36:05.155392+00:00",
+            "python_executable": "/tmp/local/.venv/bin/python",
             "bootstrap_recommendation": {
                 "command": None,
                 "reason": "selected_python_runtime_import_timeouts",
+                "selected_python": "/tmp/local/.venv/bin/python",
             },
             "preflight_report": {
                 "ok": False,
@@ -619,6 +628,13 @@ def test_build_report_surfaces_local_repair_status_from_manifest(tmp_path: Path)
     ]
     assert report["local_repair_status"]["bootstrap_recommendation"]["reason"] == (
         "selected_python_runtime_import_timeouts"
+    )
+    assert "selected_python" not in report["local_repair_status"]["bootstrap_recommendation"]
+    assert "python_executable" not in report["local_repair_status"]
+    assert report["local_repair_status_command"] == (
+        "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run "
+        "--runtime-import-timeout-s 10 "
+        "--out outputs/manifests/tla_prover_local_repair_plan.json"
     )
     assert "Local repair preflight is currently not ready on this machine" in report["rationale"]
     assert "missing runtime imports: datasets.Dataset, peft.LoraConfig" in report["rationale"]

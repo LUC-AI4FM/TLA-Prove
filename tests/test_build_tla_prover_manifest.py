@@ -94,6 +94,61 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"comparison_id": "default-vs-expanded-local", "row_delta": 1173}),
         encoding="utf-8",
     )
+    (repo / "outputs/manifests/tla_prover_next_experiment.json").write_text(
+        json.dumps(
+            {
+                "schema": "chattla_tla_prover_next_experiment_v1",
+                "recommended_action": "repair",
+                "recommended_command": "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus",
+                "recommended_local_command": (
+                    "python3 scripts/train_tla_prover_repair_local.py "
+                    "--preflight --refresh-corpus --runtime-import-timeout-s 10"
+                ),
+                "local_repair_status": {
+                    "present": True,
+                    "local_runtime_ready": False,
+                    "runtime_missing_modules": [
+                        "datasets.Dataset",
+                        "peft.LoraConfig",
+                    ],
+                    "bootstrap_recommendation": {
+                        "reason": "selected_python_runtime_import_timeouts",
+                        "command": None,
+                    },
+                },
+                "local_repair_status_command": (
+                    "python3 scripts/train_tla_prover_repair_local.py "
+                    "--preflight --dry-run --runtime-import-timeout-s 10 "
+                    "--out outputs/manifests/tla_prover_local_repair_plan.json"
+                ),
+            }
+        ),
+        encoding="utf-8",
+    )
+    (repo / "outputs/manifests/tla_prover_local_repair_plan.json").write_text(
+        json.dumps(
+            {
+                "schema": "chattla_tla_prover_local_repair_plan_v1",
+                "runtime_import_timeout_s": 10.0,
+                "bootstrap_recommendation": {
+                    "reason": "selected_python_runtime_import_timeouts",
+                    "command": None,
+                    "selected_python": "/tmp/local/.venv/bin/python",
+                },
+                "preflight_report": {
+                    "ok": False,
+                    "runtime_dependencies": {
+                        "ok": False,
+                        "missing": [
+                            {"module": "datasets.Dataset"},
+                            {"module": "peft.LoraConfig"},
+                        ],
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
     _write_jsonl(
         repo / "data/processed/benchmark_repair_pairs_fc128best.jsonl",
         [{"repair_id": "BM001::chattla_20b_fc128best", "before_score": 0.0, "after_score": 1.0}],
@@ -378,6 +433,52 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["tla_prover_lane_comparison_plan"]["kind"] == (
         "prover_corpus_lane_comparison_plan"
     )
+    assert manifest["artifacts"]["tla_prover_next_experiment"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_next_experiment"]["kind"] == (
+        "next_tla_prover_experiment_report"
+    )
+    assert manifest["artifacts"]["tla_prover_next_experiment"]["report_excerpt"] == {
+        "recommended_action": "repair",
+        "recommended_command": "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus",
+        "recommended_local_command": (
+            "python3 scripts/train_tla_prover_repair_local.py "
+            "--preflight --refresh-corpus --runtime-import-timeout-s 10"
+        ),
+        "local_repair_status": {
+            "present": True,
+            "local_runtime_ready": False,
+            "runtime_missing_modules": [
+                "datasets.Dataset",
+                "peft.LoraConfig",
+            ],
+            "bootstrap_recommendation": {
+                "reason": "selected_python_runtime_import_timeouts",
+                "command": None,
+            },
+        },
+        "local_repair_status_command": (
+            "python3 scripts/train_tla_prover_repair_local.py "
+            "--preflight --dry-run --runtime-import-timeout-s 10 "
+            "--out outputs/manifests/tla_prover_local_repair_plan.json"
+        ),
+    }
+    assert manifest["artifacts"]["tla_prover_local_repair_plan"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_local_repair_plan"]["kind"] == (
+        "local_tla_prover_repair_preflight_plan"
+    )
+    assert manifest["artifacts"]["tla_prover_local_repair_plan"]["report_excerpt"] == {
+        "runtime_import_timeout_s": 10.0,
+        "bootstrap_recommendation": {
+            "reason": "selected_python_runtime_import_timeouts",
+            "command": None,
+        },
+        "preflight_ok": False,
+        "local_runtime_ready": False,
+        "runtime_missing_modules": [
+            "datasets.Dataset",
+            "peft.LoraConfig",
+        ],
+    }
     assert manifest["artifacts"]["tla_prover_corpus_preflight"]["exists"] is True
     assert manifest["artifacts"]["tla_prover_corpus_preflight"]["report_excerpt"] == {
         "formalllm_coverage": {
@@ -522,6 +623,11 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "python3 scripts/choose_tla_prover_next_experiment.py "
         "--out outputs/manifests/tla_prover_next_experiment.json"
     )
+    assert manifest["remote_next_steps"]["build_tla_prover_local_repair_plan"] == (
+        "python3 scripts/train_tla_prover_repair_local.py "
+        "--preflight --dry-run --runtime-import-timeout-s 10 "
+        "--out outputs/manifests/tla_prover_local_repair_plan.json"
+    )
     assert manifest["remote_next_steps"]["train_tla_prover_local"] == (
         "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded"
     )
@@ -531,7 +637,8 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "--out outputs/manifests/tla_prover_lane_comparison_plan.json"
     )
     assert manifest["remote_next_steps"]["train_tla_prover_repair_local"] == (
-        "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight --refresh-corpus"
+        "python3 scripts/train_tla_prover_repair_local.py "
+        "--dry-run --preflight --refresh-corpus --runtime-import-timeout-s 10"
     )
     assert manifest["remote_next_steps"]["pr_ready_check"] == "python3 scripts/check_tla_prover_pr_ready.py"
     assert manifest["remote_next_steps"]["build_tla_prover_eval_corpus"] == (
