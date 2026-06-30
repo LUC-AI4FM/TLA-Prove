@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import sys
 from datetime import datetime, timezone
@@ -43,6 +44,26 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def _read_text_if_exists(path: Path) -> str | None:
+    if not str(path) or not path.exists() or not path.is_file():
+        return None
+    return path.read_text(encoding="utf-8")
+
+
+def _repair_diff(*, broken_spec: str | None, repaired_spec: str | None, path_label: str) -> str | None:
+    if broken_spec is None or repaired_spec is None:
+        return None
+    diff = difflib.unified_diff(
+        broken_spec.splitlines(),
+        repaired_spec.splitlines(),
+        fromfile=f"{path_label}:before",
+        tofile=f"{path_label}:after",
+        lineterm="",
+    )
+    rendered = "\n".join(diff)
+    return rendered or None
+
+
 def _row_key(module_path: Any, module: Any) -> tuple[str, str]:
     return (str(module_path or "").strip(), str(module or "").strip())
 
@@ -59,6 +80,10 @@ def _build_packet(
     tlapm = dict(queue_row.get("tlapm") or {})
     module_path = Path(str(target.get("module_path") or queue_row.get("module_path") or evidence_row.get("module_path") or ""))
     broken_spec_path = Path(str(evidence_row.get("broken_spec_path") or module_path))
+    broken_spec = _read_text_if_exists(repo / broken_spec_path) if str(broken_spec_path) else None
+    repaired_spec = evidence_row.get("repaired_spec")
+    repaired_spec_text = str(repaired_spec) if isinstance(repaired_spec, str) else None
+    path_label = _display_path(broken_spec_path, repo) if str(broken_spec_path) else ""
     packet = {
         "module": str(target.get("module") or queue_row.get("module") or evidence_row.get("module") or ""),
         "module_path": _display_path(module_path, repo) if str(module_path) else None,
@@ -80,9 +105,23 @@ def _build_packet(
         "gold_source_path": evidence_row.get("gold_source_path"),
         "gold_source_repo": evidence_row.get("gold_source_repo"),
         "broken_spec_path": _display_path(broken_spec_path, repo) if str(broken_spec_path) else None,
+        "broken_spec": broken_spec,
+        "broken_spec_chars": len(broken_spec) if broken_spec is not None else evidence_row.get("broken_spec_chars"),
         "broken_spec_sha256": evidence_row.get("broken_spec_sha256"),
+        "repaired_spec": repaired_spec_text,
         "repaired_spec_sha256": evidence_row.get("repaired_spec_sha256"),
         "repaired_spec_chars": evidence_row.get("repaired_spec_chars"),
+        "repair_diff": _repair_diff(
+            broken_spec=broken_spec,
+            repaired_spec=repaired_spec_text,
+            path_label=path_label,
+        ),
+        "replay_command": (
+            "python3 scripts/replay_tla_prover_full_dataset_subset.py "
+            f"--module-path {_display_path(module_path, repo)}"
+            if str(module_path)
+            else None
+        ),
         "errors_rendered": evidence_row.get("errors_rendered"),
         "nl": evidence_row.get("nl"),
     }

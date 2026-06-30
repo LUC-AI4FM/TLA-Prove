@@ -23,6 +23,25 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
 
 
 def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
+    (tmp_path / "outputs/diamond_gen/communication_protocols_work").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "outputs/diamond_gen/synchronization_work").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "data/FormaLLM/data/lamport_mutex/tla").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla").write_text(
+        "---- MODULE AtomicRegister ----\nVARIABLE x\nInit == x = 0\n====\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "outputs/diamond_gen/communication_protocols_work/Arp.tla").write_text(
+        "---- MODULE Arp ----\nVARIABLE cache\nInit == cache = {}\n====\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "outputs/diamond_gen/synchronization_work/Barrier.tla").write_text(
+        "---- MODULE Barrier ----\nVARIABLE waiting\nInit == waiting = 0\n====\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "data/FormaLLM/data/lamport_mutex/tla/LamportMutex.tla").write_text(
+        "---- MODULE LamportMutex ----\nVARIABLE owner\nInit == owner = 0\n====\n",
+        encoding="utf-8",
+    )
     _write_json(
         tmp_path / "patch_worklist.json",
         {
@@ -129,6 +148,7 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
                 "gold_source_repo": None,
                 "broken_spec_path": "outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla",
                 "broken_spec_sha256": "broken-a",
+                "repaired_spec": "---- MODULE AtomicRegister ----\nVARIABLE x\nInit == x \\in Nat\n====\n",
                 "repaired_spec_sha256": "repaired-a",
                 "repaired_spec_chars": 1200,
                 "errors_rendered": "3/10 obligations failed",
@@ -150,6 +170,7 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
                 "gold_source_repo": None,
                 "broken_spec_path": "outputs/diamond_gen/communication_protocols_work/Arp.tla",
                 "broken_spec_sha256": "broken-b",
+                "repaired_spec": "---- MODULE Arp ----\nVARIABLE cache\nInit == cache \\in [Nat -> Nat]\n====\n",
                 "repaired_spec_sha256": "repaired-b",
                 "repaired_spec_chars": 900,
                 "errors_rendered": "2/10 obligations failed",
@@ -171,6 +192,7 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
                 "gold_source_repo": None,
                 "broken_spec_path": "outputs/diamond_gen/synchronization_work/Barrier.tla",
                 "broken_spec_sha256": "broken-barrier",
+                "repaired_spec": "---- MODULE Barrier ----\nVARIABLE waiting\nInit == waiting \\in Nat\n====\n",
                 "repaired_spec_sha256": "repaired-barrier",
                 "repaired_spec_chars": 700,
                 "errors_rendered": "1/10 obligations failed",
@@ -192,6 +214,7 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
                 "gold_source_repo": "FormaLLM",
                 "broken_spec_path": "data/FormaLLM/data/lamport_mutex/tla/LamportMutex.tla",
                 "broken_spec_sha256": "broken-c",
+                "repaired_spec": "---- MODULE LamportMutex ----\nVARIABLE owner\nInit == owner \\in Nat\n====\n",
                 "repaired_spec_sha256": "repaired-c",
                 "repaired_spec_chars": 800,
                 "errors_rendered": "tlc timeout",
@@ -211,6 +234,14 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
     assert payload["primary_focus_packets"][0]["module"] == "AtomicRegister"
     assert payload["primary_focus_packets"][0]["obligations_failed"] == 3
     assert payload["primary_focus_packets"][0]["prompt_source_path"] == "data/processed/diamond_eval_holdout.jsonl"
+    assert payload["primary_focus_packets"][0]["broken_spec"].startswith("---- MODULE AtomicRegister ----")
+    assert payload["primary_focus_packets"][0]["repaired_spec"].startswith("---- MODULE AtomicRegister ----")
+    assert "-Init == x = 0" in payload["primary_focus_packets"][0]["repair_diff"]
+    assert "+Init == x \\in Nat" in payload["primary_focus_packets"][0]["repair_diff"]
+    assert payload["primary_focus_packets"][0]["replay_command"] == (
+        "python3 scripts/replay_tla_prover_full_dataset_subset.py "
+        "--module-path outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla"
+    )
     assert payload["primary_focus_packets"][1]["module"] == "Arp"
     assert payload["primary_focus_packets"][2]["module"] == "Barrier"
     assert payload["packets_by_bucket"]["tlc_repair"][0]["module"] == "LamportMutex"
@@ -219,6 +250,11 @@ def test_build_packets_surfaces_primary_focus_targets(tmp_path: Path) -> None:
 
 
 def test_cli_writes_patch_packet_manifest(tmp_path: Path) -> None:
+    (tmp_path / "outputs/diamond_gen/communication_protocols_work").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla").write_text(
+        "---- MODULE AtomicRegister ----\nVARIABLE x\nInit == x = 0\n====\n",
+        encoding="utf-8",
+    )
     _write_json(
         tmp_path / "patch_worklist.json",
         {
@@ -269,6 +305,7 @@ def test_cli_writes_patch_packet_manifest(tmp_path: Path) -> None:
                 "gold_source_path": "data/processed/diamond_eval_holdout.jsonl",
                 "broken_spec_path": "outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla",
                 "broken_spec_sha256": "broken-a",
+                "repaired_spec": "---- MODULE AtomicRegister ----\nVARIABLE x\nInit == x \\in Nat\n====\n",
                 "repaired_spec_sha256": "repaired-a",
             }
         ],
@@ -297,4 +334,8 @@ def test_cli_writes_patch_packet_manifest(tmp_path: Path) -> None:
     payload = json.loads(out.read_text(encoding="utf-8"))
     stdout = json.loads(result.stdout)
     assert payload["primary_focus_packets"][0]["module"] == "AtomicRegister"
+    assert payload["primary_focus_packets"][0]["repair_diff"]
+    assert payload["primary_focus_packets"][0]["replay_command"].endswith(
+        "--module-path outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla"
+    )
     assert stdout["counts_by_bucket"] == {"proof_repair": 1}
