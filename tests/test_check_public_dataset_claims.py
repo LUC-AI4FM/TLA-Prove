@@ -186,6 +186,32 @@ def _write_manifests(repo: Path) -> None:
             }
         ),
     )
+    _write(
+        repo / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
+        json.dumps(
+            {
+                "rows": 18,
+                "candidate_rows": 37,
+                "validated_tier_counts": {"gold": 18, "silver": 5, "bronze": 6},
+                "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3},
+            }
+        ),
+    )
+    _write(
+        repo / "data/processed/tla_prover_repair_train_v1.summary.json",
+        json.dumps(
+            {
+                "rows": 529,
+                "kept_rows_by_source": {
+                    "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+                    "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491,
+                    "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
+                },
+                "difficulty_counts": {"easy": 248, "medium": 57, "hard": 224},
+                "health": {"ok": True, "benchmark_only": False, "only_easy_rows": False, "warnings": []},
+            }
+        ),
+    )
     _write(repo / "data/processed/prover_eval.summary.json", json.dumps({"kept_rows": 18}))
     _write(
         repo / "outputs/manifests/hf_publish_readiness.json",
@@ -280,6 +306,8 @@ def _write_manifests(repo: Path) -> None:
         "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
         "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
+        "tla_prover_repair_train_v1.summary.json": "data/processed/tla_prover_repair_train_v1.summary.json",
+        "tla_prover_full_dataset_validated_repair_pairs_v1.summary.json": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
         "formalllm_public_module_manifest_v1.summary.json": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "formalllm_public_prover_surface_v1.summary.json": "data/processed/formalllm_public_prover_surface_v1.summary.json",
         "tlapm_public_tla_modules_v1.summary.json": "data/processed/tlapm_public_tla_modules_v1.summary.json",
@@ -438,9 +466,11 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "- `metadata/hf_publish_readiness.chattla_20b_fc128best.json`: fresh `fc128best`",
                 "  publish-readiness gate (`1` blocker; `20` rows still missing every core component,",
                 "  `8` with obvious placeholder text).",
-                    "- `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived",
-                    "  repair curriculum summary (`20` rows covering `20` of `20` failed fresh-benchmark",
-                    "  cases; `0` missing gold target).",
+                "- `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived",
+                "  repair curriculum summary (`20` rows covering `20` of `20` failed fresh-benchmark",
+                "  cases; `0` missing gold target).",
+                "- `metadata/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json`: validator-backed\n  full-dataset repair promotion summary (`18` gold-tier rows from `37` pair-ready candidates;\n  `15` proof repairs + `3` inductiveness repairs).",
+                "- `metadata/tla_prover_repair_train_v1.summary.json`: merged repair-training\n  corpus summary (`529` rows total; `20` benchmark-derived + `491` synthetic + `18` validator-backed full-dataset rows).",
                 "- Mixed prover SFT corpus: `1330` rows",
                 "- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n  public-AI4FM expanded prover SFT summary (`2503` rows total; `1005` normalized import rows + `168` seed prover-candidate replays on top of the baseline prover stack).",
                 "- `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public\n  expanded prover SFT summary (`2508` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).",
@@ -455,8 +485,10 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "  missing every core TLA component.",
                 "- `fc128best` publish readiness gate: blocked, with `20` of `20` rows missing every core component",
                 "  and `8` obvious-placeholder failures.",
-                    "- Benchmark-derived repair curriculum: `20` rows covering `20` of `20`",
-                    "  failed fresh-benchmark cases, with `0` missing gold target.",
+                "- Benchmark-derived repair curriculum: `20` rows covering `20` of `20`",
+                "  failed fresh-benchmark cases, with `0` missing gold target.",
+                "- Validator-backed full-dataset repair slice: `18` gold-tier rows from `37` pair-ready candidates.",
+                "- Merged repair-training corpus: `529` rows total (`20` benchmark-derived + `491` synthetic + `18` validator-backed full-dataset rows).",
                 "The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; they are not yet mixed into `data/train/chattla_tla_prover_sft_v1.jsonl`.",
             ]
         ),

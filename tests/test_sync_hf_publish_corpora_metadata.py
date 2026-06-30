@@ -15,6 +15,8 @@ def _write_sources(repo: Path) -> None:
         "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
         "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
+        "tla_prover_repair_train_v1.summary.json": "data/processed/tla_prover_repair_train_v1.summary.json",
+        "tla_prover_full_dataset_validated_repair_pairs_v1.summary.json": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
         "formalllm_public_module_manifest_v1.summary.json": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "formalllm_public_prover_surface_v1.summary.json": "data/processed/formalllm_public_prover_surface_v1.summary.json",
         "tlapm_public_tla_modules_v1.summary.json": "data/processed/tlapm_public_tla_modules_v1.summary.json",

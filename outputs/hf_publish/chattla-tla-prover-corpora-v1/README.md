@@ -74,6 +74,11 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
 - `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived
   repair curriculum summary (`20` rows covering `20` of `20` failed fresh-benchmark
   cases; `0` missing gold target).
+- `metadata/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json`: validator-backed
+  full-dataset repair promotion summary (`18` gold-tier rows from `37` pair-ready candidates;
+  `15` proof repairs + `3` inductiveness repairs).
+- `metadata/tla_prover_repair_train_v1.summary.json`: merged repair-training
+  corpus summary (`529` rows total; `20` benchmark-derived + `491` synthetic + `18` validator-backed full-dataset rows).
 - `metadata/ai4fm_public_seed_prover_candidates_v1.summary.json`: SANY-clean public
   autoprover candidate subset (`168` rows).
 - `metadata/ai4fm_public_discovery_manifest_v1.summary.json`: live public repo
@@ -132,5 +137,7 @@ not bundle-local copies of every artifact named there.
   and `8` obvious-placeholder failures.
 - Benchmark-derived repair curriculum: `20` rows covering `20` of `20`
   failed fresh-benchmark cases, with `0` missing gold target.
+- Validator-backed full-dataset repair slice: `18` gold-tier rows from `37` pair-ready candidates.
+- Merged repair-training corpus: `529` rows total (`20` benchmark-derived + `491` synthetic + `18` validator-backed full-dataset rows).
 
 Use the metadata files as the source of truth for checksums and replay status.

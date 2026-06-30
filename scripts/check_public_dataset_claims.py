@@ -40,6 +40,10 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
         "ai4fm_public_dataset_surface.json": "outputs/manifests/ai4fm_public_dataset_surface.json",
         "ai4fm_public_discovery_manifest_v1.summary.json": "data/processed/ai4fm_public_discovery_manifest_v1.summary.json",
         "benchmark_repair_pairs_fc128best.summary.json": "data/processed/benchmark_repair_pairs_fc128best.summary.json",
+        "tla_prover_repair_train_v1.summary.json": "data/processed/tla_prover_repair_train_v1.summary.json",
+        "tla_prover_full_dataset_validated_repair_pairs_v1.summary.json": (
+            "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
+        ),
         "formalllm_public_module_manifest_v1.summary.json": "data/processed/formalllm_public_module_manifest_v1.summary.json",
         "formalllm_public_prover_surface_v1.summary.json": "data/processed/formalllm_public_prover_surface_v1.summary.json",
         "tlapm_public_tla_modules_v1.summary.json": "data/processed/tlapm_public_tla_modules_v1.summary.json",
@@ -257,6 +261,10 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     readiness = _read_json(repo / "outputs/manifests/hf_publish_readiness.json")
     readiness_fc128best = _read_json(repo / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json")
     repair_pairs_summary = _read_json(repo / "data/processed/benchmark_repair_pairs_fc128best.summary.json")
+    repair_train_summary = _read_json(repo / "data/processed/tla_prover_repair_train_v1.summary.json")
+    validated_repair_summary = _read_json(
+        repo / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json"
+    )
 
     formalllm_rows = int(formalllm["rows"])
     formalllm_families = int(formalllm["families_seen"])
@@ -325,6 +333,24 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     repair_missing_gold_ids = repair_pairs_summary["gold_coverage"]["missing_gold_benchmark_ids"]
     repair_missing_gold = len(repair_missing_gold_ids)
     repair_public_fallback_ids = repair_pairs_summary.get("public_module_fallback_benchmark_ids", [])
+    repair_train_rows = int(repair_train_summary["rows"])
+    repair_train_by_source = dict(repair_train_summary.get("kept_rows_by_source") or {})
+    repair_benchmark_rows = int(
+        repair_train_by_source.get("data/processed/benchmark_repair_pairs_fc128best.jsonl", 0)
+    )
+    repair_synthetic_rows = int(
+        repair_train_by_source.get("data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl", 0)
+    )
+    repair_validated_rows = int(
+        repair_train_by_source.get("data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl", 0)
+    )
+    validated_repair_rows = int(validated_repair_summary["rows"])
+    validated_repair_candidate_rows = int(validated_repair_summary["candidate_rows"])
+    validated_repair_gold_rows = int(validated_repair_summary["validated_tier_counts"]["gold"])
+    validated_repair_proof_rows = int(validated_repair_summary["kept_by_bucket"].get("proof_repair", 0))
+    validated_repair_inductive_rows = int(
+        validated_repair_summary["kept_by_bucket"].get("inductiveness_repair", 0)
+    )
 
     return {
         "README.md": [
@@ -557,6 +583,15 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"  repair curriculum summary (`{repair_pair_rows}` rows covering `{repair_gold_coverage}` of `{repair_failed_rows_seen}` failed fresh-benchmark\n"
                 f"  cases; `{repair_missing_gold}` missing gold target)."
             ),
+            (
+                "- `metadata/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json`: validator-backed\n"
+                f"  full-dataset repair promotion summary (`{validated_repair_rows}` gold-tier rows from `{validated_repair_candidate_rows}` pair-ready candidates;\n"
+                f"  `{validated_repair_proof_rows}` proof repairs + `{validated_repair_inductive_rows}` inductiveness repairs)."
+            ),
+            (
+                "- `metadata/tla_prover_repair_train_v1.summary.json`: merged repair-training\n"
+                f"  corpus summary (`{repair_train_rows}` rows total; `{repair_benchmark_rows}` benchmark-derived + `{repair_synthetic_rows}` synthetic + `{repair_validated_rows}` validator-backed full-dataset rows)."
+            ),
             f"- Mixed prover SFT corpus: `{mixed_sft_rows}` rows",
             (
                 f"- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n"
@@ -594,6 +629,12 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             (
                 f"- Benchmark-derived repair curriculum: `{repair_pair_rows}` rows covering `{repair_gold_coverage}` of `{repair_failed_rows_seen}`\n"
                 f"  failed fresh-benchmark cases, with `{repair_missing_gold}` missing gold target."
+            ),
+            (
+                f"- Validator-backed full-dataset repair slice: `{validated_repair_gold_rows}` gold-tier rows from `{validated_repair_candidate_rows}` pair-ready candidates."
+            ),
+            (
+                f"- Merged repair-training corpus: `{repair_train_rows}` rows total (`{repair_benchmark_rows}` benchmark-derived + `{repair_synthetic_rows}` synthetic + `{repair_validated_rows}` validator-backed full-dataset rows)."
             ),
             (
                 "The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; "
