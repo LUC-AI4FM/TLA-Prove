@@ -152,6 +152,13 @@ def _sft_command(lane: str) -> str:
     )
 
 
+def _local_sft_command(lane: str) -> str:
+    return (
+        "python3 -m src.training.train --prover "
+        f"--sft-corpus {lane}"
+    )
+
+
 def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str, Any]:
     requested_intent = requested_intent.strip().lower()
     if requested_intent not in VALID_INTENTS:
@@ -176,6 +183,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     recommended_command: str
     preferred_sft_lane: str | None = None
     preferred_publish_model: str | None = None
+    recommended_local_command: str | None = None
     rationale: str
 
     if _decision_blocks_sft(decision):
@@ -197,6 +205,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
             else:
                 recommended_action = "sft-preflight"
                 recommended_command = _sft_command(preferred_sft_lane)
+                recommended_local_command = _local_sft_command(preferred_sft_lane)
                 rationale = "Remote gates are open but no publish candidate is ready, so the next move is a bounded SFT preflight on the preferred trainable lane."
 
     intent_allowed = requested_intent in {"auto", recommended_action}
@@ -208,9 +217,11 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "intent_allowed": intent_allowed,
         "recommended_action": recommended_action,
         "recommended_command": recommended_command,
+        "recommended_local_command": recommended_local_command,
         "rationale": rationale,
         "preferred_sft_lane": preferred_sft_lane,
         "preferred_publish_model": preferred_publish_model,
+        "preferred_sft_lane_summary": (dict(matrix.get("lanes") or {}).get(preferred_sft_lane) if preferred_sft_lane else None),
         "remote_decision": {
             "verdict": decision.get("verdict"),
             "known18_passed": decision.get("known18_passed"),
