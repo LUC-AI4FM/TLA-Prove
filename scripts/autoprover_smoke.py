@@ -20,6 +20,7 @@ import sys
 import time
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
@@ -34,6 +35,27 @@ _END_RE = re.compile(r"^={4,}\s*$", re.MULTILINE)
 _EXTENDS_RE = re.compile(r"^(\s*EXTENDS\s+)(.+?)\s*$", re.MULTILINE)
 _TLAPS_TUPLE_BINDER_RE = re.compile(r"^\s*[A-Za-z_]\w*\s*\[\s*<<", re.MULTILINE)
 _MAX_INIT_STATE_SPACE = 50_000_000
+_EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+_JAR_ABS_PATH_RE = re.compile(r"jar:file:/[^\s)]+")
+_ABS_PATH_RE = re.compile(r"(?<![\w<])/(?:[A-Za-z0-9._-]+(?:/[A-Za-z0-9._:@+-]+)+)")
+_HOST_RE = re.compile(r"(?<![\w-])(?:[A-Za-z][A-Za-z0-9-]*)(?:\.[A-Za-z0-9-]+){2,}")
+
+
+def _sanitize_public_text(text: str) -> str:
+    sanitized = _EMAIL_RE.sub("<EMAIL>", text)
+    sanitized = _JAR_ABS_PATH_RE.sub("jar:file:<ABS_PATH>", sanitized)
+    sanitized = _ABS_PATH_RE.sub("<ABS_PATH>", sanitized)
+    return _HOST_RE.sub("<HOST>", sanitized)
+
+
+def sanitize_public_surface(value: Any) -> Any:
+    if isinstance(value, str):
+        return _sanitize_public_text(value)
+    if isinstance(value, list):
+        return [sanitize_public_surface(item) for item in value]
+    if isinstance(value, dict):
+        return {key: sanitize_public_surface(item) for key, item in value.items()}
+    return value
 
 
 def _strip_tla_comments(src: str) -> str:
@@ -683,6 +705,97 @@ def _union_domain_expr(domains: list[str]) -> str:
     return " \\cup ".join(f"({domain})" for domain in unique)
 
 
+def _case_result_domain_expr(
+    expr: str,
+    scalar_domains: dict[str, str],
+    quantifier_domains: dict[str, str],
+) -> str | None:
+    normalized = _normalize_expr(expr)
+    if not normalized.startswith("CASE "):
+        return None
+    domains: list[str] = []
+    for part in _split_top_level(normalized[len("CASE ") :], "[]"):
+        if "->" not in part:
+            continue
+        _, rhs = part.split("->", 1)
+        domain = _value_domain_expr(rhs.strip(), scalar_domains, quantifier_domains)
+        if domain is not None:
+            domains.append(domain)
+    return _union_domain_expr(domains) if domains else None
+
+
+def _value_domain_expr(
+    expr: str,
+    scalar_domains: dict[str, str],
+    quantifier_domains: dict[str, str],
+) -> str | None:
+    normalized = _normalize_expr(expr)
+    if not normalized:
+        return None
+    case_domain = _case_result_domain_expr(normalized, scalar_domains, quantifier_domains)
+    if case_domain is not None:
+        return case_domain
+    if re.fullmatch(r'"[^"]+"', normalized):
+        return f"{{{normalized}}}"
+    if normalized in {"TRUE", "FALSE"}:
+        return f"{{{normalized}}}"
+    if re.fullmatch(r"\d+", normalized):
+        return f"{normalized}..{normalized}"
+    if normalized in scalar_domains:
+        return scalar_domains[normalized]
+    if normalized in quantifier_domains:
+        return quantifier_domains[normalized]
+    if re.fullmatch(r"[A-Za-z_]\w*", normalized):
+        return f"{{{normalized}}}"
+    return None
+
+
+def _init_assignment_expr(src: str, variable: str) -> str | None:
+    for clause in _split_top_level_conjuncts(_operator_body(src, "Init")):
+        match = re.match(rf"^\s*/\\\s*{re.escape(variable)}\s*=\s*(.+)$", clause, re.DOTALL)
+        if match:
+            return _normalize_expr(match.group(1))
+    return None
+
+
+def _function_update_range_domains(
+    src: str,
+    variable: str,
+    scalar_domains: dict[str, str],
+    quantifier_domains: dict[str, str],
+) -> list[str]:
+    domains: list[str] = []
+    pattern = rf"\b{re.escape(variable)}'\s*=\s*\[{re.escape(variable)}\s+EXCEPT\s+!\[[^\]]+\]\s*=\s*([^\]\n]+)"
+    for match in re.finditer(pattern, src, re.MULTILINE):
+        domain = _value_domain_expr(match.group(1), scalar_domains, quantifier_domains)
+        if domain is not None:
+            domains.append(domain)
+    return domains
+
+
+def _inferred_function_domain_clause(
+    src: str,
+    variable: str,
+    scalar_domains: dict[str, str],
+    quantifier_domains: dict[str, str],
+) -> str | None:
+    init_expr = _init_assignment_expr(src, variable)
+    if init_expr is None:
+        return None
+    parsed = _simple_function_definition(init_expr)
+    if parsed is None:
+        return None
+    _formal, domain, body = parsed
+    range_domains: list[str] = []
+    init_range_domain = _value_domain_expr(body, scalar_domains, quantifier_domains)
+    if init_range_domain is not None:
+        range_domains.append(init_range_domain)
+    range_domains.extend(_function_update_range_domains(src, variable, scalar_domains, quantifier_domains))
+    if not range_domains:
+        return None
+    return f"/\\ {variable} \\in [{_normalize_expr(domain)} -> {_union_domain_expr(range_domains)}]"
+
+
 def _operational_domain_clauses(src: str, clauses: list[str]) -> list[str]:
     declared = _declared_variables(src)
     direct_domains = _direct_in_domains(clauses, declared)
@@ -690,6 +803,14 @@ def _operational_domain_clauses(src: str, clauses: list[str]) -> list[str]:
     quantifier_domains = _quantifier_domain_map(src)
     inferred: list[str] = []
     seen = set(clauses)
+
+    for variable in declared:
+        if variable in direct_variables:
+            continue
+        clause = _inferred_function_domain_clause(src, variable, direct_domains, quantifier_domains)
+        if clause and clause not in seen:
+            inferred.append(clause)
+            seen.add(clause)
 
     for variable in declared:
         if variable in direct_variables:
@@ -1094,10 +1215,10 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
     }
     if not module:
         row.update(status="skipped", reason="no_module_name")
-        return row
+        return sanitize_public_surface(row)
     if not _is_candidate(src):
         row.update(status="skipped", reason="missing_init_next_spec_typeok_vars")
-        return row
+        return sanitize_public_surface(row)
     sany = validate_sany_string(src, module_name=module)
     if not sany.valid:
         row["sany_errors"] = sany.errors[:5]
@@ -1106,11 +1227,11 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
             reason="sany_parse_or_semantic_invalid",
             runtime_seconds=round(time.time() - started, 3),
         )
-        return row
+        return sanitize_public_surface(row)
     enum_issue = _enumerability_issue(src)
     if enum_issue:
         row.update(status="skipped", reason=enum_issue)
-        return row
+        return sanitize_public_surface(row)
 
     primary = check_inductive(src, "TypeOK", timeout=tlc_timeout)
     chosen_name = "TypeOK"
@@ -1139,10 +1260,10 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
 
     if chosen.error:
         row.update(status="tlc_error", runtime_seconds=round(time.time() - started, 3))
-        return row
+        return sanitize_public_surface(row)
     if not chosen.inductive:
         row.update(status="not_inductive", runtime_seconds=round(time.time() - started, 3))
-        return row
+        return sanitize_public_surface(row)
 
     proof = safety_proof_skeleton(
         SafetySkeletonSpec(
@@ -1164,17 +1285,17 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
 
     if not run_tlaps:
         row.update(status="skeleton_emitted", runtime_seconds=round(time.time() - started, 3))
-        return row
+        return sanitize_public_surface(row)
 
     tlaps_parse_issue = _tlaps_parser_incompatibility(src)
     if tlaps_parse_issue:
         row.update(status="skipped", reason=tlaps_parse_issue, runtime_seconds=round(time.time() - started, 3))
-        return row
+        return sanitize_public_surface(row)
 
     tlapm = _tlapm_path()
     if not tlapm:
         row.update(status="no_tlapm", runtime_seconds=round(time.time() - started, 3))
-        return row
+        return sanitize_public_surface(row)
 
     try:
         result = validate_tlaps_string(
@@ -1198,7 +1319,7 @@ def run_one(path: Path, *, tlc_timeout: int, tlapm_timeout: int, run_tlaps: bool
         row.update(status="tlaps_exception", tlaps_exception=repr(exc)[:500])
 
     row["runtime_seconds"] = round(time.time() - started, 3)
-    return row
+    return sanitize_public_surface(row)
 
 
 def main() -> None:
@@ -1240,6 +1361,7 @@ def main() -> None:
                 tlapm_timeout=args.tlapm_timeout,
                 run_tlaps=not args.skip_tlaps,
             )
+            row = sanitize_public_surface(row)
             summary[row["status"]] = summary.get(row["status"], 0) + 1
             progress_rows.append(row)
             out.write(json.dumps(row) + "\n")

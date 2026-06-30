@@ -637,6 +637,85 @@ Spec == Init /\ [][Next]_vars
     assert row["status"] == "skeleton_emitted"
 
 
+def test_run_one_accepts_function_domain_inferred_from_init_and_except_updates(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "SpanningLike.tla"
+    module_path.write_text(
+        r"""---- MODULE SpanningLike ----
+EXTENDS Naturals
+CONSTANTS Proc, NoPrnt, nbrs
+ASSUME NoPrnt \notin Proc /\ nbrs \subseteq Proc \times Proc
+VARIABLE prnt
+vars == << prnt >>
+Init == /\ prnt = [i \in Proc |-> NoPrnt]
+Update(i, j) == /\ prnt' = [prnt EXCEPT ![i] = j]
+Next == \E i, j \in Proc : Update(i, j)
+Spec == Init /\ [][Next]_vars
+TypeOK == /\ \A i \in Proc : prnt[i] = NoPrnt \/ <<i, prnt[i]>> \in nbrs
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module SpanningLike"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
+def test_run_one_accepts_case_valued_function_domain_inferred_from_updates(
+    monkeypatch, tmp_path: Path
+) -> None:
+    module_path = tmp_path / "PcLike.tla"
+    module_path.write_text(
+        r"""---- MODULE PcLike ----
+EXTENDS Naturals
+CONSTANT ProcSet
+VARIABLE pc
+vars == << pc >>
+Init == /\ pc = [self \in ProcSet |-> CASE self = 0 -> "TS" [] OTHER -> "RS"]
+Step(self) == /\ pc' = [pc EXCEPT ![self] = "Done"]
+Next == \E self \in ProcSet : Step(self)
+Spec == Init /\ [][Next]_vars
+TypeOK == TRUE
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module PcLike"
+
+    class Inductive:
+        inductive = True
+        error = None
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+    monkeypatch.setattr(smoke, "safety_proof_skeleton", lambda _spec: "OBVIOUS")
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "skeleton_emitted"
+
+
 def test_run_one_accepts_multi_conjunct_pointwise_function_domain(monkeypatch, tmp_path: Path) -> None:
     module_path = tmp_path / "PointwiseFunctionConjuncts.tla"
     module_path.write_text(
@@ -1420,9 +1499,9 @@ def test_progress_summary_counts_rows_modules_and_statuses() -> None:
         {"module": "B", "status": "tlaps_partial"},
     ]
 
-    summary = smoke.progress_summary(rows, job_id="170004.sophia-pbs-01")
+    summary = smoke.progress_summary(rows, job_id="170004.cluster-job")
 
-    assert summary["job_id"] == "170004.sophia-pbs-01"
+    assert summary["job_id"] == "170004.cluster-job"
     assert summary["rows_so_far"] == 4
     assert summary["modules_seen"] == 3
     assert summary["statuses"] == {
@@ -1440,10 +1519,71 @@ def test_progress_summary_carries_last_and_next_module_paths() -> None:
 
     summary = smoke.progress_summary(
         rows,
-        job_id="170004.sophia-pbs-01",
+        job_id="170004.cluster-job",
         discovered_paths=[Path("/tmp/A.tla"), Path("/tmp/B.tla"), Path("/tmp/C.tla")],
     )
 
     assert summary["last_completed_module_path"] == "/tmp/B.tla"
     assert summary["last_completed_status"] == "tlaps_partial"
     assert summary["next_module_path"] == "/tmp/C.tla"
+
+
+def test_sanitize_public_surface_redacts_hosts_paths_and_emails() -> None:
+    payload = {
+        "job_id": "161031.sophia-pbs-01.lab.alcf.anl.gov",
+        "tlc_error": (
+            "Parsing file /var/tmp/pbs.161031.sophia-pbs-01.lab.alcf.anl.gov/tmpx/Test.tla\n"
+            "jar:file:/Users/eric/GitHub/ChatTLA/ChatTLA/src/shared/tlc/tla2tools.jar!/foo\n"
+            "contact cherry@byisystems.com"
+        ),
+    }
+
+    sanitized = smoke.sanitize_public_surface(payload)
+
+    assert sanitized["job_id"] == "161031.<HOST>"
+    assert "/var/tmp/pbs" not in sanitized["tlc_error"]
+    assert "/Users/eric/GitHub/ChatTLA/ChatTLA" not in sanitized["tlc_error"]
+    assert "byisystems.com" not in sanitized["tlc_error"]
+    assert "<ABS_PATH>" in sanitized["tlc_error"]
+    assert "<EMAIL>" in sanitized["tlc_error"]
+
+
+def test_run_one_sanitizes_tlc_error_output(monkeypatch, tmp_path: Path) -> None:
+    module_path = tmp_path / "SanitizedTlcError.tla"
+    module_path.write_text(
+        r"""---- MODULE SanitizedTlcError ----
+EXTENDS Naturals
+VARIABLE x
+vars == <<x>>
+Init == x = 0
+Next == x' = x
+Spec == Init /\ [][Next]_vars
+TypeOK == x \in 0..1
+====
+""",
+        encoding="utf-8",
+    )
+
+    class SanyResult:
+        valid = True
+        errors = []
+        raw_output = "Semantic processing of module SanitizedTlcError"
+
+    class Inductive:
+        inductive = False
+        error = (
+            "TLC produced no conclusive result:\n"
+            "Parsing file /var/tmp/pbs.161031.sophia-pbs-01.lab.alcf.anl.gov/tmpx/Test.tla\n"
+            "jar:file:/Users/eric/GitHub/ChatTLA/ChatTLA/src/shared/tlc/tla2tools.jar!/foo"
+        )
+        cti = None
+
+    monkeypatch.setattr(smoke, "validate_sany_string", lambda *_args, **_kwargs: SanyResult())
+    monkeypatch.setattr(smoke, "check_inductive", lambda *_args, **_kwargs: Inductive())
+
+    row = smoke.run_one(module_path, tlc_timeout=1, tlapm_timeout=1, run_tlaps=False)
+
+    assert row["status"] == "tlc_error"
+    assert "/var/tmp/pbs" not in row["tlc_error"]
+    assert "/Users/eric/GitHub/ChatTLA/ChatTLA" not in row["tlc_error"]
+    assert "<ABS_PATH>" in row["tlc_error"]

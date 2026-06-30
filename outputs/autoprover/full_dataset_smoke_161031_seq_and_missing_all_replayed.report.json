@@ -1,0 +1,498 @@
+{
+  "generated_at": "2026-06-30T07:49:32.632681+00:00",
+  "merged_summary": {
+    "rows": 610,
+    "skip_reason_families": {
+      "skip_infinite_builtin_domain": 5,
+      "skip_init_state_space_too_large": 5,
+      "skip_missing_contract_operators": 270,
+      "skip_sany_parse_or_semantic_invalid": 191
+    },
+    "skip_reasons": {
+      "missing_init_next_spec_typeok_vars": 270,
+      "sany_parse_or_semantic_invalid": 191,
+      "typeok_infinite_builtin_domain_allocCount": 1,
+      "typeok_infinite_builtin_domain_head": 1,
+      "typeok_infinite_builtin_domain_moves": 1,
+      "typeok_infinite_builtin_domain_primer": 2,
+      "typeok_init_state_space_too_large": 5
+    },
+    "source_prefixes": {
+      "('data', 'FormaLLM')": 410,
+      "('outputs', 'diamond_gen')": 200
+    },
+    "statuses": {
+      "not_inductive": 25,
+      "skeleton_emitted": 19,
+      "skipped": 471,
+      "tlaps_partial": 79,
+      "tlc_error": 16
+    },
+    "tlaps_by_status": {
+      "tlaps_partial": [
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 2/10 obligations failed."
+          ],
+          "failed": 2,
+          "module": "Arp",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/Arp.tla",
+          "proved": 8,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "AtomicRegister",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/AtomicRegister.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "CircuitBreaker",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/CircuitBreaker.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 2/10 obligations failed."
+          ],
+          "failed": 2,
+          "module": "CsmaCd",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/CsmaCd.tla",
+          "proved": 8,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "HeartbeatFailureDetector",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/HeartbeatFailureDetector.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "LamportClock",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/LamportClock.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "RetryWithBackoff",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/RetryWithBackoff.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "TcpClose",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/TcpClose.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "TcpHandshake",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/TcpHandshake.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "TokenRing",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/TokenRing.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "Barrier",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/Barrier.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "BinarySemaphore",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/BinarySemaphore.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "CountDownLatch",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/CountDownLatch.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "CountingSemaphore",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/CountingSemaphore.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "Futex",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/Futex.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "Monitor",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/Monitor.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "Mutex",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/Mutex.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "Once",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/Once.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "ProducerConsumer",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/ProducerConsumer.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "PromiseFuture",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/PromiseFuture.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "ReadWriteLock",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/ReadWriteLock.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "ReentrantMutex",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/ReentrantMutex.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "SpinLock",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/SpinLock.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "TicketLock",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/TicketLock.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        },
+        {
+          "errors": [
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: Could not prove or check:",
+            "[ERROR]: 3/10 obligations failed."
+          ],
+          "failed": 3,
+          "module": "UnboundedChannel",
+          "module_path": "outputs/diamond_gen/concurrency_primitives_work/UnboundedChannel.tla",
+          "proved": 7,
+          "status": "tlaps_partial",
+          "tier": "partial",
+          "total": 10
+        }
+      ]
+    },
+    "tlaps_checked": 79,
+    "tlaps_failed_obligations": 227,
+    "tlaps_proved_obligations": 563,
+    "tlaps_total_obligations": 790,
+    "tlc_error_families": {
+      "tlc_error_init_state_space_timeout": 2,
+      "tlc_error_no_conclusive_result": 12,
+      "tlc_error_other": 1,
+      "tlc_error_parse_or_semantic": 1
+    },
+    "tlc_error_samples": {
+      "tlc_error_init_state_space_timeout": [
+        {
+          "module": "KnightsTour",
+          "module_path": "outputs/diamond_gen/puzzles_classical_work/KnightsTour.tla",
+          "tlc_error": "TLC timed out after 60s (INIT-as-predicate state space too large to enumerate)."
+        },
+        {
+          "module": "RubiksFace",
+          "module_path": "outputs/diamond_gen/puzzles_classical_work/RubiksFace.tla",
+          "tlc_error": "TLC timed out after 60s (INIT-as-predicate state space too large to enumerate)."
+        }
+      ],
+      "tlc_error_no_conclusive_result": [
+        {
+          "module": "DmaTransfer",
+          "module_path": "outputs/diamond_gen/memory_caches_work/DmaTransfer.tla",
+          "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+        },
+        {
+          "module": "MemoryFence",
+          "module_path": "outputs/diamond_gen/memory_caches_work/MemoryFence.tla",
+          "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+        },
+        {
+          "module": "RiverCrossingFamily",
+          "module_path": "outputs/diamond_gen/puzzles_classical_work/RiverCrossingFamily.tla",
+          "tlc_error": "TLC produced no conclusive result:\nTLC2 Version 2.20 of Day Month 20?? (rev: db94aa1)\nWarning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property.\n(Use the -nowarning option to disable this warnin"
+        }
+      ],
+      "tlc_error_other": [
+        {
+          "module": "Snapshot",
+          "module_path": "outputs/diamond_gen/communication_protocols_work/Snapshot.tla",
+          "tlc_error": "TLC timed out after 45s (INIT-as-predicate state space too large to enumerate)."
+        }
+      ],
+      "tlc_error_parse_or_semantic": [
+        {
+          "module": "2PCwithBTM",
+          "module_path": "data/FormaLLM/data/transaction_commit/tla/2PCwithBTM.tla",
+          "tlc_error": "***Parse Error***\nFatal errors while parsing TLA+ spec in file 2PCwithBTM\n*** Errors: 1\nError: Parsing or semantic analysis failed."
+        }
+      ]
+    }
+  },
+  "missing_paths": [],
+  "progress": {
+    "job_id": null,
+    "last_completed_module_path": "data/FormaLLM/data/transaction_commit/tla/TwoPhase_clean.tla",
+    "last_completed_status": "skipped",
+    "modules_seen": 383,
+    "next_module_path": null,
+    "rows_so_far": 610,
+    "statuses": {
+      "not_inductive": 25,
+      "skeleton_emitted": 19,
+      "skipped": 471,
+      "tlaps_partial": 79,
+      "tlc_error": 16
+    }
+  },
+  "replay_statuses": {
+    "tlc_error": 3
+  },
+  "replayed_rows": 3,
+  "run_tlaps": false,
+  "schema": "chattla_tla_prover_full_dataset_subset_replay_v1",
+  "selected_module_paths": [
+    "data/FormaLLM/data/spanning/tla/spanning.tla",
+    "data/FormaLLM/data/spanning/tla/spanning_clean.tla",
+    "data/FormaLLM/data/transaction_commit/tla/2PCwithBTM.tla"
+  ],
+  "selected_rows": 3,
+  "source_jsonl": "outputs/autoprover/full_dataset_smoke_161031_seq_and_missing_replayed.jsonl",
+  "source_statuses": {
+    "skipped": 3
+  },
+  "tlapm_timeout": 60,
+  "tlc_timeout": 45
+}

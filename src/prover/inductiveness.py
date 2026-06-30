@@ -760,6 +760,97 @@ def _union_domain_expr(domains: list[str]) -> str:
     return " \\cup ".join(f"({domain})" for domain in unique)
 
 
+def _case_result_domain_expr(
+    expr: str,
+    scalar_domains: dict[str, str],
+    quantifier_domains: dict[str, str],
+) -> str | None:
+    normalized = _normalize_expr(expr)
+    if not normalized.startswith("CASE "):
+        return None
+    domains: list[str] = []
+    for part in _split_top_level(normalized[len("CASE ") :], "[]"):
+        if "->" not in part:
+            continue
+        _, rhs = part.split("->", 1)
+        domain = _value_domain_expr(rhs.strip(), scalar_domains, quantifier_domains)
+        if domain is not None:
+            domains.append(domain)
+    return _union_domain_expr(domains) if domains else None
+
+
+def _value_domain_expr(
+    expr: str,
+    scalar_domains: dict[str, str],
+    quantifier_domains: dict[str, str],
+) -> str | None:
+    normalized = _normalize_expr(expr)
+    if not normalized:
+        return None
+    case_domain = _case_result_domain_expr(normalized, scalar_domains, quantifier_domains)
+    if case_domain is not None:
+        return case_domain
+    if re.fullmatch(r'"[^"]+"', normalized):
+        return f"{{{normalized}}}"
+    if normalized in {"TRUE", "FALSE"}:
+        return f"{{{normalized}}}"
+    if re.fullmatch(r"\d+", normalized):
+        return f"{normalized}..{normalized}"
+    if normalized in scalar_domains:
+        return scalar_domains[normalized]
+    if normalized in quantifier_domains:
+        return quantifier_domains[normalized]
+    if re.fullmatch(r"[A-Za-z_]\w*", normalized):
+        return f"{{{normalized}}}"
+    return None
+
+
+def _init_assignment_expr(module_src: str, variable: str) -> str | None:
+    for clause in _split_top_level_conjuncts(_operator_body(module_src, "Init")):
+        match = re.match(rf"^\s*/\\\s*{re.escape(variable)}\s*=\s*(.+)$", clause, re.DOTALL)
+        if match:
+            return _normalize_expr(match.group(1))
+    return None
+
+
+def _function_update_range_domains(
+    module_src: str,
+    variable: str,
+    scalar_domains: dict[str, str],
+    quantifier_domains: dict[str, str],
+) -> list[str]:
+    domains: list[str] = []
+    pattern = rf"\b{re.escape(variable)}'\s*=\s*\[{re.escape(variable)}\s+EXCEPT\s+!\[[^\]]+\]\s*=\s*([^\]\n]+)"
+    for match in re.finditer(pattern, module_src, re.MULTILINE):
+        domain = _value_domain_expr(match.group(1), scalar_domains, quantifier_domains)
+        if domain is not None:
+            domains.append(domain)
+    return domains
+
+
+def _inferred_function_domain_clause(
+    module_src: str,
+    variable: str,
+    scalar_domains: dict[str, str],
+    quantifier_domains: dict[str, str],
+) -> str | None:
+    init_expr = _init_assignment_expr(module_src, variable)
+    if init_expr is None:
+        return None
+    parsed = _simple_function_definition(init_expr)
+    if parsed is None:
+        return None
+    _formal, domain, body = parsed
+    range_domains: list[str] = []
+    init_range_domain = _value_domain_expr(body, scalar_domains, quantifier_domains)
+    if init_range_domain is not None:
+        range_domains.append(init_range_domain)
+    range_domains.extend(_function_update_range_domains(module_src, variable, scalar_domains, quantifier_domains))
+    if not range_domains:
+        return None
+    return f"/\\ {variable} \\in [{_normalize_expr(domain)} -> {_union_domain_expr(range_domains)}]"
+
+
 def _operational_domain_clauses(module_src: str, clauses: list[str]) -> list[str]:
     declared = _declared_variables(module_src)
     direct_domains = _direct_in_domains(clauses, declared)
@@ -769,6 +860,14 @@ def _operational_domain_clauses(module_src: str, clauses: list[str]) -> list[str
     quantifier_domains = _quantifier_domain_map(module_src)
     inferred: list[str] = []
     seen = set(clauses)
+
+    for variable in declared:
+        if variable in direct_variables:
+            continue
+        clause = _inferred_function_domain_clause(module_src, variable, direct_domains, quantifier_domains)
+        if clause and clause not in seen:
+            inferred.append(clause)
+            seen.add(clause)
 
     for variable in declared:
         if variable in direct_variables:

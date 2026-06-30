@@ -1,0 +1,56 @@
+{
+  "bucket_pair_ready_counts": {
+    "inductiveness_repair": 5,
+    "proof_repair": 18,
+    "proof_replay_ready": 2,
+    "skip_harness_repair": 3,
+    "tlc_repair": 9
+  },
+  "evidence_status_counts": {
+    "no_evidence": 108,
+    "pair_ready": 37,
+    "prompt_only": 1,
+    "reference_spec_only": 3
+  },
+  "generated_at": "2026-06-30T07:49:28.482606+00:00",
+  "gold_source_counts": {
+    "diamond_eval_holdout": 21,
+    "formalllm_public_module": 17,
+    "public_seed_candidate": 2
+  },
+  "jsonl_sha256": "f86edd81b637f90f781a1a3802e56ec807615450cf95043651ebfb88cae1710b",
+  "out": "outputs/manifests/tla_prover_full_dataset_repair_evidence.seq_and_missing_all_replayed.jsonl",
+  "pair_ready_rows": 37,
+  "prompt_source_counts": {
+    "diamond_eval_holdout": 21,
+    "formalllm_eval": 17
+  },
+  "recommended_next_step": "Build a repair-pair corpus from pair_ready rows first, then decide whether to backfill prompt-only/reference-only rows.",
+  "repair_queue_path": "outputs/manifests/tla_prover_full_dataset_repair_queue.seq_and_missing_all_replayed.jsonl",
+  "rows": 149,
+  "schema": "chattla_tla_prover_full_dataset_repair_evidence_v1",
+  "status_by_bucket": {
+    "inductiveness_repair": {
+      "no_evidence": 20,
+      "pair_ready": 5
+    },
+    "proof_repair": {
+      "no_evidence": 58,
+      "pair_ready": 18,
+      "reference_spec_only": 3
+    },
+    "proof_replay_ready": {
+      "no_evidence": 17,
+      "pair_ready": 2
+    },
+    "skip_harness_repair": {
+      "no_evidence": 7,
+      "pair_ready": 3
+    },
+    "tlc_repair": {
+      "no_evidence": 6,
+      "pair_ready": 9,
+      "prompt_only": 1
+    }
+  }
+}

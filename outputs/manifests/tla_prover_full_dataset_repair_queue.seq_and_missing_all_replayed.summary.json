@@ -1,0 +1,144 @@
+{
+  "excluded_bucket_counts": {
+    "skip_missing_contract": 270,
+    "skip_sany_invalid": 191
+  },
+  "generated_at": "2026-06-30T07:49:28.404364+00:00",
+  "priority_counts": {
+    "p1": 98,
+    "p2": 25,
+    "p3": 16,
+    "p4": 10
+  },
+  "recommended_action_counts": {
+    "collect_inductiveness_repair_pair": 25,
+    "collect_proof_repair_pair": 79,
+    "collect_tlc_repair_pair": 16,
+    "patch_harness_and_replay": 10,
+    "rerun_with_tlaps": 19
+  },
+  "repair_bucket_counts": {
+    "inductiveness_repair": 25,
+    "proof_repair": 79,
+    "proof_replay_ready": 19,
+    "skip_harness_repair": 10,
+    "tlc_repair": 16
+  },
+  "rows": 149,
+  "schema": "chattla_tla_prover_full_dataset_repair_queue_v1",
+  "source_jsonl": "outputs/autoprover/full_dataset_smoke_161031_seq_and_missing_all_replayed.jsonl",
+  "stage_plan": [
+    {
+      "bucket": "proof_replay_ready",
+      "note": "Local harness/inductiveness replay succeeded; run in a TLAPS-enabled environment to surface proof outcomes.",
+      "priority": "p1",
+      "recommended_action": "rerun_with_tlaps",
+      "rows": 19
+    },
+    {
+      "bucket": "proof_repair",
+      "note": "Highest-value TLAPS partials for direct proof repair supervision.",
+      "priority": "p1",
+      "recommended_action": "collect_proof_repair_pair",
+      "rows": 79
+    },
+    {
+      "bucket": "inductiveness_repair",
+      "note": "Counterexample-guided invariant repair targets.",
+      "priority": "p2",
+      "recommended_action": "collect_inductiveness_repair_pair",
+      "rows": 25
+    },
+    {
+      "bucket": "tlc_repair",
+      "note": "TLC/runtime repair targets with concrete evaluator failures.",
+      "priority": "p3",
+      "recommended_action": "collect_tlc_repair_pair",
+      "rows": 16
+    },
+    {
+      "bucket": "skip_harness_repair",
+      "note": "Rows blocked by bounded-domain or harness-shape gaps rather than proof content alone.",
+      "priority": "p4",
+      "recommended_action": "patch_harness_and_replay",
+      "rows": 10
+    }
+  ],
+  "tlc_error_family_counts": {
+    "function_or_operator_shape": 1,
+    "tlc_error_init_state_space_timeout": 2,
+    "tlc_error_no_conclusive_result": 11,
+    "tlc_error_other": 1,
+    "tlc_error_parse_or_semantic": 1
+  },
+  "top_modules_by_bucket": {
+    "inductiveness_repair": [
+      "DhcpLease",
+      "SlidingWindow",
+      "CopyingGc",
+      "Numa",
+      "RefCountGc",
+      "StoreBufferTSO",
+      "TricolorGc",
+      "AdaptiveMutex",
+      "AndersonMutex",
+      "AravindMutex",
+      "BakeryMutex",
+      "BurnsMutex"
+    ],
+    "proof_repair": [
+      "AtomicRegister",
+      "CircuitBreaker",
+      "HeartbeatFailureDetector",
+      "LamportClock",
+      "RetryWithBackoff",
+      "TcpClose",
+      "TcpHandshake",
+      "TokenRing",
+      "Barrier",
+      "BinarySemaphore",
+      "CountDownLatch",
+      "CountingSemaphore"
+    ],
+    "proof_replay_ready": [
+      "AlternatingBit",
+      "GoBackN",
+      "OrderedMulticast",
+      "SelectiveRepeat",
+      "StopAndWait",
+      "Channel",
+      "MCSLock",
+      "Pipeline",
+      "PaxosSingleDecree",
+      "BoundedQueue",
+      "BoundedStack",
+      "DoubleEndedQueue"
+    ],
+    "skip_harness_repair": [
+      "clean",
+      "clean",
+      "CausalBroadcast",
+      "VectorClock",
+      "RaftElection",
+      "CircularBuffer",
+      "ArenaAllocator",
+      "FifteenPuzzle",
+      "PegSolitaire",
+      "Sudoku4x4"
+    ],
+    "tlc_repair": [
+      "SyncTerminationDetection",
+      "SyncTerminationDetection",
+      "AsyncTerminationDetection",
+      "AsyncTerminationDetection",
+      "LamportMutex",
+      "nbacc_ray97",
+      "nbacg_guer01",
+      "spanning",
+      "spanning",
+      "2PCwithBTM",
+      "Snapshot",
+      "DmaTransfer"
+    ]
+  }
+}

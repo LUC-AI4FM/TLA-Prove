@@ -14,7 +14,7 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from scripts.autoprover_smoke import progress_summary, run_one
+from scripts.autoprover_smoke import progress_summary, run_one, sanitize_public_surface
 from scripts.summarize_autoprover_smoke import _load_rows, summarize
 
 DEFAULT_SOURCE = REPO / "outputs" / "autoprover" / "full_dataset_smoke_161031.jsonl"
@@ -89,17 +89,18 @@ def replay_subset(
         replay["replay_source_status"] = row.get("status")
         replay["replay_source_reason"] = row.get("reason")
         replay["replayed_at"] = datetime.now(timezone.utc).isoformat()
+        replay = sanitize_public_surface(replay)
         replacements[module_path] = replay
         replay_rows.append(replay)
 
-    merged_rows = [
+    merged_rows = sanitize_public_surface([
         replacements.get(str(row.get("module_path") or ""), row)
         for row in source_rows
-    ]
+    ])
 
     source_statuses = Counter(str(row.get("status") or "unknown") for row in source_rows if str(row.get("module_path") or "") in selected)
     replay_statuses = Counter(str(row.get("status") or "unknown") for row in replay_rows)
-    report = {
+    report = sanitize_public_surface({
         "schema": "chattla_tla_prover_full_dataset_subset_replay_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "source_jsonl": _display_path(source_jsonl),
@@ -114,7 +115,7 @@ def replay_subset(
         "run_tlaps": run_tlaps,
         "tlc_timeout": tlc_timeout,
         "tlapm_timeout": tlapm_timeout,
-    }
+    })
     return merged_rows, replay_rows, report
 
 
