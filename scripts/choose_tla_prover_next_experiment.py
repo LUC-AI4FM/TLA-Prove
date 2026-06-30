@@ -14,6 +14,7 @@ EXPERIMENT_MATRIX_PATH = "outputs/manifests/tla_prover_corpus_experiment_matrix.
 HF_READINESS_PATH = "outputs/manifests/hf_publish_readiness.json"
 HF_READINESS_FC128BEST_PATH = "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json"
 REPAIR_SUMMARY_PATH = "data/processed/tla_prover_repair_train_v1.summary.json"
+PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
 
 
@@ -64,6 +65,77 @@ def _preferred_sft_lane(matrix: dict[str, Any]) -> str | None:
     return None
 
 
+def _published_proof_status(summary: dict[str, Any] | None) -> dict[str, Any]:
+    if summary is None:
+        return {
+            "present": False,
+            "modules": None,
+            "raw_proved": None,
+            "raw_total": None,
+            "all_modules_proved": None,
+            "matches_expected_summary": None,
+            "supports_published_proof_claim": False,
+        }
+    supports_claim = (
+        bool(summary.get("all_modules_proved"))
+        and summary.get("matches_expected_summary") is not False
+        and summary.get("raw_proved") == summary.get("raw_total")
+        and summary.get("raw_total") is not None
+    )
+    return {
+        "present": True,
+        "modules": summary.get("modules"),
+        "raw_proved": summary.get("raw_proved"),
+        "raw_total": summary.get("raw_total"),
+        "all_modules_proved": summary.get("all_modules_proved"),
+        "matches_expected_summary": summary.get("matches_expected_summary"),
+        "supports_published_proof_claim": supports_claim,
+    }
+
+
+def _supports_public_benchmark_100_percent_claim(readiness: dict[str, Any]) -> bool:
+    benchmark = dict(readiness.get("benchmark") or {})
+    rows = benchmark.get("rows")
+    sany = benchmark.get("sany")
+    tlc = benchmark.get("tlc")
+    return (
+        bool(readiness.get("ready_to_publish"))
+        and isinstance(rows, int)
+        and rows > 0
+        and sany == rows
+        and tlc == rows
+    )
+
+
+def _public_benchmark_correctness_status(
+    readiness: dict[str, Any],
+    readiness_fc128best: dict[str, Any],
+) -> dict[str, Any]:
+    candidates = [readiness, readiness_fc128best]
+    supported_model = next(
+        (candidate.get("benchmark_model") for candidate in candidates if _supports_public_benchmark_100_percent_claim(candidate)),
+        None,
+    )
+    return {
+        "supports_public_benchmark_100_percent_claim": supported_model is not None,
+        "best_available_model": supported_model,
+        "default_model": {
+            "benchmark_model": readiness.get("benchmark_model"),
+            "ready_to_publish": readiness.get("ready_to_publish"),
+            "rows": dict(readiness.get("benchmark") or {}).get("rows"),
+            "sany": dict(readiness.get("benchmark") or {}).get("sany"),
+            "tlc": dict(readiness.get("benchmark") or {}).get("tlc"),
+        },
+        "fc128best_model": {
+            "benchmark_model": readiness_fc128best.get("benchmark_model"),
+            "ready_to_publish": readiness_fc128best.get("ready_to_publish"),
+            "rows": dict(readiness_fc128best.get("benchmark") or {}).get("rows"),
+            "sany": dict(readiness_fc128best.get("benchmark") or {}).get("sany"),
+            "tlc": dict(readiness_fc128best.get("benchmark") or {}).get("tlc"),
+        },
+    }
+
+
 def _repair_command() -> str:
     return (
         "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best "
@@ -90,12 +162,15 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     readiness = _read_json(repo, HF_READINESS_PATH)
     readiness_fc128best = _read_json(repo, HF_READINESS_FC128BEST_PATH)
     repair_summary = _read_optional_json(repo, REPAIR_SUMMARY_PATH)
+    published_proof_summary = _read_optional_json(repo, PUBLISHED_PROOF_SUMMARY_PATH)
     repair_health = dict((repair_summary or {}).get("health") or {})
     repair_corpus_summary = {
         "rows": (repair_summary or {}).get("rows"),
         "kept_rows_by_source": (repair_summary or {}).get("kept_rows_by_source", {}),
         "missing_sources": (repair_summary or {}).get("missing_sources", []),
     }
+    proof_artifact_status = _published_proof_status(published_proof_summary)
+    public_benchmark_correctness_status = _public_benchmark_correctness_status(readiness, readiness_fc128best)
 
     recommended_action: str
     recommended_command: str
@@ -157,6 +232,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         },
         "repair_corpus_health": repair_health,
         "repair_corpus_summary": repair_corpus_summary,
+        "proof_artifact_status": proof_artifact_status,
+        "public_benchmark_correctness_status": public_benchmark_correctness_status,
     }
 
 

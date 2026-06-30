@@ -136,3 +136,99 @@ def test_build_report_surfaces_repair_corpus_summary_fields(tmp_path: Path) -> N
     assert report["repair_corpus_summary"]["rows"] == 510
     assert report["repair_corpus_summary"]["kept_rows_by_source"] == {"synthetic": 491, "benchmark": 19}
     assert report["repair_corpus_summary"]["missing_sources"] == ["data/processed/ralph_repair_pairs.jsonl"]
+
+
+def test_build_report_distinguishes_proof_artifact_from_public_benchmark_claim(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "patch",
+            "full_dataset_verdict": "patch",
+            "next_action": "Do not launch SFT. Patch prover harness/data first.",
+            "proof_artifact_revalidated": False,
+            "final_proof_verify_present": False,
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.json",
+        {
+            "benchmark_model": "chattla:20b",
+            "ready_to_publish": False,
+            "benchmark": {"rows": 20, "sany": 0, "tlc": 0},
+            "blockers": ["latest full benchmark has zero SANY and zero TLC passes; do not publish this model"],
+        },
+    )
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {
+            "benchmark_model": "chattla:20b-fc128best",
+            "ready_to_publish": False,
+            "benchmark": {"rows": 20, "sany": 0, "tlc": 0},
+            "blockers": ["latest full benchmark has zero SANY and zero TLC passes; do not publish this model"],
+        },
+    )
+    _write(
+        tmp_path / "outputs/autoprover/tlaps_verify_published_161016/summary.json",
+        {
+            "modules": 18,
+            "raw_proved": 299,
+            "raw_total": 299,
+            "all_modules_proved": True,
+            "matches_expected_summary": True,
+        },
+    )
+
+    report = build_report(tmp_path)
+
+    assert report["proof_artifact_status"]["supports_published_proof_claim"] is True
+    assert report["proof_artifact_status"]["raw_proved"] == 299
+    assert report["public_benchmark_correctness_status"]["supports_public_benchmark_100_percent_claim"] is False
+    assert report["public_benchmark_correctness_status"]["best_available_model"] is None
+
+
+def test_build_report_can_surface_supported_public_benchmark_claim(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "advance",
+            "full_dataset_verdict": "advance",
+            "next_action": "Launch the next SFT decision.",
+            "proof_artifact_revalidated": True,
+            "final_proof_verify_present": True,
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.json",
+        {
+            "benchmark_model": "chattla:20b",
+            "ready_to_publish": True,
+            "benchmark": {"rows": 20, "sany": 20, "tlc": 20},
+            "blockers": [],
+        },
+    )
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {
+            "benchmark_model": "chattla:20b-fc128best",
+            "ready_to_publish": False,
+            "benchmark": {"rows": 20, "sany": 0, "tlc": 0},
+            "blockers": ["latest full benchmark has zero SANY and zero TLC passes; do not publish this model"],
+        },
+    )
+    _write(
+        tmp_path / "outputs/autoprover/tlaps_verify_published_161016/summary.json",
+        {
+            "modules": 18,
+            "raw_proved": 299,
+            "raw_total": 299,
+            "all_modules_proved": True,
+            "matches_expected_summary": True,
+        },
+    )
+
+    report = build_report(tmp_path)
+
+    assert report["public_benchmark_correctness_status"]["supports_public_benchmark_100_percent_claim"] is True
+    assert report["public_benchmark_correctness_status"]["best_available_model"] == "chattla:20b"
