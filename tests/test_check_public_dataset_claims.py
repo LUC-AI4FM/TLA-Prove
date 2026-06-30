@@ -24,11 +24,26 @@ def _write_manifests(repo: Path) -> None:
     )
     _write(
         repo / "data/processed/formalllm_public_module_manifest_v1.summary.json",
-        json.dumps({"kept_rows": 666, "repo_tla_files": 503, "canonical_clean_tla_files": 205}),
+        json.dumps(
+            {
+                "kept_rows": 666,
+                "repo_tla_files": 503,
+                "repo_cfg_files": 163,
+                "canonical_tree_tla_files": 410,
+                "canonical_clean_tla_files": 205,
+            }
+        ),
     )
     _write(
         repo / "data/processed/formalllm_public_prover_surface_v1.summary.json",
-        json.dumps({"kept_rows": 666, "scanned_formalllm_rows": 410, "repair_candidate_rows": 7}),
+        json.dumps(
+            {
+                "kept_rows": 666,
+                "scanned_formalllm_rows": 410,
+                "repair_candidate_rows": 7,
+                "status_counts": {"skipped": 403, "tlc_error": 7},
+            }
+        ),
     )
     _write(
         repo / "data/processed/tlapm_public_tla_modules_v1.summary.json",
@@ -307,8 +322,10 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
         tmp_path / "README.md",
         "\n".join(
             [
-                "ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:",
+                "ChatTLA currently tracks ten public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, the broader 666-record checked-in `FormaLLM` repo surface, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:",
                 "| `FormaLLM` | 205 canonical prompt/spec entries across 71 families |",
+                "| `FormaLLM public repo file surface` | 666 tracked public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree |",
+                "| `FormaLLM prover-facing smoke surface` | 410 canonical `.tla` rows joined against the latest full-dataset smoke; 7 current TLC repair candidates and 403 skipped rows in the broader canonical tree replay |",
                 "| `TLA-Prove public corpora` | 2,350 JSONL rows across the tracked public training/eval corpora; the full committed public JSONL surface currently spans 2,757 rows across 19 files |",
                 "| `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the tracked public corpora slice |",
                 "| `TLA-Prove raw import` | 2,350 undeduped ChatTLA-format rows spanning the full tracked public corpora slice |",
@@ -318,6 +335,7 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface |",
                 "The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface.",
                 "The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone.",
+                "The checked-in broader `FormaLLM` repo surface is also materialized directly: `data/processed/formalllm_public_module_manifest_v1.jsonl` records 666 public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree, while `data/processed/formalllm_public_prover_surface_v1.jsonl` joins the 410 canonical `.tla` rows against the latest full-dataset smoke and currently isolates 7 TLC repair candidates.",
                 "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `19` repair pairs cover `19/20` failed benchmark rows, leaving only `BM020` without a public gold target today.",
                 "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules.",
                 "Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown.",
@@ -455,8 +473,10 @@ def test_build_report_flags_public_dataset_layer_count_mismatch(tmp_path: Path) 
         tmp_path / "README.md",
         "\n".join(
             [
-                "ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:",
+                "ChatTLA currently tracks seven public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, the broader 666-record checked-in `FormaLLM` repo surface, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:",
                 "| `FormaLLM` | 205 canonical prompt/spec entries across 71 families |",
+                "| `FormaLLM public repo file surface` | 666 tracked public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree |",
+                "| `FormaLLM prover-facing smoke surface` | 410 canonical `.tla` rows joined against the latest full-dataset smoke; 7 current TLC repair candidates and 403 skipped rows in the broader canonical tree replay |",
                 "| `TLA-Prove public corpora` | 2,350 JSONL rows across the tracked public training/eval corpora; the full committed public JSONL surface currently spans 2,757 rows across 19 files |",
                 "| `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the tracked public corpora slice |",
                 "| `TLA-Prove raw import` | 2,350 undeduped ChatTLA-format rows spanning the full tracked public corpora slice |",

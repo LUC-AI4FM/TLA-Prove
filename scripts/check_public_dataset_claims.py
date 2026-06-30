@@ -175,6 +175,10 @@ def _dataset_surface_consistency_findings(repo: Path) -> list[dict[str, str]]:
 
 def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     formalllm = _read_json(repo / "data/processed/formalllm_eval_v1.summary.json")
+    formalllm_public_manifest = _read_json(repo / "data/processed/formalllm_public_module_manifest_v1.summary.json")
+    formalllm_public_prover_surface = _read_json(
+        repo / "data/processed/formalllm_public_prover_surface_v1.summary.json"
+    )
     tlaprove = _read_json(repo / "outputs/manifests/ai4fm_public_tlaprove_corpora.json")
     tlaprove_import_all_public = _read_json(
         repo / "data/processed/ai4fm_public_tlaprove_import_all_public_v1.summary.json"
@@ -207,6 +211,15 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
 
     formalllm_rows = int(formalllm["rows"])
     formalllm_families = int(formalllm["families_seen"])
+    formalllm_public_rows = int(formalllm_public_manifest["kept_rows"])
+    formalllm_repo_tla_files = int(formalllm_public_manifest["repo_tla_files"])
+    formalllm_repo_cfg_files = int(formalllm_public_manifest["repo_cfg_files"])
+    formalllm_canonical_tree_tla_files = int(formalllm_public_manifest["canonical_tree_tla_files"])
+    formalllm_public_scanned_rows = int(formalllm_public_prover_surface["scanned_formalllm_rows"])
+    formalllm_public_repair_candidate_rows = int(formalllm_public_prover_surface["repair_candidate_rows"])
+    formalllm_public_skipped_rows = int(
+        formalllm_public_prover_surface.get("status_counts", {}).get("skipped", 0)
+    )
     raw_rows = int(tlaprove["aggregate"]["total_public_jsonl_rows"])
     largest = tlaprove["aggregate"]["largest_public_jsonl"]
     largest_name = Path(str(largest["path"])).name
@@ -265,12 +278,22 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     return {
         "README.md": [
             (
-                "ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spanning "
-                f"the {formalllm_rows}-example `FormaLLM` benchmark, a {_comma(raw_rows)}-row tracked `TLA-Prove` training/eval slice within a "
+                "ChatTLA currently tracks ten public AI4FM-aligned data/artifact layers spanning "
+                f"the {formalllm_rows}-example `FormaLLM` benchmark, the broader {formalllm_public_rows}-record checked-in `FormaLLM` repo surface, a {_comma(raw_rows)}-row tracked `TLA-Prove` training/eval slice within a "
                 f"{_comma(all_public_rows)}-row committed public JSONL surface, and a {_comma(raw_tla_files)}-file / "
                 f"{_comma(usable_module_rows)}-module public seed-repo surface:"
             ),
             f"| `FormaLLM` | {formalllm_rows} canonical prompt/spec entries across {formalllm_families} families |",
+            (
+                "| `FormaLLM public repo file surface` | "
+                f"{formalllm_public_rows} tracked public file records spanning {formalllm_repo_tla_files} `.tla` files, "
+                f"{formalllm_repo_cfg_files} `.cfg` files, and the full {formalllm_canonical_tree_tla_files}-file canonical module tree |"
+            ),
+            (
+                "| `FormaLLM prover-facing smoke surface` | "
+                f"{formalllm_public_scanned_rows} canonical `.tla` rows joined against the latest full-dataset smoke; "
+                f"{formalllm_public_repair_candidate_rows} current TLC repair candidates and {formalllm_public_skipped_rows} skipped rows in the broader canonical tree replay |"
+            ),
             (
                 "| `TLA-Prove public corpora` | "
                 f"{_comma(raw_rows)} JSONL rows across the tracked public training/eval corpora; "
@@ -304,6 +327,12 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             (
                 "The verifier-backed preflight manifest at "
                 "`outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone."
+            ),
+            (
+                "The checked-in broader `FormaLLM` repo surface is also materialized directly: "
+                f"`data/processed/formalllm_public_module_manifest_v1.jsonl` records {formalllm_public_rows} public file records spanning "
+                f"{formalllm_repo_tla_files} `.tla` files, {formalllm_repo_cfg_files} `.cfg` files, and the full {formalllm_canonical_tree_tla_files}-file canonical module tree, while "
+                f"`data/processed/formalllm_public_prover_surface_v1.jsonl` joins the {formalllm_public_scanned_rows} canonical `.tla` rows against the latest full-dataset smoke and currently isolates {formalllm_public_repair_candidate_rows} TLC repair candidates."
             ),
             (
                 "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in "

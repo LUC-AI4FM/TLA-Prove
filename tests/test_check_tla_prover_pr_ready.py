@@ -48,6 +48,8 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/build_ai4fm_public_seed_tla_modules.py" in joined
     assert "scripts/build_ai4fm_public_tlaprove_import.py" in joined
     assert "scripts/build_ai4fm_public_discovery_manifest.py" in joined
+    assert "scripts/build_formalllm_public_module_manifest.py" in joined
+    assert "scripts/build_formalllm_public_prover_surface.py" in joined
     assert "scripts/build_tla_prover_corpus_experiment_matrix.py" in joined
     assert "scripts/inspect_ai4fm_org_surface.py" in joined
     assert "scripts/inspect_ai4fm_public_tlaprove_corpora.py" in joined
@@ -63,6 +65,8 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/sync_hf_publish_corpora_metadata.py" in joined
     assert "scripts/upload_v11.py" in joined
     assert "tests/test_build_ai4fm_public_discovery_manifest.py" in joined
+    assert "tests/test_build_formalllm_public_module_manifest.py" in joined
+    assert "tests/test_build_formalllm_public_prover_surface.py" in joined
     assert "tests/test_inspect_ai4fm_org_surface.py" in joined
     assert "tests/test_inspect_ai4fm_public_tlaprove_corpora.py" in joined
     assert "tests/test_inspect_ai4fm_public_dataset_surface.py" in joined
@@ -130,6 +134,10 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     raw_summary = tmp_path / "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json"
     raw_summary.parent.mkdir(parents=True, exist_ok=True)
     raw_summary.write_text("{}\n", encoding="utf-8")
+    formalllm_public_manifest_summary = tmp_path / "data/processed/formalllm_public_module_manifest_v1.summary.json"
+    formalllm_public_manifest_summary.write_text("{}\n", encoding="utf-8")
+    formalllm_public_prover_surface_summary = tmp_path / "data/processed/formalllm_public_prover_surface_v1.summary.json"
+    formalllm_public_prover_surface_summary.write_text("{}\n", encoding="utf-8")
     synthetic_summary = tmp_path / "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json"
     synthetic_summary.write_text("{}\n", encoding="utf-8")
 
@@ -162,6 +170,8 @@ def test_readiness_files_include_curated_tracked_outputs(tmp_path: Path) -> None
     assert "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json" in paths
     assert "outputs/manifests/tla_prover_corpus_experiment_matrix.json" in paths
     assert "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json" in paths
+    assert "data/processed/formalllm_public_module_manifest_v1.summary.json" in paths
+    assert "data/processed/formalllm_public_prover_surface_v1.summary.json" in paths
     assert "data/processed/tla_prover_synthetic_repair_pairs_v1.summary.json" in paths
 
 

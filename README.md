@@ -48,11 +48,13 @@ The current fresh-benchmark repair curriculum for that blocked `fc128best` lane 
 
 ## Public Datasets
 
-ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:
+ChatTLA currently tracks ten public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, the broader 666-record checked-in `FormaLLM` repo surface, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:
 
 | Layer | Current public surface | Local artifact |
 |------|-------------------------|----------------|
 | `FormaLLM` | 205 canonical prompt/spec entries across 71 families | `data/processed/formalllm_eval_v1.jsonl` |
+| `FormaLLM public repo file surface` | 666 tracked public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree | `data/processed/formalllm_public_module_manifest_v1.jsonl` |
+| `FormaLLM prover-facing smoke surface` | 410 canonical `.tla` rows joined against the latest full-dataset smoke; 7 current TLC repair candidates and 403 skipped rows in the broader canonical tree replay | `data/processed/formalllm_public_prover_surface_v1.jsonl` |
 | `TLA-Prove public corpora` | 2,350 JSONL rows across the tracked public training/eval corpora; the full committed public JSONL surface currently spans 2,757 rows across 19 files | `outputs/manifests/ai4fm_public_tlaprove_corpora.json` |
 | `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the tracked public corpora slice | `data/processed/ai4fm_public_tlaprove_import_v1.jsonl` |
 | `TLA-Prove raw import` | 2,350 undeduped ChatTLA-format rows spanning the full tracked public corpora slice | `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` |
@@ -63,6 +65,7 @@ ChatTLA currently tracks eight public AI4FM-aligned data/artifact layers spannin
 
 The mixed prover SFT lane already carries the full `205`-row `FormaLLM` benchmark. The generated local training file is `data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl`, and the committed public copy is `outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl`; the nearby `30`-row corpora in this repo are holdout/eval slices, not the prover training corpus.
 The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone.
+The checked-in broader `FormaLLM` repo surface is also materialized directly: `data/processed/formalllm_public_module_manifest_v1.jsonl` records 666 public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree, while `data/processed/formalllm_public_prover_surface_v1.jsonl` joins the 410 canonical `.tla` rows against the latest full-dataset smoke and currently isolates 7 TLC repair candidates.
 Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.
 There is now an explicit non-default expansion build path as well: `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current `1330`-row prover SFT stack plus the `1005`-row normalized public `TLA-Prove` import and `168` public seed prover-candidate replays for `2503` total rows. It is meant for bounded experiments, not as the default training lane.
 The broader committed-public variant is now materialized too: `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl` carries the same prover stack plus the `1010`-row full-public normalized import for `2508` total rows.
@@ -74,6 +77,8 @@ Rebuild the public AI4FM artifacts with:
 
 ```bash
 python3 scripts/inspect_ai4fm_org_surface.py
+python3 scripts/build_formalllm_public_module_manifest.py
+python3 scripts/build_formalllm_public_prover_surface.py
 python3 scripts/inspect_ai4fm_public_tlaprove_corpora.py
 python3 scripts/build_ai4fm_public_tlaprove_import.py
 python3 scripts/build_ai4fm_public_seed_file_manifest.py
