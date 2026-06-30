@@ -2118,13 +2118,13 @@
       "summary_path": "data/processed/formalllm_public_prover_surface_v1.summary.json"
     },
     "hf_publish_readiness": {
-      "bytes": 2965,
+      "bytes": 3169,
       "exists": true,
       "kind": "model_hf_publish_readiness_report",
       "path": "outputs/manifests/hf_publish_readiness.json",
       "report_excerpt": {
         "blockers": [
-          "latest full benchmark is stale at 1405.2h (limit 24.0h)",
+          "latest full benchmark is stale at 1418.6h (limit 24.0h)",
           "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
         ],
         "failure_surface": {
@@ -2165,10 +2165,10 @@
         "ready_to_publish": false
       },
       "rows": null,
-      "sha256": "c569ede417291523f389442eb5b2101afadcf4e9508d30811433ff24fec01325"
+      "sha256": "f522d1167a136e4d82de0e8ab8548620ebd138f1d519f6e7c322bf23ad698583"
     },
     "hf_publish_readiness_fc128best": {
-      "bytes": 3056,
+      "bytes": 3261,
       "exists": true,
       "kind": "model_hf_publish_readiness_report",
       "path": "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
@@ -2220,7 +2220,7 @@
         "ready_to_publish": false
       },
       "rows": null,
-      "sha256": "d2540f29fcef3c980ba5ac2546f6d3b1d00f6c356fc5b97c747b71677885afda"
+      "sha256": "290fd2fd9699b7a470cdb4b6df890d103b365dc5bb98a9e0644c998558cdbfad"
     },
     "known18_module_list": {
       "bytes": 1194,
@@ -2524,15 +2524,15 @@
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_experiment_matrix": {
-      "bytes": 5497,
+      "bytes": 6972,
       "exists": true,
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "03b1eb99b6ad3fcd8799739f0c5a5b65a8d429fd106dc6828edbe42a7cb5a31b"
+      "sha256": "4811eee10d60d944312f41eedb32fc1f51cbb8f3c6db89202aa27492f804b737"
     },
     "tla_prover_corpus_preflight": {
-      "bytes": 7143,
+      "bytes": 7941,
       "exists": true,
       "kind": "corpus_schema_preflight_report",
       "path": "outputs/manifests/tla_prover_corpus_preflight.json",
@@ -2576,7 +2576,7 @@
         }
       },
       "rows": null,
-      "sha256": "f7767a09e03405026402c7d525c709c611ac9dcbf5d6f712feec12c6def34402"
+      "sha256": "8e98b4f6eebd9099639f1bdf14e181e6b8313ff1208577982248d34ae81644e4"
     },
     "tla_prover_full_dataset_failure_analysis": {
       "bytes": 20913,
@@ -2941,7 +2941,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-30T01:22:46.281755+00:00",
+  "generated_at": "2026-06-30T03:08:32.324903+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -2990,6 +2990,7 @@
     "remote_submission_report": "outputs/manifests/tla_prover_remote_submission.json",
     "remote_submit_script": "scripts/submit_tla_prover_remote_jobs.sh --submit-sft-preflight",
     "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
+    "train_tla_prover_local": "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded",
     "watch_remote_results": "scripts/watch_tla_prover_remote_results.sh"
   },
   "repo": ".",
