@@ -107,6 +107,7 @@ PYTEST_FILES = [
     "tests/test_choose_tla_prover_next_experiment.py",
     "tests/test_build_tla_prover_manifest.py",
     "tests/test_prover_diagnostic_fallbacks.py",
+    "tests/test_prover_corpus_selection.py",
     "tests/test_train_prover_defaults.py",
     "tests/test_sync_hf_publish_corpora_metadata.py",
     "tests/test_inspect_ai4fm_public_dataset_surface.py",

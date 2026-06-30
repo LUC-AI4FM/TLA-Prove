@@ -74,6 +74,7 @@ from transformers import (
 from trl import SFTTrainer, SFTConfig
 
 from src.training.tlc_eval_callback import TLCEvalCallback
+from src.training.prover_corpus_selection import resolve_local_prover_train_selection
 
 
 class ClearCacheCallback(TrainerCallback):
@@ -346,6 +347,7 @@ def main(
     learning_rate: float | None = None,
     base_model: str | None = None,
     prover: bool = False,
+    sft_corpus: str | None = None,
     train_file: str | None = None,
     eval_file: str | None = None,
     output_dir_override: str | None = None,
@@ -359,10 +361,19 @@ def main(
         mlflow.set_experiment("ChatTLA-gpt-oss-20b")
 
     # --- Data ---------------------------------------------------------------
-    if train_file:
-        train_path = Path(train_file)
+    if prover and train_file and sft_corpus:
+        raise ValueError("Pass at most one of --train-file and --sft-corpus in prover mode.")
+    if prover:
+        requested_prover_train = train_file or sft_corpus or os.environ.get("CHATTLA_TLA_PROVER_TRAIN_FILE")
+        prover_selection = resolve_local_prover_train_selection(
+            _REPO_ROOT,
+            requested=requested_prover_train,
+        )
+        train_path = prover_selection["train_path"]
+        resolved_sft_corpus = prover_selection["metadata"]
     else:
-        train_path = _PROVER_TRAIN_JSONL if prover else _TRAIN_JSONL
+        train_path = Path(train_file) if train_file else _TRAIN_JSONL
+        resolved_sft_corpus = None
     if eval_file:
         eval_path = Path(eval_file)
     else:
@@ -378,6 +389,15 @@ def main(
         print(f"[train] ERROR: {eval_path} not found.")
         sys.exit(1)
     print(f"[train] mode={'PROVER' if prover else 'spec-gen'}  train={train_path.name}  eval={eval_path.name}")
+    if prover and resolved_sft_corpus:
+        alias = resolved_sft_corpus.get("alias") or "default"
+        rows = resolved_sft_corpus.get("rows")
+        intended_role = resolved_sft_corpus.get("intended_role")
+        default_publish_lane = resolved_sft_corpus.get("default_publish_lane")
+        print(
+            "[train] prover corpus="
+            f"{alias} rows={rows} default_publish_lane={default_publish_lane} role={intended_role}"
+        )
 
     # Load via from_list to avoid PyArrow arrow.json extension type error
     # (ArrowNotImplementedError: MakeBuilder for type extension<arrow.json>)
@@ -664,6 +684,10 @@ if __name__ == "__main__":
     parser.add_argument("--prover", action="store_true",
                         help="Train the prover model: read chattla_tla_prover_sft_v1.jsonl/prover_eval.jsonl by default, "
                              "use TLAPSEvalCallback, save to outputs/checkpoints_prover/")
+    parser.add_argument("--sft-corpus", default=None,
+                        help="Prover-only corpus selector: default | expanded | full-public | "
+                             "shape-ready | shape-ready-not-sany | PATH. "
+                             "Also honors CHATTLA_TLA_PROVER_TRAIN_FILE when unset.")
     parser.add_argument("--train-file", default=None,
                         help="Path to a custom training JSONL (overrides the hardcoded default). "
                              "Used for Fork A validator-segregated corpora or "
@@ -697,6 +721,7 @@ if __name__ == "__main__":
         learning_rate=args.lr,
         base_model=args.base_model,
         prover=args.prover,
+        sft_corpus=args.sft_corpus,
         train_file=args.train_file,
         eval_file=args.eval_file,
         output_dir_override=args.output_dir,

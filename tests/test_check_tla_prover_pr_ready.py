@@ -84,6 +84,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_qsub_fc128_artifact_preflight.py" in joined
     assert "tests/test_build_tla_prover_corpus_experiment_matrix.py" in joined
     assert "tests/test_prover_diagnostic_fallbacks.py" in joined
+    assert "tests/test_prover_corpus_selection.py" in joined
     assert "tests/test_train_prover_defaults.py" in joined
     assert "tests/test_sync_hf_publish_corpora_metadata.py" in joined
     assert "tests/test_upload_v11.py" in joined
