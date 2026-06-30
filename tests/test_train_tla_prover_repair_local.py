@@ -588,3 +588,30 @@ def test_cli_compact_reports_default_bounded_runtime_import_timeout() -> None:
     assert completed.returncode == 0, completed.stderr
     payload = json.loads(completed.stdout)
     assert payload["runtime_import_timeout_s"] == 2.0
+
+
+def test_cli_writes_default_plan_path_without_explicit_out() -> None:
+    default_out = REPO / "outputs/manifests/tla_prover_local_repair_plan.json"
+    if default_out.exists():
+        default_out.unlink()
+
+    completed = subprocess.run(
+        [
+            "python3",
+            str(SCRIPT),
+            "--preflight",
+            "--dry-run",
+            "--compact",
+        ],
+        cwd=REPO,
+        text=True,
+        capture_output=True,
+        env={
+            **os.environ,
+            "CHATTLA_RUNTIME_IMPORT_TIMEOUT_S": "2",
+        },
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    persisted = json.loads(default_out.read_text(encoding="utf-8"))
+    assert persisted["schema"] == "chattla_tla_prover_local_repair_plan_v1"

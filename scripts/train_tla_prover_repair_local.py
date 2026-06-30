@@ -390,9 +390,9 @@ def main() -> int:
         runtime_import_timeout_s=args.runtime_import_timeout_s,
     )
     payload = compact_plan(plan) if args.compact else plan
-    if args.out is not None:
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out_path = args.out or DEFAULT_PLAN_OUT
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(payload, indent=2, sort_keys=True))
     if args.dry_run:
         return 0
