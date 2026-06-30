@@ -301,14 +301,14 @@ def build_evidence(
     return evidence_rows, summary
 
 
-def _write_outputs(*, rows: list[dict[str, Any]], summary: dict[str, Any], out: Path) -> dict[str, Any]:
+def _write_outputs(*, rows: list[dict[str, Any]], summary: dict[str, Any], out: Path, repo: Path = REPO) -> dict[str, Any]:
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8") as handle:
         for row in rows:
             handle.write(json.dumps(row, sort_keys=True) + "\n")
     summary_path = out.with_suffix(".summary.json")
     final_summary = dict(summary)
-    final_summary["out"] = str(out)
+    final_summary["out"] = _display_path(out, repo)
     final_summary["jsonl_sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
     summary_path.write_text(json.dumps(final_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return final_summary
@@ -331,8 +331,8 @@ def main() -> int:
         formalllm_public_modules=args.formalllm_public_modules,
         public_seed_candidates=args.public_seed_candidates,
     )
-    final_summary = _write_outputs(rows=rows, summary=summary, out=args.out)
-    print(json.dumps({"out": str(args.out), "summary": final_summary}, indent=2, sort_keys=True))
+    final_summary = _write_outputs(rows=rows, summary=summary, out=args.out, repo=REPO)
+    print(json.dumps({"out": _display_path(args.out, REPO), "summary": final_summary}, indent=2, sort_keys=True))
     return 0
 
 

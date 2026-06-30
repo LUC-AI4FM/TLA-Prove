@@ -1336,7 +1336,7 @@ Checkpoint sweep partial result:
     publish would abort because the newest full benchmark was
     `benchmark_results_v14_full_20260404.csv`, about `1488.9h` old.
 - Current state: deployable artifact exists, but real Hugging Face publish is
-  still blocked by a fresh full benchmark and final manual publish approval.
+  still blocked by a fresh full benchmark and final publish gate review.
 
 ## Local GGUF benchmark result, 2026-06-24
 

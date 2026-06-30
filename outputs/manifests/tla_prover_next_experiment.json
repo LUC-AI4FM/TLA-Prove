@@ -53,8 +53,69 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T08:47:22.559065+00:00",
+  "generated_at": "2026-06-30T12:45:47.585217+00:00",
+  "handoff_prerequisite": null,
+  "handoff_status": {
+    "artifact_verdict": "missing",
+    "collection_errors": 0,
+    "collection_missing": 0,
+    "decision_next_action": "Do not launch SFT. Patch prover harness/data to reduce TLC, TLAPS parse, TLAPS unproved, and non-inductive failures before using the 610-row smoke as a training gate.",
+    "full_dataset_error_rows": 33,
+    "full_dataset_modules_seen": 383,
+    "full_dataset_next_module_path": null,
+    "full_dataset_rows_so_far": 610,
+    "full_dataset_statuses": {
+      "not_inductive": 21,
+      "skipped": 498,
+      "tlaps_partial": 79,
+      "tlc_error": 12
+    },
+    "full_dataset_verdict": "patch",
+    "job_ids": {
+      "final_proof_verify_job_id": null,
+      "full_dataset_smoke_job_id": "161031.sophia-pbs-01.lab.alcf.anl.gov",
+      "known18_job_id": null,
+      "sft_preflight_job_id": null
+    },
+    "next_action": "Remote decision verdict=patch: Do not launch SFT. Patch prover harness/data to reduce TLC, TLAPS parse, TLAPS unproved, and non-inductive failures before using the 610-row smoke as a training gate.",
+    "proof_artifact_revalidated": false,
+    "repo": ".",
+    "reports": {
+      "collection": "missing",
+      "decision": "present",
+      "full_dataset_progress": "present",
+      "handoff_paused": "missing",
+      "submission": "missing",
+      "submission_mirror_failed": "missing",
+      "watch": "missing"
+    },
+    "state": "results_ready",
+    "submission_stage": null,
+    "verdict": "patch",
+    "watch_status": null
+  },
   "intent_allowed": true,
+  "local_repair_status": {
+    "bootstrap_recommendation": {
+      "command": null,
+      "message": "Selected Python timed out while importing required repair-training modules. This looks like a native import/runtime blocker; bootstrap alone may not resolve native import/runtime blockers.",
+      "reason": "selected_python_runtime_import_timeouts"
+    },
+    "generated_at": "2026-06-30T11:48:13.624208+00:00",
+    "local_runtime_ready": false,
+    "path": "outputs/manifests/tla_prover_local_repair_plan.json",
+    "preflight_ok": false,
+    "present": true,
+    "runtime_missing_modules": [
+      "datasets.Dataset",
+      "peft.LoraConfig",
+      "transformers.AutoModelForCausalLM",
+      "transformers.AutoTokenizer",
+      "trl.GRPOConfig",
+      "trl.GRPOTrainer"
+    ]
+  },
+  "local_repair_status_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run --runtime-import-timeout-s 10 --out outputs/manifests/tla_prover_local_repair_plan.json",
   "preferred_publish_model": null,
   "preferred_sft_lane": null,
   "preferred_sft_lane_summary": null,
@@ -102,10 +163,10 @@
       "ready_to_publish": false
     }
   },
-  "rationale": "Remote decision still blocks SFT, so the next move is to rebuild repair data and continue repair training.",
+  "rationale": "Remote decision still blocks SFT, so the next move is to rebuild repair data and continue repair training. Local repair preflight is currently not ready on this machine; missing runtime imports: datasets.Dataset, peft.LoraConfig, transformers.AutoModelForCausalLM, transformers.AutoTokenizer, trl.GRPOConfig, trl.GRPOTrainer.",
   "recommended_action": "repair",
   "recommended_command": "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus",
-  "recommended_local_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus",
+  "recommended_local_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus --runtime-import-timeout-s 10",
   "remote_decision": {
     "full_dataset_next_action": "Do not launch SFT. Patch prover harness/data to reduce TLC, TLAPS parse, TLAPS unproved, and non-inductive failures before using the 610-row smoke as a training gate.",
     "full_dataset_verdict": "patch",
@@ -274,14 +335,14 @@
         "prompt_only": 1,
         "reference_spec_only": 3
       },
-      "generated_at": "2026-06-30T08:44:32.920054+00:00",
+      "generated_at": "2026-06-30T12:45:04.729480+00:00",
       "gold_source_counts": {
         "diamond_eval_holdout": 21,
         "formalllm_public_module": 17,
         "public_seed_candidate": 2
       },
       "jsonl_sha256": "85fd30553e853daff1c4de1947209cc1fc79f68f4eafe48d95b2f15d940f708a",
-      "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+      "out": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
       "pair_ready_rows": 37,
       "prompt_source_counts": {
         "diamond_eval_holdout": 21,
@@ -477,7 +538,7 @@
         "silver": 5
       }
     },
-    "preflight_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus",
+    "preflight_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus --runtime-import-timeout-s 10",
     "refresh_command": "python3 scripts/build_tla_prover_full_dataset_repair_queue.py && python3 scripts/build_tla_prover_full_dataset_repair_evidence.py && python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py --allowed-tier gold --allowed-tier silver && python3 scripts/build_tla_prover_repair_corpus.py",
     "repair_corpus_health": {
       "benchmark_only": false,

@@ -11,13 +11,8 @@ trajectories, using a cloud teacher and an explicitly configured artifact store.
 
 ## Key setup
 
-Paste the Ollama key into each host that may call the teacher:
-
-```bash
-ssh HOST 'mkdir -p ~/.config/chattla && chmod 700 ~/.config/chattla && bash -lc '"'"'read -rsp "OLLAMA_API_KEY: " key; echo; umask 077; printf "export OLLAMA_API_KEY=%q\n" "$key" > ~/.config/chattla/ollama.env; echo saved ~/.config/chattla/ollama.env'"'"''
-```
-
-Replace `HOST` with the configured machine that may call the teacher.
+Provision `OLLAMA_API_KEY` on each host that may call the teacher using your
+standard secret-management path.
 
 ## Run
 
@@ -36,7 +31,7 @@ export CHATTLA_MAX_PROMPTS=120
 export CHATTLA_MAX_ITERS=64
 export OLLAMA_CLOUD_MODEL=qwen3-coder:480b
 export CHATTLA_BASE_MODEL=EricSpencer00/chattla-20b
-export CHATTLA_LONG_RALPH_STORE=user@artifact-host:~/chattla-long-runs
+export CHATTLA_LONG_RALPH_STORE=HOST_OR_URI:/path/to/chattla-long-runs
 export CHATTLA_CLOUD_ONLY=1
 export CHATTLA_SKIP_GRPO=1
 export CHATTLA_INITIAL_PROVIDER=teacher
@@ -80,7 +75,7 @@ Evaluation reports fixed `pass@1/3/8/15/20` curves for comparability.
 
 ## Latest snapshot
 
-Latest checked run: `REDACTED-HOST:/home/REDACTED-USER/ChatTLA/data/processed/long_ralph/run_20260609_083126`
+Latest checked run: `run_20260609_083126` (archived in the configured long-run store)
 
 - repair mode: `diff`
 - prompts completed: `3`

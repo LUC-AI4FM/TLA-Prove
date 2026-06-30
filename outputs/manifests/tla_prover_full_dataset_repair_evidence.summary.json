@@ -11,14 +11,14 @@
     "prompt_only": 1,
     "reference_spec_only": 3
   },
-  "generated_at": "2026-06-30T08:44:32.920054+00:00",
+  "generated_at": "2026-06-30T12:45:04.729480+00:00",
   "gold_source_counts": {
     "diamond_eval_holdout": 21,
     "formalllm_public_module": 17,
     "public_seed_candidate": 2
   },
   "jsonl_sha256": "85fd30553e853daff1c4de1947209cc1fc79f68f4eafe48d95b2f15d940f708a",
-  "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+  "out": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
   "pair_ready_rows": 37,
   "prompt_source_counts": {
     "diamond_eval_holdout": 21,

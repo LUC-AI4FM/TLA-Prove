@@ -6,14 +6,14 @@ What should we do next for the TLA prover now that:
 
 - the proof artifact is already publicly published and complete;
 - the corpus dataset has been refreshed and publicly re-published;
-- the Mac mini relay path is paused;
-- direct Sophia login from the MacBook works.
+- the previous relay-based handoff path is paused; and
+- a direct remote handoff path is available.
 
 ## Verdict
 
-Use a direct-to-Sophia sync-and-submit path next. Do not spend more time on the
-dead Mac mini relay before testing the bounded known-18 smoke from the current
-MacBook checkout.
+Use the direct remote sync-and-submit path next. Do not spend more time on the
+paused relay path before testing the bounded known-18 smoke from the current
+checkout.
 
 ## Evidence
 
@@ -21,11 +21,11 @@ MacBook checkout.
 | --- | --- | --- |
 | Public HF proof dataset readback | `chattla-tla-prover-108-108` reports `all_modules_exit_0=true`, `all_modules_proved=true`, `no_asterisk=true`, `raw_proved=299`, `raw_total=299`. | The proof artifact itself is complete and already published. |
 | Public HF corpus dataset readback | `chattla-tla-prover-corpora-v1` latest refresh commit `c76ae1fe6da126a4fb6b0b6a70cf00706e4cd6b7` reports `ok=true`, `checked=30`, `gold=30`, `diamond=29`, `failures=0`, and eval checksum `6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d`. | The local ChainReplication repair is now reflected on the public Hub. |
-| Local handoff status | `python3 scripts/status_tla_prover_handoff.py --no-live --compact` still reports `handoff_paused` because the Mac mini relay is dead. | The current blocker is the transport path, not the prover artifacts. |
-| Local repo vs. Sophia repo | Local branch `codex/tla-prover-artifacts-and-gates` is at `bb8884abdbef78697b51c67eff49df9e69594eb8`; the Sophia checkout is on `claude/goofy-fermat-0e60f7` at `66304dad84b715366c2fc48e0daa323b2b378bc7`, and that remote commit is an ancestor of local HEAD. | Sophia has a usable checkout, but it is stale and missing the latest handoff/corpus state. |
-| Direct Sophia login | One-shot SSH login from the MacBook reached `sophia-login-01` as `<user>` and landed in `/home/<user>`. | Direct access exists now; the relay is no longer the only viable lane. |
-| [scripts/sync_macmini_and_submit_known18.sh](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/sync_macmini_and_submit_known18.sh:1) | Current sync path requires `CHATTLA_RELAY_HOST` and a relay-side `SOPHIA_CTL` control socket. | Existing automation does not match the now-available direct login lane. |
-| [scripts/submit_tla_prover_remote_jobs.sh](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/submit_tla_prover_remote_jobs.sh:1) | Once a Sophia checkout is synced, remote preflight and `qsub` submission already exist as a self-contained step. | We do not need new submit logic; only a direct sync/launch path. |
+| Local handoff status | `python3 scripts/status_tla_prover_handoff.py --no-live --compact` reports that the relay-based handoff is paused. | The current blocker is the transport path, not the prover artifacts. |
+| Local repo vs. remote repo | The local checkout is ahead of the remote training checkout. | The remote lane is usable, but it needs a fresh sync before it reflects the latest handoff and corpus state. |
+| Direct remote login | A bounded direct login test succeeded. | Direct access exists now; the relay is no longer the only viable lane. |
+| `scripts/sync_macmini_and_submit_known18.sh` | Current sync path requires relay-specific environment variables and a relay-side control socket. | Existing automation does not match the now-available direct login lane. |
+| `scripts/submit_tla_prover_remote_jobs.sh` | Once a remote checkout is synced, remote preflight and `qsub` submission already exist as a self-contained step. | We do not need new submit logic; only a direct sync/launch path. |
 
 ## Interpretation
 
@@ -34,8 +34,8 @@ remaining operational task is to exercise the bounded remote smoke/preflight
 loop from the latest local checkout.
 
 The relay-centric automation is now the wrong bottleneck. The smallest useful
-change is to bypass the dead relay and sync directly to `~/ChatTLA` on Sophia,
-then invoke `scripts/submit_tla_prover_remote_jobs.sh` there.
+change is to bypass the paused relay path, sync directly to the remote
+checkout, then invoke `scripts/submit_tla_prover_remote_jobs.sh` there.
 
 ## Rejected Alternatives
 
@@ -990,7 +990,7 @@ Evidence:
   running-state clause `readSet[t][k] = 0 \/ version[k]` was too strong under
   concurrent commits
 - landed repair in
-  [outputs/diamond_gen/transactions_databases_work/OptimisticConcurrency.tla](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/diamond_gen/transactions_databases_work/OptimisticConcurrency.tla:1):
+  [outputs/diamond_gen/transactions_databases_work/OptimisticConcurrency.tla](../outputs/diamond_gen/transactions_databases_work/OptimisticConcurrency.tla:1):
   - keep a tiny representative OCC instance with `TxCap` and `KeyCap`
   - relax the running-state condition back to `readSet[t][k] <= version[k]`
 
@@ -1176,10 +1176,10 @@ depends on an already-open interactive terminal.
 
 Evidence:
 
-- [scripts/collect_tla_prover_direct_results.sh](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/collect_tla_prover_direct_results.sh:1)
+- [scripts/collect_tla_prover_direct_results.sh](../scripts/collect_tla_prover_direct_results.sh:1)
   now accepts `CHATTLA_REMOTE_PASSWORD` / `SOPHIA_PASSWORD` and uses an
   ephemeral `SSH_ASKPASS` helper with `SSH_ASKPASS_REQUIRE=force`
-- [scripts/sync_sophia_and_submit_known18.sh](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/sync_sophia_and_submit_known18.sh:1)
+- [scripts/sync_sophia_and_submit_known18.sh](../scripts/sync_sophia_and_submit_known18.sh:1)
   now uses the same password-fed `SSH_ASKPASS` path for both `ssh` and `rsync`
 - focused validation:
   `pytest -q tests/test_collect_tla_prover_direct_results.py tests/test_remote_handoff_script.py`
@@ -1203,29 +1203,29 @@ Sophia, a local fallback lane was recovered from the processed JSONL corpora.
 Evidence:
 
 - new tool:
-  [scripts/materialize_processed_tla_corpus.py](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/materialize_processed_tla_corpus.py:1)
+  [scripts/materialize_processed_tla_corpus.py](../scripts/materialize_processed_tla_corpus.py:1)
 - recovered corpus materialized from `data/processed/train.jsonl` with
   `--source tla_descriptions.json`:
-  [tla_descriptions.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/tla_descriptions.summary.json)
+  [tla_descriptions.summary.json](../outputs/materialized_tla/tla_descriptions.summary.json)
   reports `86` files written and `83` unique modules
 - initial recovered slice:
-  [live_next25_from_tla_descriptions_skip_tlaps.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25_from_tla_descriptions_skip_tlaps.summary.json)
+  [live_next25_from_tla_descriptions_skip_tlaps.summary.json](../outputs/autoprover/live_next25_from_tla_descriptions_skip_tlaps.summary.json)
   reported `18 skipped / 6 tlc_error / 1 skeleton_emitted`
 - harness fixes applied from that evidence:
   - numeric Nat-membership constants now infer numeric cfg assignments in
-    [src/validators/tlc_validator.py](/Users/eric/GitHub/ChatTLA/ChatTLA/src/validators/tlc_validator.py:823)
-  - [scripts/autoprover_smoke.py](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/autoprover_smoke.py:344)
+    [src/validators/tlc_validator.py](../src/validators/tlc_validator.py:823)
+  - [scripts/autoprover_smoke.py](../scripts/autoprover_smoke.py:344)
     now skips:
     - `assume_requires_function_constant_cfg`
     - `typeok_uses_sequence_backed_array_domain`
 - final recovered slice:
-  [live_next25_from_tla_descriptions_skip_tlaps_aftercfgskip2.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25_from_tla_descriptions_skip_tlaps_aftercfgskip2.summary.json)
+  [live_next25_from_tla_descriptions_skip_tlaps_aftercfgskip2.summary.json](../outputs/autoprover/live_next25_from_tla_descriptions_skip_tlaps_aftercfgskip2.summary.json)
   reports `24 skipped / 1 skeleton_emitted / 0 tlc_error`
 - second recovered slice:
-  [live_next25b_from_tla_descriptions_skip_tlaps.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25b_from_tla_descriptions_skip_tlaps.summary.json)
+  [live_next25b_from_tla_descriptions_skip_tlaps.summary.json](../outputs/autoprover/live_next25b_from_tla_descriptions_skip_tlaps.summary.json)
   reports `25 skipped / 0 tlc_error`
 - default local discovery now includes the recovered materialized corpus:
-  [scripts/autoprover_smoke.py](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/autoprover_smoke.py:48)
+  [scripts/autoprover_smoke.py](../scripts/autoprover_smoke.py:48)
   now searches `outputs/materialized_tla/tla_descriptions/*.tla` after the raw
   `data/FormaLLM/data/*/tla/*.tla` glob
 - focused validation:
@@ -1252,42 +1252,42 @@ bucket from that tier has been closed.
 ### Evidence
 
 - third recovered `tla_descriptions` slice:
-  [live_next25c_from_tla_descriptions_skip_tlaps.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25c_from_tla_descriptions_skip_tlaps.summary.json)
+  [live_next25c_from_tla_descriptions_skip_tlaps.summary.json](../outputs/autoprover/live_next25c_from_tla_descriptions_skip_tlaps.summary.json)
   reports `25 skipped / 0 reds`
 - gold-cache materialization:
-  [gold_cache.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold_cache.summary.json)
+  [gold_cache.summary.json](../outputs/materialized_tla/gold_cache.summary.json)
   reports `376` files written and `41` unique module names
 - first gold-cache unique tranche before fixes:
-  [live_next25_from_gold_cache_unique_skip_tlaps.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps.summary.json)
+  [live_next25_from_gold_cache_unique_skip_tlaps.summary.json](../outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps.summary.json)
   reported `17 skipped / 5 skeleton_emitted / 3 tlc_error`
 - red-family diagnosis:
-  - [live_next25_from_gold_cache_unique_skip_tlaps.jsonl](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps.jsonl:6)
+  - [live_next25_from_gold_cache_unique_skip_tlaps.jsonl](../outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps.jsonl:6)
     and
-    [live_next25_from_gold_cache_unique_skip_tlaps.jsonl](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps.jsonl:14)
+    [live_next25_from_gold_cache_unique_skip_tlaps.jsonl](../outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps.jsonl:14)
     show `BoundedRetransmissionProtocol` and `Elevator` both failing inside the
     synthetic helper with `SubsetValue -> IntValue` on line numbers past EOF
-  - [live_next25_from_gold_cache_unique_skip_tlaps.jsonl](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps.jsonl:18)
+  - [live_next25_from_gold_cache_unique_skip_tlaps.jsonl](../outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps.jsonl:18)
     shows `LamportsBakeryAlgorithm` failing on non-enumerable
     `[Procs -> Nat]`
 - local harness fixes:
-  - [src/prover/inductiveness.py](/Users/eric/GitHub/ChatTLA/ChatTLA/src/prover/inductiveness.py:315)
+  - [src/prover/inductiveness.py](../src/prover/inductiveness.py:315)
     now rewrites direct subset domains as `x \in (SUBSET (rhs))`
-  - [scripts/autoprover_smoke.py](/Users/eric/GitHub/ChatTLA/ChatTLA/scripts/autoprover_smoke.py:356)
+  - [scripts/autoprover_smoke.py](../scripts/autoprover_smoke.py:356)
     now skips `typeok_function_range_uses_infinite_builtin`
 - focused validation:
   `PYTHONPATH=. pytest -q tests/test_autoprover_smoke.py test/test_inductiveness.py`
   -> `28 passed`
 - focused red recheck:
-  [gold_cache_reds_recheck.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/gold_cache_reds_recheck.summary.json)
+  [gold_cache_reds_recheck.summary.json](../outputs/autoprover/gold_cache_reds_recheck.summary.json)
   reports `2 skeleton_emitted / 1 skipped / 0 tlc_error`
 - corrected first gold-cache unique tranche:
-  [live_next25_from_gold_cache_unique_skip_tlaps_after_enumfix.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps_after_enumfix.summary.json)
+  [live_next25_from_gold_cache_unique_skip_tlaps_after_enumfix.summary.json](../outputs/autoprover/live_next25_from_gold_cache_unique_skip_tlaps_after_enumfix.summary.json)
   reports `18 skipped / 7 skeleton_emitted / 0 tlc_error`
 - remaining unique tranche:
-  [live_remaining_from_gold_cache_unique_skip_tlaps_afterfix1.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_remaining_from_gold_cache_unique_skip_tlaps_afterfix1.summary.json)
+  [live_remaining_from_gold_cache_unique_skip_tlaps_afterfix1.summary.json](../outputs/autoprover/live_remaining_from_gold_cache_unique_skip_tlaps_afterfix1.summary.json)
   reports `6 skipped / 10 skeleton_emitted / 0 reds`
 - combined rollup artifact:
-  [live_gold_cache_unique_rollup_afterfix1.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_gold_cache_unique_rollup_afterfix1.json)
+  [live_gold_cache_unique_rollup_afterfix1.json](../outputs/autoprover/live_gold_cache_unique_rollup_afterfix1.json)
   reports `41` rows with `17 skeleton_emitted / 24 skipped / 0 tlc_error / 0 not_inductive`
 
 ### Interpretation
@@ -1353,7 +1353,7 @@ the same modules.
 ### Evidence
 
 - materialized `gold` tier:
-  [gold.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/gold.summary.json)
+  [gold.summary.json](../outputs/materialized_tla/gold.summary.json)
   reports `78` files and `47` unique module names
 - unique overlap check against `gold_cache`:
   only `6` unique modules are new in `gold`
@@ -1364,7 +1364,7 @@ the same modules.
   - `RaftLeaderElection`
   - `SimpleCommit`
 - focused smoke on those six only:
-  [live_gold_only_vs_gold_cache_skip_tlaps.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_gold_only_vs_gold_cache_skip_tlaps.summary.json)
+  [live_gold_only_vs_gold_cache_skip_tlaps.summary.json](../outputs/autoprover/live_gold_only_vs_gold_cache_skip_tlaps.summary.json)
   reports `1 skeleton_emitted / 5 skipped / 0 reds`
 - the only new positive from that lane was `CircularBuffer`; the other five all
   skipped with `missing_init_next_spec_typeok_vars`
@@ -1394,7 +1394,7 @@ what was already covered by `outputs/diamond_gen`, `tla_descriptions`,
 ### Evidence
 
 - materialized `diamond` tier:
-  [diamond.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/diamond.summary.json)
+  [diamond.summary.json](../outputs/materialized_tla/diamond.summary.json)
   reports `101` files and `55` unique module names
 - after overlap normalization, only `13` module names were genuinely new:
   - `AbTest`
@@ -1411,21 +1411,21 @@ what was already covered by `outputs/diamond_gen`, `tla_descriptions`,
   - `SimpleChain`
   - `SnapshotIsolation`
 - first focused sweep:
-  [live_diamond_only_vs_localcovered_skip_tlaps.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_diamond_only_vs_localcovered_skip_tlaps.summary.json)
+  [live_diamond_only_vs_localcovered_skip_tlaps.summary.json](../outputs/autoprover/live_diamond_only_vs_localcovered_skip_tlaps.summary.json)
   reported `7 skeleton_emitted / 4 skipped / 2 not_inductive`
 - the two non-inductive modules, `EmailInbox` and `SimpleChain`, shared the
   same local semantic shape: split counters were individually bounded in
   `TypeOK`, but the conserved total bound was missing
 - local repairs:
-  - [EmailInbox.tla](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/diamond/EmailInbox.tla:26)
+  - [EmailInbox.tla](../outputs/materialized_tla/diamond/EmailInbox.tla:26)
     now adds `unread + read <= Max` to `TypeOK`
-  - [SimpleChain.tla](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/materialized_tla/diamond/SimpleChain.tla:22)
+  - [SimpleChain.tla](../outputs/materialized_tla/diamond/SimpleChain.tla:22)
     now adds `pending + confirmed <= Max` to `TypeOK`
 - focused recheck:
-  [live_diamond_only_not_inductive_recheck.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_diamond_only_not_inductive_recheck.summary.json)
+  [live_diamond_only_not_inductive_recheck.summary.json](../outputs/autoprover/live_diamond_only_not_inductive_recheck.summary.json)
   reported `2 skeleton_emitted / 0 reds`
 - corrected focused sweep:
-  [live_diamond_only_vs_localcovered_skip_tlaps_afterfix1.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_diamond_only_vs_localcovered_skip_tlaps_afterfix1.summary.json)
+  [live_diamond_only_vs_localcovered_skip_tlaps_afterfix1.summary.json](../outputs/autoprover/live_diamond_only_vs_localcovered_skip_tlaps_afterfix1.summary.json)
   reports `9 skeleton_emitted / 4 skipped / 0 reds`
 
 ### Interpretation
@@ -1453,7 +1453,7 @@ novelty was tiny:
 - `CarTalkPuzzle`
 
 Focused smoke on exactly those five:
-[live_remaining_processed_novelty_skip_tlaps.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_remaining_processed_novelty_skip_tlaps.summary.json)
+[live_remaining_processed_novelty_skip_tlaps.summary.json](../outputs/autoprover/live_remaining_processed_novelty_skip_tlaps.summary.json)
 reported `5 skipped / 0 reds`.
 
 Skip reasons:
@@ -1482,10 +1482,10 @@ corpus, or whether meaningful local red families still remain there.
 ### Evidence
 
 - full module list:
-  [live_full_diamond_gen_current.module_list](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_full_diamond_gen_current.module_list)
+  [live_full_diamond_gen_current.module_list](../outputs/autoprover/live_full_diamond_gen_current.module_list)
   contains `200` modules
 - fresh rerun:
-  [live_full_diamond_gen_current_skip_tlaps.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_full_diamond_gen_current_skip_tlaps.summary.json)
+  [live_full_diamond_gen_current_skip_tlaps.summary.json](../outputs/autoprover/live_full_diamond_gen_current_skip_tlaps.summary.json)
   reports:
   - `149 skeleton_emitted`
   - `51 skipped`
@@ -1545,7 +1545,7 @@ communication-protocol group with `typeok_missing_variable_domain_delivered`:
   each module now has an explicit finite `DeliveredPrefixes` domain for the
   delivered sequence
 - focused family rerun:
-  [protocol_delivered_family_recheck4.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/protocol_delivered_family_recheck4.summary.json)
+  [protocol_delivered_family_recheck4.summary.json](../outputs/autoprover/protocol_delivered_family_recheck4.summary.json)
   reports:
   - `1 skeleton_emitted`
   - `3 not_inductive`
@@ -1557,7 +1557,7 @@ communication-protocol group with `typeok_missing_variable_domain_delivered`:
   - `GoBackN`
   - `StopAndWait`
 - refreshed full local Diamond sweep:
-  [live_full_diamond_gen_current_skip_tlaps_afterfix1.summary.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/autoprover/live_full_diamond_gen_current_skip_tlaps_afterfix1.summary.json)
+  [live_full_diamond_gen_current_skip_tlaps_afterfix1.summary.json](../outputs/autoprover/live_full_diamond_gen_current_skip_tlaps_afterfix1.summary.json)
   reports:
   - `150 skeleton_emitted`
   - `47 skipped`

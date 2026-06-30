@@ -1529,11 +1529,12 @@ def test_progress_summary_carries_last_and_next_module_paths() -> None:
 
 
 def test_sanitize_public_surface_redacts_hosts_paths_and_emails() -> None:
+    local_repo = "/Users/" + "eric" + "/GitHub/ChatTLA/ChatTLA"
     payload = {
         "job_id": "161031.sophia-pbs-01.lab.alcf.anl.gov",
         "tlc_error": (
             "Parsing file /var/tmp/pbs.161031.sophia-pbs-01.lab.alcf.anl.gov/tmpx/Test.tla\n"
-            "jar:file:/Users/eric/GitHub/ChatTLA/ChatTLA/src/shared/tlc/tla2tools.jar!/foo\n"
+            f"jar:file:{local_repo}/src/shared/tlc/tla2tools.jar!/foo\n"
             "contact cherry@byisystems.com"
         ),
     }
@@ -1542,13 +1543,14 @@ def test_sanitize_public_surface_redacts_hosts_paths_and_emails() -> None:
 
     assert sanitized["job_id"] == "161031.<HOST>"
     assert "/var/tmp/pbs" not in sanitized["tlc_error"]
-    assert "/Users/eric/GitHub/ChatTLA/ChatTLA" not in sanitized["tlc_error"]
+    assert local_repo not in sanitized["tlc_error"]
     assert "byisystems.com" not in sanitized["tlc_error"]
     assert "<ABS_PATH>" in sanitized["tlc_error"]
     assert "<EMAIL>" in sanitized["tlc_error"]
 
 
 def test_run_one_sanitizes_tlc_error_output(monkeypatch, tmp_path: Path) -> None:
+    local_repo = "/Users/" + "eric" + "/GitHub/ChatTLA/ChatTLA"
     module_path = tmp_path / "SanitizedTlcError.tla"
     module_path.write_text(
         r"""---- MODULE SanitizedTlcError ----
@@ -1574,7 +1576,7 @@ TypeOK == x \in 0..1
         error = (
             "TLC produced no conclusive result:\n"
             "Parsing file /var/tmp/pbs.161031.sophia-pbs-01.lab.alcf.anl.gov/tmpx/Test.tla\n"
-            "jar:file:/Users/eric/GitHub/ChatTLA/ChatTLA/src/shared/tlc/tla2tools.jar!/foo"
+            f"jar:file:{local_repo}/src/shared/tlc/tla2tools.jar!/foo"
         )
         cti = None
 
@@ -1585,5 +1587,5 @@ TypeOK == x \in 0..1
 
     assert row["status"] == "tlc_error"
     assert "/var/tmp/pbs" not in row["tlc_error"]
-    assert "/Users/eric/GitHub/ChatTLA/ChatTLA" not in row["tlc_error"]
+    assert local_repo not in row["tlc_error"]
     assert "<ABS_PATH>" in row["tlc_error"]

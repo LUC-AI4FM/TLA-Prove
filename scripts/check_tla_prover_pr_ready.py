@@ -53,10 +53,13 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("private_ssh_user", re.compile(r"\b" + "eric" + r"spencer@|\b" + "eric" + r"-spencer@")),
     ("private_home_path", re.compile(r"/Users/" + "eric" + r"spencer\b|/home/" + "eric" + r"-spencer\b")),
     ("site_storage_path", re.compile(r"/grand/[A-Za-z0-9_.-]+/")),
+    ("local_workspace_repo_path", re.compile(r"/Users/" + "eric" + r"/GitHub/ChatTLA/ChatTLA/")),
+    ("remote_home_repo_path", re.compile(r"\b[A-Za-z0-9_.-]+:/home/[A-Za-z0-9_.-]+/ChatTLA(?:/|\b)")),
     ("fixed_pbs_account", re.compile(r"^#PBS\s+-A\s+EVITA\b", re.MULTILINE)),
     ("private_control_socket", re.compile("codex" + "-sophia")),
     ("specific_compute_node", re.compile(r"sophia-gpu-\d+")),
     ("aisec_specific_host", re.compile("aisec" + r"-102|aisec" + "102")),
+    ("manual_publish_approval", re.compile(r"\bmanual" + r" publish approval\b", re.IGNORECASE)),
 ]
 
 PY_COMPILE_FILES = [
