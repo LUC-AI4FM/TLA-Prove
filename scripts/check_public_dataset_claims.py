@@ -24,6 +24,7 @@ COUNT_WORDS = {
     "nine": 9,
     "ten": 10,
 }
+EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -92,6 +93,18 @@ def _bundled_metadata_sources(repo: Path) -> dict[str, str]:
             "outputs/manifests/tla_prover_full_dataset_failure_analysis.json"
         ),
         "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
+    }
+
+
+def _bundled_data_sources() -> dict[str, str]:
+    return {
+        "data/train/chattla_tla_prover_sft_v1.jsonl": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "data/train/sany_tlc_pass_sft_v1.jsonl": "data/processed/sany_tlc_pass_sft_v1.jsonl",
+        "data/eval/prover_eval.jsonl": "data/processed/prover_eval.jsonl",
+        "data/eval/sany_tlc_pass_eval_v1.jsonl": "data/processed/sany_tlc_pass_eval_v1.jsonl",
+        "data/traces/tlaps_verified_autoprover_traces_v1.jsonl": (
+            "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl"
+        ),
     }
 
 
@@ -222,6 +235,56 @@ def _formalllm_surface_consistency_findings(repo: Path) -> list[dict[str, str]]:
                 "expected": f"formalllm_coverage.formalllm_rows == {expected_rows}",
             }
         )
+
+    return findings
+
+
+def _bundled_data_safety_findings(repo: Path) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    for bundle_rel, source_rel in _bundled_data_sources().items():
+        source_path = repo / source_rel
+        bundle_path = repo / BUNDLE_ROOT.relative_to(REPO) / bundle_rel
+        if not source_path.exists():
+            findings.append({"path": source_rel, "expected": "source artifact to exist"})
+            continue
+        if not bundle_path.exists():
+            findings.append({"path": str(bundle_path.relative_to(repo)), "expected": f"bundled copy of {source_rel}"})
+            continue
+
+        source_rows = [line for line in source_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        bundle_rows = [line for line in bundle_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        if len(bundle_rows) != len(source_rows):
+            findings.append(
+                {
+                    "path": str(bundle_path.relative_to(repo)),
+                    "expected": f"row count to match {source_rel} ({len(source_rows)} rows)",
+                }
+            )
+
+        for index, raw_line in enumerate(bundle_rows, start=1):
+            row = json.loads(raw_line)
+            if EMAIL_RE.search(json.dumps(row, sort_keys=True)):
+                findings.append(
+                    {
+                        "path": str(bundle_path.relative_to(repo)),
+                        "expected": f"row {index} to scrub public email addresses",
+                    }
+                )
+                break
+            messages = row.get("messages")
+            if isinstance(messages, list) and any(
+                isinstance(message, dict)
+                and message.get("role") == "assistant"
+                and message.get("channel") == "analysis"
+                for message in messages
+            ):
+                findings.append(
+                    {
+                        "path": str(bundle_path.relative_to(repo)),
+                        "expected": f"row {index} to exclude assistant analysis messages",
+                    }
+                )
+                break
 
     return findings
 
@@ -689,6 +752,7 @@ def build_report(*, repo: Path = REPO) -> dict[str, Any]:
                     "expected": f"exact content match for {source_rel}",
                 }
             )
+    findings.extend(_bundled_data_safety_findings(repo))
     findings.extend(_dataset_surface_consistency_findings(repo))
     findings.extend(_formalllm_surface_consistency_findings(repo))
     return {

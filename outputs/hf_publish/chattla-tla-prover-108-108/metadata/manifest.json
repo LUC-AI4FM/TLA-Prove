@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-06-26T16:58:40.564134+00:00",
   "command": "scripts/reproduce_final_tlaps_prover.py",
-  "base_proof_dir": "outputs/autoprover/tlaps_mixed_targeted_t1_160785.sophia-pbs-01.lab.alcf.anl.gov/proofs",
+  "base_proof_dir": "outputs/autoprover/tlaps_mixed_targeted_t1_160785/proofs",
   "atomic_proof": "outputs/autoprover/tlaps_final_source_preserving_repairs_161630/AtomicRegister_source_preserving_choose.tla",
   "idempotency_proof": "outputs/autoprover/tlaps_final_source_preserving_repairs_161630/IdempotencyKey_firstcall10.tla",
   "out_dir": "outputs/autoprover/tlaps_reproduced_final_160816",

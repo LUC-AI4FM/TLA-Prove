@@ -25,7 +25,7 @@ final no-asterisk normalized 108/108 TLA+ prover result.
 - TLAPS exit 0: 18
 - Raw obligations proved: 299/299
 - Source-preserving repairs: `AtomicRegister` and `IdempotencyKey`
-- Reproduction PBS job: `160816` on Sophia
+- Reproduction artifact build: `160816`
 
 ## Contents
 
@@ -37,12 +37,12 @@ final no-asterisk normalized 108/108 TLA+ prover result.
   `summary.json`, and `manifest.json`
 - `reproduce_final_tlaps_prover.py`: reproducible proof-set rebuild and TLAPS
   validation command
-- `qsub_reproduce_final_tlaps_prover.pbs`: Sophia PBS wrapper
+- `qsub_reproduce_final_tlaps_prover.pbs`: batch-wrapper example for `qsub` environments
 - `SHA256SUMS`: checksums for the uploaded files
 
 ## Reproduce
 
-On Sophia, from the ChatTLA checkout:
+From a ChatTLA checkout in a batch environment with `qsub`:
 
 ```bash
 qsub scripts/qsub_reproduce_final_tlaps_prover.pbs

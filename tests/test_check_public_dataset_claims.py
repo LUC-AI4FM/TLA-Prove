@@ -9,6 +9,10 @@ def _write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def _write_jsonl(path: Path, rows: list[dict]) -> None:
+    _write(path, "".join(json.dumps(row) + "\n" for row in rows))
+
+
 def _write_bundle_copy(repo: Path, bundle_name: str, source_rel: str) -> None:
     source = repo / source_rel
     _write(
@@ -344,8 +348,25 @@ def _write_manifests(repo: Path) -> None:
         _write_bundle_copy(repo, bundle_name, source_rel)
 
 
+def _write_bundle_data_copies(repo: Path) -> None:
+    pairs = {
+        "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl": "data/train/chattla_tla_prover_sft_v1.jsonl",
+        "data/processed/sany_tlc_pass_sft_v1.jsonl": "data/train/sany_tlc_pass_sft_v1.jsonl",
+        "data/processed/prover_eval.jsonl": "data/eval/prover_eval.jsonl",
+        "data/processed/sany_tlc_pass_eval_v1.jsonl": "data/eval/sany_tlc_pass_eval_v1.jsonl",
+        "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl": (
+            "data/traces/tlaps_verified_autoprover_traces_v1.jsonl"
+        ),
+    }
+    rows = [{"messages": [{"role": "assistant", "channel": "final", "content": "ok"}]}]
+    for source_rel, bundle_rel in pairs.items():
+        _write_jsonl(repo / source_rel, rows)
+        _write_jsonl(repo / "outputs/hf_publish/chattla-tla-prover-corpora-v1" / bundle_rel, rows)
+
+
 def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> None:
     _write_manifests(tmp_path)
+    _write_bundle_data_copies(tmp_path)
     _write(
         tmp_path / "README.md",
         "\n".join(
@@ -738,5 +759,51 @@ def test_build_report_flags_stale_public_corpus_doc_counts(tmp_path: Path) -> No
     assert any(
         finding["path"] == "docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md"
         and "non-default `2508`-row experiment lane" in finding["expected"]
+        for finding in report["findings"]
+    )
+
+
+def test_build_report_flags_public_bundle_jsonl_leaks(tmp_path: Path) -> None:
+    _write_manifests(tmp_path)
+    _write(tmp_path / "README.md", "")
+    _write(tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md", "")
+    _write(tmp_path / "docs/AI4FM_PUBLIC_DATASET_SURFACE.md", "")
+    _write(tmp_path / "docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md", "")
+
+    for source_rel in {
+        "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "data/processed/prover_eval.jsonl",
+        "data/processed/sany_tlc_pass_sft_v1.jsonl",
+        "data/processed/sany_tlc_pass_eval_v1.jsonl",
+        "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+    }:
+        _write_jsonl(tmp_path / source_rel, [{"messages": [{"role": "assistant", "channel": "final", "content": "ok"}]}])
+
+    for bundle_rel in {
+        "data/train/chattla_tla_prover_sft_v1.jsonl",
+        "data/train/sany_tlc_pass_sft_v1.jsonl",
+        "data/eval/prover_eval.jsonl",
+        "data/eval/sany_tlc_pass_eval_v1.jsonl",
+        "data/traces/tlaps_verified_autoprover_traces_v1.jsonl",
+    }:
+        rows = [{"messages": [{"role": "assistant", "channel": "final", "content": "ok"}]}]
+        if bundle_rel.endswith("chattla_tla_prover_sft_v1.jsonl"):
+            rows = [
+                {
+                    "messages": [
+                        {"role": "user", "content": "contact alice@example.com"},
+                        {"role": "assistant", "channel": "analysis", "content": "internal"},
+                        {"role": "assistant", "channel": "final", "content": "ok"},
+                    ]
+                }
+            ]
+        _write_jsonl(tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1" / bundle_rel, rows)
+
+    report = build_report(repo=tmp_path)
+
+    assert report["ok"] is False
+    assert any(
+        finding["path"] == "outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
+        and "scrub public email addresses" in finding["expected"]
         for finding in report["findings"]
     )

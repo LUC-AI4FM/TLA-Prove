@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import sys
 from datetime import datetime, timezone
@@ -14,9 +15,10 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from scripts.check_public_dataset_claims import BUNDLE_ROOT, _bundled_metadata_sources
+from scripts.check_public_dataset_claims import BUNDLE_ROOT, _bundled_data_sources, _bundled_metadata_sources
 
 DEFAULT_BUNDLE_ROOT = BUNDLE_ROOT
+EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 
 
 def _display(path: Path) -> str:
@@ -26,12 +28,56 @@ def _display(path: Path) -> str:
         return str(path)
 
 
+def _scrub_public_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {key: _scrub_public_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_scrub_public_value(item) for item in value]
+    if isinstance(value, str):
+        return EMAIL_RE.sub("<EMAIL>", value)
+    return value
+
+
+def _sanitize_public_row(row: dict[str, Any]) -> dict[str, Any]:
+    sanitized = _scrub_public_value(row)
+    messages = sanitized.get("messages")
+    if isinstance(messages, list):
+        sanitized["messages"] = [
+            message
+            for message in messages
+            if not (
+                isinstance(message, dict)
+                and message.get("role") == "assistant"
+                and message.get("channel") == "analysis"
+            )
+        ]
+    return sanitized
+
+
+def _sanitize_jsonl_bytes(source: Path) -> tuple[bytes, int]:
+    lines: list[str] = []
+    row_count = 0
+    with source.open(encoding="utf-8") as handle:
+        for raw_line in handle:
+            if not raw_line.strip():
+                continue
+            row = json.loads(raw_line)
+            if not isinstance(row, dict):
+                raise ValueError(f"Expected JSON object rows in {_display(source)}")
+            sanitized = _sanitize_public_row(row)
+            lines.append(json.dumps(sanitized, sort_keys=True) + "\n")
+            row_count += 1
+    return "".join(lines).encode("utf-8"), row_count
+
+
 def build_report(*, repo: Path = REPO, bundle_root: Path = DEFAULT_BUNDLE_ROOT, write: bool = True) -> dict[str, Any]:
     copied: list[dict[str, Any]] = []
     missing_sources: list[str] = []
     metadata_root = bundle_root / "metadata"
+    data_root = bundle_root / "data"
     if write:
         metadata_root.mkdir(parents=True, exist_ok=True)
+        data_root.mkdir(parents=True, exist_ok=True)
 
     for bundle_name, source_rel in _bundled_metadata_sources(repo).items():
         source = repo / source_rel
@@ -49,6 +95,28 @@ def build_report(*, repo: Path = REPO, bundle_root: Path = DEFAULT_BUNDLE_ROOT, 
                 "target": _display(target),
                 "changed": changed,
                 "bytes": source.stat().st_size,
+            }
+        )
+
+    for target_rel, source_rel in _bundled_data_sources().items():
+        source = repo / source_rel
+        target = bundle_root / target_rel
+        if not source.exists():
+            missing_sources.append(source_rel)
+            continue
+        payload, row_count = _sanitize_jsonl_bytes(source)
+        changed = (not target.exists()) or target.read_bytes() != payload
+        if write:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(payload)
+        copied.append(
+            {
+                "bundle_name": Path(target_rel).name,
+                "source": source_rel,
+                "target": _display(target),
+                "changed": changed,
+                "bytes": len(payload),
+                "rows": row_count,
             }
         )
 

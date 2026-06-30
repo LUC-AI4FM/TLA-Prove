@@ -1,9 +1,13 @@
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 from scripts.reproduce_final_tlaps_prover import (
     ModuleResult,
+    _default_base_proof_dir,
+    _public_proof_dir_ref,
+    _public_tool_ref,
     build_proof_set,
     parse_tlaps_output,
     run_tlaps_module,
@@ -141,6 +145,30 @@ class ReproduceFinalTlapsProverTests(unittest.TestCase):
             self.assertEqual(result.exit_code, 0)
             self.assertEqual(result.proved, 1)
             self.assertEqual(result.total, 1)
+
+    def test_public_refs_strip_host_suffixes_and_absolute_tool_paths(self) -> None:
+        self.assertEqual(
+            _public_proof_dir_ref(
+                Path(
+                    "outputs/autoprover/"
+                    "tlaps_mixed_targeted_t1_160785.sophia-pbs-01.lab.alcf.anl.gov/proofs"
+                )
+            ),
+            "outputs/autoprover/tlaps_mixed_targeted_t1_160785/proofs",
+        )
+        self.assertEqual(_public_tool_ref("/opt/tlaps/bin/tlapm"), "tlapm")
+
+    def test_default_base_proof_dir_prefers_host_neutral_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = root / "repo"
+            outputs = repo / "outputs" / "autoprover"
+            preferred = outputs / "tlaps_mixed_targeted_t1_160785" / "proofs"
+            preferred.mkdir(parents=True)
+
+            with unittest.mock.patch("scripts.reproduce_final_tlaps_prover.REPO", repo):
+                with unittest.mock.patch.dict("os.environ", {}, clear=True):
+                    self.assertEqual(_default_base_proof_dir(), preferred)
 
 
 if __name__ == "__main__":

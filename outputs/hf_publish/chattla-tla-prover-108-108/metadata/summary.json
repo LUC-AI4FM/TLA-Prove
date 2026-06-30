@@ -211,7 +211,7 @@
   "tlapm": "tlapm",
   "threads": 1,
   "timeout": 900,
-  "base_proof_dir": "outputs/autoprover/tlaps_mixed_targeted_t1_160785.sophia-pbs-01.lab.alcf.anl.gov/proofs",
+  "base_proof_dir": "outputs/autoprover/tlaps_mixed_targeted_t1_160785/proofs",
   "replacements": {
     "AtomicRegister.tla": "outputs/autoprover/tlaps_final_source_preserving_repairs_161630/AtomicRegister_source_preserving_choose.tla",
     "IdempotencyKey.tla": "outputs/autoprover/tlaps_final_source_preserving_repairs_161630/IdempotencyKey_firstcall10.tla"

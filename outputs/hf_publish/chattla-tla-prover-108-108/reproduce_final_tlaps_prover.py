@@ -26,6 +26,7 @@ REPO = Path(__file__).resolve().parents[1]
 
 _ALL_PROVED_RE = re.compile(r"All\s+(\d+)\s+obligations?\s+proved", re.IGNORECASE)
 _FAILED_RE = re.compile(r"(\d+)\s*/\s*(\d+)\s+obligations?\s+failed", re.IGNORECASE)
+_HOST_SUFFIX_RE = re.compile(r"\.(?:[A-Za-z][A-Za-z0-9-]*)(?:\.[A-Za-z0-9-]+){2,}(?=/|$)")
 
 
 @dataclass(frozen=True)
@@ -179,6 +180,19 @@ def _default_tlapm() -> Path:
     return REPO / "src" / "shared" / "tlaps" / "bin" / "tlapm"
 
 
+def _default_base_proof_dir() -> Path:
+    env = os.getenv("CHATTLA_BASE_PROOF_DIR")
+    if env:
+        return Path(env)
+    preferred = REPO / "outputs" / "autoprover" / "tlaps_mixed_targeted_t1_160785" / "proofs"
+    if preferred.is_dir():
+        return preferred
+    matches = sorted((REPO / "outputs" / "autoprover").glob("tlaps_mixed_targeted_t1_160785*/proofs"))
+    if matches:
+        return matches[0]
+    return preferred
+
+
 def _repo_relative(path: Path) -> str:
     try:
         return str(path.resolve().relative_to(REPO))
@@ -189,6 +203,10 @@ def _repo_relative(path: Path) -> str:
 def _public_tool_ref(path: Path | str) -> str:
     text = str(path)
     return Path(text).name if text.startswith("/") else text
+
+
+def _public_proof_dir_ref(path: Path | str) -> str:
+    return _HOST_SUFFIX_RE.sub("", _repo_relative(Path(path)))
 
 
 def _sha256(path: Path) -> str:
@@ -203,7 +221,7 @@ def write_manifest(*, out_dir: Path, package_path: Path | None, args: argparse.N
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "command": "scripts/reproduce_final_tlaps_prover.py",
-        "base_proof_dir": _repo_relative(Path(args.base_proof_dir)),
+        "base_proof_dir": _public_proof_dir_ref(args.base_proof_dir),
         "atomic_proof": _repo_relative(Path(args.atomic_proof)),
         "idempotency_proof": _repo_relative(Path(args.idempotency_proof)),
         "out_dir": _repo_relative(out_dir),
@@ -238,13 +256,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--base-proof-dir",
-        default=str(
-            REPO
-            / "outputs"
-            / "autoprover"
-            / "tlaps_mixed_targeted_t1_160785.sophia-pbs-01.lab.alcf.anl.gov"
-            / "proofs"
-        ),
+        default=str(_default_base_proof_dir()),
     )
     parser.add_argument(
         "--atomic-proof",
@@ -315,7 +327,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "tlapm": _public_tool_ref(tlapm),
             "threads": args.threads,
             "timeout": args.timeout,
-            "base_proof_dir": _repo_relative(Path(args.base_proof_dir)),
+            "base_proof_dir": _public_proof_dir_ref(args.base_proof_dir),
             "replacements": {
                 key: _repo_relative(value) for key, value in _replacement_map(args).items()
             },

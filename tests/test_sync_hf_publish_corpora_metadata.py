@@ -9,6 +9,10 @@ def _write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def _write_jsonl(path: Path, rows: list[dict]) -> None:
+    _write(path, "".join(json.dumps(row) + "\n" for row in rows))
+
+
 def _write_sources(repo: Path) -> None:
     for bundle_name, source_rel in {
         "ai4fm_org_surface.json": "outputs/manifests/ai4fm_org_surface.json",
@@ -51,6 +55,14 @@ def _write_sources(repo: Path) -> None:
         "tlaps_verified_autoprover_traces_v1.summary.json": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json",
     }.items():
         _write(repo / source_rel, json.dumps({"bundle_name": bundle_name}))
+    for source_rel in {
+        "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "data/processed/prover_eval.jsonl",
+        "data/processed/sany_tlc_pass_sft_v1.jsonl",
+        "data/processed/sany_tlc_pass_eval_v1.jsonl",
+        "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.jsonl",
+    }:
+        _write_jsonl(repo / source_rel, [{"source": source_rel}])
 
 
 def test_build_report_syncs_bundle_metadata(tmp_path: Path) -> None:
@@ -66,6 +78,51 @@ def test_build_report_syncs_bundle_metadata(tmp_path: Path) -> None:
     assert target.exists()
     assert json.loads(target.read_text(encoding="utf-8")) == {"bundle_name": "tla_prover_artifacts_v1.json"}
     assert (bundle_root / "metadata" / "chattla_tla_prover_sft_public_expanded_v1.summary.json").exists()
+    assert (bundle_root / "data" / "train" / "chattla_tla_prover_sft_v1.jsonl").exists()
+    assert (bundle_root / "data" / "eval" / "prover_eval.jsonl").exists()
+    assert (bundle_root / "data" / "traces" / "tlaps_verified_autoprover_traces_v1.jsonl").exists()
+
+
+def test_build_report_sanitizes_public_bundle_jsonl_rows(tmp_path: Path) -> None:
+    _write_sources(tmp_path)
+    _write_jsonl(
+        tmp_path / "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        [
+            {
+                "prompt_id": "row-1",
+                "messages": [
+                    {"role": "user", "content": "contact alice@example.com"},
+                    {"role": "assistant", "channel": "analysis", "content": "internal bob@example.com"},
+                    {"role": "assistant", "content": "reply to carol@example.com"},
+                ],
+                "owner_email": "owner@example.com",
+                "nested": {"contact": "nested@example.com"},
+            },
+            {
+                "prompt_id": "row-2",
+                "messages": [
+                    {"role": "assistant", "channel": "final", "content": "keep dave@example.com"},
+                ],
+            },
+        ],
+    )
+    bundle_root = tmp_path / "outputs" / "hf_publish" / "chattla-tla-prover-corpora-v1"
+
+    report = build_report(repo=tmp_path, bundle_root=bundle_root, write=True)
+
+    assert report["ok"] is True
+    out_path = bundle_root / "data" / "train" / "chattla_tla_prover_sft_v1.jsonl"
+    out_rows = [json.loads(line) for line in out_path.read_text(encoding="utf-8").splitlines()]
+    assert len(out_rows) == 2
+    assert out_rows[0]["messages"] == [
+        {"role": "user", "content": "contact <EMAIL>"},
+        {"role": "assistant", "content": "reply to <EMAIL>"},
+    ]
+    assert out_rows[0]["owner_email"] == "<EMAIL>"
+    assert out_rows[0]["nested"]["contact"] == "<EMAIL>"
+    assert out_rows[1]["messages"] == [
+        {"role": "assistant", "channel": "final", "content": "keep <EMAIL>"},
+    ]
 
 
 def test_build_report_check_mode_detects_missing_sources_without_writing(tmp_path: Path) -> None:

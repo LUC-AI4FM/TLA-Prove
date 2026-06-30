@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -44,3 +45,24 @@ def test_probe_cli_writes_json_report(tmp_path: Path) -> None:
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["ok"] is True
     assert payload["best_candidate"]["name"] == "local"
+
+
+def test_probe_cli_no_candidates_uses_public_safe_error(tmp_path: Path) -> None:
+    out = tmp_path / "probe.json"
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "--out", str(out)],
+        cwd=REPO,
+        check=False,
+        text=True,
+        capture_output=True,
+        env={"PATH": os.environ["PATH"]},
+    )
+
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert result.returncode == 1
+    assert payload["ok"] is False
+    assert payload["error"] == "No control-plane candidates are configured."
+    assert "CHATTLA_" not in payload["error"]
+    assert "SOPHIA_HOST" not in payload["error"]
+    assert "--candidate" not in payload["error"]

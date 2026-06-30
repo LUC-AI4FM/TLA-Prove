@@ -116,7 +116,7 @@ def main() -> int:
             "ok": False,
             "best_candidate": None,
             "candidates": [],
-            "error": "No candidates configured. Set CHATTLA_RELAY_HOST, SOPHIA_HOST, CHATTLA_POLARIS_HOST, CHATTLA_AISEC_HOST, or pass --candidate.",
+            "error": "No control-plane candidates are configured.",
         }
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
