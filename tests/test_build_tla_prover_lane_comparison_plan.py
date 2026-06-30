@@ -56,15 +56,26 @@ def test_build_plan_for_local_comparison_reuses_named_lane_plans(tmp_path: Path)
     assert plan["candidate"]["command"][-1] == "--smoke-test"
     assert plan["follow_up"]["status_command"] == "python3 scripts/choose_tla_prover_next_experiment.py"
     assert plan["post_train_eval"]["tool"] == "scripts/eval_fullspec_checkpoints.py"
+    assert plan["post_train_eval"]["compare_tool"] == "scripts/compare_tla_prover_eval_results.py"
     assert plan["post_train_eval"]["baseline_out"] == (
         "outputs/eval/lane_comparison/default-vs-expanded-local/default_eval.json"
+    )
+    assert plan["post_train_eval"]["compare_out"] == (
+        "outputs/eval/lane_comparison/default-vs-expanded-local/comparison.json"
     )
     assert "--adapter outputs/checkpoints_prover " in plan["post_train_eval"]["baseline_command"]
     assert "--adapter outputs/checkpoints_prover_expanded " in plan["post_train_eval"]["candidate_command"]
     assert "--label default " in plan["post_train_eval"]["baseline_command"]
     assert "--label expanded " in plan["post_train_eval"]["candidate_command"]
+    assert plan["post_train_eval"]["compare_command"] == (
+        "python3 scripts/compare_tla_prover_eval_results.py "
+        "--baseline outputs/eval/lane_comparison/default-vs-expanded-local/default_eval.json "
+        "--candidate outputs/eval/lane_comparison/default-vs-expanded-local/expanded_eval.json "
+        "--out outputs/eval/lane_comparison/default-vs-expanded-local/comparison.json"
+    )
     assert plan["post_train_eval"]["compare_note"] == (
-        "Run both eval commands after training completes, then compare sany_pass, depth1_pass, tlc_pass, and mean_reward."
+        "Run both eval commands after training completes, then compare "
+        "sany_pass, depth1_pass, tlc_pass, mean_reward, module_match, and syntax regressions."
     )
 
 

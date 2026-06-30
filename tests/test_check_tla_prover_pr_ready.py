@@ -66,6 +66,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "scripts/sync_hf_publish_corpora_metadata.py" in joined
     assert "scripts/upload_v11.py" in joined
     assert "scripts/build_tla_prover_lane_comparison_plan.py" in joined
+    assert "scripts/compare_tla_prover_eval_results.py" in joined
     assert "scripts/train_tla_prover_local.py" in joined
     assert "scripts/train_tla_prover_repair_local.py" in joined
     assert "tests/test_build_ai4fm_public_discovery_manifest.py" in joined
@@ -86,6 +87,7 @@ def test_build_commands_includes_compact_prover_remote_suite() -> None:
     assert "tests/test_train_rl_repair.py" in joined
     assert "tests/test_train_tla_prover_local.py" in joined
     assert "tests/test_build_tla_prover_lane_comparison_plan.py" in joined
+    assert "tests/test_compare_tla_prover_eval_results.py" in joined
     assert "tests/test_train_tla_prover_repair_local.py" in joined
     assert "tests/test_qsub_fc128_artifact_preflight.py" in joined
     assert "tests/test_build_tla_prover_corpus_experiment_matrix.py" in joined

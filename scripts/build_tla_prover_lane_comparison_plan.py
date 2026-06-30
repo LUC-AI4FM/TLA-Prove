@@ -90,13 +90,16 @@ def _post_train_eval(
     candidate_alias = str(candidate.get("resolved_corpus", {}).get("alias") or candidate.get("requested_corpus") or "candidate")
     baseline_out = eval_dir / f"{_safe_label(baseline_alias)}_eval.json"
     candidate_out = eval_dir / f"{_safe_label(candidate_alias)}_eval.json"
+    compare_out = eval_dir / "comparison.json"
     baseline_adapter = str(baseline.get("output_dir"))
     candidate_adapter = str(candidate.get("output_dir"))
     return {
         "tool": "scripts/eval_fullspec_checkpoints.py",
+        "compare_tool": "scripts/compare_tla_prover_eval_results.py",
         "holdout": DEFAULT_EVAL_HOLDOUT,
         "baseline_out": str(baseline_out),
         "candidate_out": str(candidate_out),
+        "compare_out": str(compare_out),
         "baseline_command": (
             "python3 scripts/eval_fullspec_checkpoints.py "
             "--model openai/gpt-oss-20b "
@@ -113,9 +116,15 @@ def _post_train_eval(
             f"--holdout {DEFAULT_EVAL_HOLDOUT} "
             f"--out {candidate_out}"
         ),
+        "compare_command": (
+            "python3 scripts/compare_tla_prover_eval_results.py "
+            f"--baseline {baseline_out} "
+            f"--candidate {candidate_out} "
+            f"--out {compare_out}"
+        ),
         "compare_note": (
             "Run both eval commands after training completes, then compare "
-            "sany_pass, depth1_pass, tlc_pass, and mean_reward."
+            "sany_pass, depth1_pass, tlc_pass, mean_reward, module_match, and syntax regressions."
         ),
     }
 
