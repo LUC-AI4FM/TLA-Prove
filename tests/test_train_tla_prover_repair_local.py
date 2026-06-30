@@ -52,6 +52,7 @@ def test_build_run_plan_defaults_to_merged_repair_corpus_and_preflight(tmp_path:
     assert plan["preflight_report"]["ok"] is True
     assert plan["preflight_report"]["merged_summary"]["rows"] == 510
     assert plan["python_executable"] == "/tmp/test-python"
+    assert plan["bootstrap_recommendation"] is None
     assert plan["command"] == [
         "/tmp/test-python",
         "-m",
@@ -202,3 +203,75 @@ def test_build_run_plan_resolves_preflight_report_via_selected_python(tmp_path: 
     assert plan["preflight_report"]["ok"] is True
     assert captured["python_executable"] == "/tmp/test-python"
     assert captured["extra_args"] == ["--smoke"]
+
+
+def test_build_run_plan_prefers_repo_venv_python_when_env_unset(tmp_path: Path, monkeypatch) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
+        '{"repair_id":"R1","before_score":0.2}\n',
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        '{"rows": 1, "health": {"ok": true, "warnings": []}, "kept_rows_by_source": {"benchmark": 1}}\n',
+    )
+    _write(tmp_path / ".venv/bin/python")
+    monkeypatch.delenv("CHATTLA_PYTHON", raising=False)
+    monkeypatch.delenv("PYTHON", raising=False)
+    monkeypatch.setattr("scripts.train_tla_prover_repair_local.REPO", tmp_path)
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        lambda **kwargs: {
+            "ok": True,
+            "runtime_dependencies": {"ok": True, "available": [], "missing": []},
+            "selected_python": kwargs["python_executable"],
+        },
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+    )
+
+    assert plan["python_executable"] == str(tmp_path / ".venv/bin/python")
+    assert plan["preflight_report"]["selected_python"] == str(tmp_path / ".venv/bin/python")
+
+
+def test_build_run_plan_surfaces_bootstrap_recommendation_for_missing_repo_venv_deps(
+    tmp_path: Path, monkeypatch
+) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
+        '{"repair_id":"R1","before_score":0.2}\n',
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        '{"rows": 1, "health": {"ok": true, "warnings": []}, "kept_rows_by_source": {"benchmark": 1}}\n',
+    )
+    _write(tmp_path / ".venv/bin/python")
+    monkeypatch.delenv("CHATTLA_PYTHON", raising=False)
+    monkeypatch.delenv("PYTHON", raising=False)
+    monkeypatch.setattr("scripts.train_tla_prover_repair_local.REPO", tmp_path)
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        lambda **_kwargs: {
+            "ok": False,
+            "runtime_dependencies": {"ok": False, "available": [], "missing": [{"module": "torch"}]},
+        },
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+    )
+
+    assert plan["bootstrap_recommendation"]["reason"] == "selected_python_missing_training_dependencies"
+    assert plan["bootstrap_recommendation"]["command"] == "bash scripts/launch_rl.sh setup"
+    assert "repo .venv is missing required repair-training dependencies" in plan["bootstrap_recommendation"]["message"]

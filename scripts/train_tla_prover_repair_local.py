@@ -25,16 +25,57 @@ from scripts.train_rl_repair import (
     resolve_trajectory_files,
 )
 
+BOOTSTRAP_ENV_COMMAND = "bash scripts/launch_rl.sh setup"
+
 
 def _resolve_python_executable() -> str:
+    venv_python = REPO / ".venv" / "bin" / "python"
     for candidate in (
         os.environ.get("CHATTLA_PYTHON"),
         os.environ.get("PYTHON"),
+        str(venv_python) if venv_python.exists() else None,
         sys.executable,
     ):
         if candidate:
             return candidate
     return "python3"
+
+
+def _bootstrap_recommendation(
+    *,
+    repo: Path,
+    python_executable: str,
+    preflight_report: dict[str, Any],
+) -> dict[str, Any] | None:
+    runtime_dependencies = dict(preflight_report.get("runtime_dependencies") or {})
+    missing = list(runtime_dependencies.get("missing") or [])
+    if not missing:
+        return None
+    try:
+        selected = Path(python_executable).resolve()
+    except FileNotFoundError:
+        selected = Path(python_executable)
+    repo_venv = (repo / ".venv" / "bin" / "python").resolve()
+    using_repo_venv = selected == repo_venv
+    if using_repo_venv:
+        return {
+            "reason": "selected_python_missing_training_dependencies",
+            "selected_python": str(selected),
+            "command": BOOTSTRAP_ENV_COMMAND,
+            "message": (
+                "Selected repo .venv is missing required repair-training dependencies. "
+                "Bootstrap the repo environment, then rerun this preflight."
+            ),
+        }
+    return {
+        "reason": "selected_python_missing_training_dependencies",
+        "selected_python": str(selected),
+        "command": BOOTSTRAP_ENV_COMMAND,
+        "message": (
+            "Selected Python is missing required repair-training dependencies. "
+            "Bootstrap the repo .venv or set CHATTLA_PYTHON/PYTHON to a ready environment, then rerun this preflight."
+        ),
+    }
 
 
 def _safe_label(value: str | None) -> str:
@@ -155,6 +196,11 @@ def build_run_plan(
         include_benchmark_repair_pairs=include_benchmark_repair_pairs,
         extra_args=extra_args,
     )
+    bootstrap_recommendation = _bootstrap_recommendation(
+        repo=repo,
+        python_executable=resolved_python,
+        preflight_report=preflight_report,
+    )
 
     command = [resolved_python, "-m", "scripts.train_rl_repair"]
     for path in resolved_trajectory_files:
@@ -176,6 +222,7 @@ def build_run_plan(
         "python_executable": resolved_python,
         "output_dir": str(final_output_dir),
         "command": command,
+        "bootstrap_recommendation": bootstrap_recommendation,
     }
 
 
