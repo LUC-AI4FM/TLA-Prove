@@ -155,6 +155,7 @@ def test_build_report_proves_formalllm_rows_are_present_in_train_corpora(tmp_pat
     train = tmp_path / "chattla_tla_prover_sft_v1.jsonl"
     expanded = tmp_path / "chattla_tla_prover_sft_public_expanded_v1.jsonl"
     full_public = tmp_path / "chattla_tla_prover_sft_public_all_v1.jsonl"
+    holdout = tmp_path / "diamond_eval_holdout.jsonl"
     row_a = {
         "_prompt_id": "formalllm/FamilyA/0001/Alpha",
         "messages": [
@@ -175,8 +176,9 @@ def test_build_report_proves_formalllm_rows_are_present_in_train_corpora(tmp_pat
     _write(train, [row_a, row_b, row_a])
     _write(expanded, [row_b, row_a])
     _write(full_public, [row_a, row_b])
+    _write(holdout, [{"_prompt_id": "diamond/holdout/1", "messages": [{"role": "user", "content": "holdout"}, {"role": "assistant", "channel": "final", "content": "answer-h"}]}])
 
-    report = build_report([train, expanded, full_public, formalllm], sany_summary=None)
+    report = build_report([train, expanded, full_public, formalllm], holdout=holdout, sany_summary=None)
 
     assert report["ok"] is True
     assert report["formalllm_coverage"]["ok"] is True
@@ -185,6 +187,11 @@ def test_build_report_proves_formalllm_rows_are_present_in_train_corpora(tmp_pat
     assert corpora[str(train)]["extra_occurrences_over_formalllm_rows"] == 1
     assert corpora[str(expanded)]["missing_rows"] == 0
     assert corpora[str(full_public)]["missing_rows"] == 0
+    leakage = {item["path"]: item for item in report["diamond_eval_holdout_leakage"]["corpora"]}
+    assert report["diamond_eval_holdout_leakage"]["ok"] is True
+    assert leakage[str(train)]["leaked_rows"] == 0
+    assert leakage[str(expanded)]["leaked_rows"] == 0
+    assert leakage[str(full_public)]["leaked_rows"] == 0
 
 
 def test_build_report_flags_missing_formalllm_rows_in_train_corpus(tmp_path: Path) -> None:
@@ -216,3 +223,36 @@ def test_build_report_flags_missing_formalllm_rows_in_train_corpus(tmp_path: Pat
     item = report["formalllm_coverage"]["corpora"][0]
     assert item["missing_rows"] == 1
     assert item["missing_prompt_ids_sample"] == ["formalllm/FamilyB/0002/Beta"]
+
+
+def test_build_report_flags_train_corpus_holdout_leakage(tmp_path: Path) -> None:
+    formalllm = tmp_path / "formalllm_eval_v1.jsonl"
+    train = tmp_path / "chattla_tla_prover_sft_v1.jsonl"
+    holdout = tmp_path / "diamond_eval_holdout.jsonl"
+    formalllm_row = {
+        "_prompt_id": "formalllm/FamilyA/0001/Alpha",
+        "messages": [
+            {"role": "developer", "content": "dev"},
+            {"role": "user", "content": "task-a"},
+            {"role": "assistant", "channel": "final", "content": "answer-a"},
+        ],
+    }
+    holdout_row = {
+        "_prompt_id": "diamond/holdout/1",
+        "messages": [
+            {"role": "developer", "content": "dev"},
+            {"role": "user", "content": "holdout-task"},
+            {"role": "assistant", "channel": "final", "content": "holdout-answer"},
+        ],
+    }
+    _write(formalllm, [formalllm_row])
+    _write(train, [formalllm_row, holdout_row])
+    _write(holdout, [holdout_row])
+
+    report = build_report([train, formalllm], holdout=holdout, sany_summary=None)
+
+    assert report["ok"] is False
+    assert report["diamond_eval_holdout_leakage"]["ok"] is False
+    item = report["diamond_eval_holdout_leakage"]["corpora"][0]
+    assert item["leaked_rows"] == 1
+    assert item["leaked_prompt_ids_sample"] == ["diamond/holdout/1"]

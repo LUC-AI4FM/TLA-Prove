@@ -104,6 +104,88 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
             },
         },
     )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_corpus_preflight.json",
+        {
+            "formalllm_coverage": {
+                "formalllm_rows": 205,
+                "ok": True,
+                "corpora": [
+                    {
+                        "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+                        "matched_distinct_rows": 205,
+                        "matched_total_occurrences": 205,
+                        "missing_rows": 0,
+                        "extra_occurrences_over_formalllm_rows": 0,
+                        "ok": True,
+                    },
+                    {
+                        "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+                        "matched_distinct_rows": 205,
+                        "matched_total_occurrences": 205,
+                        "missing_rows": 0,
+                        "extra_occurrences_over_formalllm_rows": 0,
+                        "ok": True,
+                    },
+                    {
+                        "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+                        "matched_distinct_rows": 205,
+                        "matched_total_occurrences": 205,
+                        "missing_rows": 0,
+                        "extra_occurrences_over_formalllm_rows": 0,
+                        "ok": True,
+                    },
+                ],
+            },
+            "diamond_eval_holdout_leakage": {
+                "ok": True,
+                "corpora": [
+                    {
+                        "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+                        "leaked_rows": 0,
+                        "ok": True,
+                    },
+                    {
+                        "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+                        "leaked_rows": 0,
+                        "ok": True,
+                    },
+                    {
+                        "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+                        "leaked_rows": 0,
+                        "ok": True,
+                    },
+                ],
+            },
+        },
+    )
+    _write(
+        tmp_path / "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
+        {
+            "aggregate": {
+                "total_public_jsonl_rows": 2350,
+                "all_public_jsonl_rows": 2757,
+                "all_public_jsonl_files": 19,
+            }
+        },
+    )
+    _write(
+        tmp_path / "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json",
+        {"totals": {"tla": 2110}},
+    )
+    _write(
+        tmp_path / "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json",
+        {"rows": 2108},
+    )
+    _write(
+        tmp_path / "outputs/manifests/ai4fm_public_dataset_surface.json",
+        {
+            "public_1800_plus_interpretation": {
+                "canonical_formalllm_rows": 205,
+                "status": "stale_for_formalllm_canonical_layer",
+            }
+        },
+    )
 
     report = build_report(tmp_path)
 
@@ -111,6 +193,8 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     assert report["publish_baseline_lane"] == "default"
     assert report["lanes"]["default"]["rows"] == 1330
     assert report["lanes"]["default"]["default_publish_lane"] is True
+    assert report["lanes"]["default"]["formalllm_coverage"]["matched_distinct_rows"] == 205
+    assert report["lanes"]["default"]["diamond_eval_holdout_leakage"]["leaked_rows"] == 0
     assert report["lanes"]["expanded"]["delta_vs_default_rows"] == 1173
     assert report["lanes"]["expanded"]["component_rows"]["public_import_rows"] == 1005
     assert report["lanes"]["full-public"]["delta_vs_default_rows"] == 1178
@@ -119,6 +203,13 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     assert report["lanes"]["shape-ready-not-sany"]["delta_vs_shape_ready_rows"] == -168
     assert report["comparisons"]["full_public_vs_expanded_extra_rows"] == 5
     assert report["seed_funnel_snapshot"]["shape_ready_but_not_sany_clean_rows"] == 0
+    assert report["formalllm_contract"]["canonical_rows"] == 205
+    assert report["formalllm_contract"]["coverage_ok"] is True
+    assert report["formalllm_contract"]["diamond_eval_holdout_leakage_ok"] is True
+    assert report["public_ai4fm_scope"]["tracked_tlaprove_public_rows"] == 2350
+    assert report["public_ai4fm_scope"]["all_public_tlaprove_rows"] == 2757
+    assert report["public_ai4fm_scope"]["public_seed_tla_files"] == 2110
+    assert report["public_ai4fm_scope"]["usable_public_seed_modules"] == 2108
     assert report["publish_readiness"]["default_model"]["benchmark_model"] == "chattla:20b"
     assert report["publish_readiness"]["fc128best_model"]["ready_to_publish"] is False
     assert report["named_corpora"]["full-public"].endswith("chattla_tla_prover_sft_public_all_v1.jsonl")

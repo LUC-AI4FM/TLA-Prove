@@ -183,6 +183,40 @@ def inspect_formalllm_coverage(
     return coverage
 
 
+def inspect_holdout_leakage(
+    *,
+    holdout_path: Path,
+    train_paths: list[Path],
+) -> dict[str, Any]:
+    holdout_rows = _iter_rows(holdout_path)
+    expected = Counter(_fingerprint(row) for row in holdout_rows)
+    prompt_ids = {
+        _fingerprint(row): str(row.get("_prompt_id", f"row-{idx+1}"))
+        for idx, row in enumerate(holdout_rows)
+    }
+    leakage: dict[str, Any] = {
+        "holdout_path": _display_path(holdout_path),
+        "holdout_rows": len(holdout_rows),
+        "corpora": [],
+    }
+    overall_ok = True
+    for path in train_paths:
+        train_rows = _iter_rows(path)
+        observed = Counter(_fingerprint(row) for row in train_rows)
+        leaked = [fingerprint for fingerprint, count in expected.items() if observed[fingerprint] >= count]
+        item = {
+            "path": _display_path(path),
+            "rows": len(train_rows),
+            "leaked_rows": len(leaked),
+            "leaked_prompt_ids_sample": [prompt_ids[fingerprint] for fingerprint in leaked[:10]],
+            "ok": not leaked,
+        }
+        overall_ok = overall_ok and item["ok"]
+        leakage["corpora"].append(item)
+    leakage["ok"] = overall_ok
+    return leakage
+
+
 def build_report(
     paths: list[Path],
     *,
@@ -204,6 +238,13 @@ def build_report(
         )
         report["formalllm_coverage"] = coverage
         report["ok"] = report["ok"] and coverage["ok"]
+    if holdout.exists() and train_paths:
+        leakage = inspect_holdout_leakage(
+            holdout_path=holdout,
+            train_paths=train_paths,
+        )
+        report["diamond_eval_holdout_leakage"] = leakage
+        report["ok"] = report["ok"] and leakage["ok"]
     sany_paths = [path for path in paths if path.name == "sany_tlc_pass_sft_v1.jsonl"]
     if sany_paths:
         diagnostic = diagnose_corpus(corpus=sany_paths[0], holdout=holdout, summary=sany_summary)

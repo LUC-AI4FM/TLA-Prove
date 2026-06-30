@@ -30,6 +30,11 @@ SHAPE_READY_NOT_SANY_SUMMARY = (
 FUNNEL_PATH = "outputs/manifests/ai4fm_public_seed_prover_funnel.json"
 HF_READINESS_PATH = "outputs/manifests/hf_publish_readiness.json"
 HF_READINESS_FC128BEST_PATH = "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json"
+CORPUS_PREFLIGHT_PATH = "outputs/manifests/tla_prover_corpus_preflight.json"
+PUBLIC_TLAPROVE_PATH = "outputs/manifests/ai4fm_public_tlaprove_corpora.json"
+SEED_FILE_SUMMARY = "data/processed/ai4fm_public_seed_file_manifest_v1.summary.json"
+SEED_MODULE_SUMMARY = "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json"
+DATASET_SURFACE_PATH = "outputs/manifests/ai4fm_public_dataset_surface.json"
 
 
 def _read_json(repo: Path, rel_path: str) -> dict[str, Any]:
@@ -119,6 +124,57 @@ def _readiness_snapshot(report: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _coverage_by_path(preflight: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    coverage = preflight.get("formalllm_coverage", {})
+    corpora = coverage.get("corpora", []) if isinstance(coverage, dict) else []
+    by_path: dict[str, dict[str, Any]] = {}
+    for item in corpora:
+        if isinstance(item, dict):
+            path = item.get("path")
+            if isinstance(path, str) and path:
+                by_path[path] = item
+    return by_path
+
+
+def _holdout_leakage_by_path(preflight: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    leakage = preflight.get("diamond_eval_holdout_leakage", {})
+    corpora = leakage.get("corpora", []) if isinstance(leakage, dict) else []
+    by_path: dict[str, dict[str, Any]] = {}
+    for item in corpora:
+        if isinstance(item, dict):
+            path = item.get("path")
+            if isinstance(path, str) and path:
+                by_path[path] = item
+    return by_path
+
+
+def _attach_train_lane_contract(
+    lane: dict[str, Any],
+    *,
+    coverage_by_path: dict[str, dict[str, Any]],
+    holdout_by_path: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    path = str(lane["path"])
+    coverage = coverage_by_path.get(path)
+    if coverage is not None:
+        lane["formalllm_coverage"] = {
+            "matched_distinct_rows": int(coverage.get("matched_distinct_rows", 0)),
+            "matched_total_occurrences": int(coverage.get("matched_total_occurrences", 0)),
+            "missing_rows": int(coverage.get("missing_rows", 0)),
+            "extra_occurrences_over_formalllm_rows": int(
+                coverage.get("extra_occurrences_over_formalllm_rows", 0)
+            ),
+            "ok": bool(coverage.get("ok")),
+        }
+    leakage = holdout_by_path.get(path)
+    if leakage is not None:
+        lane["diamond_eval_holdout_leakage"] = {
+            "leaked_rows": int(leakage.get("leaked_rows", 0)),
+            "ok": bool(leakage.get("ok")),
+        }
+    return lane
+
+
 def build_report(repo: Path = REPO) -> dict[str, Any]:
     default_summary = _read_json(repo, DEFAULT_SUMMARY)
     expanded_summary = _read_json(repo, EXPANDED_SUMMARY)
@@ -128,38 +184,47 @@ def build_report(repo: Path = REPO) -> dict[str, Any]:
     funnel = _read_json(repo, FUNNEL_PATH)
     readiness = _read_json(repo, HF_READINESS_PATH)
     readiness_fc128best = _read_json(repo, HF_READINESS_FC128BEST_PATH)
+    preflight = _read_json(repo, CORPUS_PREFLIGHT_PATH)
+    tlaprove = _read_json(repo, PUBLIC_TLAPROVE_PATH)
+    seed_files = _read_json(repo, SEED_FILE_SUMMARY)
+    seed_modules = _read_json(repo, SEED_MODULE_SUMMARY)
+    dataset_surface = _read_json(repo, DATASET_SURFACE_PATH)
 
     baseline_rows = int(default_summary["total_rows"])
     expanded_rows = int(expanded_summary["total_rows"])
     full_public_rows = int(full_public_summary["total_rows"])
     shape_ready_rows = int(shape_ready_summary["kept_rows"])
     shape_ready_not_sany_rows = int(shape_ready_not_sany_summary["kept_rows"])
+    coverage_by_path = _coverage_by_path(preflight)
+    holdout_by_path = _holdout_leakage_by_path(preflight)
+    formalllm_coverage_summary = preflight.get("formalllm_coverage", {})
+    holdout_leakage_summary = preflight.get("diamond_eval_holdout_leakage", {})
 
     lanes = {
-        "default": _trainable_lane(
+        "default": _attach_train_lane_contract(_trainable_lane(
             alias="default",
             summary_path=DEFAULT_SUMMARY,
             summary=default_summary,
             baseline_rows=baseline_rows,
             default_publish=True,
             intended_role="current_publish_baseline",
-        ),
-        "expanded": _trainable_lane(
+        ), coverage_by_path=coverage_by_path, holdout_by_path=holdout_by_path),
+        "expanded": _attach_train_lane_contract(_trainable_lane(
             alias="expanded",
             summary_path=EXPANDED_SUMMARY,
             summary=expanded_summary,
             baseline_rows=baseline_rows,
             default_publish=False,
             intended_role="bounded_public_comparison_train",
-        ),
-        "full-public": _trainable_lane(
+        ), coverage_by_path=coverage_by_path, holdout_by_path=holdout_by_path),
+        "full-public": _attach_train_lane_contract(_trainable_lane(
             alias="full-public",
             summary_path=FULL_PUBLIC_SUMMARY,
             summary=full_public_summary,
             baseline_rows=baseline_rows,
             default_publish=False,
             intended_role="maximal_committed_public_comparison_train",
-        ),
+        ), coverage_by_path=coverage_by_path, holdout_by_path=holdout_by_path),
         "shape-ready": _shape_lane(
             alias="shape-ready",
             summary_path=SHAPE_READY_SUMMARY,
@@ -201,6 +266,23 @@ def build_report(repo: Path = REPO) -> dict[str, Any]:
             "shape_ready_but_not_sany_clean_rows": int(
                 funnel["funnel"]["shape_ready_but_not_sany_clean_rows"]
             ),
+        },
+        "formalllm_contract": {
+            "canonical_rows": int(formalllm_coverage_summary.get("formalllm_rows", 0)),
+            "coverage_ok": bool(formalllm_coverage_summary.get("ok")),
+            "diamond_eval_holdout_leakage_ok": bool(holdout_leakage_summary.get("ok")),
+            "default_train_path": DEFAULT_LOCAL_SFT_TRAIN,
+        },
+        "public_ai4fm_scope": {
+            "canonical_formalllm_rows": int(
+                dataset_surface["public_1800_plus_interpretation"]["canonical_formalllm_rows"]
+            ),
+            "tracked_tlaprove_public_rows": int(tlaprove["aggregate"]["total_public_jsonl_rows"]),
+            "all_public_tlaprove_rows": int(tlaprove["aggregate"]["all_public_jsonl_rows"]),
+            "all_public_tlaprove_files": int(tlaprove["aggregate"]["all_public_jsonl_files"]),
+            "public_seed_tla_files": int(seed_files["totals"]["tla"]),
+            "usable_public_seed_modules": int(seed_modules.get("rows", seed_modules.get("kept_rows", 0))),
+            "interpretation_status": dataset_surface["public_1800_plus_interpretation"]["status"],
         },
         "publish_readiness": {
             "default_model": _readiness_snapshot(readiness),

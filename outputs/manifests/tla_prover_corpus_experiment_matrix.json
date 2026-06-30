@@ -7,7 +7,13 @@
     "shape_ready_vs_sany_clean_extra_rows": 0
   },
   "default_train_file": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
-  "generated_at": "2026-06-30T00:36:42.556538+00:00",
+  "formalllm_contract": {
+    "canonical_rows": 205,
+    "coverage_ok": true,
+    "default_train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+    "diamond_eval_holdout_leakage_ok": true
+  },
+  "generated_at": "2026-06-30T02:44:38.371940+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -19,6 +25,17 @@
       },
       "default_publish_lane": true,
       "delta_vs_default_rows": 0,
+      "diamond_eval_holdout_leakage": {
+        "leaked_rows": 0,
+        "ok": true
+      },
+      "formalllm_coverage": {
+        "extra_occurrences_over_formalllm_rows": 0,
+        "matched_distinct_rows": 205,
+        "matched_total_occurrences": 205,
+        "missing_rows": 0,
+        "ok": true
+      },
       "intended_role": "current_publish_baseline",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
       "rows": 1330,
@@ -37,6 +54,17 @@
       },
       "default_publish_lane": false,
       "delta_vs_default_rows": 1173,
+      "diamond_eval_holdout_leakage": {
+        "leaked_rows": 0,
+        "ok": true
+      },
+      "formalllm_coverage": {
+        "extra_occurrences_over_formalllm_rows": 0,
+        "matched_distinct_rows": 205,
+        "matched_total_occurrences": 205,
+        "missing_rows": 0,
+        "ok": true
+      },
       "intended_role": "bounded_public_comparison_train",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
       "rows": 2503,
@@ -55,6 +83,17 @@
       },
       "default_publish_lane": false,
       "delta_vs_default_rows": 1178,
+      "diamond_eval_holdout_leakage": {
+        "leaked_rows": 0,
+        "ok": true
+      },
+      "formalllm_coverage": {
+        "extra_occurrences_over_formalllm_rows": 0,
+        "matched_distinct_rows": 205,
+        "matched_total_occurrences": 205,
+        "missing_rows": 0,
+        "ok": true
+      },
       "intended_role": "maximal_committed_public_comparison_train",
       "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
       "rows": 2508,
@@ -102,13 +141,22 @@
     "Use the expanded and full-public lanes for bounded comparison runs first; do not publish from those lanes on corpus size alone.",
     "Use the shape-ready and shape-ready-not-sany lanes only for repair, curriculum, or ablation work; they are not publish lanes."
   ],
+  "public_ai4fm_scope": {
+    "all_public_tlaprove_files": 19,
+    "all_public_tlaprove_rows": 2757,
+    "canonical_formalllm_rows": 205,
+    "interpretation_status": "stale_for_formalllm_canonical_layer",
+    "public_seed_tla_files": 2110,
+    "tracked_tlaprove_public_rows": 2350,
+    "usable_public_seed_modules": 2108
+  },
   "publish_baseline_lane": "default",
   "publish_readiness": {
     "default_model": {
-      "age_hours": 1405.2118107175165,
+      "age_hours": 1418.5879361430805,
       "benchmark_model": "chattla:20b",
       "blockers": [
-        "latest full benchmark is stale at 1405.2h (limit 24.0h)",
+        "latest full benchmark is stale at 1418.6h (limit 24.0h)",
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
       ],
       "ready_to_publish": false,
@@ -118,7 +166,7 @@
       "tlc": 0
     },
     "fc128best_model": {
-      "age_hours": 8.154910328918033,
+      "age_hours": 21.531030602587595,
       "benchmark_model": "chattla:20b-fc128best",
       "blockers": [
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
