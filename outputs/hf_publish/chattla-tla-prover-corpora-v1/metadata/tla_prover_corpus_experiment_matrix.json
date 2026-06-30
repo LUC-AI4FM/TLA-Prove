@@ -13,7 +13,7 @@
     "default_train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "diamond_eval_holdout_leakage_ok": true
   },
-  "generated_at": "2026-06-30T13:29:15.519469+00:00",
+  "generated_at": "2026-06-30T19:17:21.431384+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -130,24 +130,15 @@
     }
   },
   "local_repair_runtime_status": {
-    "bootstrap_recommendation": {
-      "command": null,
-      "message": "Selected Python timed out while importing required repair-training modules. This looks like a native import/runtime blocker; bootstrap alone may not resolve native import/runtime blockers.",
-      "reason": "selected_python_runtime_import_timeouts"
-    },
-    "local_runtime_ready": false,
+    "bootstrap_recommendation": null,
+    "local_runtime_ready": true,
+    "observed_timeout_s": 10.0,
     "path": "outputs/manifests/tla_prover_local_repair_plan.json",
-    "preflight_ok": false,
+    "preflight_ok": true,
     "present": true,
-    "runtime_import_timeout_s": null,
-    "runtime_missing_modules": [
-      "datasets.Dataset",
-      "peft.LoraConfig",
-      "transformers.AutoModelForCausalLM",
-      "transformers.AutoTokenizer",
-      "trl.GRPOConfig",
-      "trl.GRPOTrainer"
-    ]
+    "runtime_import_timeout_s": 10.0,
+    "runtime_missing_modules": [],
+    "timeout_reprobe_recommended": false
   },
   "named_corpora": {
     "default": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",

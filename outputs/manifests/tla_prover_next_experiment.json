@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T13:44:30.324118+00:00",
+  "generated_at": "2026-06-30T19:17:21.492713+00:00",
   "handoff_prerequisite": null,
   "handoff_status": {
     "artifact_verdict": "missing",
@@ -96,24 +96,15 @@
   },
   "intent_allowed": true,
   "local_repair_status": {
-    "bootstrap_recommendation": {
-      "command": null,
-      "message": "Selected Python timed out while importing required repair-training modules. This looks like a native import/runtime blocker; bootstrap alone may not resolve native import/runtime blockers.",
-      "reason": "selected_python_runtime_import_timeouts"
-    },
-    "generated_at": "2026-06-30T11:48:13.624208+00:00",
-    "local_runtime_ready": false,
+    "bootstrap_recommendation": null,
+    "generated_at": "2026-06-30T19:16:32.310658+00:00",
+    "local_runtime_ready": true,
+    "observed_timeout_s": 10.0,
     "path": "outputs/manifests/tla_prover_local_repair_plan.json",
-    "preflight_ok": false,
+    "preflight_ok": true,
     "present": true,
-    "runtime_missing_modules": [
-      "datasets.Dataset",
-      "peft.LoraConfig",
-      "transformers.AutoModelForCausalLM",
-      "transformers.AutoTokenizer",
-      "trl.GRPOConfig",
-      "trl.GRPOTrainer"
-    ]
+    "runtime_missing_modules": [],
+    "timeout_reprobe_recommended": false
   },
   "local_repair_status_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run --runtime-import-timeout-s 10 --out outputs/manifests/tla_prover_local_repair_plan.json",
   "preferred_publish_model": null,
@@ -163,7 +154,7 @@
       "ready_to_publish": false
     }
   },
-  "rationale": "Remote decision still blocks SFT, so the next move is to rebuild repair data and continue repair training. Local repair preflight is currently not ready on this machine; missing runtime imports: datasets.Dataset, peft.LoraConfig, transformers.AutoModelForCausalLM, transformers.AutoTokenizer, trl.GRPOConfig, trl.GRPOTrainer.",
+  "rationale": "Remote decision still blocks SFT, so the next move is to rebuild repair data and continue repair training.",
   "recommended_action": "repair",
   "recommended_command": "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus",
   "recommended_local_command": "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus --runtime-import-timeout-s 10",
