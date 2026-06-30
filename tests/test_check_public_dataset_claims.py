@@ -152,9 +152,11 @@ def _write_manifests(repo: Path) -> None:
         json.dumps(
             {
                 "formalllm": {
+                    "canonical_entries": 205,
                     "tla_files": 410,
                     "clean_tla_files": 205,
                     "nonclean_tla_files": 205,
+                    "split_files": {"total": 205},
                 },
                 "pipeline": {
                     "pull": {"nfiles": 2628},
@@ -548,9 +550,11 @@ def test_build_report_flags_stale_ai4fm_public_dataset_surface_counts(tmp_path: 
         json.dumps(
             {
                 "formalllm": {
+                    "canonical_entries": 204,
                     "tla_files": 410,
-                    "clean_tla_files": 205,
+                    "clean_tla_files": 204,
                     "nonclean_tla_files": 205,
+                    "split_files": {"total": 204},
                 },
                 "pipeline": {
                     "pull": {"nfiles": 2628},
@@ -578,12 +582,86 @@ def test_build_report_flags_stale_ai4fm_public_dataset_surface_counts(tmp_path: 
     assert report["ok"] is False
     assert any(
         finding["path"] == "outputs/manifests/ai4fm_public_dataset_surface.json"
+        and "formalllm.canonical_entries == 205" in finding["expected"]
+        for finding in report["findings"]
+    )
+    assert any(
+        finding["path"] == "outputs/manifests/ai4fm_public_dataset_surface.json"
+        and "formalllm.clean_tla_files == 205" in finding["expected"]
+        for finding in report["findings"]
+    )
+    assert any(
+        finding["path"] == "outputs/manifests/ai4fm_public_dataset_surface.json"
+        and "formalllm.split_files.total == 205" in finding["expected"]
+        for finding in report["findings"]
+    )
+    assert any(
+        finding["path"] == "outputs/manifests/ai4fm_public_dataset_surface.json"
         and "broader_public_lanes.sany_clean_seed_prover_candidates.rows == 168" in finding["expected"]
         for finding in report["findings"]
     )
     assert any(
         finding["path"] == "outputs/manifests/ai4fm_public_dataset_surface.json"
         and "broader_public_lanes.shape_ready_not_sany_rows.rows == 0" in finding["expected"]
+        for finding in report["findings"]
+    )
+
+
+def test_build_report_flags_stale_formalllm_preflight_count(tmp_path: Path) -> None:
+    _write_manifests(tmp_path)
+    _write(tmp_path / "README.md", "")
+    _write(tmp_path / "docs/AI4FM_PUBLIC_DATASET_SURFACE.md", "")
+    _write(tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md", "")
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_corpus_preflight.json",
+        json.dumps(
+            {
+                "ok": True,
+                "formalllm_coverage": {
+                    "ok": True,
+                    "formalllm_rows": 204,
+                    "corpora": [
+                        {
+                            "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+                            "rows": 1330,
+                            "matched_distinct_rows": 205,
+                            "matched_total_occurrences": 205,
+                            "missing_rows": 0,
+                            "ok": True,
+                        },
+                        {
+                            "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+                            "rows": 2503,
+                            "matched_distinct_rows": 205,
+                            "matched_total_occurrences": 205,
+                            "missing_rows": 0,
+                            "ok": True,
+                        },
+                        {
+                            "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+                            "rows": 2508,
+                            "matched_distinct_rows": 205,
+                            "matched_total_occurrences": 205,
+                            "missing_rows": 0,
+                            "ok": True,
+                        },
+                    ],
+                },
+            }
+        ),
+    )
+    _write_bundle_copy(
+        tmp_path,
+        "tla_prover_corpus_preflight.json",
+        "outputs/manifests/tla_prover_corpus_preflight.json",
+    )
+
+    report = build_report(repo=tmp_path)
+
+    assert report["ok"] is False
+    assert any(
+        finding["path"] == "outputs/manifests/tla_prover_corpus_preflight.json"
+        and "formalllm_coverage.formalllm_rows == 205" in finding["expected"]
         for finding in report["findings"]
     )
 

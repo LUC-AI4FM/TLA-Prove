@@ -173,6 +173,55 @@ def _dataset_surface_consistency_findings(repo: Path) -> list[dict[str, str]]:
     return findings
 
 
+def _formalllm_surface_consistency_findings(repo: Path) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    dataset_surface_path = repo / "outputs/manifests/ai4fm_public_dataset_surface.json"
+    preflight_path = repo / "outputs/manifests/tla_prover_corpus_preflight.json"
+    formalllm_summary_path = repo / "data/processed/formalllm_eval_v1.summary.json"
+
+    if not dataset_surface_path.exists() or not preflight_path.exists() or not formalllm_summary_path.exists():
+        return findings
+
+    dataset_surface = _read_json(dataset_surface_path)
+    formalllm_surface = dataset_surface.get("formalllm")
+    if not isinstance(formalllm_surface, dict):
+        return findings
+
+    expected_rows = int(_read_json(formalllm_summary_path).get("rows", 0))
+    preflight_rows = int(
+        _read_json(preflight_path).get("formalllm_coverage", {}).get("formalllm_rows", 0)
+    )
+    split_total = formalllm_surface.get("split_files", {}).get("total")
+
+    expected_dataset_fields = {
+        "formalllm.canonical_entries": formalllm_surface.get("canonical_entries"),
+        "formalllm.clean_tla_files": formalllm_surface.get("clean_tla_files"),
+        "formalllm.split_files.total": split_total,
+    }
+    for field_name, actual in expected_dataset_fields.items():
+        try:
+            actual_int = int(actual)
+        except (TypeError, ValueError):
+            actual_int = None
+        if actual_int != expected_rows:
+            findings.append(
+                {
+                    "path": str(dataset_surface_path.relative_to(repo)),
+                    "expected": f"{field_name} == {expected_rows}",
+                }
+            )
+
+    if preflight_rows != expected_rows:
+        findings.append(
+            {
+                "path": str(preflight_path.relative_to(repo)),
+                "expected": f"formalllm_coverage.formalllm_rows == {expected_rows}",
+            }
+        )
+
+    return findings
+
+
 def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     formalllm = _read_json(repo / "data/processed/formalllm_eval_v1.summary.json")
     formalllm_public_manifest = _read_json(repo / "data/processed/formalllm_public_module_manifest_v1.summary.json")
@@ -600,6 +649,7 @@ def build_report(*, repo: Path = REPO) -> dict[str, Any]:
                 }
             )
     findings.extend(_dataset_surface_consistency_findings(repo))
+    findings.extend(_formalllm_surface_consistency_findings(repo))
     return {
         "ok": not findings,
         "generated_at": datetime.now(timezone.utc).isoformat(),
