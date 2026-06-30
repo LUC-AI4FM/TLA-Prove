@@ -58,6 +58,7 @@ def test_build_preflight_report_uses_merged_summary_for_default_corpus(tmp_path,
             "ok": True,
             "available": ["torch", "yaml", "datasets", "peft", "transformers", "trl"],
             "missing": [],
+            "timings": [],
         },
     )
 
@@ -109,6 +110,7 @@ def test_build_preflight_report_flags_missing_selected_corpus(tmp_path, monkeypa
             "ok": True,
             "available": ["torch", "yaml", "datasets", "peft", "transformers", "trl"],
             "missing": [],
+            "timings": [],
         },
     )
 
@@ -165,6 +167,29 @@ def test_build_runtime_config_preserves_explicit_runtime_choices_for_smoke(monke
 
 
 def test_probe_runtime_dependencies_reports_timeout(monkeypatch) -> None:
+    def fake_run(cmd, **kwargs):
+        module_name = cmd[-1].split("importlib.import_module(", 1)[1].split(")", 1)[0].strip("'\"")
+        assert module_name == "torch"
+        raise subprocess.TimeoutExpired(
+            cmd=cmd,
+            timeout=3.0,
+        )
+
+    monkeypatch.setattr("scripts.train_rl_repair.subprocess.run", fake_run)
+
+    report = _probe_runtime_dependencies(module_names=("torch",), python_executable="/tmp/python", timeout_s=3.0)
+
+    assert report["python_executable"] == "/tmp/python"
+    assert report["timeout_s"] == 3.0
+    assert report["available"] == []
+    assert report["missing"] == [
+        {"module": "torch", "error": "TimeoutExpired: import timed out after 3.0s"}
+    ]
+    assert report["timings"] == [{"module": "torch", "ok": False, "elapsed_s": report["timings"][0]["elapsed_s"]}]
+    assert report["ok"] is False
+
+
+def test_probe_runtime_dependencies_continues_after_timeout(monkeypatch) -> None:
     class _Completed:
         def __init__(self, returncode: int = 0, stderr: str = "", stdout: str = "") -> None:
             self.returncode = returncode
@@ -172,20 +197,27 @@ def test_probe_runtime_dependencies_reports_timeout(monkeypatch) -> None:
             self.stdout = stdout
 
     def fake_run(cmd, **kwargs):
-        if "torch" in cmd[-1]:
+        module_name = cmd[-1].split("importlib.import_module(", 1)[1].split(")", 1)[0].strip("'\"")
+        if module_name == "datasets":
             raise subprocess.TimeoutExpired(cmd=cmd, timeout=3.0)
+        if module_name == "peft":
+            return _Completed(returncode=1, stderr="ModuleNotFoundError: No module named peft")
         return _Completed()
 
     monkeypatch.setattr("scripts.train_rl_repair.subprocess.run", fake_run)
 
-    report = _probe_runtime_dependencies(module_names=("yaml", "torch"), python_executable="/tmp/python", timeout_s=3.0)
+    report = _probe_runtime_dependencies(
+        module_names=("yaml", "datasets", "peft", "transformers"),
+        python_executable="/tmp/python",
+        timeout_s=3.0,
+    )
 
-    assert report["python_executable"] == "/tmp/python"
-    assert report["timeout_s"] == 3.0
-    assert report["available"] == ["yaml"]
+    assert report["available"] == ["yaml", "transformers"]
     assert report["missing"] == [
-        {"module": "torch", "error": "TimeoutExpired: import timed out after 3.0s"}
+        {"module": "datasets", "error": "TimeoutExpired: import timed out after 3.0s"},
+        {"module": "peft", "error": "ModuleNotFoundError: No module named peft"},
     ]
+    assert [entry["module"] for entry in report["timings"]] == ["yaml", "datasets", "peft", "transformers"]
     assert report["ok"] is False
 
 
@@ -212,6 +244,7 @@ def test_build_preflight_report_marks_missing_runtime_dependencies(tmp_path, mon
             "missing": [
                 {"module": "torch", "error": "ModuleNotFoundError: No module named 'torch'"},
             ],
+            "timings": [],
         },
     )
 

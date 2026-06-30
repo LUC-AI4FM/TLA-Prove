@@ -26,7 +26,7 @@ from scripts.train_rl_repair import (
     resolve_trajectory_files,
 )
 
-BOOTSTRAP_ENV_COMMAND = "bash scripts/launch_rl.sh setup"
+BOOTSTRAP_ENV_COMMAND = "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup"
 REPAIR_REFRESH_STEPS: tuple[tuple[str, ...], ...] = (
     ("python3", "scripts/build_tla_prover_full_dataset_repair_queue.py"),
     ("python3", "scripts/build_tla_prover_full_dataset_repair_evidence.py"),

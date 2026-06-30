@@ -42,6 +42,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -109,46 +110,57 @@ def _probe_runtime_dependencies(
 ) -> dict[str, Any]:
     available: list[str] = []
     missing: list[dict[str, str]] = []
+    timings: list[dict[str, Any]] = []
     python = python_executable or sys.executable
-    timeout = timeout_s if timeout_s is not None else float(os.environ.get("CHATTLA_RUNTIME_IMPORT_TIMEOUT_S", "20"))
+    timeout = timeout_s if timeout_s is not None else float(os.environ.get("CHATTLA_RUNTIME_IMPORT_TIMEOUT_S", "120"))
     for module_name in module_names:
+        probe_script = (
+            "import importlib\n"
+            f"importlib.import_module({module_name!r})\n"
+        )
+        started_at = time.monotonic()
         try:
             completed = subprocess.run(
-                [
-                    python,
-                    "-c",
-                    f"import importlib; importlib.import_module({module_name!r})",
-                ],
+                [python, "-c", probe_script],
                 text=True,
                 capture_output=True,
                 timeout=timeout,
             )
         except subprocess.TimeoutExpired:
+            elapsed_s = round(time.monotonic() - started_at, 2)
             missing.append(
                 {
                     "module": module_name,
                     "error": f"TimeoutExpired: import timed out after {timeout}s",
                 }
             )
+            timings.append({"module": module_name, "ok": False, "elapsed_s": elapsed_s})
             continue
         except Exception as exc:
+            elapsed_s = round(time.monotonic() - started_at, 2)
             missing.append(
                 {
                     "module": module_name,
                     "error": f"{type(exc).__name__}: {exc}",
                 }
             )
+            timings.append({"module": module_name, "ok": False, "elapsed_s": elapsed_s})
             continue
 
+        elapsed_s = round(time.monotonic() - started_at, 2)
         if completed.returncode == 0:
             available.append(module_name)
-        else:
-            detail = completed.stderr.strip() or completed.stdout.strip() or f"rc={completed.returncode}"
-            missing.append({"module": module_name, "error": detail})
+            timings.append({"module": module_name, "ok": True, "elapsed_s": elapsed_s})
+            continue
+
+        detail = completed.stderr.strip() or completed.stdout.strip() or f"rc={completed.returncode}"
+        missing.append({"module": module_name, "error": detail})
+        timings.append({"module": module_name, "ok": False, "elapsed_s": elapsed_s})
     return {
         "ok": not missing,
         "available": available,
         "missing": missing,
+        "timings": timings,
         "python_executable": python,
         "timeout_s": timeout,
     }

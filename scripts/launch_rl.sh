@@ -30,6 +30,8 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 SESSION_NAME="chattla-rl"
 LOG_FILE="$REPO_ROOT/outputs/logs/rl_loop.log"
 HISTORY_FILE="$REPO_ROOT/outputs/logs/rl_history.jsonl"
+SUPPORTED_BOOTSTRAP_PYTHONS=(python3.11 python3.12 python3.13 python3)
+DEFAULT_BOOTSTRAP_REQUIREMENTS_FILE="$REPO_ROOT/requirements.txt"
 
 # ─── Colors ──────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -52,6 +54,35 @@ usage() {
     echo ""
 }
 
+choose_bootstrap_python() {
+    if [[ -n "${CHATTLA_BOOTSTRAP_PYTHON:-}" ]]; then
+        if command -v "$CHATTLA_BOOTSTRAP_PYTHON" >/dev/null 2>&1; then
+            printf '%s\n' "$CHATTLA_BOOTSTRAP_PYTHON"
+            return 0
+        fi
+        echo -e "${RED}Configured CHATTLA_BOOTSTRAP_PYTHON '$CHATTLA_BOOTSTRAP_PYTHON' was not found on PATH.${NC}" >&2
+        return 1
+    fi
+
+    local candidate=""
+    for candidate in "${SUPPORTED_BOOTSTRAP_PYTHONS[@]}"; do
+        if command -v "$candidate" >/dev/null 2>&1; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    echo -e "${RED}Unable to find a supported bootstrap interpreter (${SUPPORTED_BOOTSTRAP_PYTHONS[*]}).${NC}" >&2
+    return 1
+}
+
+python_mm() {
+    "$1" - <<'PY'
+import sys
+print(f"{sys.version_info.major}.{sys.version_info.minor}")
+PY
+}
+
 # ─── Bootstrap (merged from former setup_chattla_env.sh) ─────────────────────
 ensure_training_env() {
     cd "$REPO_ROOT"
@@ -66,15 +97,41 @@ ensure_training_env() {
     fi
 
     local venv_dir="$REPO_ROOT/.venv"
+    local bootstrap_python
+    bootstrap_python="$(choose_bootstrap_python)"
+    local bootstrap_requirements="${CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE:-$DEFAULT_BOOTSTRAP_REQUIREMENTS_FILE}"
+    if [[ "$bootstrap_requirements" != /* ]]; then
+        bootstrap_requirements="$REPO_ROOT/$bootstrap_requirements"
+    fi
+    if [[ ! -f "$bootstrap_requirements" ]]; then
+        echo -e "${RED}Bootstrap requirements file '$bootstrap_requirements' was not found.${NC}" >&2
+        return 1
+    fi
+    local bootstrap_mm
+    bootstrap_mm="$(python_mm "$bootstrap_python")"
+
+    if [[ -d "$venv_dir" && -x "$venv_dir/bin/python" ]]; then
+        local venv_mm
+        venv_mm="$("$venv_dir/bin/python" - <<'PY'
+import sys
+print(f"{sys.version_info.major}.{sys.version_info.minor}")
+PY
+)"
+        if [[ "$venv_mm" != "$bootstrap_mm" ]]; then
+            echo -e "${YELLOW}Rebuilding .venv with $bootstrap_python (found existing Python $venv_mm, need $bootstrap_mm for supported training wheels).${NC}"
+            rm -rf "$venv_dir"
+        fi
+    fi
+
     if [[ ! -d "$venv_dir" ]]; then
-        echo -e "${BLUE}Creating .venv...${NC}"
-        python3 -m venv "$venv_dir"
+        echo -e "${BLUE}Creating .venv with $bootstrap_python...${NC}"
+        "$bootstrap_python" -m venv "$venv_dir"
     fi
     # shellcheck disable=SC1091
     source "$venv_dir/bin/activate"
     pip install -q -U pip
-    echo -e "${BLUE}Installing requirements.txt (quiet)...${NC}"
-    pip install -q -r "$REPO_ROOT/requirements.txt"
+    echo -e "${BLUE}Installing $(basename "$bootstrap_requirements") (quiet)...${NC}"
+    pip install -q -r "$bootstrap_requirements"
     deactivate 2>/dev/null || true
 
     if [[ -n "${HF_TOKEN:-}" ]]; then

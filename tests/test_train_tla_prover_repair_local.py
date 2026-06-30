@@ -1,3 +1,4 @@
+import os
 import json
 import subprocess
 from pathlib import Path
@@ -129,6 +130,10 @@ def test_cli_preflight_dry_run_executes_without_import_error() -> None:
         cwd=REPO,
         text=True,
         capture_output=True,
+        env={
+            **os.environ,
+            "CHATTLA_RUNTIME_IMPORT_TIMEOUT_S": "2",
+        },
     )
 
     assert completed.returncode == 0, completed.stderr
@@ -291,7 +296,10 @@ def test_build_run_plan_surfaces_bootstrap_recommendation_for_missing_repo_venv_
     )
 
     assert plan["bootstrap_recommendation"]["reason"] == "selected_python_missing_training_dependencies"
-    assert plan["bootstrap_recommendation"]["command"] == "bash scripts/launch_rl.sh setup"
+    assert (
+        plan["bootstrap_recommendation"]["command"]
+        == "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup"
+    )
     assert "repo .venv is missing required repair-training dependencies" in plan["bootstrap_recommendation"]["message"]
 
 
