@@ -540,9 +540,20 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("removed CONSTDEF pseudo-keyword")
         fixed = fixed_new
 
-    fixed_new = re.sub(r"^([A-Z_][A-Z0-9_]*)\s*=\s*(.+)$", r"\1 == \2", fixed, flags=re.MULTILINE)
+    fixed_new = re.sub(r"^([A-Z_][A-Z0-9_]*)\s*=\s*(?!=)(.+)$", r"\1 == \2", fixed, flags=re.MULTILINE)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized top-level = definitions to ==")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"#=", "#", fixed)
+    fixed_new = re.sub(r"/=", "#", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized pseudo-inequality operators")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"(^\s*/\\\s+\w+(?:\[[^]\n]+\])?)\s*:\s*", r"\1 \\in ", fixed, flags=re.MULTILINE)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized colon membership conjuncts")
         fixed = fixed_new
 
     def _rewrite_unchanged_brackets(match: re.Match) -> str:
@@ -593,6 +604,73 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             if fixed_new != fixed:
                 fixed = fixed_new
                 result.fixes_applied.append("realigned vars tuple with VARIABLES declaration")
+
+    const_decl = re.search(r"^CONSTANTS?\s+(.+)$", fixed, re.MULTILINE)
+    if const_decl:
+        raw_consts = re.sub(r"\\\*.*$", "", const_decl.group(1)).strip()
+        names = []
+        seen = set()
+        for part in raw_consts.split(","):
+            candidate = part.strip()
+            if not candidate:
+                continue
+            name_match = re.match(r"[A-Za-z_][A-Za-z0-9_]*", candidate)
+            if not name_match:
+                continue
+            name = name_match.group(0)
+            if name in seen:
+                continue
+            seen.add(name)
+            names.append(name)
+        if names:
+            keyword = "CONSTANTS" if const_decl.group(0).startswith("CONSTANTS ") else "CONSTANT"
+            cleaned_decl = f"{keyword} {', '.join(names)}"
+            if cleaned_decl != const_decl.group(0):
+                fixed = fixed[:const_decl.start()] + cleaned_decl + fixed[const_decl.end():]
+                result.fixes_applied.append("cleaned single-line CONSTANTS declaration")
+
+    fixed_new = re.sub(r"\bUnchanged\(([^)\n]+)\)", r"UNCHANGED \1", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized lowercase Unchanged operator")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"EXCEPT\s+(!\[[^]]+\]\s*=\s*)@\(([^()\n]+)\)", r"EXCEPT \1\2", fixed)
+    fixed_new = re.sub(r"EXCEPT\s+(!\[[^]]+\]\s*=\s*)@([A-Za-z_][A-Za-z0-9_]*|\"[^\"]*\")", r"EXCEPT \1\2", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed @(...) wrapper in EXCEPT updates")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(^\s*/\\\s+)([A-Za-z_][A-Za-z0-9_]*)'\[([^\]\n]+)\]\s*=\s*([^\n]+)$",
+        r"\1\2' = [\2 EXCEPT ![\3] = \4]",
+        fixed,
+        flags=re.MULTILINE,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote indexed prime assignment as EXCEPT update")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"<<\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\|->\s*([^\]\n]+)\]\s*:\s*\1\s*\\in\s*([^>\n]+)>>",
+        r"[\1 \\in \3 |-> \2]",
+        fixed,
+    )
+    fixed_new = re.sub(
+        r"<<\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\|->\s*([^\]\n:]+)\s*:\s*\1\s*\\in\s*([^\]\n]+)\]>>",
+        r"[\1 \\in \3 |-> \2]",
+        fixed_new,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote tuple-comprehension function initializer")
+        fixed = fixed_new
+
+    init_match = re.search(r"(^Init\s*==\s*\n.*?)(?=^\w+(?:\([^)]*\))?\s*==|\Z)", fixed, re.MULTILINE | re.DOTALL)
+    if init_match:
+        init_block = init_match.group(1)
+        repaired_init = re.sub(r"(^\s*/\\\s+)([A-Za-z_][A-Za-z0-9_]*)'\s*=", r"\1\2 =", init_block, flags=re.MULTILINE)
+        if repaired_init != init_block:
+            fixed = fixed[:init_match.start(1)] + repaired_init + fixed[init_match.end(1):]
+            result.fixes_applied.append("removed primed assignments from Init")
 
     # ── Fix 24: Remove invalid SUM/PRODUCT operators ─────────────────────
     # TLA+ has no built-in SUM. Common pattern:
