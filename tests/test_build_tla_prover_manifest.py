@@ -531,7 +531,7 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "--out outputs/manifests/tla_prover_lane_comparison_plan.json"
     )
     assert manifest["remote_next_steps"]["train_tla_prover_repair_local"] == (
-        "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight"
+        "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight --refresh-corpus"
     )
     assert manifest["remote_next_steps"]["pr_ready_check"] == "python3 scripts/check_tla_prover_pr_ready.py"
     assert manifest["remote_next_steps"]["build_tla_prover_eval_corpus"] == (
@@ -635,7 +635,8 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
     )
     assert manifest["remote_next_steps"]["build_tla_prover_full_dataset_validated_repair_pairs_v1"] == (
-        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py"
+        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
+        "--allowed-tier gold --allowed-tier silver"
     )
     assert "sft_preflight_pbs" not in manifest["remote_next_steps"]
     assert "sft_preflight_launch" not in manifest["remote_next_steps"]

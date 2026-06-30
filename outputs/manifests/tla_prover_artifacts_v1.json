@@ -2525,12 +2525,12 @@
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_experiment_matrix": {
-      "bytes": 6972,
+      "bytes": 8513,
       "exists": true,
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "4811eee10d60d944312f41eedb32fc1f51cbb8f3c6db89202aa27492f804b737"
+      "sha256": "6198eff4d09ebe8463939713b92803c8626fc346ed78c24706872b1a6665f65a"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7941,
@@ -2607,7 +2607,7 @@
           "prompt_only": 1,
           "reference_spec_only": 3
         },
-        "generated_at": "2026-06-30T06:14:52.855922+00:00",
+        "generated_at": "2026-06-30T08:44:32.920054+00:00",
         "gold_source_counts": {
           "diamond_eval_holdout": 21,
           "formalllm_public_module": 17,
@@ -2659,7 +2659,7 @@
           "skip_missing_contract": 270,
           "skip_sany_invalid": 191
         },
-        "generated_at": "2026-06-30T06:03:20.352693+00:00",
+        "generated_at": "2026-06-30T08:44:22.154516+00:00",
         "priority_counts": {
           "p1": 79,
           "p2": 21,
@@ -2675,6 +2675,7 @@
         "repair_bucket_counts": {
           "inductiveness_repair": 21,
           "proof_repair": 79,
+          "proof_replay_ready": 0,
           "skip_harness_repair": 37,
           "tlc_repair": 12
         },
@@ -2682,6 +2683,13 @@
         "schema": "chattla_tla_prover_full_dataset_repair_queue_v1",
         "source_jsonl": "outputs/autoprover/full_dataset_smoke_161031.jsonl",
         "stage_plan": [
+          {
+            "bucket": "proof_replay_ready",
+            "note": "Local harness/inductiveness replay succeeded; run in a TLAPS-enabled environment to surface proof outcomes.",
+            "priority": "p1",
+            "recommended_action": "rerun_with_tlaps",
+            "rows": 0
+          },
           {
             "bucket": "proof_repair",
             "note": "Highest-value TLAPS partials for direct proof repair supervision.",
@@ -2778,37 +2786,39 @@
       "summary_path": "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json"
     },
     "tla_prover_full_dataset_validated_repair_pairs_v1": {
-      "bytes": 64827,
+      "bytes": 83623,
       "exists": true,
       "kind": "full_dataset_validated_repair_pair_corpus",
       "path": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
-      "rows": 18,
-      "sha256": "fdffa144d56f988ceccd4d15175e049a78496d451f34bf90a08cf660b1bcc539",
+      "rows": 22,
+      "sha256": "dd7aa3c76f5af2cc9511f517818e1cf844438e4448ad9a84081143c98e7b7b7b",
       "summary": {
         "allowed_tiers": [
-          "gold"
+          "gold",
+          "silver"
         ],
         "candidate_rows": 37,
         "evidence_path": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
         "excluded_counts": {
+          "excluded_not_improving": 1,
           "excluded_not_pair_ready": 112,
           "excluded_skip_harness_repair": 8,
-          "excluded_tier:bronze": 6,
-          "excluded_tier:silver": 5
+          "excluded_tier:bronze": 6
         },
-        "generated_at": "2026-06-30T06:25:04.775566+00:00",
+        "generated_at": "2026-06-30T08:46:31.814108+00:00",
         "include_harness": false,
-        "jsonl_sha256": "fdffa144d56f988ceccd4d15175e049a78496d451f34bf90a08cf660b1bcc539",
+        "jsonl_sha256": "dd7aa3c76f5af2cc9511f517818e1cf844438e4448ad9a84081143c98e7b7b7b",
         "kept_by_bucket": {
           "inductiveness_repair": 3,
-          "proof_repair": 15
+          "proof_repair": 15,
+          "tlc_repair": 4
         },
         "kept_by_gold_source_kind": {
           "diamond_eval_holdout": 17,
-          "formalllm_public_module": 1
+          "formalllm_public_module": 5
         },
         "out": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
-        "rows": 18,
+        "rows": 22,
         "schema": "chattla_tla_prover_full_dataset_validated_repair_pairs_v1",
         "validated_tier_counts": {
           "bronze": 6,
@@ -2827,17 +2837,17 @@
       "sha256": "fc6cfd19095cd363b5a4ccb65544cc6edff5a6d3d166b2aef250668de592e785"
     },
     "tla_prover_repair_train_v1": {
-      "bytes": 2350483,
+      "bytes": 2369307,
       "exists": true,
       "kind": "merged_tla_prover_repair_training_corpus",
       "path": "data/processed/tla_prover_repair_train_v1.jsonl",
-      "rows": 529,
-      "sha256": "eec043fa4bdaedb8ecadaee093ce20355e0c11ba3a9887064847a9671410761f",
+      "rows": 533,
+      "sha256": "6c27a2f656df3f4b6c72dde38435ca23ca48c471f59a0ce5dcd731bffb8f161f",
       "summary": {
         "difficulty_counts": {
           "easy": 248,
           "hard": 224,
-          "medium": 57
+          "medium": 61
         },
         "duplicate_repair_ids": [
           "BM001::74b9bb9211cd::synthetic::init_false",
@@ -3061,14 +3071,14 @@
         },
         "kept_rows_by_source": {
           "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
-          "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
+          "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
           "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
         },
         "missing_sources": [
           "data/processed/ralph_repair_pairs.jsonl",
           "data/processed/ralph_repair_pairs_long_latest.jsonl"
         ],
-        "rows": 529,
+        "rows": 533,
         "schema": "chattla_tla_prover_repair_train_summary_v1",
         "source_defaults": {
           "benchmark_repair_pairs_fc128best": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
@@ -3079,7 +3089,7 @@
         },
         "source_rows": {
           "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
-          "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
+          "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
           "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 1009
         }
       },
@@ -3184,7 +3194,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-30T06:31:47.320565+00:00",
+  "generated_at": "2026-06-30T08:47:22.597132+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -3210,7 +3220,7 @@
     "build_tla_prover_full_dataset_failure_analysis": "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py",
     "build_tla_prover_full_dataset_repair_evidence": "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py",
     "build_tla_prover_full_dataset_repair_queue": "python3 scripts/build_tla_prover_full_dataset_repair_queue.py",
-    "build_tla_prover_full_dataset_validated_repair_pairs_v1": "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py",
+    "build_tla_prover_full_dataset_validated_repair_pairs_v1": "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py --allowed-tier gold --allowed-tier silver",
     "build_tla_prover_lane_comparison_plan": "python3 scripts/build_tla_prover_lane_comparison_plan.py --baseline default --candidate expanded --mode local --out outputs/manifests/tla_prover_lane_comparison_plan.json",
     "build_tla_prover_next_experiment": "python3 scripts/choose_tla_prover_next_experiment.py --out outputs/manifests/tla_prover_next_experiment.json",
     "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
@@ -3239,7 +3249,7 @@
     "remote_submit_script": "scripts/submit_tla_prover_remote_jobs.sh --submit-sft-preflight",
     "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
     "train_tla_prover_local": "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded",
-    "train_tla_prover_repair_local": "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight",
+    "train_tla_prover_repair_local": "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight --refresh-corpus",
     "watch_remote_results": "scripts/watch_tla_prover_remote_results.sh"
   },
   "repo": ".",

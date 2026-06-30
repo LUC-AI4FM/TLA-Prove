@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 
 from scripts.train_rl_repair import DEFAULT_SMOKE_MODEL
-from scripts.train_tla_prover_repair_local import build_run_plan
+from scripts.train_tla_prover_repair_local import build_run_plan, run_refresh_pipeline
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "train_tla_prover_repair_local.py"
@@ -43,6 +43,7 @@ def test_build_run_plan_defaults_to_merged_repair_corpus_and_preflight(tmp_path:
         output_dir=None,
         extra_args=[],
         preflight_only=True,
+        refresh_corpus=False,
         python_executable="/tmp/test-python",
     )
 
@@ -55,6 +56,9 @@ def test_build_run_plan_defaults_to_merged_repair_corpus_and_preflight(tmp_path:
     assert plan["preflight_report"]["runtime_dependencies"]["requested_python_executable"] == "/tmp/test-python"
     assert plan["python_executable"] == "/tmp/test-python"
     assert plan["bootstrap_recommendation"] is None
+    assert plan["refresh_corpus"] is False
+    assert plan["refresh_steps"] == []
+    assert plan["refresh_command"] is None
     assert plan["command"] == [
         "/tmp/test-python",
         "-m",
@@ -89,6 +93,7 @@ def test_build_run_plan_uses_custom_sources_and_separate_output_dir(tmp_path: Pa
         output_dir=None,
         extra_args=["--difficulty", "hard"],
         preflight_only=False,
+        refresh_corpus=False,
         python_executable="/tmp/test-python",
     )
 
@@ -163,6 +168,7 @@ def test_build_run_plan_preflight_report_tracks_smoke_runtime(tmp_path: Path, mo
         output_dir=None,
         extra_args=["--smoke"],
         preflight_only=True,
+        refresh_corpus=False,
         python_executable="/tmp/test-python",
     )
 
@@ -199,6 +205,7 @@ def test_build_run_plan_resolves_preflight_report_via_selected_python(tmp_path: 
         output_dir=None,
         extra_args=["--smoke"],
         preflight_only=True,
+        refresh_corpus=False,
         python_executable="/tmp/test-python",
     )
 
@@ -238,6 +245,7 @@ def test_build_run_plan_prefers_repo_venv_python_when_env_unset(tmp_path: Path, 
         output_dir=None,
         extra_args=[],
         preflight_only=True,
+        refresh_corpus=False,
     )
 
     assert plan["python_executable"] == str(tmp_path / ".venv/bin/python")
@@ -279,8 +287,68 @@ def test_build_run_plan_surfaces_bootstrap_recommendation_for_missing_repo_venv_
         output_dir=None,
         extra_args=[],
         preflight_only=True,
+        refresh_corpus=False,
     )
 
     assert plan["bootstrap_recommendation"]["reason"] == "selected_python_missing_training_dependencies"
     assert plan["bootstrap_recommendation"]["command"] == "bash scripts/launch_rl.sh setup"
     assert "repo .venv is missing required repair-training dependencies" in plan["bootstrap_recommendation"]["message"]
+
+
+def test_build_run_plan_surfaces_refresh_pipeline(tmp_path: Path, monkeypatch) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
+        '{"repair_id":"R1","before_score":0.2}\n',
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        '{"rows": 1, "health": {"ok": true, "warnings": []}, "kept_rows_by_source": {"benchmark": 1}}\n',
+    )
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        lambda **_kwargs: {
+            "ok": True,
+            "runtime_dependencies": {"ok": True, "available": [], "missing": []},
+        },
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+        refresh_corpus=True,
+        python_executable="/tmp/test-python",
+    )
+
+    assert plan["refresh_corpus"] is True
+    assert plan["refresh_steps"][0] == ["python3", "scripts/build_tla_prover_full_dataset_repair_queue.py"]
+    assert "--allowed-tier silver" in plan["refresh_command"]
+
+
+def test_run_refresh_pipeline_executes_steps_in_order(tmp_path: Path) -> None:
+    seen: list[list[str]] = []
+
+    def fake_runner(cmd: list[str], *, cwd: Path, check: bool):
+        seen.append(list(cmd))
+        assert cwd == tmp_path
+        assert check is True
+        return None
+
+    run_refresh_pipeline(repo=tmp_path, runner=fake_runner)
+
+    assert seen == [
+        ["python3", "scripts/build_tla_prover_full_dataset_repair_queue.py"],
+        ["python3", "scripts/build_tla_prover_full_dataset_repair_evidence.py"],
+        [
+            "python3",
+            "scripts/build_tla_prover_full_dataset_validated_repair_pairs.py",
+            "--allowed-tier",
+            "gold",
+            "--allowed-tier",
+            "silver",
+        ],
+        ["python3", "scripts/build_tla_prover_repair_corpus.py"],
+    ]

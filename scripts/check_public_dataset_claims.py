@@ -409,11 +409,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     )
     validated_repair_rows = int(validated_repair_summary["rows"])
     validated_repair_candidate_rows = int(validated_repair_summary["candidate_rows"])
-    validated_repair_gold_rows = int(validated_repair_summary["validated_tier_counts"]["gold"])
     validated_repair_proof_rows = int(validated_repair_summary["kept_by_bucket"].get("proof_repair", 0))
     validated_repair_inductive_rows = int(
         validated_repair_summary["kept_by_bucket"].get("inductiveness_repair", 0)
     )
+    validated_repair_tlc_rows = int(validated_repair_summary["kept_by_bucket"].get("tlc_repair", 0))
 
     return {
         "README.md": [
@@ -648,12 +648,14 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
             ),
             (
                 "- `metadata/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json`: validator-backed\n"
-                f"  full-dataset repair promotion summary (`{validated_repair_rows}` gold-tier rows from `{validated_repair_candidate_rows}` pair-ready candidates;\n"
-                f"  `{validated_repair_proof_rows}` proof repairs + `{validated_repair_inductive_rows}` inductiveness repairs)."
+                f"  full-dataset repair promotion summary (`{validated_repair_rows}` rows from `{validated_repair_candidate_rows}` pair-ready candidates\n"
+                f"  across gold/silver validation tiers; `{validated_repair_proof_rows}` proof repairs + `{validated_repair_inductive_rows}` inductiveness\n"
+                f"  repairs + `{validated_repair_tlc_rows}` TLC repairs)."
             ),
             (
                 "- `metadata/tla_prover_repair_train_v1.summary.json`: merged repair-training\n"
-                f"  corpus summary (`{repair_train_rows}` rows total; `{repair_benchmark_rows}` benchmark-derived + `{repair_synthetic_rows}` synthetic + `{repair_validated_rows}` validator-backed full-dataset rows)."
+                f"  corpus summary (`{repair_train_rows}` rows total; `{repair_benchmark_rows}` benchmark-derived + `{repair_synthetic_rows}` synthetic +\n"
+                f"  `{repair_validated_rows}` validator-backed full-dataset rows)."
             ),
             f"- Mixed prover SFT corpus: `{mixed_sft_rows}` rows",
             (
@@ -694,7 +696,7 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"  failed fresh-benchmark cases, with `{repair_missing_gold}` missing gold target."
             ),
             (
-                f"- Validator-backed full-dataset repair slice: `{validated_repair_gold_rows}` gold-tier rows from `{validated_repair_candidate_rows}` pair-ready candidates."
+                f"- Validator-backed full-dataset repair slice: `{validated_repair_rows}` rows from `{validated_repair_candidate_rows}` pair-ready candidates across gold/silver validation tiers."
             ),
             (
                 f"- Merged repair-training corpus: `{repair_train_rows}` rows total (`{repair_benchmark_rows}` benchmark-derived + `{repair_synthetic_rows}` synthetic + `{repair_validated_rows}` validator-backed full-dataset rows)."

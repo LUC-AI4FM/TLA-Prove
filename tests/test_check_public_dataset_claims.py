@@ -3,6 +3,8 @@ from pathlib import Path
 
 from scripts.check_public_dataset_claims import build_report
 
+REPO = Path(__file__).resolve().parents[1]
+
 
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -194,10 +196,10 @@ def _write_manifests(repo: Path) -> None:
         repo / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
         json.dumps(
             {
-                "rows": 18,
+                "rows": 22,
                 "candidate_rows": 37,
                 "validated_tier_counts": {"gold": 18, "silver": 5, "bronze": 6},
-                "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3},
+                "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3, "tlc_repair": 4},
             }
         ),
     )
@@ -205,13 +207,13 @@ def _write_manifests(repo: Path) -> None:
         repo / "data/processed/tla_prover_repair_train_v1.summary.json",
         json.dumps(
             {
-                "rows": 529,
+                "rows": 533,
                 "kept_rows_by_source": {
                     "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
                     "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491,
-                    "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
+                    "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
                 },
-                "difficulty_counts": {"easy": 248, "medium": 57, "hard": 224},
+                "difficulty_counts": {"easy": 248, "medium": 61, "hard": 224},
                 "health": {"ok": True, "benchmark_only": False, "only_easy_rows": False, "warnings": []},
             }
         ),
@@ -367,153 +369,14 @@ def _write_bundle_data_copies(repo: Path) -> None:
 def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> None:
     _write_manifests(tmp_path)
     _write_bundle_data_copies(tmp_path)
-    _write(
-        tmp_path / "README.md",
-        "\n".join(
-            [
-                "ChatTLA currently tracks ten public AI4FM-aligned data/artifact layers spanning the 205-example `FormaLLM` benchmark, the broader 666-record checked-in `FormaLLM` repo surface, a 2,350-row tracked `TLA-Prove` training/eval slice within a 2,757-row committed public JSONL surface, and a 2,110-file / 2,108-module public seed-repo surface:",
-                "| `FormaLLM` | 205 canonical prompt/spec entries across 71 families |",
-                "| `FormaLLM public repo file surface` | 666 tracked public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree |",
-                "| `FormaLLM prover-facing smoke surface` | 410 canonical `.tla` rows joined against the latest full-dataset smoke; 7 current TLC repair candidates and 403 skipped rows in the broader canonical tree replay |",
-                "| `TLA-Prove public corpora` | 2,350 JSONL rows across the tracked public training/eval corpora; the full committed public JSONL surface currently spans 2,757 rows across 19 files |",
-                "| `TLA-Prove normalized import` | 1,005 deduplicated ChatTLA-format rows built from the tracked public corpora slice |",
-                "| `TLA-Prove raw import` | 2,350 undeduped ChatTLA-format rows spanning the full tracked public corpora slice |",
-                "| `tla-dataset-pipeline seed repo files` | 3,140 tracked `.tla` / `.cfg` / `.tlaps` files across the 11 committed public seed repos, including 2,110 `.tla` files |",
-                "| `tla-dataset-pipeline seed prover candidates` | 168 SANY-clean prover-candidate rows from 2,108 usable public seed-module rows |",
-                "| `tla-dataset-pipeline discovery` | 18 live public repo records from the checked-in seed/search recipe; 4 of 5 shipped search queries currently return zero repositories |",
-                "| `tla-dataset-pipeline` | 2,628 extracted raw files and 3,979 parsed artifacts in the public DVC surface |",
-                "The older `1800+` FormaLLM wording comes from a stale architecture-doc note, not the current committed public metadata; ChatTLA treats the live `205`-entry `all_models.json` and `Input/{train,val,test}.json` split files as the canonical public FormaLLM surface.",
-                "The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_preflight.json` now proves exact `205/205` `FormaLLM` row coverage across the default, expanded, and full-public prover train corpora rather than relying on summary counts alone.",
-                "The checked-in broader `FormaLLM` repo surface is also materialized directly: `data/processed/formalllm_public_module_manifest_v1.jsonl` records 666 public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree, while `data/processed/formalllm_public_prover_surface_v1.jsonl` joins the 410 canonical `.tla` rows against the latest full-dataset smoke and currently isolates 7 TLC repair candidates.",
-                "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `20` repair pairs now cover all `20/20` failed benchmark rows, including the `BM020` public-module fallback.",
-                "If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules.",
-                "Repo-level license provenance across the `11` committed public seed repos is mixed: `3` Apache-2.0, `3` MIT, `2` NOASSERTION, and `3` unknown.",
-                "Only the `205`-row `FormaLLM` layer currently feeds `chattla_tla_prover_sft_v1`; the `TLA-Prove` and seed-repo lanes above are audited public expansion artifacts, not yet mixed into that prover corpus.",
-                "There is now an explicit non-default expansion build path as well: `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current `1330`-row prover SFT stack plus the `1005`-row normalized public `TLA-Prove` import and `168` public seed prover-candidate replays for `2503` total rows.",
-                "The broader committed-public variant is now materialized too: `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl` carries the same prover stack plus the `1010`-row full-public normalized import for `2508` total rows.",
-                "The full tracked-corpora public row lane is also materialized at `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `2350` rows when we need the undeduped AI4FM public import surface.",
-                "benchmark_suite.json  ← 20 current benchmark items; the 30-row holdout lives in diamond_eval_holdout.jsonl",
-                "Current public benchmark surface: `20` items in `data/benchmarks/benchmark_suite.json`, plus a separate `30`-row holdout in `data/processed/diamond_eval_holdout.jsonl`:",
-            ]
-        ),
-    )
-    _write(
-        tmp_path / "docs/AI4FM_PUBLIC_DATASET_SURFACE.md",
-        "\n".join(
-                [
-                    "- `205` canonical metadata entries",
-                    "- `410` `.tla` files under `data/*/tla/*.tla`",
-                    "- `205` `_clean.tla` files, matching the canonical benchmark row count",
-                    "- `205` non-clean `.tla` variants in that same canonical module tree",
-                    "- public JSONL rows across the tracked training/eval corpora: `2350`",
-                    "- `2350` kept rows in `ai4fm_public_tlaprove_import_raw_v1` when exact-final-spec dedupe is disabled",
-                    "- full committed public JSONL surface: `2757` rows across `19` files",
-                "- `ai4fm_public_seed_file_manifest_v1.summary.json` reports `2110` public",
-                "- `ai4fm_public_seed_tla_modules_v1.summary.json` reports `2108` usable",
-                "- `6` repos with clearly permissive SPDX labels at the repo level, versus `5` redistribution-caution repos",
-                "- `2350` raw public rows across the tracked corpora",
-                "- `1005` kept ChatTLA-format rows after normalization and exact final-spec dedupe",
-                "- the local `1005` normalized `ai4fm_public_tlaprove_import_v1` rows and `168`",
-                "  `ai4fm_public_seed_prover_candidates_v1` rows are ChatTLA-derived downstream",
-                "  corpora, not counts published by the two upstream repos above",
-                "- `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl`",
-                "  - `2508` total rows (`1330` baseline prover stack + `1010` full-public",
-                "    normalized import + `168` seed prover-candidate replays)",
-                "  exposing a `2503`-row public-AI4FM expansion lane (`1330` default prover SFT",
-                "  rows + `1005` normalized public import rows + `168` public seed prover-candidate",
-                "  replays).",
-                "- if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: `2757` committed `TLA-Prove` JSONL rows, `2110` public seed `.tla` files, or `2108` usable seed modules",
-            ]
-        ),
-    )
-    _write(
-        tmp_path / "docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md",
-        "\n".join(
-            [
-                "- `FormaLLM` remains the canonical `205`-entry benchmark layer.",
-                "- tracked public training/eval surface: `2350` rows across `6` files",
-                "- full committed public JSONL surface: `2757` rows across `19` files",
-                "- `2110` public `.tla` files",
-                "- `2108` usable module rows",
-                "- `4` of the `5` shipped search queries still return zero repositories",
-                "  non-default `2508`-row experiment lane for the broader committed-public",
-                "2. run verifier-backed experiments on the `2508`-row full-public lane before",
-            ]
-        ),
-    )
-    _write(
-        tmp_path / "docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md",
-        "\n".join(
-            [
-                "| `data/processed/tla_prover/chattla_tla_prover_sft_v1.summary.json` | Current default prover SFT is `1330` rows and already includes the full `205`-row `FormaLLM` layer. |",
-                "| `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.summary.json` | Non-default tracked-public expanded lane is `2503` rows: `1330` base stack + `1005` normalized public import + `168` SANY-clean seed candidates. |",
-                "| `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.summary.json` | Broader committed-public lane is `2508` rows with `1010` normalized public-import rows. |",
-                "| `outputs/manifests/ai4fm_public_seed_prover_funnel.json` | `2108` usable seed modules -> `168` shape-ready rows -> `168` SANY-clean rows, leaving `0` shape-ready-but-not-SANY-clean rows. |",
-                "The public corpus side is now sufficiently built out. The next real win is to",
-                "use the repo's new public lanes to run disciplined, bounded comparisons while",
-                "keeping the publish gate strict.",
-                "| `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` | `chattla:20b-fc128best` has a fresh full benchmark but still `0` SANY / `0` TLC. | Freshness alone does not clear the gate; candidate quality is also non-deployable. |",
-            ]
-        ),
-    )
-    _write(
-        tmp_path / "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md",
-        "\n".join(
-            [
-                "This bundle ships prover corpora plus metadata summaries for the broader public AI4FM expansion lanes.",
-                "- `metadata/ai4fm_org_surface.json`: live public GitHub org snapshot (`8` repos,\n  `3` corpus-relevant).",
-                "- `metadata/formalllm_eval_v1.summary.json`: full `FormaLLM` canonical prompt/spec",
-                "  layer (`205` rows).",
-                "- `metadata/tla_prover_corpus_preflight.json`: schema preflight plus exact `205/205` `FormaLLM` row",
-                "  coverage verification across the `1330`-row default, `2503`-row expanded, and",
-                "  `2508`-row full-public prover train corpora.",
-                "- `metadata/ai4fm_public_tlaprove_corpora.json`: public AI4FM TLA-Prove corpus",
-                "  report (`2350` tracked training/eval rows within a `2757`-row committed public",
-                "  JSONL surface).",
-                "- `metadata/ai4fm_public_tlaprove_import_all_public_raw_v1.summary.json`: raw",
-                "  full-public import summary (`2757` undeduped rows).",
-                "- `metadata/ai4fm_public_tlaprove_import_all_public_v1.summary.json`: normalized",
-                "  full-public import layer (`1010` rows).",
-                "- `metadata/ai4fm_public_tlaprove_import_raw_v1.summary.json`: raw tracked-corpora",
-                "  import summary (`2350` undeduped rows).",
-                "- `metadata/ai4fm_public_seed_file_manifest_v1.summary.json`: public GitHub seed",
-                "  file manifest (`3140` tracked files, `2110` `.tla` files, `2108` usable module rows).",
-                "- `metadata/ai4fm_public_seed_tla_modules_v1.summary.json`: usable public `.tla`",
-                "  module corpus (`2108` rows).",
-                "- `metadata/ai4fm_public_seed_license_surface.json`: repo-level SPDX/provenance",
-                "  rollup for the `11` committed public seed repos.",
-                "- `metadata/hf_publish_readiness.json`: canonical publish-readiness gate (`2`",
-                "  blockers; `20` latest benchmark rows still missing every core TLA component).",
-                "- `metadata/hf_publish_readiness.chattla_20b_fc128best.json`: fresh `fc128best`",
-                "  publish-readiness gate (`1` blocker; `20` rows still missing every core component,",
-                "  `8` with obvious placeholder text).",
-                "- `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived",
-                "  repair curriculum summary (`20` rows covering `20` of `20` failed fresh-benchmark",
-                "  cases; `0` missing gold target).",
-                "- `metadata/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json`: validator-backed\n  full-dataset repair promotion summary (`18` gold-tier rows from `37` pair-ready candidates;\n  `15` proof repairs + `3` inductiveness repairs).",
-                "- `metadata/tla_prover_repair_train_v1.summary.json`: merged repair-training\n  corpus summary (`529` rows total; `20` benchmark-derived + `491` synthetic + `18` validator-backed full-dataset rows).",
-                "- Mixed prover SFT corpus: `1330` rows",
-                "- `metadata/chattla_tla_prover_sft_public_expanded_v1.summary.json`: non-default\n  public-AI4FM expanded prover SFT summary (`2503` rows total; `1005` normalized import rows + `168` seed prover-candidate replays on top of the baseline prover stack).",
-                "- `metadata/chattla_tla_prover_sft_public_all_v1.summary.json`: full-public\n  expanded prover SFT summary (`2508` rows total; `1010` normalized full-public import rows on top of the baseline prover stack).",
-                "- `metadata/tla_prover_corpus_experiment_matrix.json`: bounded corpus-lane\n  comparison matrix covering the `1330`-row baseline, `2503`-row expanded lane,\n  `2508`-row full-public lane, and the `168`/`2108` public seed funnel.",
-                "- Public AI4FM normalized import: `1005` rows from the tracked `2350`-row",
-                "  public corpora slice.",
-                "- Public seed repo license surface: `3` Apache-2.0 repos, `3` MIT repos, `2`",
-                "  NOASSERTION repos, and `3` unknown-license repos.",
-                "- Public AI4FM seed-module prover candidates: `168` rows out of `2108` usable",
-                "  public seed-module rows.",
-                "- Canonical publish readiness gate: blocked, with `20` of `20` latest benchmark rows",
-                "  missing every core TLA component.",
-                "- `fc128best` publish readiness gate: blocked, with `20` of `20` rows missing every core component",
-                "  and `8` obvious-placeholder failures.",
-                "- Benchmark-derived repair curriculum: `20` rows covering `20` of `20`",
-                "  failed fresh-benchmark cases, with `0` missing gold target.",
-                "- Validator-backed full-dataset repair slice: `18` gold-tier rows from `37` pair-ready candidates.",
-                "- Merged repair-training corpus: `529` rows total (`20` benchmark-derived + `491` synthetic + `18` validator-backed full-dataset rows).",
-                "The AI4FM import and seed-repo lanes are metadata-only audit surfaces in this bundle; they are not yet mixed into `data/train/chattla_tla_prover_sft_v1.jsonl`.",
-            ]
-        ),
-    )
+    _write(tmp_path / "README.md", (REPO / "README.md").read_text(encoding="utf-8"))
+    for rel_path in (
+        "docs/AI4FM_PUBLIC_DATASET_SURFACE.md",
+        "docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md",
+        "docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md",
+        "outputs/hf_publish/chattla-tla-prover-corpora-v1/README.md",
+    ):
+        _write(tmp_path / rel_path, (REPO / rel_path).read_text(encoding="utf-8"))
 
     report = build_report(repo=tmp_path)
 

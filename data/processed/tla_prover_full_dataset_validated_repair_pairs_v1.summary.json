@@ -1,28 +1,30 @@
 {
   "allowed_tiers": [
-    "gold"
+    "gold",
+    "silver"
   ],
   "candidate_rows": 37,
   "evidence_path": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
   "excluded_counts": {
+    "excluded_not_improving": 1,
     "excluded_not_pair_ready": 112,
     "excluded_skip_harness_repair": 8,
-    "excluded_tier:bronze": 6,
-    "excluded_tier:silver": 5
+    "excluded_tier:bronze": 6
   },
-  "generated_at": "2026-06-30T06:25:04.775566+00:00",
+  "generated_at": "2026-06-30T08:46:31.814108+00:00",
   "include_harness": false,
-  "jsonl_sha256": "fdffa144d56f988ceccd4d15175e049a78496d451f34bf90a08cf660b1bcc539",
+  "jsonl_sha256": "dd7aa3c76f5af2cc9511f517818e1cf844438e4448ad9a84081143c98e7b7b7b",
   "kept_by_bucket": {
     "inductiveness_repair": 3,
-    "proof_repair": 15
+    "proof_repair": 15,
+    "tlc_repair": 4
   },
   "kept_by_gold_source_kind": {
     "diamond_eval_holdout": 17,
-    "formalllm_public_module": 1
+    "formalllm_public_module": 5
   },
   "out": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
-  "rows": 18,
+  "rows": 22,
   "schema": "chattla_tla_prover_full_dataset_validated_repair_pairs_v1",
   "validated_tier_counts": {
     "bronze": 6,

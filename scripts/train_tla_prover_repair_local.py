@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
 import subprocess
 import sys
 from argparse import Namespace
@@ -26,6 +27,19 @@ from scripts.train_rl_repair import (
 )
 
 BOOTSTRAP_ENV_COMMAND = "bash scripts/launch_rl.sh setup"
+REPAIR_REFRESH_STEPS: tuple[tuple[str, ...], ...] = (
+    ("python3", "scripts/build_tla_prover_full_dataset_repair_queue.py"),
+    ("python3", "scripts/build_tla_prover_full_dataset_repair_evidence.py"),
+    (
+        "python3",
+        "scripts/build_tla_prover_full_dataset_validated_repair_pairs.py",
+        "--allowed-tier",
+        "gold",
+        "--allowed-tier",
+        "silver",
+    ),
+    ("python3", "scripts/build_tla_prover_repair_corpus.py"),
+)
 
 
 def _resolve_python_executable() -> str:
@@ -119,6 +133,19 @@ def _default_output_dir(repo: Path, resolved_trajectory_files: list[str]) -> Pat
     return repo / "outputs" / f"checkpoints_rl_repair_{_safe_label(primary)}"
 
 
+def _refresh_steps() -> list[list[str]]:
+    return [list(step) for step in REPAIR_REFRESH_STEPS]
+
+
+def _refresh_command() -> str:
+    return " && ".join(shlex.join(step) for step in _refresh_steps())
+
+
+def run_refresh_pipeline(*, repo: Path, runner=subprocess.run) -> None:
+    for step in _refresh_steps():
+        runner(step, cwd=repo, check=True)
+
+
 def _build_args(
     *,
     trajectory_files: list[str] | None,
@@ -200,6 +227,7 @@ def build_run_plan(
     output_dir: str | None,
     extra_args: list[str],
     preflight_only: bool,
+    refresh_corpus: bool,
     python_executable: str | None = None,
 ) -> dict[str, Any]:
     args = _build_args(
@@ -238,6 +266,9 @@ def build_run_plan(
         "schema": "chattla_tla_prover_local_repair_plan_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repo": str(repo),
+        "refresh_corpus": refresh_corpus,
+        "refresh_steps": _refresh_steps() if refresh_corpus else [],
+        "refresh_command": _refresh_command() if refresh_corpus else None,
         "resolved_trajectory_files": resolved_trajectory_files,
         "using_merged_default": resolved_trajectory_files == [DEFAULT_MERGED_REPAIR_PAIRS],
         "include_benchmark_repair_pairs": include_benchmark_repair_pairs,
@@ -256,6 +287,7 @@ def main() -> int:
     parser.add_argument("--include-benchmark-repair-pairs", action="store_true")
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--preflight", action="store_true")
+    parser.add_argument("--refresh-corpus", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("extra_args", nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -271,10 +303,14 @@ def main() -> int:
         output_dir=args.output_dir,
         extra_args=extra_args,
         preflight_only=args.preflight,
+        refresh_corpus=args.refresh_corpus,
     )
     print(json.dumps(plan, indent=2, sort_keys=True))
     if args.dry_run:
         return 0
+
+    if args.refresh_corpus:
+        run_refresh_pipeline(repo=REPO)
 
     completed = subprocess.run(plan["command"], cwd=REPO)
     return int(completed.returncode)

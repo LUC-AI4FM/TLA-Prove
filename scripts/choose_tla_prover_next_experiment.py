@@ -217,27 +217,25 @@ def _public_benchmark_correctness_status(
 
 
 def _repair_command() -> str:
-    return (
-        "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best "
-        "&& python3 scripts/build_tla_prover_repair_corpus.py "
-        "&& python3 -m scripts.train_rl_repair --preflight-only "
-        "&& python3 -m scripts.train_rl_repair"
-    )
+    return "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
 
 
 def _repair_refresh_command() -> str:
     return (
-        "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best "
+        "python3 scripts/build_tla_prover_full_dataset_repair_queue.py "
+        "&& python3 scripts/build_tla_prover_full_dataset_repair_evidence.py "
+        "&& python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
+        "--allowed-tier gold --allowed-tier silver "
         "&& python3 scripts/build_tla_prover_repair_corpus.py"
     )
 
 
 def _repair_local_preflight_command() -> str:
-    return "python3 scripts/train_tla_prover_repair_local.py --preflight"
+    return "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus"
 
 
 def _repair_local_train_command() -> str:
-    return "python3 scripts/train_tla_prover_repair_local.py"
+    return "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
 
 
 def _full_dataset_repair_queue_command() -> str:
@@ -249,7 +247,10 @@ def _full_dataset_repair_evidence_command() -> str:
 
 
 def _full_dataset_validated_repair_pairs_command() -> str:
-    return "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py"
+    return (
+        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
+        "--allowed-tier gold --allowed-tier silver"
+    )
 
 
 def _sft_command(lane: str) -> str:

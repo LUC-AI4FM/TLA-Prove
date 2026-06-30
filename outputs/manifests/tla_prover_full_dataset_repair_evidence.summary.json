@@ -11,7 +11,7 @@
     "prompt_only": 1,
     "reference_spec_only": 3
   },
-  "generated_at": "2026-06-30T06:14:52.855922+00:00",
+  "generated_at": "2026-06-30T08:44:32.920054+00:00",
   "gold_source_counts": {
     "diamond_eval_holdout": 21,
     "formalllm_public_module": 17,

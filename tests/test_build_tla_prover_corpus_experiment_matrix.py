@@ -47,13 +47,13 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     _write(
         tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
         {
-            "rows": 529,
-            "difficulty_counts": {"easy": 248, "medium": 57, "hard": 224},
+            "rows": 533,
+            "difficulty_counts": {"easy": 248, "medium": 61, "hard": 224},
             "health": {"ok": True, "warnings": [], "benchmark_only": False, "only_easy_rows": False},
             "kept_rows_by_source": {
                 "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
                 "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491,
-                "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
+                "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 22,
             },
             "missing_sources": [
                 "data/processed/ralph_repair_pairs.jsonl",
@@ -79,10 +79,10 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     _write(
         tmp_path / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
         {
-            "rows": 18,
+            "rows": 22,
             "candidate_rows": 37,
             "validated_tier_counts": {"gold": 18, "silver": 5, "bronze": 6},
-            "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3},
+            "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3, "tlc_repair": 4},
         },
     )
     _write(
@@ -251,13 +251,13 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
     assert report["public_ai4fm_scope"]["all_public_tlaprove_rows"] == 2757
     assert report["public_ai4fm_scope"]["public_seed_tla_files"] == 2110
     assert report["public_ai4fm_scope"]["usable_public_seed_modules"] == 2108
-    assert report["repair_corpus_status"]["rows"] == 529
+    assert report["repair_corpus_status"]["rows"] == 533
     assert report["repair_corpus_status"]["sources"]["benchmark_fc128best"]["rows_in_merged_corpus"] == 20
     assert report["repair_corpus_status"]["sources"]["synthetic"]["rows_in_merged_corpus"] == 491
-    assert report["repair_corpus_status"]["sources"]["full_dataset_validated"]["rows_in_merged_corpus"] == 18
+    assert report["repair_corpus_status"]["sources"]["full_dataset_validated"]["rows_in_merged_corpus"] == 22
     assert report["repair_corpus_status"]["sources"]["full_dataset_validated"]["candidate_rows"] == 37
-    assert report["repair_corpus_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 18
-    assert report["repair_corpus_status"]["comparisons"]["rows_beyond_benchmark_only"] == 509
+    assert report["repair_corpus_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 22
+    assert report["repair_corpus_status"]["comparisons"]["rows_beyond_benchmark_only"] == 513
     assert report["publish_readiness"]["default_model"]["benchmark_model"] == "chattla:20b"
     assert report["publish_readiness"]["fc128best_model"]["ready_to_publish"] is False
     assert report["named_corpora"]["full-public"].endswith("chattla_tla_prover_sft_public_all_v1.jsonl")

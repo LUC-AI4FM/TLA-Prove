@@ -45,15 +45,15 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
                 "all_public_tlaprove_rows": 2757,
             },
             "repair_corpus_status": {
-                "rows": 529,
+                "rows": 533,
                 "health": {"ok": True, "warnings": []},
                 "missing_sources": ["data/processed/ralph_repair_pairs.jsonl"],
                 "sources": {
                     "benchmark_fc128best": {"rows_in_merged_corpus": 20},
                     "synthetic": {"rows_in_merged_corpus": 491},
-                    "full_dataset_validated": {"rows_in_merged_corpus": 18, "candidate_rows": 37},
+                    "full_dataset_validated": {"rows_in_merged_corpus": 22, "candidate_rows": 37},
                 },
-                "comparisons": {"validated_rows_added_beyond_benchmark": 18},
+                "comparisons": {"validated_rows_added_beyond_benchmark": 22},
             },
         },
     )
@@ -71,15 +71,12 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
 
     assert report["recommended_action"] == "repair"
     assert report["intent_allowed"] is True
-    assert "build_benchmark_repair_pairs.py" in report["recommended_command"]
-    assert "build_tla_prover_repair_corpus.py" in report["recommended_command"]
-    assert "--preflight-only" in report["recommended_command"]
-    assert "scripts.train_rl_repair" in report["recommended_command"]
+    assert report["recommended_command"] == "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
     assert report["repair_corpus_health"]["ok"] is False
     assert report["repair_corpus_summary"]["rows"] is None
     assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
     assert report["corpus_expansion_status"]["public_ai4fm_scope"]["all_public_tlaprove_rows"] == 2757
-    assert report["repair_expansion_status"]["sources"]["full_dataset_validated"]["rows_in_merged_corpus"] == 18
+    assert report["repair_expansion_status"]["sources"]["full_dataset_validated"]["rows_in_merged_corpus"] == 22
     assert report["comparison_plan_commands"][0]["comparison_id"] == "default-vs-expanded-local"
     assert report["comparison_plan_commands"][1]["comparison_id"] == "expanded-vs-full-public-local"
     assert "--baseline default --candidate expanded --mode local" in report["comparison_plan_commands"][0]["command"]
@@ -116,15 +113,15 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
                 }
             },
             "repair_corpus_status": {
-                "rows": 529,
+                "rows": 533,
                 "health": {"ok": True, "warnings": []},
                 "missing_sources": [],
                 "sources": {
                     "benchmark_fc128best": {"rows_in_merged_corpus": 20},
                     "synthetic": {"rows_in_merged_corpus": 491},
-                    "full_dataset_validated": {"rows_in_merged_corpus": 18},
+                    "full_dataset_validated": {"rows_in_merged_corpus": 22},
                 },
-                "comparisons": {"validated_rows_added_beyond_benchmark": 18},
+                "comparisons": {"validated_rows_added_beyond_benchmark": 22},
             },
         },
     )
@@ -142,7 +139,7 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
     assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_local.py --sft-corpus expanded"
     assert report["preferred_sft_lane_summary"]["trainable"] is True
     assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
-    assert report["repair_expansion_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 18
+    assert report["repair_expansion_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 22
     assert report["comparison_plan_commands"][0]["comparison_id"] == "default-vs-expanded-local"
 
 
@@ -235,7 +232,7 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
     _write(
         tmp_path / "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
         {
-            "immediate_repair_rows": 112,
+            "immediate_repair_rows": 149,
             "action_bucket_counts": {
                 "proof_repair": 79,
                 "inductiveness_repair": 21,
@@ -256,54 +253,61 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
     _write(
         tmp_path / "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json",
         {
-            "rows": 112,
-            "priority_counts": {"p1": 79, "p2": 21, "p3": 12},
-            "repair_bucket_counts": {"proof_repair": 79, "inductiveness_repair": 21, "tlc_repair": 12},
+            "rows": 149,
+            "priority_counts": {"p1": 79, "p2": 21, "p3": 12, "p4": 37},
+            "repair_bucket_counts": {
+                "proof_repair": 79,
+                "inductiveness_repair": 21,
+                "tlc_repair": 12,
+                "skip_harness_repair": 37,
+            },
         },
     )
     _write(
         tmp_path / "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json",
         {
-            "rows": 31,
-            "pair_ready_rows": 24,
-            "evidence_status_counts": {"pair_ready": 24, "reference_spec_only": 7},
+            "rows": 149,
+            "pair_ready_rows": 37,
+            "evidence_status_counts": {"no_evidence": 108, "pair_ready": 37, "prompt_only": 1, "reference_spec_only": 3},
         },
     )
     _write(
         tmp_path / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
         {
-            "rows": 18,
+            "rows": 22,
             "candidate_rows": 37,
             "validated_tier_counts": {"gold": 18, "silver": 5, "bronze": 6},
+            "kept_by_bucket": {"proof_repair": 15, "inductiveness_repair": 3, "tlc_repair": 4},
         },
     )
 
     report = build_report(tmp_path)
 
     assert report["recommended_action"] == "repair"
-    assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_repair_local.py --preflight"
+    assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus"
     assert report["repair_workflow"]["refresh_command"].startswith(
-        "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best"
+        "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
     )
-    assert report["repair_workflow"]["train_command"] == "python3 scripts/train_tla_prover_repair_local.py"
+    assert report["repair_workflow"]["train_command"] == "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
     assert report["repair_workflow"]["full_dataset_repair_queue_command"] == (
         "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
     )
-    assert report["repair_workflow"]["full_dataset_repair_queue_summary"]["rows"] == 112
+    assert report["repair_workflow"]["full_dataset_repair_queue_summary"]["rows"] == 149
     assert report["repair_workflow"]["full_dataset_repair_evidence_command"] == (
         "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
     )
-    assert report["repair_workflow"]["full_dataset_repair_evidence_summary"]["pair_ready_rows"] == 24
+    assert report["repair_workflow"]["full_dataset_repair_evidence_summary"]["pair_ready_rows"] == 37
     assert report["repair_workflow"]["full_dataset_validated_repair_pairs_command"] == (
-        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py"
+        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
+        "--allowed-tier gold --allowed-tier silver"
     )
-    assert report["repair_workflow"]["full_dataset_validated_repair_pairs_summary"]["rows"] == 18
+    assert report["repair_workflow"]["full_dataset_validated_repair_pairs_summary"]["rows"] == 22
     assert report["repair_workflow"]["benchmark_gold_coverage"] == {
         "failed_rows_seen": 20,
         "covered_failed_rows": 19,
         "missing_gold_benchmark_ids": ["BM020"],
     }
-    assert report["repair_workflow"]["failure_priority"]["immediate_repair_rows"] == 112
+    assert report["repair_workflow"]["failure_priority"]["immediate_repair_rows"] == 149
     assert report["repair_workflow"]["failure_priority"]["top_action_buckets"][:3] == [
         {"bucket": "proof_repair", "count": 79},
         {"bucket": "skip_harness_repair", "count": 37},
@@ -447,4 +451,4 @@ def test_cli_can_write_checked_in_next_experiment_manifest(tmp_path: Path) -> No
 
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["recommended_action"] == "repair"
-    assert payload["recommended_local_command"] == "python3 scripts/train_tla_prover_repair_local.py --preflight"
+    assert payload["recommended_local_command"] == "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus"

@@ -394,7 +394,7 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "--out outputs/manifests/tla_prover_lane_comparison_plan.json"
             ),
             "train_tla_prover_repair_local": (
-                "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight"
+                "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight --refresh-corpus"
             ),
             "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
             "inspect_hf_publish_readiness_fc128best": (
@@ -419,7 +419,8 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
                 "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
             ),
             "build_tla_prover_full_dataset_validated_repair_pairs_v1": (
-                "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py"
+                "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py "
+                "--allowed-tier gold --allowed-tier silver"
             ),
             "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",

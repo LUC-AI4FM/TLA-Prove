@@ -13,7 +13,7 @@
     "default_train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "diamond_eval_holdout_leakage_ok": true
   },
-  "generated_at": "2026-06-30T07:07:15.528069+00:00",
+  "generated_at": "2026-06-30T08:47:22.549352+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -180,14 +180,14 @@
   },
   "repair_corpus_status": {
     "comparisons": {
-      "rows_beyond_benchmark_only": 509,
+      "rows_beyond_benchmark_only": 513,
       "synthetic_rows_added_beyond_benchmark": 491,
-      "validated_rows_added_beyond_benchmark": 18
+      "validated_rows_added_beyond_benchmark": 22
     },
     "difficulty_counts": {
       "easy": 248,
       "hard": 224,
-      "medium": 57
+      "medium": 61
     },
     "health": {
       "benchmark_only": false,
@@ -200,7 +200,7 @@
       "data/processed/ralph_repair_pairs_long_latest.jsonl"
     ],
     "path": "data/processed/tla_prover_repair_train_v1.jsonl",
-    "rows": 529,
+    "rows": 533,
     "sources": {
       "benchmark_fc128best": {
         "covered_failed_rows": 20,
@@ -213,10 +213,11 @@
         "candidate_rows": 37,
         "kept_by_bucket": {
           "inductiveness_repair": 3,
-          "proof_repair": 15
+          "proof_repair": 15,
+          "tlc_repair": 4
         },
-        "rows_in_merged_corpus": 18,
-        "source_rows": 18,
+        "rows_in_merged_corpus": 22,
+        "source_rows": 22,
         "validated_tier_counts": {
           "bronze": 6,
           "gold": 18,
