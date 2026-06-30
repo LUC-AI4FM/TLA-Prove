@@ -229,6 +229,22 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
             },
         },
     )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json",
+        {
+            "rows": 112,
+            "priority_counts": {"p1": 79, "p2": 21, "p3": 12},
+            "repair_bucket_counts": {"proof_repair": 79, "inductiveness_repair": 21, "tlc_repair": 12},
+        },
+    )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json",
+        {
+            "rows": 31,
+            "pair_ready_rows": 24,
+            "evidence_status_counts": {"pair_ready": 24, "reference_spec_only": 7},
+        },
+    )
 
     report = build_report(tmp_path)
 
@@ -238,6 +254,14 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
         "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best"
     )
     assert report["repair_workflow"]["train_command"] == "python3 scripts/train_tla_prover_repair_local.py"
+    assert report["repair_workflow"]["full_dataset_repair_queue_command"] == (
+        "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
+    )
+    assert report["repair_workflow"]["full_dataset_repair_queue_summary"]["rows"] == 112
+    assert report["repair_workflow"]["full_dataset_repair_evidence_command"] == (
+        "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
+    )
+    assert report["repair_workflow"]["full_dataset_repair_evidence_summary"]["pair_ready_rows"] == 24
     assert report["repair_workflow"]["benchmark_gold_coverage"] == {
         "failed_rows_seen": 20,
         "covered_failed_rows": 19,

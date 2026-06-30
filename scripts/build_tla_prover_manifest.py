@@ -153,6 +153,16 @@ ARTIFACTS = {
         "path": "outputs/manifests/tla_prover_full_dataset_failure_analysis.json",
         "kind": "full_dataset_autoprover_failure_analysis_report",
     },
+    "tla_prover_full_dataset_repair_queue": {
+        "path": "outputs/manifests/tla_prover_full_dataset_repair_queue.jsonl",
+        "summary": "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json",
+        "kind": "full_dataset_autoprover_repair_queue",
+    },
+    "tla_prover_full_dataset_repair_evidence": {
+        "path": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+        "summary": "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json",
+        "kind": "full_dataset_autoprover_repair_evidence",
+    },
     "sany_tlc_pass_sft_v1": {
         "path": "data/processed/sany_tlc_pass_sft_v1.jsonl",
         "summary": "data/processed/sany_tlc_pass_sft_v1.summary.json",
@@ -396,6 +406,12 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
             "build_tla_prover_full_dataset_failure_analysis": (
                 "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py"
+            ),
+            "build_tla_prover_full_dataset_repair_queue": (
+                "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
+            ),
+            "build_tla_prover_full_dataset_repair_evidence": (
+                "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
             ),
             "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",

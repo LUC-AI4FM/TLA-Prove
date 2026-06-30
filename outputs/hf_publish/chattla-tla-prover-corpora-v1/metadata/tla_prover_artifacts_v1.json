@@ -2587,6 +2587,196 @@
       "rows": null,
       "sha256": "5fc5cb7203898e2fbe90683ccacbf55e9fda52826e96509708676c5d936556ca"
     },
+    "tla_prover_full_dataset_repair_evidence": {
+      "bytes": 334420,
+      "exists": true,
+      "kind": "full_dataset_autoprover_repair_evidence",
+      "path": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+      "rows": 149,
+      "sha256": "85fd30553e853daff1c4de1947209cc1fc79f68f4eafe48d95b2f15d940f708a",
+      "summary": {
+        "bucket_pair_ready_counts": {
+          "inductiveness_repair": 4,
+          "proof_repair": 18,
+          "skip_harness_repair": 8,
+          "tlc_repair": 7
+        },
+        "evidence_status_counts": {
+          "no_evidence": 108,
+          "pair_ready": 37,
+          "prompt_only": 1,
+          "reference_spec_only": 3
+        },
+        "generated_at": "2026-06-30T06:14:52.855922+00:00",
+        "gold_source_counts": {
+          "diamond_eval_holdout": 21,
+          "formalllm_public_module": 17,
+          "public_seed_candidate": 2
+        },
+        "jsonl_sha256": "85fd30553e853daff1c4de1947209cc1fc79f68f4eafe48d95b2f15d940f708a",
+        "out": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+        "pair_ready_rows": 37,
+        "prompt_source_counts": {
+          "diamond_eval_holdout": 21,
+          "formalllm_eval": 17
+        },
+        "recommended_next_step": "Build a repair-pair corpus from pair_ready rows first, then decide whether to backfill prompt-only/reference-only rows.",
+        "repair_queue_path": "outputs/manifests/tla_prover_full_dataset_repair_queue.jsonl",
+        "rows": 149,
+        "schema": "chattla_tla_prover_full_dataset_repair_evidence_v1",
+        "status_by_bucket": {
+          "inductiveness_repair": {
+            "no_evidence": 17,
+            "pair_ready": 4
+          },
+          "proof_repair": {
+            "no_evidence": 58,
+            "pair_ready": 18,
+            "reference_spec_only": 3
+          },
+          "skip_harness_repair": {
+            "no_evidence": 28,
+            "pair_ready": 8,
+            "prompt_only": 1
+          },
+          "tlc_repair": {
+            "no_evidence": 5,
+            "pair_ready": 7
+          }
+        }
+      },
+      "summary_path": "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json"
+    },
+    "tla_prover_full_dataset_repair_queue": {
+      "bytes": 73479,
+      "exists": true,
+      "kind": "full_dataset_autoprover_repair_queue",
+      "path": "outputs/manifests/tla_prover_full_dataset_repair_queue.jsonl",
+      "rows": 149,
+      "sha256": "e85fca1fbb9d458d8858aeef095eea51e854ad86694e915b1368b6767b9a37f4",
+      "summary": {
+        "excluded_bucket_counts": {
+          "skip_missing_contract": 270,
+          "skip_sany_invalid": 191
+        },
+        "generated_at": "2026-06-30T06:03:20.352693+00:00",
+        "priority_counts": {
+          "p1": 79,
+          "p2": 21,
+          "p3": 12,
+          "p4": 37
+        },
+        "recommended_action_counts": {
+          "collect_inductiveness_repair_pair": 21,
+          "collect_proof_repair_pair": 79,
+          "collect_tlc_repair_pair": 12,
+          "patch_harness_and_replay": 37
+        },
+        "repair_bucket_counts": {
+          "inductiveness_repair": 21,
+          "proof_repair": 79,
+          "skip_harness_repair": 37,
+          "tlc_repair": 12
+        },
+        "rows": 149,
+        "schema": "chattla_tla_prover_full_dataset_repair_queue_v1",
+        "source_jsonl": "outputs/autoprover/full_dataset_smoke_161031.jsonl",
+        "stage_plan": [
+          {
+            "bucket": "proof_repair",
+            "note": "Highest-value TLAPS partials for direct proof repair supervision.",
+            "priority": "p1",
+            "recommended_action": "collect_proof_repair_pair",
+            "rows": 79
+          },
+          {
+            "bucket": "inductiveness_repair",
+            "note": "Counterexample-guided invariant repair targets.",
+            "priority": "p2",
+            "recommended_action": "collect_inductiveness_repair_pair",
+            "rows": 21
+          },
+          {
+            "bucket": "tlc_repair",
+            "note": "TLC/runtime repair targets with concrete evaluator failures.",
+            "priority": "p3",
+            "recommended_action": "collect_tlc_repair_pair",
+            "rows": 12
+          },
+          {
+            "bucket": "skip_harness_repair",
+            "note": "Rows blocked by bounded-domain or harness-shape gaps rather than proof content alone.",
+            "priority": "p4",
+            "recommended_action": "patch_harness_and_replay",
+            "rows": 37
+          }
+        ],
+        "tlc_error_family_counts": {
+          "function_or_operator_shape": 1,
+          "tlc_error_init_state_space_timeout": 2,
+          "tlc_error_no_conclusive_result": 9
+        },
+        "top_modules_by_bucket": {
+          "inductiveness_repair": [
+            "CopyingGc",
+            "Numa",
+            "RefCountGc",
+            "TricolorGc",
+            "AdaptiveMutex",
+            "AndersonMutex",
+            "BakeryMutex",
+            "BurnsMutex",
+            "DekkerMutex",
+            "DijkstraMutex",
+            "FairMutex",
+            "FastMutex"
+          ],
+          "proof_repair": [
+            "AtomicRegister",
+            "CircuitBreaker",
+            "HeartbeatFailureDetector",
+            "LamportClock",
+            "RetryWithBackoff",
+            "TcpClose",
+            "TcpHandshake",
+            "TokenRing",
+            "Barrier",
+            "BinarySemaphore",
+            "CountDownLatch",
+            "CountingSemaphore"
+          ],
+          "skip_harness_repair": [
+            "clean",
+            "clean",
+            "spanning",
+            "spanning",
+            "2PCwithBTM",
+            "AlternatingBit",
+            "CausalBroadcast",
+            "DhcpLease",
+            "GoBackN",
+            "OrderedMulticast",
+            "SelectiveRepeat",
+            "SlidingWindow"
+          ],
+          "tlc_repair": [
+            "SyncTerminationDetection",
+            "SyncTerminationDetection",
+            "AsyncTerminationDetection",
+            "AsyncTerminationDetection",
+            "LamportMutex",
+            "nbacc_ray97",
+            "nbacg_guer01",
+            "DmaTransfer",
+            "MemoryFence",
+            "KnightsTour",
+            "RiverCrossingFamily",
+            "RubiksFace"
+          ]
+        }
+      },
+      "summary_path": "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json"
+    },
     "tla_prover_lane_comparison_plan": {
       "bytes": 5051,
       "exists": true,
@@ -2950,7 +3140,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-30T04:07:22.032895+00:00",
+  "generated_at": "2026-06-30T06:15:16.402647+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -2974,6 +3164,8 @@
     "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
     "build_tla_prover_finetune_corpus_public_all": "python3 scripts/build_tla_prover_finetune_corpus.py --public-import data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl --public-import-weight 1 --public-seed-candidates-weight 1 --out data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
     "build_tla_prover_full_dataset_failure_analysis": "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py",
+    "build_tla_prover_full_dataset_repair_evidence": "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py",
+    "build_tla_prover_full_dataset_repair_queue": "python3 scripts/build_tla_prover_full_dataset_repair_queue.py",
     "build_tla_prover_lane_comparison_plan": "python3 scripts/build_tla_prover_lane_comparison_plan.py --baseline default --candidate expanded --mode local --out outputs/manifests/tla_prover_lane_comparison_plan.json",
     "build_tla_prover_next_experiment": "python3 scripts/choose_tla_prover_next_experiment.py --out outputs/manifests/tla_prover_next_experiment.json",
     "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",

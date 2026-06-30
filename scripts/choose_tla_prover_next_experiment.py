@@ -17,6 +17,8 @@ HF_READINESS_FC128BEST_PATH = "outputs/manifests/hf_publish_readiness.chattla_20
 REPAIR_SUMMARY_PATH = "data/processed/tla_prover_repair_train_v1.summary.json"
 BENCHMARK_REPAIR_SUMMARY_PATH = "data/processed/benchmark_repair_pairs_fc128best.summary.json"
 FAILURE_ANALYSIS_PATH = "outputs/manifests/tla_prover_full_dataset_failure_analysis.json"
+FULL_DATASET_REPAIR_QUEUE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json"
+FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH = "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json"
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
 CORPUS_EXPANSION_SEQUENCE = ("default", "expanded", "full-public")
@@ -224,6 +226,14 @@ def _repair_local_train_command() -> str:
     return "python3 scripts/train_tla_prover_repair_local.py"
 
 
+def _full_dataset_repair_queue_command() -> str:
+    return "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
+
+
+def _full_dataset_repair_evidence_command() -> str:
+    return "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
+
+
 def _sft_command(lane: str) -> str:
     return (
         "scripts/sync_sophia_and_submit_known18.sh "
@@ -302,6 +312,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     repair_summary = _read_optional_json(repo, REPAIR_SUMMARY_PATH)
     benchmark_repair_summary = _read_optional_json(repo, BENCHMARK_REPAIR_SUMMARY_PATH)
     failure_analysis = _read_optional_json(repo, FAILURE_ANALYSIS_PATH)
+    full_dataset_repair_queue_summary = _read_optional_json(repo, FULL_DATASET_REPAIR_QUEUE_SUMMARY_PATH)
+    full_dataset_repair_evidence_summary = _read_optional_json(repo, FULL_DATASET_REPAIR_EVIDENCE_SUMMARY_PATH)
     published_proof_summary = _read_optional_json(repo, PUBLISHED_PROOF_SUMMARY_PATH)
     repair_health = dict((repair_summary or {}).get("health") or {})
     repair_corpus_summary = {
@@ -315,6 +327,10 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "refresh_command": _repair_refresh_command(),
         "preflight_command": _repair_local_preflight_command(),
         "train_command": _repair_local_train_command(),
+        "full_dataset_repair_queue_command": _full_dataset_repair_queue_command(),
+        "full_dataset_repair_queue_summary": full_dataset_repair_queue_summary,
+        "full_dataset_repair_evidence_command": _full_dataset_repair_evidence_command(),
+        "full_dataset_repair_evidence_summary": full_dataset_repair_evidence_summary,
         "benchmark_gold_coverage": _benchmark_gold_coverage(benchmark_repair_summary),
         "failure_priority": _failure_priority(failure_analysis),
         "repair_corpus_health": repair_health,

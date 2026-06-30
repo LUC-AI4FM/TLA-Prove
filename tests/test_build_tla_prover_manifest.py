@@ -40,6 +40,22 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"rows": 610, "action_bucket_counts": {"proof_repair": 79}}),
         encoding="utf-8",
     )
+    _write_jsonl(
+        repo / "outputs/manifests/tla_prover_full_dataset_repair_queue.jsonl",
+        [{"module": "Arp", "repair_priority": "p1", "repair_bucket": "proof_repair"}],
+    )
+    (repo / "outputs/manifests/tla_prover_full_dataset_repair_queue.summary.json").write_text(
+        json.dumps({"rows": 1, "priority_counts": {"p1": 1}, "repair_bucket_counts": {"proof_repair": 1}}),
+        encoding="utf-8",
+    )
+    _write_jsonl(
+        repo / "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+        [{"module": "Arp", "evidence_status": "pair_ready", "pair_ready": True}],
+    )
+    (repo / "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json").write_text(
+        json.dumps({"rows": 1, "pair_ready_rows": 1, "evidence_status_counts": {"pair_ready": 1}}),
+        encoding="utf-8",
+    )
     (repo / "outputs/manifests/hf_publish_readiness.json").write_text(
         json.dumps(
             {
@@ -428,6 +444,20 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     assert manifest["artifacts"]["tla_prover_full_dataset_failure_analysis"]["kind"] == (
         "full_dataset_autoprover_failure_analysis_report"
     )
+    assert manifest["artifacts"]["tla_prover_full_dataset_repair_queue"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_full_dataset_repair_queue"]["rows"] == 1
+    assert manifest["artifacts"]["tla_prover_full_dataset_repair_queue"]["kind"] == (
+        "full_dataset_autoprover_repair_queue"
+    )
+    assert manifest["artifacts"]["tla_prover_full_dataset_repair_queue"]["summary"]["priority_counts"] == {
+        "p1": 1
+    }
+    assert manifest["artifacts"]["tla_prover_full_dataset_repair_evidence"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_full_dataset_repair_evidence"]["rows"] == 1
+    assert manifest["artifacts"]["tla_prover_full_dataset_repair_evidence"]["kind"] == (
+        "full_dataset_autoprover_repair_evidence"
+    )
+    assert manifest["artifacts"]["tla_prover_full_dataset_repair_evidence"]["summary"]["pair_ready_rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["kind"] == (
@@ -581,6 +611,12 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["build_tla_prover_full_dataset_failure_analysis"] == (
         "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py"
+    )
+    assert manifest["remote_next_steps"]["build_tla_prover_full_dataset_repair_queue"] == (
+        "python3 scripts/build_tla_prover_full_dataset_repair_queue.py"
+    )
+    assert manifest["remote_next_steps"]["build_tla_prover_full_dataset_repair_evidence"] == (
+        "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
     )
     assert "sft_preflight_pbs" not in manifest["remote_next_steps"]
     assert "sft_preflight_launch" not in manifest["remote_next_steps"]

@@ -1,0 +1,51 @@
+{
+  "bucket_pair_ready_counts": {
+    "inductiveness_repair": 4,
+    "proof_repair": 18,
+    "skip_harness_repair": 8,
+    "tlc_repair": 7
+  },
+  "evidence_status_counts": {
+    "no_evidence": 108,
+    "pair_ready": 37,
+    "prompt_only": 1,
+    "reference_spec_only": 3
+  },
+  "generated_at": "2026-06-30T06:14:52.855922+00:00",
+  "gold_source_counts": {
+    "diamond_eval_holdout": 21,
+    "formalllm_public_module": 17,
+    "public_seed_candidate": 2
+  },
+  "jsonl_sha256": "85fd30553e853daff1c4de1947209cc1fc79f68f4eafe48d95b2f15d940f708a",
+  "out": "/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+  "pair_ready_rows": 37,
+  "prompt_source_counts": {
+    "diamond_eval_holdout": 21,
+    "formalllm_eval": 17
+  },
+  "recommended_next_step": "Build a repair-pair corpus from pair_ready rows first, then decide whether to backfill prompt-only/reference-only rows.",
+  "repair_queue_path": "outputs/manifests/tla_prover_full_dataset_repair_queue.jsonl",
+  "rows": 149,
+  "schema": "chattla_tla_prover_full_dataset_repair_evidence_v1",
+  "status_by_bucket": {
+    "inductiveness_repair": {
+      "no_evidence": 17,
+      "pair_ready": 4
+    },
+    "proof_repair": {
+      "no_evidence": 58,
+      "pair_ready": 18,
+      "reference_spec_only": 3
+    },
+    "skip_harness_repair": {
+      "no_evidence": 28,
+      "pair_ready": 8,
+      "prompt_only": 1
+    },
+    "tlc_repair": {
+      "no_evidence": 5,
+      "pair_ready": 7
+    }
+  }
+}
