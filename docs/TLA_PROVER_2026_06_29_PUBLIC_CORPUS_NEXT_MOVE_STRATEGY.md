@@ -128,6 +128,10 @@ python3 scripts/build_tla_prover_finetune_corpus.py \
 python3 scripts/build_ai4fm_public_seed_prover_shape_corpora.py
 ```
 
+For the current local decision gate, `python3 scripts/choose_tla_prover_next_experiment.py`
+now reads the tracked remote-decision, publish-readiness, and repair-corpus-health
+artifacts and emits the single next step the repo currently supports.
+
 For the residual repair lane, keep one extra non-default regression loop
 available:
 

@@ -354,6 +354,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "build_tla_prover_corpus_experiment_matrix": (
                 "python3 scripts/build_tla_prover_corpus_experiment_matrix.py"
             ),
+            "choose_tla_prover_next_experiment": (
+                "python3 scripts/choose_tla_prover_next_experiment.py"
+            ),
             "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
             "inspect_hf_publish_readiness_fc128best": (
                 "python3 scripts/inspect_hf_publish_readiness.py "
