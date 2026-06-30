@@ -1,5 +1,59 @@
 {
-  "generated_at": "2026-06-30T04:07:51.752897+00:00",
+  "comparison_plan_commands": [
+    {
+      "baseline": "default",
+      "candidate": "expanded",
+      "command": "python3 scripts/build_tla_prover_lane_comparison_plan.py --baseline default --candidate expanded --mode local --out outputs/manifests/tla_prover_lane_comparison_plan.default-vs-expanded-local.json",
+      "comparison_id": "default-vs-expanded-local",
+      "mode": "local",
+      "row_delta": 1173
+    },
+    {
+      "baseline": "expanded",
+      "candidate": "full-public",
+      "command": "python3 scripts/build_tla_prover_lane_comparison_plan.py --baseline expanded --candidate full-public --mode local --out outputs/manifests/tla_prover_lane_comparison_plan.expanded-vs-full-public-local.json",
+      "comparison_id": "expanded-vs-full-public-local",
+      "mode": "local",
+      "row_delta": 5
+    }
+  ],
+  "corpus_expansion_status": {
+    "lanes": {
+      "default": {
+        "intended_role": "current_publish_baseline",
+        "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+        "rows": 1330,
+        "trainable": true
+      },
+      "expanded": {
+        "intended_role": "bounded_public_comparison_train",
+        "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+        "rows": 2503,
+        "trainable": true
+      },
+      "full-public": {
+        "intended_role": "maximal_committed_public_comparison_train",
+        "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+        "rows": 2508,
+        "trainable": true
+      }
+    },
+    "public_ai4fm_scope": {
+      "all_public_tlaprove_files": 19,
+      "all_public_tlaprove_rows": 2757,
+      "canonical_formalllm_rows": 205,
+      "interpretation_status": "stale_for_formalllm_canonical_layer",
+      "public_seed_tla_files": 2110,
+      "tracked_tlaprove_public_rows": 2350,
+      "usable_public_seed_modules": 2108
+    },
+    "recommended_sequence": [
+      "default",
+      "expanded",
+      "full-public"
+    ]
+  },
+  "generated_at": "2026-06-30T05:48:44.368781+00:00",
   "intent_allowed": true,
   "preferred_publish_model": null,
   "preferred_sft_lane": null,

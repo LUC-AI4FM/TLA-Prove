@@ -23,11 +23,27 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
         tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
         {
             "lanes": {
+                "default": {
+                    "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+                    "rows": 1330,
+                    "trainable": True,
+                },
                 "expanded": {
                     "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+                    "rows": 2503,
+                    "trainable": True,
+                },
+                "full-public": {
+                    "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+                    "rows": 2508,
                     "trainable": True,
                 }
-            }
+            },
+            "public_ai4fm_scope": {
+                "canonical_formalllm_rows": 205,
+                "tracked_tlaprove_public_rows": 2350,
+                "all_public_tlaprove_rows": 2757,
+            },
         },
     )
     _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
@@ -50,6 +66,12 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
     assert "scripts.train_rl_repair" in report["recommended_command"]
     assert report["repair_corpus_health"]["ok"] is False
     assert report["repair_corpus_summary"]["rows"] is None
+    assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
+    assert report["corpus_expansion_status"]["public_ai4fm_scope"]["all_public_tlaprove_rows"] == 2757
+    assert report["comparison_plan_commands"][0]["comparison_id"] == "default-vs-expanded-local"
+    assert report["comparison_plan_commands"][1]["comparison_id"] == "expanded-vs-full-public-local"
+    assert "--baseline default --candidate expanded --mode local" in report["comparison_plan_commands"][0]["command"]
+    assert "--baseline expanded --candidate full-public --mode local" in report["comparison_plan_commands"][1]["command"]
 
 
 def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: Path) -> None:
@@ -65,8 +87,19 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
         tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
         {
             "lanes": {
+                "default": {
+                    "path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
+                    "rows": 1330,
+                    "trainable": True,
+                },
                 "expanded": {
                     "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl",
+                    "rows": 2503,
+                    "trainable": True,
+                },
+                "full-public": {
+                    "path": "data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
+                    "rows": 2508,
                     "trainable": True,
                 }
             }
@@ -85,6 +118,8 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
     assert "--sft-corpus expanded --submit-sft-preflight" in report["recommended_command"]
     assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_local.py --sft-corpus expanded"
     assert report["preferred_sft_lane_summary"]["trainable"] is True
+    assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
+    assert report["comparison_plan_commands"][0]["comparison_id"] == "default-vs-expanded-local"
 
 
 def test_build_report_prefers_publish_when_candidate_readiness_clears(tmp_path: Path) -> None:

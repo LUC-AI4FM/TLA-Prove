@@ -19,6 +19,7 @@ BENCHMARK_REPAIR_SUMMARY_PATH = "data/processed/benchmark_repair_pairs_fc128best
 FAILURE_ANALYSIS_PATH = "outputs/manifests/tla_prover_full_dataset_failure_analysis.json"
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
+CORPUS_EXPANSION_SEQUENCE = ("default", "expanded", "full-public")
 
 
 def _read_json(repo: Path, rel_path: str) -> dict[str, Any]:
@@ -66,6 +67,66 @@ def _preferred_sft_lane(matrix: dict[str, Any]) -> str | None:
         if lane and bool(lane.get("trainable")):
             return alias
     return None
+
+
+def _comparison_plan_command(*, baseline: str, candidate: str, mode: str) -> dict[str, Any]:
+    comparison_id = f"{baseline}-vs-{candidate}-{mode}"
+    return {
+        "comparison_id": comparison_id,
+        "baseline": baseline,
+        "candidate": candidate,
+        "mode": mode,
+        "command": (
+            "python3 scripts/build_tla_prover_lane_comparison_plan.py "
+            f"--baseline {baseline} --candidate {candidate} --mode {mode} "
+            f"--out outputs/manifests/tla_prover_lane_comparison_plan.{comparison_id}.json"
+        ),
+    }
+
+
+def _corpus_expansion_status(matrix: dict[str, Any]) -> dict[str, Any]:
+    lanes = dict(matrix.get("lanes") or {})
+    status: dict[str, Any] = {
+        "recommended_sequence": [alias for alias in CORPUS_EXPANSION_SEQUENCE if alias in lanes],
+        "lanes": {},
+        "public_ai4fm_scope": dict(matrix.get("public_ai4fm_scope") or {}),
+    }
+    for alias in CORPUS_EXPANSION_SEQUENCE:
+        lane = lanes.get(alias)
+        if not isinstance(lane, dict):
+            continue
+        status["lanes"][alias] = {
+            "rows": lane.get("rows"),
+            "trainable": bool(lane.get("trainable")),
+            "path": lane.get("path"),
+            "intended_role": lane.get("intended_role"),
+        }
+    return status
+
+
+def _comparison_plan_commands(matrix: dict[str, Any]) -> list[dict[str, Any]]:
+    lanes = dict(matrix.get("lanes") or {})
+    commands: list[dict[str, Any]] = []
+    pairs = (
+        ("default", "expanded"),
+        ("expanded", "full-public"),
+    )
+    for baseline, candidate in pairs:
+        baseline_lane = lanes.get(baseline)
+        candidate_lane = lanes.get(candidate)
+        if not isinstance(baseline_lane, dict) or not isinstance(candidate_lane, dict):
+            continue
+        if not bool(baseline_lane.get("trainable")) or not bool(candidate_lane.get("trainable")):
+            continue
+        row_delta = None
+        try:
+            row_delta = int(candidate_lane.get("rows")) - int(baseline_lane.get("rows"))
+        except (TypeError, ValueError):
+            row_delta = None
+        item = _comparison_plan_command(baseline=baseline, candidate=candidate, mode="local")
+        item["row_delta"] = row_delta
+        commands.append(item)
+    return commands
 
 
 def _published_proof_status(summary: dict[str, Any] | None) -> dict[str, Any]:
@@ -326,6 +387,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "repair_corpus_health": repair_health,
         "repair_corpus_summary": repair_corpus_summary,
         "repair_workflow": repair_workflow,
+        "corpus_expansion_status": _corpus_expansion_status(matrix),
+        "comparison_plan_commands": _comparison_plan_commands(matrix),
         "proof_artifact_status": proof_artifact_status,
         "public_benchmark_correctness_status": public_benchmark_correctness_status,
     }
