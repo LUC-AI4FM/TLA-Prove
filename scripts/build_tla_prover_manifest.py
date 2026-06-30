@@ -163,6 +163,11 @@ ARTIFACTS = {
         "summary": "outputs/manifests/tla_prover_full_dataset_repair_evidence.summary.json",
         "kind": "full_dataset_autoprover_repair_evidence",
     },
+    "tla_prover_full_dataset_validated_repair_pairs_v1": {
+        "path": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
+        "summary": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
+        "kind": "full_dataset_validated_repair_pair_corpus",
+    },
     "sany_tlc_pass_sft_v1": {
         "path": "data/processed/sany_tlc_pass_sft_v1.jsonl",
         "summary": "data/processed/sany_tlc_pass_sft_v1.summary.json",
@@ -412,6 +417,9 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             ),
             "build_tla_prover_full_dataset_repair_evidence": (
                 "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
+            ),
+            "build_tla_prover_full_dataset_validated_repair_pairs_v1": (
+                "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py"
             ),
             "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
             "pr_ready_check": "python3 scripts/check_tla_prover_pr_ready.py",

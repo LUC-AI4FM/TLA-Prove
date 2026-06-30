@@ -56,6 +56,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         json.dumps({"rows": 1, "pair_ready_rows": 1, "evidence_status_counts": {"pair_ready": 1}}),
         encoding="utf-8",
     )
+    _write_jsonl(
+        repo / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
+        [{"repair_id": "full_dataset::Arp::proof_repair::abc123", "module": "Arp", "after_score": 1.0}],
+    )
+    (repo / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json").write_text(
+        json.dumps({"rows": 1, "candidate_rows": 2, "validated_tier_counts": {"gold": 1}}),
+        encoding="utf-8",
+    )
     (repo / "outputs/manifests/hf_publish_readiness.json").write_text(
         json.dumps(
             {
@@ -458,6 +466,14 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
         "full_dataset_autoprover_repair_evidence"
     )
     assert manifest["artifacts"]["tla_prover_full_dataset_repair_evidence"]["summary"]["pair_ready_rows"] == 1
+    assert manifest["artifacts"]["tla_prover_full_dataset_validated_repair_pairs_v1"]["exists"] is True
+    assert manifest["artifacts"]["tla_prover_full_dataset_validated_repair_pairs_v1"]["rows"] == 1
+    assert manifest["artifacts"]["tla_prover_full_dataset_validated_repair_pairs_v1"]["kind"] == (
+        "full_dataset_validated_repair_pair_corpus"
+    )
+    assert manifest["artifacts"]["tla_prover_full_dataset_validated_repair_pairs_v1"]["summary"]["validated_tier_counts"] == {
+        "gold": 1
+    }
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["exists"] is True
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["rows"] == 1
     assert manifest["artifacts"]["ai4fm_public_seed_tla_modules_v1"]["kind"] == (
@@ -617,6 +633,9 @@ def test_build_manifest_summarizes_present_artifacts(tmp_path: Path) -> None:
     )
     assert manifest["remote_next_steps"]["build_tla_prover_full_dataset_repair_evidence"] == (
         "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
+    )
+    assert manifest["remote_next_steps"]["build_tla_prover_full_dataset_validated_repair_pairs_v1"] == (
+        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py"
     )
     assert "sft_preflight_pbs" not in manifest["remote_next_steps"]
     assert "sft_preflight_launch" not in manifest["remote_next_steps"]

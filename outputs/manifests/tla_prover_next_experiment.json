@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T06:15:16.351765+00:00",
+  "generated_at": "2026-06-30T06:28:36.477752+00:00",
   "intent_allowed": true,
   "preferred_publish_model": null,
   "preferred_sft_lane": null,
@@ -122,13 +122,14 @@
   "repair_corpus_summary": {
     "kept_rows_by_source": {
       "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+      "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
       "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
     },
     "missing_sources": [
       "data/processed/ralph_repair_pairs.jsonl",
       "data/processed/ralph_repair_pairs_long_latest.jsonl"
     ],
-    "rows": 511
+    "rows": 529
   },
   "repair_workflow": {
     "benchmark_gold_coverage": {
@@ -382,6 +383,39 @@
         ]
       }
     },
+    "full_dataset_validated_repair_pairs_command": "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py",
+    "full_dataset_validated_repair_pairs_summary": {
+      "allowed_tiers": [
+        "gold"
+      ],
+      "candidate_rows": 37,
+      "evidence_path": "outputs/manifests/tla_prover_full_dataset_repair_evidence.jsonl",
+      "excluded_counts": {
+        "excluded_not_pair_ready": 112,
+        "excluded_skip_harness_repair": 8,
+        "excluded_tier:bronze": 6,
+        "excluded_tier:silver": 5
+      },
+      "generated_at": "2026-06-30T06:25:04.775566+00:00",
+      "include_harness": false,
+      "jsonl_sha256": "fdffa144d56f988ceccd4d15175e049a78496d451f34bf90a08cf660b1bcc539",
+      "kept_by_bucket": {
+        "inductiveness_repair": 3,
+        "proof_repair": 15
+      },
+      "kept_by_gold_source_kind": {
+        "diamond_eval_holdout": 17,
+        "formalllm_public_module": 1
+      },
+      "out": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
+      "rows": 18,
+      "schema": "chattla_tla_prover_full_dataset_validated_repair_pairs_v1",
+      "validated_tier_counts": {
+        "bronze": 6,
+        "gold": 18,
+        "silver": 5
+      }
+    },
     "preflight_command": "python3 scripts/train_tla_prover_repair_local.py --preflight",
     "refresh_command": "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best && python3 scripts/build_tla_prover_repair_corpus.py",
     "repair_corpus_health": {
@@ -393,13 +427,14 @@
     "repair_corpus_summary": {
       "kept_rows_by_source": {
         "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+        "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
         "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
       },
       "missing_sources": [
         "data/processed/ralph_repair_pairs.jsonl",
         "data/processed/ralph_repair_pairs_long_latest.jsonl"
       ],
-      "rows": 511
+      "rows": 529
     },
     "train_command": "python3 scripts/train_tla_prover_repair_local.py"
   },

@@ -245,6 +245,14 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
             "evidence_status_counts": {"pair_ready": 24, "reference_spec_only": 7},
         },
     )
+    _write(
+        tmp_path / "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.summary.json",
+        {
+            "rows": 18,
+            "candidate_rows": 37,
+            "validated_tier_counts": {"gold": 18, "silver": 5, "bronze": 6},
+        },
+    )
 
     report = build_report(tmp_path)
 
@@ -262,6 +270,10 @@ def test_build_report_surfaces_repair_workflow_details(tmp_path: Path) -> None:
         "python3 scripts/build_tla_prover_full_dataset_repair_evidence.py"
     )
     assert report["repair_workflow"]["full_dataset_repair_evidence_summary"]["pair_ready_rows"] == 24
+    assert report["repair_workflow"]["full_dataset_validated_repair_pairs_command"] == (
+        "python3 scripts/build_tla_prover_full_dataset_validated_repair_pairs.py"
+    )
+    assert report["repair_workflow"]["full_dataset_validated_repair_pairs_summary"]["rows"] == 18
     assert report["repair_workflow"]["benchmark_gold_coverage"] == {
         "failed_rows_seen": 20,
         "covered_failed_rows": 19,

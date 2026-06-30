@@ -1,8 +1,8 @@
 {
   "difficulty_counts": {
     "easy": 248,
-    "hard": 209,
-    "medium": 54
+    "hard": 224,
+    "medium": 57
   },
   "duplicate_repair_ids": [
     "BM001::74b9bb9211cd::synthetic::init_false",
@@ -226,22 +226,25 @@
   },
   "kept_rows_by_source": {
     "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+    "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
     "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
   },
   "missing_sources": [
     "data/processed/ralph_repair_pairs.jsonl",
     "data/processed/ralph_repair_pairs_long_latest.jsonl"
   ],
-  "rows": 511,
+  "rows": 529,
   "schema": "chattla_tla_prover_repair_train_summary_v1",
   "source_defaults": {
     "benchmark_repair_pairs_fc128best": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+    "full_dataset_validated_repair_pairs": "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl",
     "ralph_repair_pairs": "data/processed/ralph_repair_pairs.jsonl",
     "ralph_repair_pairs_long_latest": "data/processed/ralph_repair_pairs_long_latest.jsonl",
     "synthetic_repair_pairs": "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl"
   },
   "source_rows": {
     "data/processed/benchmark_repair_pairs_fc128best.jsonl": 20,
+    "data/processed/tla_prover_full_dataset_validated_repair_pairs_v1.jsonl": 18,
     "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 1009
   }
 }
