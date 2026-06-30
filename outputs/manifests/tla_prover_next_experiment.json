@@ -53,7 +53,7 @@
       "full-public"
     ]
   },
-  "generated_at": "2026-06-30T19:41:18.541826+00:00",
+  "generated_at": "2026-06-30T19:42:55.153012+00:00",
   "handoff_prerequisite": null,
   "handoff_status": {
     "artifact_verdict": "missing",
@@ -97,7 +97,7 @@
   "intent_allowed": true,
   "local_repair_status": {
     "bootstrap_recommendation": null,
-    "generated_at": "2026-06-30T19:40:44.848673+00:00",
+    "generated_at": "2026-06-30T19:42:40.897211+00:00",
     "local_runtime_ready": true,
     "observed_timeout_s": 10.0,
     "path": "outputs/manifests/tla_prover_local_repair_plan.json",
