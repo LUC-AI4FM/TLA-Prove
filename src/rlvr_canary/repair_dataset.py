@@ -41,6 +41,16 @@ Reasoning: none\
 """
 
 
+def _render_chat_fallback(messages: Sequence[dict[str, str]]) -> str:
+    rendered_parts: list[str] = []
+    for item in messages:
+        role = str(item.get("role") or "").strip() or "user"
+        content = str(item.get("content") or "")
+        rendered_parts.append(f"{role}: {content}")
+    rendered_parts.append("assistant:")
+    return "\n".join(rendered_parts)
+
+
 @dataclass
 class RepairExample:
     repair_id: str
@@ -229,8 +239,13 @@ def format_repair_prompt(ex: RepairExample, tokenizer) -> str:
         {"role": "developer", "content": _REPAIR_DEVELOPER},
         {"role": "user", "content": user_content},
     ]
-    text = tokenizer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True,
-    )
+    try:
+        text = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True,
+        )
+    except ValueError as exc:
+        if "tokenizer.chat_template is not set" not in str(exc):
+            raise
+        text = _render_chat_fallback(messages)
     # Embed repair_id for reward lookup + force final channel
     return f"<!-- repair:{ex.repair_id} -->{text}<|channel|>final<|message|>"

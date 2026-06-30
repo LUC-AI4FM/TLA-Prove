@@ -31,6 +31,16 @@ class _FakeTokenizer:
         return list(range(len(text.split())))
 
 
+class _TemplateLessTokenizer(_FakeTokenizer):
+    chat_template = None
+
+    def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=True):
+        raise ValueError(
+            "Cannot use chat template functions because tokenizer.chat_template is not set "
+            "and no template argument was passed!"
+        )
+
+
 def _row(repair_id: str, *, before_score: float, suffix: str) -> dict:
     return {
         "repair_id": repair_id,
@@ -166,3 +176,21 @@ def test_load_repair_prompts_can_filter_allowed_repair_buckets(tmp_path: Path) -
 
     assert [example.repair_id for example in examples] == ["proof-1"]
     assert before_scores == {"proof-1": 0.45}
+
+
+def test_format_repair_prompt_falls_back_when_tokenizer_has_no_chat_template() -> None:
+    tokenizer = _TemplateLessTokenizer()
+    ex = type("RepairExampleStub", (), {
+        "repair_id": "proof-1",
+        "nl": "Write a TLA+ spec",
+        "broken_spec": "---- MODULE Broken ----\n====",
+        "errors_rendered": "diagnostic",
+        "verify_summary": "summary",
+    })()
+
+    prompt = format_repair_prompt(ex, tokenizer)
+
+    assert prompt.startswith("<!-- repair:proof-1 -->")
+    assert "developer:" in prompt
+    assert "user: Original request:" in prompt
+    assert prompt.endswith("<|channel|>final<|message|>")
