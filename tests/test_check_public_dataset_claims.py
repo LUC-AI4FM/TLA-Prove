@@ -343,6 +343,8 @@ def test_build_report_accepts_matching_readme_and_doc_claims(tmp_path: Path) -> 
                 "There is now an explicit non-default expansion build path as well: `data/processed/tla_prover/chattla_tla_prover_sft_public_expanded_v1.jsonl` carries the current `1330`-row prover SFT stack plus the `1005`-row normalized public `TLA-Prove` import and `168` public seed prover-candidate replays for `2503` total rows.",
                 "The broader committed-public variant is now materialized too: `data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl` carries the same prover stack plus the `1010`-row full-public normalized import for `2508` total rows.",
                 "The full tracked-corpora public row lane is also materialized at `data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `2350` rows when we need the undeduped AI4FM public import surface.",
+                "benchmark_suite.json  ← 20 current benchmark items; the 30-row holdout lives in diamond_eval_holdout.jsonl",
+                "Current public benchmark surface: `20` items in `data/benchmarks/benchmark_suite.json`, plus a separate `30`-row holdout in `data/processed/diamond_eval_holdout.jsonl`:",
             ]
         ),
     )

@@ -371,6 +371,8 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"`data/processed/ai4fm_public_tlaprove_import_raw_v1.jsonl` with `{raw_import_rows}` rows "
                 "when we need the undeduped AI4FM public import surface."
             ),
+            "benchmark_suite.json  ← 20 current benchmark items; the 30-row holdout lives in diamond_eval_holdout.jsonl",
+            "Current public benchmark surface: `20` items in `data/benchmarks/benchmark_suite.json`, plus a separate `30`-row holdout in `data/processed/diamond_eval_holdout.jsonl`:",
         ],
         "docs/AI4FM_PUBLIC_DATASET_SURFACE.md": [
             f"- `{formalllm_rows}` canonical metadata entries",

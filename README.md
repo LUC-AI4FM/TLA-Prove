@@ -110,7 +110,7 @@ ChatTLA/
 │   ├── FormaLLM/        ← git submodule: seed specs (MIT)
 │   ├── processed/       ← train/eval corpora, including formalllm_eval_v1.jsonl
 │   └── benchmarks/
-│       └── benchmark_suite.json  ← 30 hand-crafted eval problems
+│       └── benchmark_suite.json  ← 20 current benchmark items; the 30-row holdout lives in diamond_eval_holdout.jsonl
 ├── src/
 │   ├── scraper/         ← Phase 1: data collection
 │   ├── validators/      ← TLC/SANY wrappers
@@ -225,7 +225,7 @@ python -m src.inference.ollama_client "A distributed read-write lock." --validat
 
 ## Benchmark Suite
 
-30 hand-crafted TLA+ problems in `data/benchmarks/benchmark_suite.json`:
+Current public benchmark surface: `20` items in `data/benchmarks/benchmark_suite.json`, plus a separate `30`-row holdout in `data/processed/diamond_eval_holdout.jsonl`:
 
 | Domain | Count | Examples |
 |--------|-------|---------|
