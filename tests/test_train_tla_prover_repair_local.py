@@ -221,6 +221,78 @@ def test_build_run_plan_resolves_preflight_report_via_selected_python(tmp_path: 
     assert plan["preflight_report"]["runtime_dependencies"]["requested_python_executable"] == "/tmp/test-python"
 
 
+def test_build_run_plan_defaults_bounded_runtime_import_timeout(tmp_path: Path, monkeypatch) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
+        '{"repair_id":"R1","before_score":0.2}\n',
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        '{"rows": 1, "health": {"ok": true, "warnings": []}, "kept_rows_by_source": {"benchmark": 1}}\n',
+    )
+    captured: dict[str, object] = {}
+
+    def fake_resolve_preflight_report(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True, "runtime_dependencies": {"ok": True, "available": [], "missing": []}}
+
+    monkeypatch.delenv("CHATTLA_RUNTIME_IMPORT_TIMEOUT_S", raising=False)
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        fake_resolve_preflight_report,
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+        refresh_corpus=False,
+        python_executable="/tmp/test-python",
+    )
+
+    assert captured["runtime_import_timeout_s"] == 10.0
+    assert plan["runtime_import_timeout_s"] == 10.0
+
+
+def test_build_run_plan_honors_explicit_runtime_import_timeout(tmp_path: Path, monkeypatch) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
+        '{"repair_id":"R1","before_score":0.2}\n',
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        '{"rows": 1, "health": {"ok": true, "warnings": []}, "kept_rows_by_source": {"benchmark": 1}}\n',
+    )
+    captured: dict[str, object] = {}
+
+    def fake_resolve_preflight_report(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True, "runtime_dependencies": {"ok": True, "available": [], "missing": []}}
+
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local._resolve_preflight_report",
+        fake_resolve_preflight_report,
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+        refresh_corpus=False,
+        python_executable="/tmp/test-python",
+        runtime_import_timeout_s=3.5,
+    )
+
+    assert captured["runtime_import_timeout_s"] == 3.5
+    assert plan["runtime_import_timeout_s"] == 3.5
+
+
 def test_build_run_plan_prefers_repo_venv_python_when_env_unset(tmp_path: Path, monkeypatch) -> None:
     _write(
         tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
@@ -479,3 +551,26 @@ def test_cli_can_write_and_compact_plan_json(tmp_path: Path) -> None:
     assert "local_runtime_ready" in payload
     persisted = json.loads(out.read_text(encoding="utf-8"))
     assert persisted["schema"] == "chattla_tla_prover_local_repair_plan_v1"
+
+
+def test_cli_compact_reports_default_bounded_runtime_import_timeout() -> None:
+    completed = subprocess.run(
+        [
+            "python3",
+            str(SCRIPT),
+            "--preflight",
+            "--dry-run",
+            "--compact",
+        ],
+        cwd=REPO,
+        text=True,
+        capture_output=True,
+        env={
+            **os.environ,
+            "CHATTLA_RUNTIME_IMPORT_TIMEOUT_S": "2",
+        },
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(completed.stdout)
+    assert payload["runtime_import_timeout_s"] == 2.0

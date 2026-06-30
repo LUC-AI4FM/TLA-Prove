@@ -282,3 +282,24 @@ def test_build_preflight_report_marks_missing_runtime_dependencies(tmp_path, mon
     assert report["runtime_dependencies"]["missing"] == [
         {"module": "torch", "error": "ModuleNotFoundError: No module named 'torch'"},
     ]
+
+
+def test_build_preflight_report_passes_runtime_import_timeout_to_probe(tmp_path, monkeypatch) -> None:
+    parser = build_arg_parser()
+    args = parser.parse_args([])
+    merged_path = tmp_path / DEFAULT_MERGED_REPAIR_PAIRS
+    merged_path.parent.mkdir(parents=True, exist_ok=True)
+    merged_path.write_text('{"repair_id":"R1","before_score":0.2}\n', encoding="utf-8")
+
+    captured: dict[str, object] = {}
+
+    def fake_probe(*, timeout_s=None, **_kwargs):
+        captured["timeout_s"] = timeout_s
+        return {"ok": True, "available": ["torch"], "missing": [], "timings": []}
+
+    monkeypatch.setattr("scripts.train_rl_repair._probe_runtime_dependencies", fake_probe)
+
+    report = build_preflight_report(args, repo_root=tmp_path, runtime_import_timeout_s=7.5)
+
+    assert report["runtime_dependencies"]["ok"] is True
+    assert captured["timeout_s"] == 7.5

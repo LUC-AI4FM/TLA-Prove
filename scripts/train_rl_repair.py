@@ -291,7 +291,12 @@ def resolve_trajectory_files(args: argparse.Namespace, repo_root: Path = _REPO_R
     return files
 
 
-def build_preflight_report(args: argparse.Namespace, repo_root: Path = _REPO_ROOT) -> dict[str, Any]:
+def build_preflight_report(
+    args: argparse.Namespace,
+    repo_root: Path = _REPO_ROOT,
+    *,
+    runtime_import_timeout_s: float | None = None,
+) -> dict[str, Any]:
     trajectory_files = resolve_trajectory_files(args, repo_root=repo_root)
     raw_rows = 0
     unique_repair_ids: set[str] = set()
@@ -318,7 +323,10 @@ def build_preflight_report(args: argparse.Namespace, repo_root: Path = _REPO_ROO
     using_merged_default = trajectory_files == [DEFAULT_MERGED_REPAIR_PAIRS]
     merged_summary_path = _resolve_repo_path(DEFAULT_MERGED_REPAIR_SUMMARY, repo_root)
     merged_summary = _read_optional_json(merged_summary_path) if using_merged_default else None
-    runtime_dependencies = _probe_runtime_dependencies()
+    if runtime_import_timeout_s is None:
+        runtime_dependencies = _probe_runtime_dependencies()
+    else:
+        runtime_dependencies = _probe_runtime_dependencies(timeout_s=runtime_import_timeout_s)
     ok = not missing_files and raw_rows > 0
     if merged_summary is not None:
         ok = ok and bool(dict(merged_summary.get("health") or {}).get("ok"))

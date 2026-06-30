@@ -28,6 +28,7 @@ from scripts.train_rl_repair import (
 
 BOOTSTRAP_ENV_COMMAND = "CHATTLA_BOOTSTRAP_REQUIREMENTS_FILE=requirements-repair-bootstrap.txt bash scripts/launch_rl.sh setup"
 DEFAULT_PLAN_OUT = REPO / "outputs" / "manifests" / "tla_prover_local_repair_plan.json"
+DEFAULT_LOCAL_RUNTIME_IMPORT_TIMEOUT_S = 10.0
 REPAIR_REFRESH_STEPS: tuple[tuple[str, ...], ...] = (
     ("python3", "scripts/build_tla_prover_full_dataset_repair_queue.py"),
     ("python3", "scripts/build_tla_prover_full_dataset_repair_evidence.py"),
@@ -54,6 +55,15 @@ def _resolve_python_executable() -> str:
         if candidate:
             return candidate
     return "python3"
+
+
+def _resolve_runtime_import_timeout_s(runtime_import_timeout_s: float | None = None) -> float:
+    if runtime_import_timeout_s is not None:
+        return float(runtime_import_timeout_s)
+    env_value = os.environ.get("CHATTLA_RUNTIME_IMPORT_TIMEOUT_S")
+    if env_value:
+        return float(env_value)
+    return DEFAULT_LOCAL_RUNTIME_IMPORT_TIMEOUT_S
 
 
 def _all_missing_runtime_errors_are_timeouts(missing: list[dict[str, Any]]) -> bool:
@@ -197,6 +207,7 @@ def _resolve_preflight_report(
     trajectory_files: list[str] | None,
     include_benchmark_repair_pairs: bool,
     extra_args: list[str],
+    runtime_import_timeout_s: float,
 ) -> dict[str, Any]:
     preflight_args = _build_train_rl_repair_args(
         trajectory_files=trajectory_files,
@@ -206,7 +217,11 @@ def _resolve_preflight_report(
     )
     runtime = build_runtime_config(preflight_args)
     if Path(python_executable).resolve() == Path(sys.executable).resolve():
-        report = build_preflight_report(preflight_args, repo_root=repo)
+        report = build_preflight_report(
+            preflight_args,
+            repo_root=repo,
+            runtime_import_timeout_s=runtime_import_timeout_s,
+        )
         report["model"] = runtime["model"]
         report["runtime"] = runtime
         return report
@@ -223,6 +238,10 @@ def _resolve_preflight_report(
         cwd=repo,
         text=True,
         capture_output=True,
+        env={
+            **os.environ,
+            "CHATTLA_RUNTIME_IMPORT_TIMEOUT_S": str(runtime_import_timeout_s),
+        },
     )
     stdout = completed.stdout.strip()
     if not stdout:
@@ -246,6 +265,7 @@ def build_run_plan(
     preflight_only: bool,
     refresh_corpus: bool,
     python_executable: str | None = None,
+    runtime_import_timeout_s: float | None = None,
 ) -> dict[str, Any]:
     args = _build_args(
         trajectory_files=trajectory_files,
@@ -254,12 +274,14 @@ def build_run_plan(
     resolved_trajectory_files = resolve_trajectory_files(args, repo_root=repo)
     final_output_dir = Path(output_dir) if output_dir else _default_output_dir(repo, resolved_trajectory_files)
     resolved_python = python_executable or _resolve_python_executable()
+    effective_runtime_import_timeout_s = _resolve_runtime_import_timeout_s(runtime_import_timeout_s)
     preflight_report = _resolve_preflight_report(
         repo=repo,
         python_executable=resolved_python,
         trajectory_files=trajectory_files,
         include_benchmark_repair_pairs=include_benchmark_repair_pairs,
         extra_args=extra_args,
+        runtime_import_timeout_s=effective_runtime_import_timeout_s,
     )
     preflight_report = _annotate_preflight_report_with_requested_python(
         preflight_report,
@@ -292,6 +314,7 @@ def build_run_plan(
         "preflight_only": preflight_only,
         "preflight_report": preflight_report,
         "python_executable": resolved_python,
+        "runtime_import_timeout_s": effective_runtime_import_timeout_s,
         "output_dir": str(final_output_dir),
         "command": command,
         "bootstrap_recommendation": bootstrap_recommendation,
@@ -314,6 +337,7 @@ def compact_plan(plan: dict[str, Any]) -> dict[str, Any]:
         "refresh_corpus": plan.get("refresh_corpus"),
         "using_merged_default": plan.get("using_merged_default"),
         "python_executable": plan.get("python_executable"),
+        "runtime_import_timeout_s": plan.get("runtime_import_timeout_s"),
         "output_dir": plan.get("output_dir"),
         "preflight_ok": preflight_report.get("ok"),
         "local_runtime_ready": runtime_dependencies.get("ok"),
@@ -330,6 +354,7 @@ def main() -> int:
     parser.add_argument("--include-benchmark-repair-pairs", action="store_true")
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument("--runtime-import-timeout-s", type=float, default=None)
     parser.add_argument("--preflight", action="store_true")
     parser.add_argument("--refresh-corpus", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
@@ -349,6 +374,7 @@ def main() -> int:
         extra_args=extra_args,
         preflight_only=args.preflight,
         refresh_corpus=args.refresh_corpus,
+        runtime_import_timeout_s=args.runtime_import_timeout_s,
     )
     payload = compact_plan(plan) if args.compact else plan
     if args.out is not None:
