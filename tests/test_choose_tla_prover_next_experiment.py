@@ -82,7 +82,7 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
     assert report["recommended_action"] == "sft-preflight"
     assert report["preferred_sft_lane"] == "expanded"
     assert "--sft-corpus expanded --submit-sft-preflight" in report["recommended_command"]
-    assert report["recommended_local_command"] == "python3 -m src.training.train --prover --sft-corpus expanded"
+    assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_local.py --sft-corpus expanded"
     assert report["preferred_sft_lane_summary"]["trainable"] is True
 
 

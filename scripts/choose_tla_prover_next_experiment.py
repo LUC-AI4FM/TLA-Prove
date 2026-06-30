@@ -154,7 +154,7 @@ def _sft_command(lane: str) -> str:
 
 def _local_sft_command(lane: str) -> str:
     return (
-        "python3 -m src.training.train --prover "
+        "python3 scripts/train_tla_prover_local.py "
         f"--sft-corpus {lane}"
     )
 
