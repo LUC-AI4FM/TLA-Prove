@@ -13,7 +13,7 @@
       "ChatTLA-Prover-gpt-oss-20b"
     ],
     "experiment_name": "ChatTLA-Prover-gpt-oss-20b",
-    "generated_at": "2026-06-30T03:36:45.762495+00:00",
+    "generated_at": "2026-06-30T03:45:59.588585+00:00",
     "output_dir": "outputs/checkpoints_prover",
     "repo": ".",
     "requested_corpus": "default",
@@ -52,7 +52,7 @@
       "ChatTLA-Prover-gpt-oss-20b-expanded"
     ],
     "experiment_name": "ChatTLA-Prover-gpt-oss-20b-expanded",
-    "generated_at": "2026-06-30T03:36:45.763193+00:00",
+    "generated_at": "2026-06-30T03:45:59.589089+00:00",
     "output_dir": "outputs/checkpoints_prover_expanded",
     "repo": ".",
     "requested_corpus": "expanded",
@@ -83,8 +83,17 @@
     "status_command": "python3 scripts/choose_tla_prover_next_experiment.py",
     "watch_command": "scripts/watch_tla_prover_remote_results.sh"
   },
-  "generated_at": "2026-06-30T03:36:45.763386+00:00",
+  "generated_at": "2026-06-30T03:45:59.589277+00:00",
   "mode": "local",
+  "post_train_eval": {
+    "baseline_command": "python3 scripts/eval_fullspec_checkpoints.py --model openai/gpt-oss-20b --adapter outputs/checkpoints_prover --label default --holdout data/processed/diamond_eval_holdout.jsonl --out outputs/eval/lane_comparison/default-vs-expanded-local/default_eval.json",
+    "baseline_out": "outputs/eval/lane_comparison/default-vs-expanded-local/default_eval.json",
+    "candidate_command": "python3 scripts/eval_fullspec_checkpoints.py --model openai/gpt-oss-20b --adapter outputs/checkpoints_prover_expanded --label expanded --holdout data/processed/diamond_eval_holdout.jsonl --out outputs/eval/lane_comparison/default-vs-expanded-local/expanded_eval.json",
+    "candidate_out": "outputs/eval/lane_comparison/default-vs-expanded-local/expanded_eval.json",
+    "compare_note": "Run both eval commands after training completes, then compare sany_pass, depth1_pass, tlc_pass, and mean_reward.",
+    "holdout": "data/processed/diamond_eval_holdout.jsonl",
+    "tool": "scripts/eval_fullspec_checkpoints.py"
+  },
   "repo": ".",
   "row_delta": 1173,
   "schema": "chattla_tla_prover_lane_comparison_plan_v1"

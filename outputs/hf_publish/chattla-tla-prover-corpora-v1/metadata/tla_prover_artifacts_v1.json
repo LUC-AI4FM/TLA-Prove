@@ -2587,12 +2587,12 @@
       "sha256": "5fc5cb7203898e2fbe90683ccacbf55e9fda52826e96509708676c5d936556ca"
     },
     "tla_prover_lane_comparison_plan": {
-      "bytes": 3487,
+      "bytes": 4534,
       "exists": true,
       "kind": "prover_corpus_lane_comparison_plan",
       "path": "outputs/manifests/tla_prover_lane_comparison_plan.json",
       "rows": null,
-      "sha256": "8a758f6ed24a2e5347cb4216e22813e6e0c7995810251813ff1d6c2ca0d761a9"
+      "sha256": "3e54c791b5f45f9778b8cea6616fb6acf56e99a158287d6b72241273e5908aea"
     },
     "tla_prover_repair_train_v1": {
       "bytes": 2277997,
@@ -2949,7 +2949,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-30T03:36:45.783966+00:00",
+  "generated_at": "2026-06-30T03:45:59.612780+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

@@ -55,6 +55,17 @@ def test_build_plan_for_local_comparison_reuses_named_lane_plans(tmp_path: Path)
     assert plan["baseline"]["command"][-1] == "--smoke-test"
     assert plan["candidate"]["command"][-1] == "--smoke-test"
     assert plan["follow_up"]["status_command"] == "python3 scripts/choose_tla_prover_next_experiment.py"
+    assert plan["post_train_eval"]["tool"] == "scripts/eval_fullspec_checkpoints.py"
+    assert plan["post_train_eval"]["baseline_out"] == (
+        "outputs/eval/lane_comparison/default-vs-expanded-local/default_eval.json"
+    )
+    assert "--adapter outputs/checkpoints_prover " in plan["post_train_eval"]["baseline_command"]
+    assert "--adapter outputs/checkpoints_prover_expanded " in plan["post_train_eval"]["candidate_command"]
+    assert "--label default " in plan["post_train_eval"]["baseline_command"]
+    assert "--label expanded " in plan["post_train_eval"]["candidate_command"]
+    assert plan["post_train_eval"]["compare_note"] == (
+        "Run both eval commands after training completes, then compare sany_pass, depth1_pass, tlc_pass, and mean_reward."
+    )
 
 
 def test_build_plan_for_remote_comparison_emits_paired_handoff_commands(tmp_path: Path) -> None:
@@ -90,6 +101,7 @@ def test_build_plan_for_remote_comparison_emits_paired_handoff_commands(tmp_path
     )
     assert plan["follow_up"]["watch_command"] == "scripts/watch_tla_prover_remote_results.sh"
     assert plan["follow_up"]["evaluate_command"] == "python3 scripts/evaluate_tla_prover_remote_results.py"
+    assert plan["post_train_eval"] is None
 
 
 def test_cli_can_write_lane_comparison_manifest(tmp_path: Path) -> None:

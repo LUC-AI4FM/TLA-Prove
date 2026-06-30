@@ -17,6 +17,7 @@ from scripts.tla_prover_corpus_paths import resolve_remote_sft_corpus_metadata
 from scripts.train_tla_prover_local import build_run_plan as build_local_run_plan
 
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_lane_comparison_plan.json"
+DEFAULT_EVAL_HOLDOUT = "data/processed/diamond_eval_holdout.jsonl"
 
 
 def _safe_label(value: str) -> str:
@@ -78,6 +79,47 @@ def _remote_lane_plan(
     }
 
 
+def _post_train_eval(
+    *,
+    comparison_id: str,
+    baseline: dict[str, Any],
+    candidate: dict[str, Any],
+) -> dict[str, Any]:
+    eval_dir = Path("outputs") / "eval" / "lane_comparison" / comparison_id
+    baseline_alias = str(baseline.get("resolved_corpus", {}).get("alias") or baseline.get("requested_corpus") or "baseline")
+    candidate_alias = str(candidate.get("resolved_corpus", {}).get("alias") or candidate.get("requested_corpus") or "candidate")
+    baseline_out = eval_dir / f"{_safe_label(baseline_alias)}_eval.json"
+    candidate_out = eval_dir / f"{_safe_label(candidate_alias)}_eval.json"
+    baseline_adapter = str(baseline.get("output_dir"))
+    candidate_adapter = str(candidate.get("output_dir"))
+    return {
+        "tool": "scripts/eval_fullspec_checkpoints.py",
+        "holdout": DEFAULT_EVAL_HOLDOUT,
+        "baseline_out": str(baseline_out),
+        "candidate_out": str(candidate_out),
+        "baseline_command": (
+            "python3 scripts/eval_fullspec_checkpoints.py "
+            "--model openai/gpt-oss-20b "
+            f"--adapter {baseline_adapter} "
+            f"--label {baseline_alias} "
+            f"--holdout {DEFAULT_EVAL_HOLDOUT} "
+            f"--out {baseline_out}"
+        ),
+        "candidate_command": (
+            "python3 scripts/eval_fullspec_checkpoints.py "
+            "--model openai/gpt-oss-20b "
+            f"--adapter {candidate_adapter} "
+            f"--label {candidate_alias} "
+            f"--holdout {DEFAULT_EVAL_HOLDOUT} "
+            f"--out {candidate_out}"
+        ),
+        "compare_note": (
+            "Run both eval commands after training completes, then compare "
+            "sany_pass, depth1_pass, tlc_pass, and mean_reward."
+        ),
+    }
+
+
 def _row_delta(baseline: dict[str, Any], candidate: dict[str, Any]) -> int | None:
     baseline_rows = baseline.get("resolved_corpus", {}).get("rows")
     candidate_rows = candidate.get("resolved_corpus", {}).get("rows")
@@ -99,22 +141,30 @@ def build_plan(
     if baseline == candidate:
         raise ValueError("baseline and candidate must differ")
 
+    comparison_id = _comparison_id(baseline=baseline, candidate=candidate, mode=mode)
     if mode == "local":
         baseline_plan = _local_lane_plan(repo=repo, requested_corpus=baseline, extra_args=extra_args)
         candidate_plan = _local_lane_plan(repo=repo, requested_corpus=candidate, extra_args=extra_args)
+        post_train_eval = _post_train_eval(
+            comparison_id=comparison_id,
+            baseline=baseline_plan,
+            candidate=candidate_plan,
+        )
     else:
         baseline_plan = _remote_lane_plan(repo=repo, requested_corpus=baseline)
         candidate_plan = _remote_lane_plan(repo=repo, requested_corpus=candidate)
+        post_train_eval = None
 
     payload = {
         "schema": "chattla_tla_prover_lane_comparison_plan_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repo": str(repo),
-        "comparison_id": _comparison_id(baseline=baseline, candidate=candidate, mode=mode),
+        "comparison_id": comparison_id,
         "mode": mode,
         "baseline": baseline_plan,
         "candidate": candidate_plan,
         "row_delta": _row_delta(baseline_plan, candidate_plan),
+        "post_train_eval": post_train_eval,
         "follow_up": {
             "status_command": "python3 scripts/choose_tla_prover_next_experiment.py",
             "watch_command": "scripts/watch_tla_prover_remote_results.sh",
