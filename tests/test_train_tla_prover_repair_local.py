@@ -1,6 +1,11 @@
+import json
+import subprocess
 from pathlib import Path
 
 from scripts.train_tla_prover_repair_local import build_run_plan
+
+REPO = Path(__file__).resolve().parents[1]
+SCRIPT = REPO / "scripts" / "train_tla_prover_repair_local.py"
 
 
 def _write(path: Path, text: str = "x") -> None:
@@ -83,3 +88,22 @@ def test_build_run_plan_uses_custom_sources_and_separate_output_dir(tmp_path: Pa
         "--difficulty",
         "hard",
     ]
+
+
+def test_cli_preflight_dry_run_executes_without_import_error() -> None:
+    completed = subprocess.run(
+        [
+            "python3",
+            str(SCRIPT),
+            "--preflight",
+            "--dry-run",
+        ],
+        cwd=REPO,
+        text=True,
+        capture_output=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(completed.stdout)
+    assert payload["schema"] == "chattla_tla_prover_local_repair_plan_v1"
+    assert payload["preflight_only"] is True

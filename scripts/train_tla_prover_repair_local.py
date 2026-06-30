@@ -5,10 +5,15 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from argparse import Namespace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 
 from scripts.train_rl_repair import (
     DEFAULT_BENCHMARK_REPAIR_PAIRS,
@@ -16,8 +21,6 @@ from scripts.train_rl_repair import (
     build_preflight_report,
     resolve_trajectory_files,
 )
-
-REPO = Path(__file__).resolve().parents[1]
 TRAIN_ENTRYPOINT = ["python3", "-m", "scripts.train_rl_repair"]
 
 
