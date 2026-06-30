@@ -147,6 +147,12 @@ def test_build_report_blocks_degenerate_zero_pass_full_benchmark(tmp_path: Path)
             "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
             "source_path": str(benchmark_csv),
             "mtime": 0,
+            "execution": {
+                "self_correct": False,
+                "use_plan": False,
+                "attempts": 1,
+                "inference_mode": "single-shot",
+            },
         },
         now_fn=lambda: 3600,
     )
@@ -160,6 +166,7 @@ def test_build_report_blocks_degenerate_zero_pass_full_benchmark(tmp_path: Path)
     assert "0/20 SANY and 0/20 TLC" in report["claim_status"]["reason"]
     assert report["failure_surface"]["rows"] == 1
     assert report["failure_surface"]["aggregate"]["rows_with_all_core_components"] == 0
+    assert report["benchmark"]["execution"]["inference_mode"] == "single-shot"
 
 
 def test_build_failure_surface_summarizes_missing_components_and_red_flags(tmp_path: Path) -> None:

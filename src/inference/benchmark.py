@@ -86,6 +86,44 @@ _CSV_FIELDS = [
 ]
 
 
+def benchmark_execution_metadata(
+    *,
+    output_csv: Path,
+    models: list[str],
+    use_self_correct: bool,
+    attempts: int,
+    use_plan: bool,
+    limit: Optional[int],
+    problem_ids: Optional[list[str]],
+) -> dict:
+    """Return machine-readable run metadata for a benchmark CSV."""
+    mode_parts = ["single-shot"]
+    if use_self_correct:
+        mode_parts = ["self-correct"]
+    if use_plan:
+        mode_parts.append("plan-then-spec")
+    if attempts > 1:
+        mode_parts.append(f"best-of-{attempts}")
+    return {
+        "schema": "chattla_benchmark_run_meta_v1",
+        "source_csv": output_csv.name,
+        "source_path": str(output_csv),
+        "execution": {
+            "self_correct": bool(use_self_correct),
+            "use_plan": bool(use_plan),
+            "attempts": int(attempts),
+            "inference_mode": "+".join(mode_parts),
+        },
+        "models": list(models),
+        "problem_ids": list(problem_ids) if problem_ids is not None else None,
+        "limit": limit,
+    }
+
+
+def benchmark_metadata_path(output_csv: Path) -> Path:
+    return output_csv.with_suffix(output_csv.suffix + ".meta.json")
+
+
 def score_structural(spec: str, expected_invariants: list[str], *, parse_ok: bool = True) -> float:
     """
     Heuristic structural rubric — 0.0 to 1.0.
@@ -281,6 +319,19 @@ def run(
 
     mlflow.set_experiment("ChatTLA-Benchmark")
     output_csv.parent.mkdir(parents=True, exist_ok=True)
+    meta = benchmark_execution_metadata(
+        output_csv=output_csv,
+        models=models,
+        use_self_correct=use_self_correct,
+        attempts=attempts,
+        use_plan=use_plan,
+        limit=limit,
+        problem_ids=problem_ids,
+    )
+    benchmark_metadata_path(output_csv).write_text(
+        json.dumps(meta, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
     with output_csv.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=_CSV_FIELDS, extrasaction="ignore")

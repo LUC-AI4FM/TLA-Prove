@@ -467,7 +467,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     # Only apply outside operator bodies: find lines that are at column 0 or
     # preceded only by comments and appear before the first == definition
     def _is_bare_module_level(spec_text: str) -> list[tuple[str,str]]:
-        """Return (full_line, variable_part) for bare-level \in expressions."""
+        r"""Return (full_line, variable_part) for bare-level \in expressions."""
         found = []
         in_body = False
         for line in spec_text.splitlines():
@@ -514,6 +514,85 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     if fixed_new != fixed:
         result.fixes_applied.append("replaced SOME with \\E")
         fixed = fixed_new
+
+    # ── Fix 23b: Repair common benchmark parser artefacts ────────────────
+    fixed_new = re.sub(r"\|\->\s+>", r"|-> ", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed stray > after |->")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"EXCEPT\s+(!\[[^]]+\])'\s*=", r"EXCEPT \1 =", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed invalid prime from EXCEPT selector")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"Spec\s*==\s*Init\s*/\\\s*\[\]_\(([^)]+)\)\s*\(\s*Next\s*\)",
+        r"Spec == Init /\\ [][Next]_\1",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized malformed Spec temporal formula")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\bCONSTDEF\b", "", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed CONSTDEF pseudo-keyword")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"^([A-Z_][A-Z0-9_]*)\s*=\s*(.+)$", r"\1 == \2", fixed, flags=re.MULTILINE)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized top-level = definitions to ==")
+        fixed = fixed_new
+
+    def _rewrite_unchanged_brackets(match: re.Match) -> str:
+        inner = match.group(1).strip()
+        if not inner or any(token in inner for token in ("\\A", "\\E", "\\\\", ":", "\n")):
+            return match.group(0)
+        unused = re.fullmatch(r"UNUSED\((\w+)\)", inner)
+        if unused:
+            return f"UNCHANGED <<{unused.group(1)}>>"
+        tuple_match = re.fullmatch(r"<<\s*(.*?)\s*>>", inner)
+        if tuple_match:
+            return f"UNCHANGED <<{tuple_match.group(1)}>>"
+        names = [part.strip() for part in inner.split(",") if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", part.strip())]
+        if names:
+            return f"UNCHANGED <<{', '.join(names)}>>"
+        return match.group(0)
+
+    fixed_new = re.sub(r"UNCHANGED\[([^\]\n]+)\]", _rewrite_unchanged_brackets, fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote bracketed UNCHANGED form")
+        fixed = fixed_new
+
+    var_decl = re.search(r"^VARIABLES?\s+(.+)$", fixed, re.MULTILINE)
+    if var_decl:
+        raw_names = re.sub(r"\(\*.*?\*\)", "", var_decl.group(1))
+        names = []
+        seen = set()
+        defined_ops = set(re.findall(r"^([A-Za-z_][A-Za-z0-9_]*)\s*==", fixed, re.MULTILINE))
+        for part in raw_names.split(","):
+            candidate = part.strip()
+            if not candidate:
+                continue
+            name_match = re.match(r"[A-Za-z_][A-Za-z0-9_]*", candidate)
+            if not name_match:
+                continue
+            name = name_match.group(0)
+            if name in seen or name in defined_ops:
+                continue
+            seen.add(name)
+            names.append(name)
+        if names:
+            cleaned_decl = f"VARIABLES {', '.join(names)}"
+            if cleaned_decl != var_decl.group(0):
+                fixed = fixed[:var_decl.start()] + cleaned_decl + fixed[var_decl.end():]
+                result.fixes_applied.append("cleaned single-line VARIABLES declaration")
+            vars_tuple = f"<<{', '.join(names)}>>"
+            fixed_new = re.sub(r"^vars\s*==\s*<<.*?>>$", f"vars == {vars_tuple}", fixed, flags=re.MULTILINE)
+            if fixed_new != fixed:
+                fixed = fixed_new
+                result.fixes_applied.append("realigned vars tuple with VARIABLES declaration")
 
     # ── Fix 24: Remove invalid SUM/PRODUCT operators ─────────────────────
     # TLA+ has no built-in SUM. Common pattern:

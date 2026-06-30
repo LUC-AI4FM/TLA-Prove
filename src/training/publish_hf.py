@@ -50,6 +50,22 @@ def default_benchmark_model() -> str:
     return os.environ.get("CHATTLA_BENCHMARK_MODEL") or os.environ.get("CHATTLA_MODEL") or "chattla:20b"
 
 
+def benchmark_metadata_path(csv_path: Path) -> Path:
+    return csv_path.with_suffix(csv_path.suffix + ".meta.json")
+
+
+def load_benchmark_execution_metadata(csv_path: Path) -> dict | None:
+    meta_path = benchmark_metadata_path(csv_path)
+    if not meta_path.is_file():
+        return None
+    try:
+        payload = json.loads(meta_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    execution = payload.get("execution")
+    return execution if isinstance(execution, dict) else None
+
+
 def _resolve_local_gguf_path(*, quant: str, gguf_dir: Path | None) -> Path | None:
     if gguf_dir is not None:
         candidate = gguf_dir / f"chattla-20b-{quant}.gguf"
@@ -209,6 +225,7 @@ def latest_full_benchmark_stats(benchmark_model: str | None = None) -> dict | No
                 "source_path": str(path),
                 "model": benchmark_model if benchmark_model is not None else (models[0] if len(models) == 1 else None),
                 "mtime": st.st_mtime,
+                "execution": load_benchmark_execution_metadata(path),
             }
         except (OSError, csv.Error):
             continue
@@ -299,13 +316,20 @@ def _patch_readme(text: str, version: int, stats: dict | None) -> str:
     )
 
     if stats:
+        mode = None
+        execution = stats.get("execution")
+        if isinstance(execution, dict):
+            mode = execution.get("inference_mode")
         new_summary = (
             f"**SANY pass: {stats['sany']}/{stats['n']} ({100*stats['sany']/max(stats['n'],1):.0f}%) · "
             f"TLC pass: {stats['tlc']}/{stats['n']} ({100*stats['tlc']/max(stats['n'],1):.0f}%) · "
             f"Avg structural: {stats['avg_struct']:.2f}**"
         )
         text = re.sub(r"\*\*SANY pass:[^\n]+\*\*", new_summary, text, count=1)
-        note = f"\n\n*Auto-updated from `{stats['source_csv']}` (full benchmark suite).*"
+        note = f"\n\n*Auto-updated from `{stats['source_csv']}` (full benchmark suite"
+        if mode:
+            note += f"; mode: `{mode}`"
+        note += ").*"
         if note.strip() not in text:
             text = text.replace(new_summary, new_summary + note, 1)
 

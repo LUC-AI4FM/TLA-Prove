@@ -1,3 +1,4 @@
+import json
 import sys
 import types
 from pathlib import Path
@@ -165,6 +166,31 @@ def test_patch_readme_repairs_stale_gguf_filename_when_title_is_current() -> Non
     assert "v15" not in patched
 
 
+def test_patch_readme_surfaces_benchmark_mode_from_execution_metadata() -> None:
+    text = """
+# ChatTLA-20b (v21)
+
+## Benchmark Results (v21, 3-shot self-correct)
+
+**SANY pass: 0/20 (0%) · TLC pass: 0/20 (0%) · Avg structural: 0.86**
+""".strip()
+
+    patched = _patch_readme(
+        text,
+        version=22,
+        stats={
+            "n": 20,
+            "sany": 6,
+            "tlc": 3,
+            "avg_struct": 0.9,
+            "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
+            "execution": {"inference_mode": "self-correct+plan-then-spec+best-of-3"},
+        },
+    )
+
+    assert "mode: `self-correct+plan-then-spec+best-of-3`" in patched
+
+
 def test_publish_readiness_blockers_reject_zero_pass_full_benchmark() -> None:
     blockers = publish_readiness_blockers(
         gguf_present=True,
@@ -206,6 +232,19 @@ def test_latest_full_benchmark_stats_filters_to_requested_model(tmp_path: Path, 
     )
     older.touch()
     newer.touch()
+    newer.with_suffix(".csv.meta.json").write_text(
+        json.dumps(
+            {
+                "execution": {
+                    "self_correct": False,
+                    "use_plan": False,
+                    "attempts": 1,
+                    "inference_mode": "single-shot",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
     monkeypatch.setattr("src.training.publish_hf._REPO_ROOT", tmp_path)
 
     stats = latest_full_benchmark_stats(benchmark_model="chattla:20b")
@@ -216,6 +255,38 @@ def test_latest_full_benchmark_stats_filters_to_requested_model(tmp_path: Path, 
     assert stats["n"] == 2
     assert stats["sany"] == 1
     assert stats["tlc"] == 1
+
+
+def test_latest_full_benchmark_stats_loads_execution_metadata(tmp_path: Path, monkeypatch) -> None:
+    results_dir = tmp_path / "outputs" / "benchmark_results"
+    results_dir.mkdir(parents=True)
+
+    csv_path = results_dir / "benchmark_results_fc128best_full_20260628_235102.csv"
+    csv_path.write_text(
+        "model,benchmark_id,sany_pass,tlc_pass,structural_score\n"
+        "chattla:20b-fc128best,BM001,0,0,0.8\n",
+        encoding="utf-8",
+    )
+    csv_path.with_suffix(".csv.meta.json").write_text(
+        json.dumps(
+            {
+                "execution": {
+                    "self_correct": True,
+                    "use_plan": True,
+                    "attempts": 2,
+                    "inference_mode": "self-correct+plan-then-spec+best-of-2",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("src.training.publish_hf._REPO_ROOT", tmp_path)
+
+    stats = latest_full_benchmark_stats(benchmark_model="chattla:20b-fc128best")
+
+    assert stats is not None
+    assert stats["execution"]["self_correct"] is True
+    assert stats["execution"]["inference_mode"] == "self-correct+plan-then-spec+best-of-2"
 
 
 def test_publish_aborts_before_upload_when_readiness_is_blocked(tmp_path: Path, monkeypatch) -> None:

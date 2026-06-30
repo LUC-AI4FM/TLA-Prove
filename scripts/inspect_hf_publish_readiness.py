@@ -301,6 +301,7 @@ def build_report(
             "avg_struct": stats["avg_struct"],
             "age_hours": benchmark_age_hours,
             "fresh_within_hours": benchmark_max_age_hours,
+            "execution": stats.get("execution"),
         },
         "failure_surface": failure_surface,
         "remote": {
