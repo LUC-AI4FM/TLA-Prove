@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,6 +35,7 @@ LOCAL_REPAIR_STATUS_COMMAND = (
 )
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
 CORPUS_EXPANSION_SEQUENCE = ("default", "expanded", "full-public")
+TIMEOUT_ERROR_RE = re.compile(r"timed out after (?P<seconds>\d+(?:\.\d+)?)s", re.IGNORECASE)
 
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
@@ -63,6 +65,21 @@ def _read_optional_json(repo: Path, rel_path: str) -> dict[str, Any] | None:
     if not path.exists():
         return None
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _observed_runtime_timeout_s(payload: dict[str, Any], runtime_dependencies: dict[str, Any]) -> float | None:
+    raw_timeout = payload.get("runtime_import_timeout_s")
+    if raw_timeout is not None:
+        try:
+            return float(raw_timeout)
+        except (TypeError, ValueError):
+            pass
+    observed: list[float] = []
+    for entry in list(runtime_dependencies.get("missing") or []):
+        match = TIMEOUT_ERROR_RE.search(str(entry.get("error") or ""))
+        if match:
+            observed.append(float(match.group("seconds")))
+    return max(observed) if observed else None
 
 
 def _decision_blocks_sft(decision: dict[str, Any]) -> bool:
@@ -405,16 +422,26 @@ def _local_repair_status(repo: Path) -> dict[str, Any]:
         for entry in list(runtime_dependencies.get("missing") or [])
         if str(entry.get("module") or "").strip()
     ]
+    bootstrap_recommendation = _compact_bootstrap_recommendation(
+        plan.get("bootstrap_recommendation")
+    )
+    observed_timeout_s = _observed_runtime_timeout_s(plan, runtime_dependencies)
+    timeout_reprobe_recommended = (
+        runtime_dependencies.get("ok") is False
+        and observed_timeout_s is not None
+        and observed_timeout_s < float(LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S)
+        and dict(bootstrap_recommendation or {}).get("reason") == "selected_python_runtime_import_timeouts"
+    )
     return {
         "present": True,
         "path": LOCAL_REPAIR_PLAN_PATH,
         "generated_at": plan.get("generated_at"),
         "preflight_ok": preflight_report.get("ok"),
         "local_runtime_ready": runtime_dependencies.get("ok"),
+        "observed_timeout_s": observed_timeout_s,
+        "timeout_reprobe_recommended": timeout_reprobe_recommended,
         "runtime_missing_modules": runtime_missing_modules,
-        "bootstrap_recommendation": _compact_bootstrap_recommendation(
-            plan.get("bootstrap_recommendation")
-        ),
+        "bootstrap_recommendation": bootstrap_recommendation,
     }
 
 
@@ -509,19 +536,26 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
             f"({handoff_prerequisite['command']})."
         )
     if recommended_action == "repair" and local_repair_status.get("present") and not local_repair_status.get("preflight_ok"):
-        bootstrap = dict(local_repair_status.get("bootstrap_recommendation") or {})
-        if bootstrap.get("command"):
+        if local_repair_status.get("timeout_reprobe_recommended"):
             rationale = (
-                f"{rationale} Local repair preflight is currently not ready on this machine; "
-                f"rerun the local bootstrap path first ({bootstrap['command']})."
+                f"{rationale} The current local repair manifest was collected with a shorter "
+                f"import timeout than the default bounded probe; rerun local repair preflight "
+                f"first ({LOCAL_REPAIR_STATUS_COMMAND})."
             )
         else:
-            missing_modules = list(local_repair_status.get("runtime_missing_modules") or [])
-            if missing_modules:
+            bootstrap = dict(local_repair_status.get("bootstrap_recommendation") or {})
+            if bootstrap.get("command"):
                 rationale = (
                     f"{rationale} Local repair preflight is currently not ready on this machine; "
-                    f"missing runtime imports: {', '.join(missing_modules)}."
+                    f"rerun the local bootstrap path first ({bootstrap['command']})."
                 )
+            else:
+                missing_modules = list(local_repair_status.get("runtime_missing_modules") or [])
+                if missing_modules:
+                    rationale = (
+                        f"{rationale} Local repair preflight is currently not ready on this machine; "
+                        f"missing runtime imports: {', '.join(missing_modules)}."
+                    )
 
     intent_allowed = requested_intent in {"auto", recommended_action}
     return {

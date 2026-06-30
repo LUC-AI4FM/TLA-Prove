@@ -17,6 +17,12 @@ DEFAULT_EXCLUDE_FILES = {"memory.md", "docs/formallm.md"}
 DEFAULT_UNTRACKED_SCAN_PREFIXES = ("scripts/",)
 SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND = "python3 scripts/sync_hf_publish_corpora_metadata.py"
 LOCAL_REPAIR_PLAN_PATH = "outputs/manifests/tla_prover_local_repair_plan.json"
+LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S = 10.0
+LOCAL_REPAIR_STATUS_COMMAND = (
+    "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run "
+    f"--runtime-import-timeout-s {LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S:g} "
+    "--out outputs/manifests/tla_prover_local_repair_plan.json"
+)
 TRACKED_SHARED_ARTIFACTS = (
     "data/processed/ai4fm_public_tlaprove_import_v1.summary.json",
     "data/processed/ai4fm_public_tlaprove_import_raw_v1.summary.json",
@@ -64,6 +70,7 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("aisec_specific_host", re.compile("aisec" + r"-102|aisec" + "102")),
     ("manual_publish_approval", re.compile(r"\bmanual" + r" publish approval\b", re.IGNORECASE)),
 ]
+TIMEOUT_ERROR_RE = re.compile(r"timed out after (?P<seconds>\d+(?:\.\d+)?)s", re.IGNORECASE)
 
 PY_COMPILE_FILES = [
     "scripts/check_public_dataset_claims.py",
@@ -254,6 +261,21 @@ def _compact_bootstrap_recommendation(value: Any) -> dict[str, Any] | None:
     return compact or None
 
 
+def _observed_runtime_timeout_s(payload: dict[str, Any], runtime_dependencies: dict[str, Any]) -> float | None:
+    raw_timeout = payload.get("runtime_import_timeout_s")
+    if raw_timeout is not None:
+        try:
+            return float(raw_timeout)
+        except (TypeError, ValueError):
+            pass
+    observed: list[float] = []
+    for entry in list(runtime_dependencies.get("missing") or []):
+        match = TIMEOUT_ERROR_RE.search(str(entry.get("error") or ""))
+        if match:
+            observed.append(float(match.group("seconds")))
+    return max(observed) if observed else None
+
+
 def _local_repair_runtime_status(repo: Path) -> dict[str, Any]:
     path = repo / LOCAL_REPAIR_PLAN_PATH
     payload = _read_optional_json(path)
@@ -266,16 +288,26 @@ def _local_repair_runtime_status(repo: Path) -> dict[str, Any]:
         for entry in list(runtime_dependencies.get("missing") or [])
         if str(entry.get("module") or "").strip()
     ]
+    observed_timeout_s = _observed_runtime_timeout_s(payload, runtime_dependencies)
+    bootstrap_recommendation = _compact_bootstrap_recommendation(
+        payload.get("bootstrap_recommendation")
+    )
+    timeout_reprobe_recommended = (
+        runtime_dependencies.get("ok") is False
+        and observed_timeout_s is not None
+        and observed_timeout_s < LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S
+        and dict(bootstrap_recommendation or {}).get("reason") == "selected_python_runtime_import_timeouts"
+    )
     return {
         "path": LOCAL_REPAIR_PLAN_PATH,
         "present": True,
         "preflight_ok": preflight_report.get("ok"),
         "local_runtime_ready": runtime_dependencies.get("ok"),
+        "observed_timeout_s": observed_timeout_s,
         "runtime_import_timeout_s": payload.get("runtime_import_timeout_s"),
+        "timeout_reprobe_recommended": timeout_reprobe_recommended,
         "runtime_missing_modules": runtime_missing_modules,
-        "bootstrap_recommendation": _compact_bootstrap_recommendation(
-            payload.get("bootstrap_recommendation")
-        ),
+        "bootstrap_recommendation": bootstrap_recommendation,
     }
 
 
@@ -329,7 +361,14 @@ def recommended_fixes(
             )
     local_status = dict(local_repair_runtime_status or {})
     bootstrap = dict(local_status.get("bootstrap_recommendation") or {})
-    if local_status.get("present") and not local_status.get("local_runtime_ready"):
+    if local_status.get("present") and local_status.get("timeout_reprobe_recommended"):
+        fixes.append(
+            {
+                "reason": "Local repair runtime status was collected with a shorter import timeout than the default bounded preflight.",
+                "command": LOCAL_REPAIR_STATUS_COMMAND,
+            }
+        )
+    elif local_status.get("present") and not local_status.get("local_runtime_ready"):
         fixes.append(
             {
                 "reason": "Local repair runtime is not ready on this machine.",

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -45,6 +46,8 @@ SEED_FILE_SUMMARY = "data/processed/ai4fm_public_seed_file_manifest_v1.summary.j
 SEED_MODULE_SUMMARY = "data/processed/ai4fm_public_seed_tla_modules_v1.summary.json"
 DATASET_SURFACE_PATH = "outputs/manifests/ai4fm_public_dataset_surface.json"
 LOCAL_REPAIR_PLAN_PATH = "outputs/manifests/tla_prover_local_repair_plan.json"
+LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S = 10.0
+TIMEOUT_ERROR_RE = re.compile(r"timed out after (?P<seconds>\d+(?:\.\d+)?)s", re.IGNORECASE)
 
 
 def _read_json(repo: Path, rel_path: str) -> dict[str, Any]:
@@ -69,6 +72,21 @@ def _compact_bootstrap_recommendation(value: Any) -> dict[str, Any] | None:
     return compact or None
 
 
+def _observed_runtime_timeout_s(payload: dict[str, Any], runtime_dependencies: dict[str, Any]) -> float | None:
+    raw_timeout = payload.get("runtime_import_timeout_s")
+    if raw_timeout is not None:
+        try:
+            return float(raw_timeout)
+        except (TypeError, ValueError):
+            pass
+    observed: list[float] = []
+    for entry in list(runtime_dependencies.get("missing") or []):
+        match = TIMEOUT_ERROR_RE.search(str(entry.get("error") or ""))
+        if match:
+            observed.append(float(match.group("seconds")))
+    return max(observed) if observed else None
+
+
 def _local_repair_runtime_status(repo: Path) -> dict[str, Any]:
     payload = _read_optional_json(repo, LOCAL_REPAIR_PLAN_PATH)
     if not isinstance(payload, dict):
@@ -80,16 +98,26 @@ def _local_repair_runtime_status(repo: Path) -> dict[str, Any]:
         for entry in list(runtime_dependencies.get("missing") or [])
         if str(entry.get("module") or "").strip()
     ]
+    bootstrap_recommendation = _compact_bootstrap_recommendation(
+        payload.get("bootstrap_recommendation")
+    )
+    observed_timeout_s = _observed_runtime_timeout_s(payload, runtime_dependencies)
+    timeout_reprobe_recommended = (
+        runtime_dependencies.get("ok") is False
+        and observed_timeout_s is not None
+        and observed_timeout_s < LOCAL_REPAIR_RUNTIME_IMPORT_TIMEOUT_S
+        and dict(bootstrap_recommendation or {}).get("reason") == "selected_python_runtime_import_timeouts"
+    )
     return {
         "path": LOCAL_REPAIR_PLAN_PATH,
         "present": True,
         "preflight_ok": preflight_report.get("ok"),
         "local_runtime_ready": runtime_dependencies.get("ok"),
+        "observed_timeout_s": observed_timeout_s,
         "runtime_import_timeout_s": payload.get("runtime_import_timeout_s"),
+        "timeout_reprobe_recommended": timeout_reprobe_recommended,
         "runtime_missing_modules": runtime_missing_modules,
-        "bootstrap_recommendation": _compact_bootstrap_recommendation(
-            payload.get("bootstrap_recommendation")
-        ),
+        "bootstrap_recommendation": bootstrap_recommendation,
     }
 
 

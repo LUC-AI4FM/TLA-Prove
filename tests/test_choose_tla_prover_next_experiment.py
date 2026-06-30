@@ -2,7 +2,11 @@ import json
 import subprocess
 from pathlib import Path
 
-from scripts.choose_tla_prover_next_experiment import build_report, compact_report
+from scripts.choose_tla_prover_next_experiment import (
+    LOCAL_REPAIR_STATUS_COMMAND,
+    build_report,
+    compact_report,
+)
 
 
 def _write(path: Path, payload: dict) -> None:
@@ -673,6 +677,8 @@ def test_build_report_surfaces_local_repair_status_from_manifest(tmp_path: Path)
     assert report["local_repair_status"]["present"] is True
     assert report["local_repair_status"]["preflight_ok"] is False
     assert report["local_repair_status"]["local_runtime_ready"] is False
+    assert report["local_repair_status"]["observed_timeout_s"] == 2.0
+    assert report["local_repair_status"]["timeout_reprobe_recommended"] is True
     assert report["local_repair_status"]["runtime_missing_modules"] == [
         "datasets.Dataset",
         "peft.LoraConfig",
@@ -682,13 +688,9 @@ def test_build_report_surfaces_local_repair_status_from_manifest(tmp_path: Path)
     )
     assert "selected_python" not in report["local_repair_status"]["bootstrap_recommendation"]
     assert "python_executable" not in report["local_repair_status"]
-    assert report["local_repair_status_command"] == (
-        "python3 scripts/train_tla_prover_repair_local.py --preflight --dry-run "
-        "--runtime-import-timeout-s 10 "
-        "--out outputs/manifests/tla_prover_local_repair_plan.json"
-    )
-    assert "Local repair preflight is currently not ready on this machine" in report["rationale"]
-    assert "missing runtime imports: datasets.Dataset, peft.LoraConfig" in report["rationale"]
+    assert report["local_repair_status_command"] == LOCAL_REPAIR_STATUS_COMMAND
+    assert "current local repair manifest was collected with a shorter import timeout" in report["rationale"]
+    assert LOCAL_REPAIR_STATUS_COMMAND in report["rationale"]
 
 
 def test_compact_report_surfaces_local_repair_status_when_manifest_exists(tmp_path: Path) -> None:
@@ -722,3 +724,46 @@ def test_compact_report_surfaces_local_repair_status_when_manifest_exists(tmp_pa
     assert compact["local_repair_status_present"] is True
     assert compact["local_runtime_ready"] is True
     assert compact["local_runtime_missing_modules"] == []
+
+
+def test_build_report_still_flags_true_missing_runtime_dependencies(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "patch",
+            "full_dataset_verdict": "patch",
+            "next_action": "Do not launch SFT. Patch prover harness/data first.",
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {"ready_to_publish": False},
+    )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_local_repair_plan.json",
+        {
+            "schema": "chattla_tla_prover_local_repair_plan_v1",
+            "runtime_import_timeout_s": 10.0,
+            "bootstrap_recommendation": {
+                "command": "bash scripts/launch_rl.sh setup",
+                "reason": "selected_python_missing_training_dependencies",
+            },
+            "preflight_report": {
+                "ok": False,
+                "runtime_dependencies": {
+                    "ok": False,
+                    "missing": [
+                        {"module": "datasets.Dataset", "error": "ModuleNotFoundError: No module named datasets"},
+                    ],
+                },
+            },
+        },
+    )
+
+    report = build_report(tmp_path)
+
+    assert report["local_repair_status"]["timeout_reprobe_recommended"] is False
+    assert "Local repair preflight is currently not ready on this machine" in report["rationale"]
+    assert "rerun the local bootstrap path first (bash scripts/launch_rl.sh setup)" in report["rationale"]

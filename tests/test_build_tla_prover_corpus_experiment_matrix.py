@@ -300,7 +300,9 @@ def test_build_report_summarizes_corpus_lanes_and_publish_blockers(tmp_path: Pat
         "present": True,
         "preflight_ok": False,
         "local_runtime_ready": False,
+        "observed_timeout_s": 10.0,
         "runtime_import_timeout_s": 10.0,
+        "timeout_reprobe_recommended": False,
         "runtime_missing_modules": ["datasets.Dataset", "trl.GRPOTrainer"],
         "bootstrap_recommendation": {
             "reason": "selected_python_runtime_import_timeouts",

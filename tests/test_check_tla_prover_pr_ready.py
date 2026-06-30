@@ -3,6 +3,7 @@ from pathlib import Path
 import subprocess
 
 from scripts.check_tla_prover_pr_ready import (
+    LOCAL_REPAIR_STATUS_COMMAND,
     SLOW_PYTEST_FILES,
     SYNC_HF_PUBLISH_CORPORA_METADATA_COMMAND,
     build_commands,
@@ -315,7 +316,9 @@ def test_build_report_surfaces_local_repair_runtime_status(monkeypatch, tmp_path
         "present": True,
         "preflight_ok": False,
         "local_runtime_ready": False,
+        "observed_timeout_s": 10.0,
         "runtime_import_timeout_s": 10.0,
+        "timeout_reprobe_recommended": False,
         "runtime_missing_modules": ["datasets.Dataset", "trl.GRPOTrainer"],
         "bootstrap_recommendation": {
             "reason": "selected_python_missing_training_dependencies",
@@ -326,4 +329,64 @@ def test_build_report_surfaces_local_repair_runtime_status(monkeypatch, tmp_path
     assert {
         "reason": "Local repair runtime is not ready on this machine.",
         "command": "bash scripts/launch_rl.sh setup",
+    } in report["recommended_fixes"]
+
+
+def test_build_report_recommends_local_runtime_reprobe_for_short_timeout_manifest(monkeypatch, tmp_path: Path) -> None:
+    plan_path = tmp_path / "outputs" / "manifests" / "tla_prover_local_repair_plan.json"
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    plan_path.write_text(
+        """
+{
+  "schema": "chattla_tla_prover_local_repair_plan_v1",
+  "bootstrap_recommendation": {
+    "reason": "selected_python_runtime_import_timeouts",
+    "command": null,
+    "message": "imports timed out"
+  },
+  "preflight_report": {
+    "ok": false,
+    "runtime_dependencies": {
+      "ok": false,
+      "missing": [
+        {"module": "datasets.Dataset", "error": "TimeoutExpired: import timed out after 2.0s"},
+        {"module": "trl.GRPOTrainer", "error": "TimeoutExpired: import timed out after 2.0s"}
+      ]
+    }
+  }
+}
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr("scripts.check_tla_prover_pr_ready.scan_files", lambda paths: [])
+    monkeypatch.setattr("scripts.check_tla_prover_pr_ready.readiness_files", lambda repo, include_untracked_scripts=False: [])
+    monkeypatch.setattr(
+        "scripts.check_tla_prover_pr_ready.run_commands",
+        lambda commands, *, repo: [
+            {"command": ["python3", "scripts/check_public_dataset_claims.py"], "returncode": 0, "stdout_tail": "", "stderr_tail": ""},
+        ],
+    )
+
+    report = build_report(repo=tmp_path, run_tests=True)
+
+    assert report["local_repair_runtime_status"] == {
+        "path": "outputs/manifests/tla_prover_local_repair_plan.json",
+        "present": True,
+        "preflight_ok": False,
+        "local_runtime_ready": False,
+        "observed_timeout_s": 2.0,
+        "runtime_import_timeout_s": None,
+        "timeout_reprobe_recommended": True,
+        "runtime_missing_modules": ["datasets.Dataset", "trl.GRPOTrainer"],
+        "bootstrap_recommendation": {
+            "reason": "selected_python_runtime_import_timeouts",
+            "command": None,
+            "message": "imports timed out",
+        },
+    }
+    assert {
+        "reason": "Local repair runtime status was collected with a shorter import timeout than the default bounded preflight.",
+        "command": LOCAL_REPAIR_STATUS_COMMAND,
     } in report["recommended_fixes"]
