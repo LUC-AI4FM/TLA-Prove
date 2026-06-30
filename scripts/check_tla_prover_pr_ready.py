@@ -38,6 +38,7 @@ TRACKED_SHARED_ARTIFACTS = (
     "outputs/manifests/ai4fm_public_tlaprove_corpora.json",
     "outputs/manifests/tla_prover_artifacts_v1.json",
     "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
+    "outputs/manifests/tla_prover_next_experiment.json",
 )
 
 SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -84,6 +85,7 @@ PY_COMPILE_FILES = [
     "scripts/sync_hf_publish_corpora_metadata.py",
     "scripts/upload_v11.py",
     "scripts/train_tla_prover_local.py",
+    "scripts/train_tla_prover_repair_local.py",
 ]
 
 PYTEST_FILES = [
@@ -125,6 +127,7 @@ PYTEST_FILES = [
     "tests/test_repair_dataset.py",
     "tests/test_train_rl_repair.py",
     "tests/test_train_tla_prover_local.py",
+    "tests/test_train_tla_prover_repair_local.py",
 ]
 SLOW_PYTEST_FILES = [
     "tests/test_collect_tla_prover_remote_results.py",

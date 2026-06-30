@@ -2941,7 +2941,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-06-30T03:08:32.324903+00:00",
+  "generated_at": "2026-06-30T03:25:27.687080+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",
@@ -2965,6 +2965,7 @@
     "build_tla_prover_eval_corpus": "python3 scripts/build_tla_prover_eval_corpus.py",
     "build_tla_prover_finetune_corpus_public_all": "python3 scripts/build_tla_prover_finetune_corpus.py --public-import data/processed/ai4fm_public_tlaprove_import_all_public_v1.jsonl --public-import-weight 1 --public-seed-candidates-weight 1 --out data/processed/tla_prover/chattla_tla_prover_sft_public_all_v1.jsonl",
     "build_tla_prover_full_dataset_failure_analysis": "python3 scripts/build_tla_prover_full_dataset_failure_analysis.py",
+    "build_tla_prover_next_experiment": "python3 scripts/choose_tla_prover_next_experiment.py --out outputs/manifests/tla_prover_next_experiment.json",
     "build_tla_prover_repair_train_v1": "python3 scripts/build_tla_prover_repair_corpus.py",
     "build_tla_prover_synthetic_repair_pairs_v1": "python3 scripts/build_tla_prover_synthetic_repair_pairs.py",
     "choose_tla_prover_next_experiment": "python3 scripts/choose_tla_prover_next_experiment.py",
@@ -2991,6 +2992,7 @@
     "remote_submit_script": "scripts/submit_tla_prover_remote_jobs.sh --submit-sft-preflight",
     "sync_hf_publish_corpora_metadata": "python3 scripts/sync_hf_publish_corpora_metadata.py",
     "train_tla_prover_local": "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded",
+    "train_tla_prover_repair_local": "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight",
     "watch_remote_results": "scripts/watch_tla_prover_remote_results.sh"
   },
   "repo": ".",

@@ -362,8 +362,15 @@ def build_manifest(repo: Path = REPO) -> dict[str, Any]:
             "choose_tla_prover_next_experiment": (
                 "python3 scripts/choose_tla_prover_next_experiment.py"
             ),
+            "build_tla_prover_next_experiment": (
+                "python3 scripts/choose_tla_prover_next_experiment.py "
+                "--out outputs/manifests/tla_prover_next_experiment.json"
+            ),
             "train_tla_prover_local": (
                 "python3 scripts/train_tla_prover_local.py --dry-run --sft-corpus expanded"
+            ),
+            "train_tla_prover_repair_local": (
+                "python3 scripts/train_tla_prover_repair_local.py --dry-run --preflight"
             ),
             "inspect_hf_publish_readiness": "python3 scripts/inspect_hf_publish_readiness.py",
             "inspect_hf_publish_readiness_fc128best": (

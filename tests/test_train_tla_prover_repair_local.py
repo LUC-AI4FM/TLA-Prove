@@ -1,0 +1,85 @@
+from pathlib import Path
+
+from scripts.train_tla_prover_repair_local import build_run_plan
+
+
+def _write(path: Path, text: str = "x") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def test_build_run_plan_defaults_to_merged_repair_corpus_and_preflight(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.jsonl",
+        '{"repair_id":"R1","before_score":0.2}\n{"repair_id":"R2","before_score":0.4}\n',
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        (
+            '{"rows": 510, "health": {"ok": true, "warnings": []}, '
+            '"kept_rows_by_source": {"synthetic": 491, "benchmark": 19}, '
+            '"missing_sources": ["data/processed/ralph_repair_pairs.jsonl"]}\n'
+        ),
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=None,
+        include_benchmark_repair_pairs=False,
+        output_dir=None,
+        extra_args=[],
+        preflight_only=True,
+    )
+
+    assert plan["resolved_trajectory_files"] == ["data/processed/tla_prover_repair_train_v1.jsonl"]
+    assert plan["using_merged_default"] is True
+    assert plan["output_dir"].endswith("outputs/checkpoints_rl_repair")
+    assert plan["preflight_report"]["ok"] is True
+    assert plan["preflight_report"]["merged_summary"]["rows"] == 510
+    assert plan["command"] == [
+        "python3",
+        "-m",
+        "scripts.train_rl_repair",
+        "--trajectory-file",
+        "data/processed/tla_prover_repair_train_v1.jsonl",
+        "--output-dir",
+        str(tmp_path / "outputs/checkpoints_rl_repair"),
+        "--preflight-only",
+    ]
+
+
+def test_build_run_plan_uses_custom_sources_and_separate_output_dir(tmp_path: Path) -> None:
+    _write(tmp_path / "custom/repair_pairs.jsonl", '{"repair_id":"C1","before_score":0.3}\n')
+    _write(
+        tmp_path / "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+        '{"repair_id":"B1","before_score":0.1}\n',
+    )
+
+    plan = build_run_plan(
+        repo=tmp_path,
+        trajectory_files=["custom/repair_pairs.jsonl"],
+        include_benchmark_repair_pairs=True,
+        output_dir=None,
+        extra_args=["--difficulty", "hard"],
+        preflight_only=False,
+    )
+
+    assert plan["resolved_trajectory_files"] == [
+        "custom/repair_pairs.jsonl",
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+    ]
+    assert plan["using_merged_default"] is False
+    assert plan["output_dir"].endswith("outputs/checkpoints_rl_repair_custom-repair-pairs-jsonl")
+    assert plan["command"] == [
+        "python3",
+        "-m",
+        "scripts.train_rl_repair",
+        "--trajectory-file",
+        "custom/repair_pairs.jsonl",
+        "--trajectory-file",
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+        "--output-dir",
+        str(tmp_path / "outputs/checkpoints_rl_repair_custom-repair-pairs-jsonl"),
+        "--difficulty",
+        "hard",
+    ]

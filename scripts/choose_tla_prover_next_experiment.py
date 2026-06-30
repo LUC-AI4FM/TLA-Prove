@@ -9,11 +9,14 @@ from pathlib import Path
 from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
+DEFAULT_OUT = REPO / "outputs" / "manifests" / "tla_prover_next_experiment.json"
 REMOTE_DECISION_PATH = "outputs/manifests/tla_prover_remote_decision.json"
 EXPERIMENT_MATRIX_PATH = "outputs/manifests/tla_prover_corpus_experiment_matrix.json"
 HF_READINESS_PATH = "outputs/manifests/hf_publish_readiness.json"
 HF_READINESS_FC128BEST_PATH = "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json"
 REPAIR_SUMMARY_PATH = "data/processed/tla_prover_repair_train_v1.summary.json"
+BENCHMARK_REPAIR_SUMMARY_PATH = "data/processed/benchmark_repair_pairs_fc128best.summary.json"
+FAILURE_ANALYSIS_PATH = "outputs/manifests/tla_prover_full_dataset_failure_analysis.json"
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
 
@@ -145,6 +148,21 @@ def _repair_command() -> str:
     )
 
 
+def _repair_refresh_command() -> str:
+    return (
+        "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best "
+        "&& python3 scripts/build_tla_prover_repair_corpus.py"
+    )
+
+
+def _repair_local_preflight_command() -> str:
+    return "python3 scripts/train_tla_prover_repair_local.py --preflight"
+
+
+def _repair_local_train_command() -> str:
+    return "python3 scripts/train_tla_prover_repair_local.py"
+
+
 def _sft_command(lane: str) -> str:
     return (
         "scripts/sync_sophia_and_submit_known18.sh "
@@ -159,6 +177,58 @@ def _local_sft_command(lane: str) -> str:
     )
 
 
+def _benchmark_gold_coverage(summary: dict[str, Any] | None) -> dict[str, Any] | None:
+    if summary is None:
+        return None
+    gold_coverage = dict(summary.get("gold_coverage") or {})
+    return {
+        "failed_rows_seen": summary.get("failed_rows_seen"),
+        "covered_failed_rows": gold_coverage.get("covered_failed_rows"),
+        "missing_gold_benchmark_ids": gold_coverage.get("missing_gold_benchmark_ids", []),
+    }
+
+
+def _failure_priority(summary: dict[str, Any] | None) -> dict[str, Any] | None:
+    if summary is None:
+        return None
+    action_bucket_counts = {
+        str(bucket): int(count)
+        for bucket, count in dict(summary.get("action_bucket_counts") or {}).items()
+    }
+    actionable_buckets = {
+        "proof_repair",
+        "inductiveness_repair",
+        "tlc_repair",
+        "skip_harness_repair",
+    }
+    top_action_buckets = [
+        {"bucket": bucket, "count": count}
+        for bucket, count in sorted(
+            (
+                (bucket, count)
+                for bucket, count in action_bucket_counts.items()
+                if bucket in actionable_buckets and count > 0
+            ),
+            key=lambda item: (-item[1], item[0]),
+        )
+    ]
+    representative_modules: dict[str, list[str]] = {}
+    for bucket, samples in dict(summary.get("action_bucket_samples") or {}).items():
+        modules: list[str] = []
+        for sample in samples:
+            module = str((sample or {}).get("module") or "").strip()
+            if module and module not in modules:
+                modules.append(module)
+        if modules:
+            representative_modules[str(bucket)] = modules
+    return {
+        "immediate_repair_rows": summary.get("immediate_repair_rows"),
+        "action_bucket_counts": action_bucket_counts,
+        "top_action_buckets": top_action_buckets,
+        "representative_modules": representative_modules,
+    }
+
+
 def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str, Any]:
     requested_intent = requested_intent.strip().lower()
     if requested_intent not in VALID_INTENTS:
@@ -169,6 +239,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     readiness = _read_json(repo, HF_READINESS_PATH)
     readiness_fc128best = _read_json(repo, HF_READINESS_FC128BEST_PATH)
     repair_summary = _read_optional_json(repo, REPAIR_SUMMARY_PATH)
+    benchmark_repair_summary = _read_optional_json(repo, BENCHMARK_REPAIR_SUMMARY_PATH)
+    failure_analysis = _read_optional_json(repo, FAILURE_ANALYSIS_PATH)
     published_proof_summary = _read_optional_json(repo, PUBLISHED_PROOF_SUMMARY_PATH)
     repair_health = dict((repair_summary or {}).get("health") or {})
     repair_corpus_summary = {
@@ -178,6 +250,15 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     }
     proof_artifact_status = _published_proof_status(published_proof_summary)
     public_benchmark_correctness_status = _public_benchmark_correctness_status(readiness, readiness_fc128best)
+    repair_workflow = {
+        "refresh_command": _repair_refresh_command(),
+        "preflight_command": _repair_local_preflight_command(),
+        "train_command": _repair_local_train_command(),
+        "benchmark_gold_coverage": _benchmark_gold_coverage(benchmark_repair_summary),
+        "failure_priority": _failure_priority(failure_analysis),
+        "repair_corpus_health": repair_health,
+        "repair_corpus_summary": repair_corpus_summary,
+    }
 
     recommended_action: str
     recommended_command: str
@@ -189,6 +270,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     if _decision_blocks_sft(decision):
         recommended_action = "repair"
         recommended_command = _repair_command()
+        recommended_local_command = _repair_local_preflight_command()
         rationale = "Remote decision still blocks SFT, so the next move is to rebuild repair data and continue repair training."
     else:
         preferred_publish_model, publish_command = _publish_choice(readiness, readiness_fc128best)
@@ -243,6 +325,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         },
         "repair_corpus_health": repair_health,
         "repair_corpus_summary": repair_corpus_summary,
+        "repair_workflow": repair_workflow,
         "proof_artifact_status": proof_artifact_status,
         "public_benchmark_correctness_status": public_benchmark_correctness_status,
     }
@@ -252,11 +335,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, default=REPO)
     parser.add_argument("--intent", default="auto", choices=VALID_INTENTS)
+    parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--json", action="store_true", help="Print JSON only.")
     args = parser.parse_args()
 
     report = build_report(args.repo, requested_intent=args.intent)
     text = json.dumps(report, indent=2, sort_keys=True)
+    if args.out is not None:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(text + "\n", encoding="utf-8")
     print(text)
     return 0 if report["intent_allowed"] else 2
 

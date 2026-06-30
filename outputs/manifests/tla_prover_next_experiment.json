@@ -1,0 +1,183 @@
+{
+  "generated_at": "2026-06-30T03:25:18.479568+00:00",
+  "intent_allowed": true,
+  "preferred_publish_model": null,
+  "preferred_sft_lane": null,
+  "preferred_sft_lane_summary": null,
+  "proof_artifact_status": {
+    "all_modules_proved": true,
+    "matches_expected_summary": true,
+    "modules": 18,
+    "present": true,
+    "raw_proved": 299,
+    "raw_total": 299,
+    "supports_published_proof_claim": true
+  },
+  "public_benchmark_correctness_status": {
+    "best_available_model": null,
+    "default_model": {
+      "benchmark_model": "chattla:20b",
+      "ready_to_publish": false,
+      "rows": 20,
+      "sany": 0,
+      "tlc": 0
+    },
+    "fc128best_model": {
+      "benchmark_model": "chattla:20b-fc128best",
+      "ready_to_publish": false,
+      "rows": 20,
+      "sany": 0,
+      "tlc": 0
+    },
+    "supports_public_benchmark_100_percent_claim": false
+  },
+  "publish_readiness": {
+    "default_model": {
+      "benchmark_model": "chattla:20b",
+      "blockers": [
+        "latest full benchmark is stale at 1418.6h (limit 24.0h)",
+        "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+      ],
+      "ready_to_publish": false
+    },
+    "fc128best_model": {
+      "benchmark_model": "chattla:20b-fc128best",
+      "blockers": [
+        "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
+      ],
+      "ready_to_publish": false
+    }
+  },
+  "rationale": "Remote decision still blocks SFT, so the next move is to rebuild repair data and continue repair training.",
+  "recommended_action": "repair",
+  "recommended_command": "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best && python3 scripts/build_tla_prover_repair_corpus.py && python3 -m scripts.train_rl_repair --preflight-only && python3 -m scripts.train_rl_repair",
+  "recommended_local_command": "python3 scripts/train_tla_prover_repair_local.py --preflight",
+  "remote_decision": {
+    "full_dataset_next_action": "Do not launch SFT. Patch prover harness/data to reduce TLC, TLAPS parse, TLAPS unproved, and non-inductive failures before using the 610-row smoke as a training gate.",
+    "full_dataset_verdict": "patch",
+    "known18_passed": true,
+    "next_action": "Do not launch SFT. Patch prover harness/data to reduce TLC, TLAPS parse, TLAPS unproved, and non-inductive failures before using the 610-row smoke as a training gate.",
+    "verdict": "patch"
+  },
+  "repair_corpus_health": {
+    "benchmark_only": false,
+    "ok": true,
+    "only_easy_rows": false,
+    "warnings": []
+  },
+  "repair_corpus_summary": {
+    "kept_rows_by_source": {
+      "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19,
+      "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
+    },
+    "missing_sources": [
+      "data/processed/ralph_repair_pairs.jsonl",
+      "data/processed/ralph_repair_pairs_long_latest.jsonl"
+    ],
+    "rows": 510
+  },
+  "repair_workflow": {
+    "benchmark_gold_coverage": {
+      "covered_failed_rows": 19,
+      "failed_rows_seen": 20,
+      "missing_gold_benchmark_ids": [
+        "BM020"
+      ]
+    },
+    "failure_priority": {
+      "action_bucket_counts": {
+        "inductiveness_repair": 21,
+        "proof_repair": 79,
+        "skip_harness_repair": 37,
+        "skip_missing_contract": 270,
+        "skip_other": 0,
+        "skip_sany_invalid": 191,
+        "tlc_repair": 12
+      },
+      "immediate_repair_rows": 149,
+      "representative_modules": {
+        "inductiveness_repair": [
+          "CopyingGc",
+          "Numa",
+          "RefCountGc",
+          "TricolorGc",
+          "AdaptiveMutex"
+        ],
+        "proof_repair": [
+          "Arp",
+          "AtomicRegister",
+          "CircuitBreaker",
+          "CsmaCd",
+          "HeartbeatFailureDetector"
+        ],
+        "skip_harness_repair": [
+          "AlternatingBit",
+          "CausalBroadcast",
+          "DhcpLease",
+          "GoBackN",
+          "OrderedMulticast"
+        ],
+        "skip_missing_contract": [
+          "MCBakery",
+          "MCBoulanger",
+          "CarTalkPuzzle"
+        ],
+        "skip_sany_invalid": [
+          "TowersOfHanoi",
+          "WaterJugs",
+          "WolfGoatCabbage",
+          "AdmissionControl",
+          "BackpressureChannel"
+        ],
+        "tlc_repair": [
+          "DmaTransfer",
+          "MemoryFence",
+          "KnightsTour",
+          "RiverCrossingFamily",
+          "RubiksFace"
+        ]
+      },
+      "top_action_buckets": [
+        {
+          "bucket": "proof_repair",
+          "count": 79
+        },
+        {
+          "bucket": "skip_harness_repair",
+          "count": 37
+        },
+        {
+          "bucket": "inductiveness_repair",
+          "count": 21
+        },
+        {
+          "bucket": "tlc_repair",
+          "count": 12
+        }
+      ]
+    },
+    "preflight_command": "python3 scripts/train_tla_prover_repair_local.py --preflight",
+    "refresh_command": "python3 scripts/build_benchmark_repair_pairs.py --benchmark-model chattla:20b-fc128best && python3 scripts/build_tla_prover_repair_corpus.py",
+    "repair_corpus_health": {
+      "benchmark_only": false,
+      "ok": true,
+      "only_easy_rows": false,
+      "warnings": []
+    },
+    "repair_corpus_summary": {
+      "kept_rows_by_source": {
+        "data/processed/benchmark_repair_pairs_fc128best.jsonl": 19,
+        "data/processed/tla_prover_synthetic_repair_pairs_v1.jsonl": 491
+      },
+      "missing_sources": [
+        "data/processed/ralph_repair_pairs.jsonl",
+        "data/processed/ralph_repair_pairs_long_latest.jsonl"
+      ],
+      "rows": 510
+    },
+    "train_command": "python3 scripts/train_tla_prover_repair_local.py"
+  },
+  "repo": ".",
+  "requested_intent": "auto",
+  "schema": "chattla_tla_prover_next_experiment_v1"
+}

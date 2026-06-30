@@ -43,6 +43,7 @@ Evaluated on a 30-spec held-out suite with up to 3 self-correction attempts via 
 This v15 table is a historical snapshot on the `diamond_eval_holdout` 30-spec suite. Current Hugging Face publish readiness is gated separately on the 20-problem benchmark surfaced in `outputs/manifests/hf_publish_readiness.json` and `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json`.
 The latest public Hugging Face GGUF is currently `gguf/chattla-20b-v21-Q8_0.gguf`; local publish readiness is tracked in `outputs/manifests/hf_publish_readiness.json` for the canonical `chattla:20b` lane and `outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json` for the current `fc128best` candidate lane.
 The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `19` repair pairs cover `19/20` failed benchmark rows, leaving only `BM020` without a public gold target today.
+Local repair-GRPO preflight is now wrapped too: `python3 scripts/train_tla_prover_repair_local.py --preflight` reports the current merged repair corpus and the exact `train_rl_repair` command that will run, and dropping `--preflight` launches that local repair lane with the same pinned corpus selection.
 
 ---
 
