@@ -1,10 +1,15 @@
+import subprocess
+
 from scripts.train_rl_repair import (
+    DEFAULT_SMOKE_MODEL,
     DEFAULT_BENCHMARK_REPAIR_PAIRS,
     DEFAULT_MERGED_REPAIR_PAIRS,
     DEFAULT_MERGED_REPAIR_SUMMARY,
     DEFAULT_REPAIR_PAIRS,
     build_preflight_report,
     build_arg_parser,
+    build_runtime_config,
+    _probe_runtime_dependencies,
     resolve_trajectory_files,
 )
 
@@ -113,6 +118,73 @@ def test_build_preflight_report_flags_missing_selected_corpus(tmp_path, monkeypa
     assert report["missing_files"] == ["missing.jsonl"]
     assert report["raw_rows"] == 0
     assert report["unique_repair_ids"] == 0
+
+
+def test_build_runtime_config_uses_tiny_cpu_defaults_for_implicit_smoke_model(monkeypatch) -> None:
+    parser = build_arg_parser()
+    monkeypatch.setattr("scripts.train_rl_repair._resolve_base_model", lambda: "base-model")
+    args = parser.parse_args(["--smoke"])
+
+    runtime = build_runtime_config(args)
+
+    assert runtime["model"] == DEFAULT_SMOKE_MODEL
+    assert runtime["device_map"] == "cpu"
+    assert runtime["dtype"] == "float32"
+    assert runtime["trainer_bf16"] is False
+    assert runtime["max_completion_length"] == 128
+    assert runtime["max_prompt_tokens"] == 512
+
+
+def test_build_runtime_config_preserves_explicit_runtime_choices_for_smoke(monkeypatch) -> None:
+    parser = build_arg_parser()
+    monkeypatch.setattr("scripts.train_rl_repair._resolve_base_model", lambda: "base-model")
+    args = parser.parse_args(
+        [
+            "--smoke",
+            "--model",
+            "custom-model",
+            "--device-map",
+            "auto",
+            "--dtype",
+            "bfloat16",
+            "--max-completion-length",
+            "96",
+            "--max-prompt-tokens",
+            "400",
+        ]
+    )
+
+    runtime = build_runtime_config(args)
+
+    assert runtime["model"] == "custom-model"
+    assert runtime["device_map"] == "auto"
+    assert runtime["dtype"] == "bfloat16"
+    assert runtime["trainer_bf16"] is True
+    assert runtime["max_completion_length"] == 96
+    assert runtime["max_prompt_tokens"] == 400
+
+
+def test_probe_runtime_dependencies_reports_timeout(monkeypatch) -> None:
+    class _Completed:
+        def __init__(self, returncode: int = 0, stderr: str = "", stdout: str = "") -> None:
+            self.returncode = returncode
+            self.stderr = stderr
+            self.stdout = stdout
+
+    def fake_run(cmd, **kwargs):
+        if "torch" in cmd[-1]:
+            raise subprocess.TimeoutExpired(cmd=cmd, timeout=3.0)
+        return _Completed()
+
+    monkeypatch.setattr("scripts.train_rl_repair.subprocess.run", fake_run)
+
+    report = _probe_runtime_dependencies(module_names=("yaml", "torch"), python_executable="/tmp/python", timeout_s=3.0)
+
+    assert report["available"] == ["yaml"]
+    assert report["missing"] == [
+        {"module": "torch", "error": "TimeoutExpired: import timed out after 3.0s"}
+    ]
+    assert report["ok"] is False
 
 
 def test_build_preflight_report_marks_missing_runtime_dependencies(tmp_path, monkeypatch) -> None:

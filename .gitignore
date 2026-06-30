@@ -12,6 +12,7 @@ dist/
 build/
 *.so
 .venv/
+.venv*/
 venv/
 env/
 

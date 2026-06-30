@@ -19,7 +19,9 @@ if str(REPO) not in sys.path:
 from scripts.train_rl_repair import (
     DEFAULT_BENCHMARK_REPAIR_PAIRS,
     DEFAULT_MERGED_REPAIR_PAIRS,
+    build_arg_parser as build_train_rl_repair_arg_parser,
     build_preflight_report,
+    build_runtime_config,
     resolve_trajectory_files,
 )
 
@@ -67,6 +69,68 @@ def _build_args(
     )
 
 
+def _build_train_rl_repair_args(
+    *,
+    trajectory_files: list[str] | None,
+    include_benchmark_repair_pairs: bool,
+    output_dir: str | None,
+    extra_args: list[str],
+) -> Namespace:
+    parser = build_train_rl_repair_arg_parser()
+    parsed = parser.parse_args(extra_args)
+    parsed.trajectory_file = list(trajectory_files or [])
+    parsed.include_benchmark_repair_pairs = include_benchmark_repair_pairs
+    if output_dir is not None:
+        parsed.output_dir = output_dir
+    return parsed
+
+
+def _resolve_preflight_report(
+    *,
+    repo: Path,
+    python_executable: str,
+    trajectory_files: list[str] | None,
+    include_benchmark_repair_pairs: bool,
+    extra_args: list[str],
+) -> dict[str, Any]:
+    preflight_args = _build_train_rl_repair_args(
+        trajectory_files=trajectory_files,
+        include_benchmark_repair_pairs=include_benchmark_repair_pairs,
+        output_dir=None,
+        extra_args=extra_args,
+    )
+    runtime = build_runtime_config(preflight_args)
+    if Path(python_executable).resolve() == Path(sys.executable).resolve():
+        report = build_preflight_report(preflight_args, repo_root=repo)
+        report["model"] = runtime["model"]
+        report["runtime"] = runtime
+        return report
+
+    command = [python_executable, "-m", "scripts.train_rl_repair", "--preflight-only"]
+    for path in list(trajectory_files or []):
+        command.extend(["--trajectory-file", path])
+    if include_benchmark_repair_pairs:
+        command.append("--include-benchmark-repair-pairs")
+    command.extend(extra_args)
+
+    completed = subprocess.run(
+        command,
+        cwd=repo,
+        text=True,
+        capture_output=True,
+    )
+    stdout = completed.stdout.strip()
+    if not stdout:
+        raise RuntimeError(
+            f"target preflight produced no JSON output (rc={completed.returncode}): "
+            f"{completed.stderr.strip() or 'no stderr'}"
+        )
+    report = json.loads(stdout)
+    if not isinstance(report, dict):
+        raise RuntimeError("target preflight did not return a JSON object")
+    return report
+
+
 def build_run_plan(
     *,
     repo: Path,
@@ -82,9 +146,15 @@ def build_run_plan(
         include_benchmark_repair_pairs=include_benchmark_repair_pairs,
     )
     resolved_trajectory_files = resolve_trajectory_files(args, repo_root=repo)
-    preflight_report = build_preflight_report(args, repo_root=repo)
     final_output_dir = Path(output_dir) if output_dir else _default_output_dir(repo, resolved_trajectory_files)
     resolved_python = python_executable or _resolve_python_executable()
+    preflight_report = _resolve_preflight_report(
+        repo=repo,
+        python_executable=resolved_python,
+        trajectory_files=trajectory_files,
+        include_benchmark_repair_pairs=include_benchmark_repair_pairs,
+        extra_args=extra_args,
+    )
 
     command = [resolved_python, "-m", "scripts.train_rl_repair"]
     for path in resolved_trajectory_files:

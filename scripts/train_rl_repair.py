@@ -38,9 +38,9 @@ Default input behavior:
 from __future__ import annotations
 
 import argparse
-import importlib
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -54,6 +54,7 @@ DEFAULT_MERGED_REPAIR_PAIRS = "data/processed/tla_prover_repair_train_v1.jsonl"
 DEFAULT_MERGED_REPAIR_SUMMARY = "data/processed/tla_prover_repair_train_v1.summary.json"
 DEFAULT_REPAIR_PAIRS = "data/processed/ralph_repair_pairs.jsonl"
 DEFAULT_BENCHMARK_REPAIR_PAIRS = "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+DEFAULT_SMOKE_MODEL = "sshleifer/tiny-gpt2"
 REQUIRED_RUNTIME_DEPENDENCIES = (
     "torch",
     "yaml",
@@ -102,12 +103,34 @@ def _count_repair_rows(path: Path) -> tuple[int, set[str]]:
 
 def _probe_runtime_dependencies(
     module_names: tuple[str, ...] = REQUIRED_RUNTIME_DEPENDENCIES,
+    *,
+    python_executable: str | None = None,
+    timeout_s: float | None = None,
 ) -> dict[str, Any]:
     available: list[str] = []
     missing: list[dict[str, str]] = []
+    python = python_executable or sys.executable
+    timeout = timeout_s if timeout_s is not None else float(os.environ.get("CHATTLA_RUNTIME_IMPORT_TIMEOUT_S", "20"))
     for module_name in module_names:
         try:
-            importlib.import_module(module_name)
+            completed = subprocess.run(
+                [
+                    python,
+                    "-c",
+                    f"import importlib; importlib.import_module({module_name!r})",
+                ],
+                text=True,
+                capture_output=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            missing.append(
+                {
+                    "module": module_name,
+                    "error": f"TimeoutExpired: import timed out after {timeout}s",
+                }
+            )
+            continue
         except Exception as exc:
             missing.append(
                 {
@@ -115,8 +138,13 @@ def _probe_runtime_dependencies(
                     "error": f"{type(exc).__name__}: {exc}",
                 }
             )
-        else:
+            continue
+
+        if completed.returncode == 0:
             available.append(module_name)
+        else:
+            detail = completed.stderr.strip() or completed.stdout.strip() or f"rc={completed.returncode}"
+            missing.append({"module": module_name, "error": detail})
     return {
         "ok": not missing,
         "available": available,
@@ -150,6 +178,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--model", default=None,
                         help="Base model path (auto-detected if omitted)")
+    parser.add_argument("--smoke-model", default=DEFAULT_SMOKE_MODEL,
+                        help="Small model ID used for bounded smoke runs when --smoke is set "
+                        "and --model is omitted.")
     parser.add_argument("--output-dir", default="outputs/checkpoints_rl_repair")
     parser.add_argument("--max-steps", type=int, default=300)
     parser.add_argument("--learning-rate", type=float, default=3e-6,
@@ -180,6 +211,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         "that blows up eager-attention memory (this version of "
                         "TRL has no GRPOConfig.max_prompt_length, so the only "
                         "defense is dataset-level filtering)")
+    parser.add_argument("--device-map", default="auto",
+                        help="Model placement passed to from_pretrained (default: auto). "
+                        "Use cpu for bounded local smoke runs.")
+    parser.add_argument("--dtype", default="auto",
+                        choices=["auto", "bfloat16", "float16", "float32"],
+                        help="Torch dtype for model loading. auto resolves to float32 on cpu/mps "
+                        "and bfloat16 otherwise.")
     parser.add_argument("--trajectory-file", action="append", default=None,
                         help="Path to a repair-pairs JSONL. Repeat to mix multiple corpora. "
                         f"Defaults to `{DEFAULT_MERGED_REPAIR_PAIRS}` when present, otherwise the available component corpora.")
@@ -191,6 +229,35 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--smoke", action="store_true",
                         help="2 steps, no checkpoint, sanity-check the wiring")
     return parser
+
+
+def build_runtime_config(args: argparse.Namespace) -> dict[str, Any]:
+    implicit_smoke_model = bool(args.smoke and not args.model)
+    model = args.smoke_model if implicit_smoke_model else (args.model or _resolve_base_model())
+
+    device_map = args.device_map
+    if implicit_smoke_model and device_map == "auto":
+        device_map = "cpu"
+
+    dtype = args.dtype
+    if dtype == "auto":
+        dtype = "float32" if device_map in {"cpu", "mps"} else "bfloat16"
+
+    max_completion_length = args.max_completion_length
+    max_prompt_tokens = args.max_prompt_tokens
+    if implicit_smoke_model:
+        max_completion_length = min(max_completion_length, 128)
+        max_prompt_tokens = min(max_prompt_tokens, 512)
+
+    return {
+        "model": model,
+        "device_map": device_map,
+        "dtype": dtype,
+        "trainer_bf16": dtype == "bfloat16",
+        "max_completion_length": max_completion_length,
+        "max_prompt_tokens": max_prompt_tokens,
+        "implicit_smoke_model": implicit_smoke_model,
+    }
 
 
 def resolve_trajectory_files(args: argparse.Namespace, repo_root: Path = _REPO_ROOT) -> list[str]:
@@ -268,13 +335,13 @@ def build_preflight_report(args: argparse.Namespace, repo_root: Path = _REPO_ROO
 def main() -> int:
     parser = build_arg_parser()
     args = parser.parse_args()
-
-    if args.model is None:
-        args.model = _resolve_base_model()
+    runtime = build_runtime_config(args)
+    args.model = runtime["model"]
 
     if args.preflight_only:
         report = build_preflight_report(args)
         report["model"] = args.model
+        report["runtime"] = runtime
         print(json.dumps(report, indent=2, sort_keys=True))
         return 0 if report["ok"] else 2
 
@@ -311,7 +378,7 @@ def main() -> int:
         max_examples=10 if args.smoke else None,
         min_before_score=args.min_before_score,
         max_before_score=args.max_before_score,
-        max_prompt_tokens=args.max_prompt_tokens,
+        max_prompt_tokens=runtime["max_prompt_tokens"],
         tokenizer=tokenizer,
     )
     if not examples:
@@ -360,8 +427,8 @@ def main() -> int:
 
     model = AutoModelForCausalLM.from_pretrained(
         args.model,
-        dtype=torch.bfloat16,
-        device_map="auto",
+        torch_dtype=getattr(torch, runtime["dtype"]),
+        device_map=runtime["device_map"],
     )
     model.config.use_cache = False
 
@@ -376,11 +443,11 @@ def main() -> int:
         learning_rate=args.learning_rate,
         max_steps=args.max_steps,
         num_generations=args.num_generations,
-        max_completion_length=args.max_completion_length,
+        max_completion_length=runtime["max_completion_length"],
         beta=args.beta,
         logging_steps=args.logging_steps,
         save_steps=args.save_steps,
-        bf16=True,
+        bf16=runtime["trainer_bf16"],
         report_to=["none"],
         remove_unused_columns=False,
         seed=20260410,
