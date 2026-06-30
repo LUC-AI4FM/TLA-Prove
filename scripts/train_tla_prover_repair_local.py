@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from argparse import Namespace
@@ -21,7 +22,17 @@ from scripts.train_rl_repair import (
     build_preflight_report,
     resolve_trajectory_files,
 )
-TRAIN_ENTRYPOINT = ["python3", "-m", "scripts.train_rl_repair"]
+
+
+def _resolve_python_executable() -> str:
+    for candidate in (
+        os.environ.get("CHATTLA_PYTHON"),
+        os.environ.get("PYTHON"),
+        sys.executable,
+    ):
+        if candidate:
+            return candidate
+    return "python3"
 
 
 def _safe_label(value: str | None) -> str:
@@ -64,6 +75,7 @@ def build_run_plan(
     output_dir: str | None,
     extra_args: list[str],
     preflight_only: bool,
+    python_executable: str | None = None,
 ) -> dict[str, Any]:
     args = _build_args(
         trajectory_files=trajectory_files,
@@ -72,8 +84,9 @@ def build_run_plan(
     resolved_trajectory_files = resolve_trajectory_files(args, repo_root=repo)
     preflight_report = build_preflight_report(args, repo_root=repo)
     final_output_dir = Path(output_dir) if output_dir else _default_output_dir(repo, resolved_trajectory_files)
+    resolved_python = python_executable or _resolve_python_executable()
 
-    command = list(TRAIN_ENTRYPOINT)
+    command = [resolved_python, "-m", "scripts.train_rl_repair"]
     for path in resolved_trajectory_files:
         command.extend(["--trajectory-file", path])
     command.extend(["--output-dir", str(final_output_dir)])
@@ -90,6 +103,7 @@ def build_run_plan(
         "include_benchmark_repair_pairs": include_benchmark_repair_pairs,
         "preflight_only": preflight_only,
         "preflight_report": preflight_report,
+        "python_executable": resolved_python,
         "output_dir": str(final_output_dir),
         "command": command,
     }

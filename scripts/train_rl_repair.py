@@ -38,6 +38,7 @@ Default input behavior:
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import os
 import sys
@@ -53,6 +54,14 @@ DEFAULT_MERGED_REPAIR_PAIRS = "data/processed/tla_prover_repair_train_v1.jsonl"
 DEFAULT_MERGED_REPAIR_SUMMARY = "data/processed/tla_prover_repair_train_v1.summary.json"
 DEFAULT_REPAIR_PAIRS = "data/processed/ralph_repair_pairs.jsonl"
 DEFAULT_BENCHMARK_REPAIR_PAIRS = "data/processed/benchmark_repair_pairs_fc128best.jsonl"
+REQUIRED_RUNTIME_DEPENDENCIES = (
+    "torch",
+    "yaml",
+    "datasets",
+    "peft",
+    "transformers",
+    "trl",
+)
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
@@ -89,6 +98,30 @@ def _count_repair_rows(path: Path) -> tuple[int, set[str]]:
             if repair_id is not None:
                 repair_ids.add(str(repair_id))
     return rows, repair_ids
+
+
+def _probe_runtime_dependencies(
+    module_names: tuple[str, ...] = REQUIRED_RUNTIME_DEPENDENCIES,
+) -> dict[str, Any]:
+    available: list[str] = []
+    missing: list[dict[str, str]] = []
+    for module_name in module_names:
+        try:
+            importlib.import_module(module_name)
+        except Exception as exc:
+            missing.append(
+                {
+                    "module": module_name,
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+            )
+        else:
+            available.append(module_name)
+    return {
+        "ok": not missing,
+        "available": available,
+        "missing": missing,
+    }
 
 
 def _resolve_base_model() -> str:
@@ -206,9 +239,11 @@ def build_preflight_report(args: argparse.Namespace, repo_root: Path = _REPO_ROO
     using_merged_default = trajectory_files == [DEFAULT_MERGED_REPAIR_PAIRS]
     merged_summary_path = _resolve_repo_path(DEFAULT_MERGED_REPAIR_SUMMARY, repo_root)
     merged_summary = _read_optional_json(merged_summary_path) if using_merged_default else None
+    runtime_dependencies = _probe_runtime_dependencies()
     ok = not missing_files and raw_rows > 0
     if merged_summary is not None:
         ok = ok and bool(dict(merged_summary.get("health") or {}).get("ok"))
+    ok = ok and runtime_dependencies["ok"]
 
     return {
         "schema": "chattla_tla_prover_repair_preflight_v1",
@@ -218,6 +253,7 @@ def build_preflight_report(args: argparse.Namespace, repo_root: Path = _REPO_ROO
         "raw_rows": raw_rows,
         "unique_repair_ids": len(unique_repair_ids),
         "using_merged_default": using_merged_default,
+        "runtime_dependencies": runtime_dependencies,
         "files": file_reports,
         "merged_summary_path": DEFAULT_MERGED_REPAIR_SUMMARY if using_merged_default else None,
         "merged_summary": {

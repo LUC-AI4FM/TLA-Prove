@@ -44,9 +44,17 @@ def test_resolve_trajectory_files_appends_benchmark_pairs() -> None:
     ]
 
 
-def test_build_preflight_report_uses_merged_summary_for_default_corpus(tmp_path) -> None:
+def test_build_preflight_report_uses_merged_summary_for_default_corpus(tmp_path, monkeypatch) -> None:
     parser = build_arg_parser()
     args = parser.parse_args([])
+    monkeypatch.setattr(
+        "scripts.train_rl_repair._probe_runtime_dependencies",
+        lambda: {
+            "ok": True,
+            "available": ["torch", "yaml", "datasets", "peft", "transformers", "trl"],
+            "missing": [],
+        },
+    )
 
     merged_path = tmp_path / DEFAULT_MERGED_REPAIR_PAIRS
     merged_path.parent.mkdir(parents=True, exist_ok=True)
@@ -80,15 +88,24 @@ def test_build_preflight_report_uses_merged_summary_for_default_corpus(tmp_path)
     assert report["raw_rows"] == 3
     assert report["unique_repair_ids"] == 2
     assert report["using_merged_default"] is True
+    assert report["runtime_dependencies"]["ok"] is True
     assert report["merged_summary"]["rows"] == 510
     assert report["merged_summary"]["health"]["ok"] is True
     assert report["merged_summary"]["kept_rows_by_source"] == {"synthetic": 491, "benchmark": 19}
     assert report["merged_summary"]["missing_sources"] == ["data/processed/ralph_repair_pairs.jsonl"]
 
 
-def test_build_preflight_report_flags_missing_selected_corpus(tmp_path) -> None:
+def test_build_preflight_report_flags_missing_selected_corpus(tmp_path, monkeypatch) -> None:
     parser = build_arg_parser()
     args = parser.parse_args(["--trajectory-file", "missing.jsonl"])
+    monkeypatch.setattr(
+        "scripts.train_rl_repair._probe_runtime_dependencies",
+        lambda: {
+            "ok": True,
+            "available": ["torch", "yaml", "datasets", "peft", "transformers", "trl"],
+            "missing": [],
+        },
+    )
 
     report = build_preflight_report(args, repo_root=tmp_path)
 
@@ -96,3 +113,38 @@ def test_build_preflight_report_flags_missing_selected_corpus(tmp_path) -> None:
     assert report["missing_files"] == ["missing.jsonl"]
     assert report["raw_rows"] == 0
     assert report["unique_repair_ids"] == 0
+
+
+def test_build_preflight_report_marks_missing_runtime_dependencies(tmp_path, monkeypatch) -> None:
+    parser = build_arg_parser()
+    args = parser.parse_args([])
+
+    merged_path = tmp_path / DEFAULT_MERGED_REPAIR_PAIRS
+    merged_path.parent.mkdir(parents=True, exist_ok=True)
+    merged_path.write_text('{"repair_id":"R1","before_score":0.2}\n', encoding="utf-8")
+
+    summary_path = tmp_path / DEFAULT_MERGED_REPAIR_SUMMARY
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(
+        '{"rows": 1, "health": {"ok": true, "warnings": []}, "kept_rows_by_source": {"benchmark": 1}}',
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        "scripts.train_rl_repair._probe_runtime_dependencies",
+        lambda: {
+            "ok": False,
+            "available": ["yaml"],
+            "missing": [
+                {"module": "torch", "error": "ModuleNotFoundError: No module named 'torch'"},
+            ],
+        },
+    )
+
+    report = build_preflight_report(args, repo_root=tmp_path)
+
+    assert report["ok"] is False
+    assert report["runtime_dependencies"]["ok"] is False
+    assert report["runtime_dependencies"]["missing"] == [
+        {"module": "torch", "error": "ModuleNotFoundError: No module named 'torch'"},
+    ]

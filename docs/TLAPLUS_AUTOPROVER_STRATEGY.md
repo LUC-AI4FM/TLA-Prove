@@ -584,19 +584,16 @@ Preferred one-command handoff from the MacBook when direct Sophia login is
 available:
 
 ```bash
-CHATTLA_REMOTE_HOST=user@sophia-login-01 \
-CHATTLA_REMOTE_SINGLE_SESSION=1 \
-CHATTLA_REMOTE_PASSWORD=<one-time-password> \
+CHATTLA_REMOTE_HOST=user@remote-login \
 scripts/sync_sophia_and_submit_known18.sh
 ```
 
-This is the primary lane when the Mac mini relay is paused or when credentials
-are single-use. `CHATTLA_REMOTE_SINGLE_SESSION=1` opens one `ControlMaster`
-session via `expect`, then reuses that transport for the sync, remote submit,
-and mirrored submission report so we do not spend multiple password prompts on
-one handoff. Use `scripts/sync_sophia_and_submit_known18.sh
---submit-sft-preflight`, `--submit-final-proof-verify`, or
-`--submit-full-dataset-smoke` for the bounded remote variants.
+This is the primary lane when the relay path is paused and a direct remote
+checkout is reachable from the current workstation. Authenticate using the
+standard SSH flow for your environment, then use
+`scripts/sync_sophia_and_submit_known18.sh --submit-sft-preflight`,
+`--submit-final-proof-verify`, or `--submit-full-dataset-smoke` for the
+bounded remote variants.
 
 Legacy relay handoff from the MacBook, once the Mac mini route is reachable:
 
@@ -682,7 +679,8 @@ The doctor LaunchAgent uses that same mirror-only path for
 If the relay is intentionally unavailable, pause the remote handoff by writing
 `outputs/manifests/tla_prover_handoff_paused.json`. While this file exists,
 `status_tla_prover_handoff.py` reports `handoff_paused` and the doctor noops
-instead of reinstalling the wait hook.
+instead of reinstalling the wait hook. Keep that sentinel local; it is operator
+state and should not be committed.
 
 Probe available control planes from the laptop with:
 
