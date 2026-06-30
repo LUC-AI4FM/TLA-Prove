@@ -2,7 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from scripts.choose_tla_prover_next_experiment import build_report
+from scripts.choose_tla_prover_next_experiment import build_report, compact_report
 
 
 def _write(path: Path, payload: dict) -> None:
@@ -72,6 +72,13 @@ def test_build_report_prefers_repair_when_remote_decision_blocks_sft(tmp_path: P
     assert report["recommended_action"] == "repair"
     assert report["intent_allowed"] is True
     assert report["recommended_command"] == "python3 scripts/train_tla_prover_repair_local.py --refresh-corpus"
+    assert report["handoff_status"]["state"] == "not_started"
+    assert report["handoff_prerequisite"] == {
+        "action": "install_wait_launchagent",
+        "reason": "handoff has not submitted and wait LaunchAgent is not running",
+        "command": "scripts/install_wait_handoff_launchagent.sh",
+    }
+    assert "Operational prerequisite" in report["rationale"]
     assert report["repair_corpus_health"]["ok"] is False
     assert report["repair_corpus_summary"]["rows"] is None
     assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
@@ -137,6 +144,7 @@ def test_build_report_prefers_expanded_sft_lane_after_remote_advance(tmp_path: P
     assert report["preferred_sft_lane"] == "expanded"
     assert "--sft-corpus expanded --submit-sft-preflight" in report["recommended_command"]
     assert report["recommended_local_command"] == "python3 scripts/train_tla_prover_local.py --sft-corpus expanded"
+    assert report["handoff_prerequisite"]["action"] == "install_wait_launchagent"
     assert report["preferred_sft_lane_summary"]["trainable"] is True
     assert report["corpus_expansion_status"]["recommended_sequence"] == ["default", "expanded", "full-public"]
     assert report["repair_expansion_status"]["comparisons"]["validated_rows_added_beyond_benchmark"] == 22
@@ -163,6 +171,7 @@ def test_build_report_prefers_publish_when_candidate_readiness_clears(tmp_path: 
 
     assert report["recommended_action"] == "publish"
     assert "--benchmark-model chattla:20b-fc128best" in report["recommended_command"]
+    assert report["handoff_prerequisite"]["action"] == "install_wait_launchagent"
 
 
 def test_build_report_surfaces_repair_corpus_summary_fields(tmp_path: Path) -> None:
@@ -452,3 +461,106 @@ def test_cli_can_write_checked_in_next_experiment_manifest(tmp_path: Path) -> No
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["recommended_action"] == "repair"
     assert payload["recommended_local_command"] == "python3 scripts/train_tla_prover_repair_local.py --preflight --refresh-corpus"
+
+
+def test_build_report_omits_handoff_prerequisite_when_results_are_ready(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "advance",
+            "full_dataset_verdict": "advance",
+            "next_action": "Launch the next SFT decision.",
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {"ready_to_publish": False},
+    )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_submission.json",
+        {
+            "ok": True,
+            "known18_job_id": "170001.sophia-pbs-01",
+        },
+    )
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_watch.json",
+        {
+            "status": "complete",
+        },
+    )
+
+    report = build_report(tmp_path)
+
+    assert report["handoff_status"]["state"] == "results_ready"
+    assert report["handoff_prerequisite"] is None
+
+
+def test_compact_report_surfaces_handoff_prerequisite_and_core_fields(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "patch",
+            "full_dataset_verdict": "patch",
+            "next_action": "Do not launch SFT. Patch prover harness/data first.",
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {"ready_to_publish": False},
+    )
+    _write(
+        tmp_path / "data/processed/tla_prover_repair_train_v1.summary.json",
+        {
+            "rows": 533,
+            "health": {"ok": True, "warnings": []},
+        },
+    )
+
+    compact = compact_report(build_report(tmp_path))
+
+    assert compact["recommended_action"] == "repair"
+    assert compact["handoff_state"] == "not_started"
+    assert compact["handoff_prerequisite_action"] == "install_wait_launchagent"
+    assert compact["handoff_prerequisite_command"] == "scripts/install_wait_handoff_launchagent.sh"
+    assert compact["repair_rows"] == 533
+
+
+def test_cli_compact_outputs_small_next_experiment_packet(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "outputs/manifests/tla_prover_remote_decision.json",
+        {
+            "verdict": "patch",
+            "full_dataset_verdict": "patch",
+            "next_action": "Do not launch SFT. Patch prover harness/data first.",
+        },
+    )
+    _write(tmp_path / "outputs/manifests/tla_prover_corpus_experiment_matrix.json", {"lanes": {}})
+    _write(tmp_path / "outputs/manifests/hf_publish_readiness.json", {"ready_to_publish": False})
+    _write(
+        tmp_path / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
+        {"ready_to_publish": False},
+    )
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "choose_tla_prover_next_experiment.py"
+    result = subprocess.run(
+        [
+            "python3",
+            str(script),
+            "--repo",
+            str(tmp_path),
+            "--compact",
+        ],
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["recommended_action"] == "repair"
+    assert payload["handoff_prerequisite_action"] == "install_wait_launchagent"
+    assert "repair_corpus_summary" not in payload

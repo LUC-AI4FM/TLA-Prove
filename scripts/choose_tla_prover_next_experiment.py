@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,13 @@ FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH = "data/processed/tla_prover_fu
 PUBLISHED_PROOF_SUMMARY_PATH = "outputs/autoprover/tlaps_verify_published_161016/summary.json"
 VALID_INTENTS = ("auto", "repair", "sft-preflight", "publish")
 CORPUS_EXPANSION_SEQUENCE = ("default", "expanded", "full-public")
+
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from scripts.doctor_tla_prover_handoff import decide_action as decide_handoff_action
+from scripts.status_tla_prover_handoff import build_status as build_handoff_status
+from scripts.status_tla_prover_handoff import compact_status as compact_handoff_status
 
 
 def _read_json(repo: Path, rel_path: str) -> dict[str, Any]:
@@ -319,6 +327,15 @@ def _failure_priority(summary: dict[str, Any] | None) -> dict[str, Any] | None:
     }
 
 
+def _handoff_guidance(repo: Path) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    status = build_handoff_status(repo, live=False)
+    compact_status = compact_handoff_status(status)
+    decision = decide_handoff_action(status)
+    if decision.get("command"):
+        return compact_status, decision
+    return compact_status, None
+
+
 def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str, Any]:
     requested_intent = requested_intent.strip().lower()
     if requested_intent not in VALID_INTENTS:
@@ -337,6 +354,7 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         repo, FULL_DATASET_VALIDATED_REPAIR_PAIRS_SUMMARY_PATH
     )
     published_proof_summary = _read_optional_json(repo, PUBLISHED_PROOF_SUMMARY_PATH)
+    handoff_status, handoff_prerequisite = _handoff_guidance(repo)
     repair_health = dict((repair_summary or {}).get("health") or {})
     repair_corpus_summary = {
         "rows": (repair_summary or {}).get("rows"),
@@ -391,6 +409,12 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
                 recommended_local_command = _local_sft_command(preferred_sft_lane)
                 rationale = "Remote gates are open but no publish candidate is ready, so the next move is a bounded SFT preflight on the preferred trainable lane."
 
+    if handoff_prerequisite is not None:
+        rationale = (
+            f"{rationale} Operational prerequisite: {handoff_prerequisite['reason']} "
+            f"({handoff_prerequisite['command']})."
+        )
+
     intent_allowed = requested_intent in {"auto", recommended_action}
     return {
         "schema": "chattla_tla_prover_next_experiment_v1",
@@ -401,6 +425,8 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
         "recommended_action": recommended_action,
         "recommended_command": recommended_command,
         "recommended_local_command": recommended_local_command,
+        "handoff_status": handoff_status,
+        "handoff_prerequisite": handoff_prerequisite,
         "rationale": rationale,
         "preferred_sft_lane": preferred_sft_lane,
         "preferred_publish_model": preferred_publish_model,
@@ -435,19 +461,44 @@ def build_report(repo: Path = REPO, requested_intent: str = "auto") -> dict[str,
     }
 
 
+def compact_report(report: dict[str, Any]) -> dict[str, Any]:
+    handoff_status = dict(report.get("handoff_status") or {})
+    handoff_prerequisite = dict(report.get("handoff_prerequisite") or {})
+    public_benchmark = dict(report.get("public_benchmark_correctness_status") or {})
+    repair_corpus_summary = dict(report.get("repair_corpus_summary") or {})
+    return {
+        "recommended_action": report.get("recommended_action"),
+        "recommended_command": report.get("recommended_command"),
+        "recommended_local_command": report.get("recommended_local_command"),
+        "rationale": report.get("rationale"),
+        "preferred_sft_lane": report.get("preferred_sft_lane"),
+        "preferred_publish_model": report.get("preferred_publish_model"),
+        "handoff_state": handoff_status.get("state"),
+        "handoff_next_action": handoff_status.get("next_action"),
+        "handoff_prerequisite_action": handoff_prerequisite.get("action"),
+        "handoff_prerequisite_command": handoff_prerequisite.get("command"),
+        "supports_public_benchmark_100_percent_claim": public_benchmark.get(
+            "supports_public_benchmark_100_percent_claim"
+        ),
+        "repair_rows": repair_corpus_summary.get("rows"),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, default=REPO)
     parser.add_argument("--intent", default="auto", choices=VALID_INTENTS)
     parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--json", action="store_true", help="Print JSON only.")
+    parser.add_argument("--compact", action="store_true", help="Print a compact operator-facing JSON summary.")
     args = parser.parse_args()
 
     report = build_report(args.repo, requested_intent=args.intent)
-    text = json.dumps(report, indent=2, sort_keys=True)
+    payload = compact_report(report) if args.compact else report
+    text = json.dumps(payload, indent=2, sort_keys=True)
     if args.out is not None:
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(text + "\n", encoding="utf-8")
+        args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(text)
     return 0 if report["intent_allowed"] else 2
 
