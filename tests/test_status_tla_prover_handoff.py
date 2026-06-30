@@ -491,6 +491,43 @@ def test_compact_status_carries_full_smoke_progress(tmp_path: Path) -> None:
     assert compact["full_dataset_next_module_path"] == "/tmp/CausalBroadcast.tla"
 
 
+def test_status_cli_compact_derives_full_smoke_progress_from_jsonl(tmp_path: Path) -> None:
+    manifest_dir = tmp_path / "outputs" / "manifests"
+    manifest_dir.mkdir(parents=True)
+    log_dir = tmp_path / "outputs" / "logs"
+    log_dir.mkdir(parents=True)
+    auto_dir = tmp_path / "outputs" / "autoprover"
+    auto_dir.mkdir(parents=True)
+    (log_dir / "current_sophia_full_dataset_smoke_job.txt").write_text(
+        "161018.sophia-pbs-01.lab.alcf.anl.gov\n",
+        encoding="utf-8",
+    )
+    (auto_dir / "full_dataset_smoke_161018.jsonl").write_text(
+        "\n".join(
+            [
+                json.dumps({"module": "A", "status": "skipped"}),
+                json.dumps({"module": "B", "status": "tlaps_partial"}),
+                json.dumps({"module": "C", "status": "tlc_error"}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "--repo", str(tmp_path), "--no-live", "--compact"],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["reports"]["full_dataset_progress"] == "present"
+    assert payload["full_dataset_rows_so_far"] == 3
+    assert payload["full_dataset_modules_seen"] == 3
+
+
 def test_status_reports_partial_submit_when_known18_was_launched(tmp_path: Path) -> None:
     manifest_dir = tmp_path / "outputs/manifests"
     manifest_dir.mkdir(parents=True)
