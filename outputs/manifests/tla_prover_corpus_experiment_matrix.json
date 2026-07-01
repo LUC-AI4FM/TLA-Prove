@@ -13,7 +13,7 @@
     "default_train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "diamond_eval_holdout_leakage_ok": true
   },
-  "generated_at": "2026-06-30T19:17:21.431384+00:00",
+  "generated_at": "2026-07-01T14:05:04.347339+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -164,10 +164,10 @@
   "publish_baseline_lane": "default",
   "publish_readiness": {
     "default_model": {
-      "age_hours": 1418.5879361430805,
+      "age_hours": 1443.5959274480078,
       "benchmark_model": "chattla:20b",
       "blockers": [
-        "latest full benchmark is stale at 1418.6h (limit 24.0h)",
+        "latest full benchmark is stale at 1443.6h (limit 24.0h)",
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
       ],
       "ready_to_publish": false,
@@ -177,9 +177,10 @@
       "tlc": 0
     },
     "fc128best_model": {
-      "age_hours": 21.531030602587595,
+      "age_hours": 49.58234956171778,
       "benchmark_model": "chattla:20b-fc128best",
       "blockers": [
+        "latest full benchmark is stale at 49.6h (limit 24.0h)",
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
       ],
       "ready_to_publish": false,
