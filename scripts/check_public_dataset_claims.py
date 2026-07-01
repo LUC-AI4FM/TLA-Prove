@@ -408,8 +408,12 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     full_public_coverage_rows = int(coverage_corpora["chattla_tla_prover_sft_public_all_v1.jsonl"]["rows"])
     canonical_blockers = readiness.get("blockers", [])
     canonical_no_core_rows = int(readiness["failure_surface"]["aggregate"]["rows_with_no_core_components"])
+    canonical_bench_rows = int(readiness["failure_surface"].get("rows", canonical_no_core_rows))
+    canonical_gate_status = "blocked" if canonical_blockers else "ready"
     fc128best_blockers = readiness_fc128best.get("blockers", [])
     fc128best_no_core_rows = int(readiness_fc128best["failure_surface"]["aggregate"]["rows_with_no_core_components"])
+    fc128best_bench_rows = int(readiness_fc128best["failure_surface"].get("rows", fc128best_no_core_rows))
+    fc128best_gate_status = "blocked" if fc128best_blockers else "ready"
     fc128best_placeholder_rows = int(
         readiness_fc128best["failure_surface"]["red_flags"]["obvious_placeholder_rows"]
     )
@@ -721,11 +725,11 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 "  public seed-module rows."
             ),
             (
-                f"- Canonical publish readiness gate: blocked, with `{canonical_no_core_rows}` of `{canonical_no_core_rows}` latest benchmark rows\n"
+                f"- Canonical publish readiness gate: {canonical_gate_status}, with `{canonical_no_core_rows}` of `{canonical_bench_rows}` latest benchmark rows\n"
                 "  missing every core TLA component."
             ),
             (
-                f"- `fc128best` publish readiness gate: blocked, with `{fc128best_no_core_rows}` of `{fc128best_no_core_rows}` rows missing every core component\n"
+                f"- `fc128best` publish readiness gate: {fc128best_gate_status}, with `{fc128best_no_core_rows}` of `{fc128best_bench_rows}` rows missing every core component\n"
                 f"  and `{fc128best_placeholder_rows}` obvious-placeholder failures."
             ),
             (

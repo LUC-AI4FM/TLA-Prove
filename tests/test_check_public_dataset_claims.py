@@ -251,13 +251,11 @@ def _write_manifests(repo: Path) -> None:
         repo / "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
         json.dumps(
             {
-                "blockers": [
-                    "latest full benchmark is stale at 46.5h (limit 24.0h)",
-                    "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
-                ],
+                "blockers": [],
                 "failure_surface": {
-                    "aggregate": {"rows_with_no_core_components": 20},
-                    "red_flags": {"obvious_placeholder_rows": 8},
+                    "rows": 20,
+                    "aggregate": {"rows_with_no_core_components": 14},
+                    "red_flags": {"obvious_placeholder_rows": 1},
                 },
             }
         ),
