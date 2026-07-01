@@ -824,3 +824,51 @@ Init ==
     assert "rewrote nested function initializer body" in result.fixes_applied
     assert "[k \\in [1..NumNodes | -> 0]]" not in result.fixed_spec
     assert "[k \\in 1..NumNodes |-> 0]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_removes_dangling_let_action_fragment_before_spec() -> None:
+    spec = """---- MODULE Peterson ----
+Next ==
+    \\/ Process(1)
+    \\/ Process(2)
+
+    LET j \\be i # 1 + 1 IN
+
+      /\\ flags[i] \\in = TRUE
+         /\\ turn' := j
+         /\\ UNCHANGED <<flags[j]>>
+
+Spec == Init /\\ [][Next]_<<flags, turn>>
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed dangling LET action fragment before Spec" in result.fixes_applied
+    assert "LET j \\be i # 1 + 1 IN" not in result.fixed_spec
+    assert "turn' := j" not in result.fixed_spec
+    assert "Spec == Init /\\ [][Next]_<<flags, turn>>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_preserves_valid_let_action_before_later_definitions() -> None:
+    spec = """---- MODULE Queue ----
+VARIABLES tail, size
+
+ProducerAction(item) ==
+    LET newTail == IF tail # 3 THEN tail + 1 ELSE 1 IN
+        /\\ size < 3
+        /\\ tail' = newTail
+
+Next ==
+    ProducerAction(1)
+
+Spec == Init /\\ [][Next]_<<tail, size>>
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed dangling LET action fragment before Spec" not in result.fixes_applied
+    assert "LET newTail == IF tail # 3 THEN tail + 1 ELSE 1 IN" in result.fixed_spec
+    assert "/\\ tail' = newTail" in result.fixed_spec
+    assert "Next ==" in result.fixed_spec

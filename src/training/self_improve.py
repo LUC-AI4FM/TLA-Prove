@@ -742,6 +742,32 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = "\n".join(rebuilt_lines)
         result.fixes_applied.append("removed dangling ELSE IF after LET-IN action")
 
+    lines = fixed.splitlines()
+    spec_idx = next((idx for idx, line in enumerate(lines) if re.match(r"^Spec\s*==", line.strip())), None)
+    if spec_idx is not None:
+        block_start = spec_idx
+        while block_start > 0:
+            prev = lines[block_start - 1]
+            if prev.strip() == "" or prev[:1].isspace():
+                block_start -= 1
+                continue
+            break
+        let_idx = next(
+            (
+                idx
+                for idx in range(spec_idx - 1, block_start - 1, -1)
+                if re.match(r"^\s+LET\b", lines[idx])
+                and all(
+                    line.strip() == "" or line[:1].isspace()
+                    for line in lines[idx:spec_idx]
+                )
+            ),
+            None,
+        )
+        if let_idx is not None:
+            fixed = "\n".join(lines[:let_idx] + lines[spec_idx:])
+            result.fixes_applied.append("removed dangling LET action fragment before Spec")
+
     fixed_new = re.sub(
         r"\b([A-Za-z_][A-Za-z0-9_]*)\(([^()\n]+)\)\(([^()\n]+)\)",
         r"\1(\2, \3)",
