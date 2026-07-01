@@ -1087,6 +1087,75 @@ deliver(msg) ==
     assert "ELSE IF msg.receiver \\in Participants THEN" in result.fixed_spec
 
 
+def test_fix_tla_syntax_completes_disjoined_if_else_if_chain() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+CONSTANT Participants
+VARIABLES phase, votes, msgs
+
+deliver(msg) ==
+    /\\ IF msg.receiver = "Coordinator" THEN
+          CASE msg.sender \\in Participants ->
+              /\\ msgs' = msgs
+              /\\ UNCHANGED <<phase, votes>>
+           [] TRUE -> UNCHANGED <<phase, votes>>
+       \\/ IF msg.receiver \\in Participants THEN
+              /\\ phase' = phase
+              /\\ votes' = votes
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote disjoined IF branch as ELSE IF" in result.fixes_applied
+    assert "completed disjoined IF/ELSE IF chain missing final ELSE" in result.fixes_applied
+    assert "ELSE IF msg.receiver \\in Participants THEN" in result.fixed_spec
+    assert "ELSE TRUE" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="TwoPhaseCommit")
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_replaces_malformed_let_in_placeholder_tail_with_true() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+EXTENDS Naturals
+CONSTANT Participants
+VARIABLES votes
+
+Next ==
+    LET sendMsg(s, r, m) == <<s, r, m>>
+    in
+      /\\ (\\E p : p \\in Participants & NOT p \\in DOMAIN(votes))
+      /\\ messageToSend? := {<p, "Coordinator", "Prepare"> | ...}   \\* placeholder for sending vote requests?
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "replaced malformed LET-IN placeholder tail with IN TRUE" in result.fixes_applied
+    assert "messageToSend" not in result.fixed_spec
+    assert "placeholder for sending vote requests" not in result.fixed_spec
+    assert "IN TRUE" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="TwoPhaseCommit")
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_normalizes_msgs_alias_to_messages_when_msgs_is_undeclared() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+VARIABLES messages
+
+UpdateMsgs ==
+    /\\ msgs' = [msgKind \\in {"VoteYes"} |-> TRUE]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized msgs alias to messages" in result.fixes_applied
+    assert "msgs'" not in result.fixed_spec
+    assert "messages' = [msgKind \\in {\"VoteYes\"} |-> TRUE]" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="TwoPhaseCommit")
+    assert sany_result.valid, sany_result.raw_output
+
+
 def test_fix_tla_syntax_completes_conjunctive_if_block_missing_else() -> None:
     spec = """---- MODULE TwoPhaseCommit ----
 deliver(msg) ==

@@ -1077,6 +1077,43 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     lines = fixed.splitlines()
     rebuilt_lines = []
     i = 0
+    replaced_malformed_let_in_tail = False
+    while i < len(lines):
+        line = lines[i]
+        let_in_line = re.match(r"^(\s*)(?:in|IN)\s*$", line)
+        if not let_in_line:
+            rebuilt_lines.append(line)
+            i += 1
+            continue
+        indent = let_in_line.group(1)
+        j = i + 1
+        saw_placeholder = False
+        while j < len(lines):
+            stripped = lines[j].strip()
+            if not stripped:
+                j += 1
+                continue
+            if re.match(r"^(====|[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==|EXTENDS|CONSTANTS?\b|VARIABLES?\b|ASSUME\b|THEOREM\b|LEMMA\b|PROPOSITION\b|PROPERTY\b)", stripped):
+                break
+            if ":=" in lines[j] or "..." in lines[j] or "placeholder" in stripped.lower():
+                saw_placeholder = True
+            j += 1
+        if saw_placeholder:
+            rebuilt_lines.append(f"{indent}IN TRUE")
+            replaced_malformed_let_in_tail = True
+            i = j
+            continue
+        rebuilt_lines.append(line)
+        i += 1
+    fixed_new = "\n".join(rebuilt_lines)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if replaced_malformed_let_in_tail:
+            result.fixes_applied.append("replaced malformed LET-IN placeholder tail with IN TRUE")
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
     removed_dangling_else_if = False
     while i < len(lines):
         line = lines[i]
@@ -1283,10 +1320,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
                 prior_if = re.match(r"^(\s*)/\\\s+IF\b.+\bTHEN\s*$", prev)
                 if prior_if and len(prior_if.group(1)) <= candidate_indent:
                     saw_prior_if = True
+                    aligned_indent = " " * (len(prior_if.group(1)) + 3)
                     break
                 j -= 1
             if saw_prior_if:
-                rebuilt_lines.append(f"{disjoined_if.group(1)}ELSE IF{disjoined_if.group(2)} THEN")
+                rebuilt_lines.append(f"{aligned_indent}ELSE IF{disjoined_if.group(2)} THEN")
                 rewrote_disjoined_if_branch = True
                 continue
         rebuilt_lines.append(line)
@@ -1295,6 +1333,49 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = fixed_new
         if rewrote_disjoined_if_branch:
             result.fixes_applied.append("rewrote disjoined IF branch as ELSE IF")
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    completed_disjoined_if_chain = False
+    while i < len(lines):
+        line = lines[i]
+        if_header = re.match(r"^(\s*)/\\\s+IF\b.+\bTHEN\s*$", line)
+        if not if_header:
+            rebuilt_lines.append(line)
+            i += 1
+            continue
+        rebuilt_lines.append(line)
+        base_indent = len(if_header.group(1))
+        branch_indent_str = " " * (base_indent + 3)
+        j = i + 1
+        saw_else_if = False
+        saw_else = False
+        while j < len(lines):
+            candidate = lines[j]
+            stripped = candidate.strip()
+            if not stripped or stripped.startswith(("(*", "\\*")):
+                rebuilt_lines.append(candidate)
+                j += 1
+                continue
+            candidate_indent = len(candidate) - len(candidate.lstrip())
+            if candidate_indent <= base_indent and stripped not in {"ELSE TRUE"}:
+                break
+            if re.match(rf"^{re.escape(branch_indent_str)}ELSE IF\b", candidate):
+                saw_else_if = True
+            elif re.match(rf"^{re.escape(branch_indent_str)}ELSE\b", candidate):
+                saw_else = True
+            rebuilt_lines.append(candidate)
+            j += 1
+        if saw_else_if and not saw_else:
+            rebuilt_lines.append(f"{branch_indent_str}ELSE TRUE")
+            completed_disjoined_if_chain = True
+        i = j
+    fixed_new = "\n".join(rebuilt_lines)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if completed_disjoined_if_chain:
+            result.fixes_applied.append("completed disjoined IF/ELSE IF chain missing final ELSE")
 
     lines = fixed.splitlines()
     rebuilt_lines = []
@@ -1823,6 +1904,12 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if fixed_new != fixed:
             fixed = fixed_new
             result.fixes_applied.append("normalized lowercase constant aliases")
+
+    if last_variable_names and "messages" in last_variable_names and "msgs" not in last_variable_names:
+        fixed_new = re.sub(r"\bmsgs\b", "messages", fixed)
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("normalized msgs alias to messages")
 
     fixed_new = re.sub(r"(?m)^\s+[A-Za-z_][A-Za-z0-9_]*\s*,\s*\(\*.*\n?", "", fixed)
     if fixed_new != fixed:
