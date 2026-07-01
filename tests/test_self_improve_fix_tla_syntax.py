@@ -713,7 +713,22 @@ ConsumerAction ==
     assert "RemoveAt(head - 1)(q)" not in result.fixed_spec
     assert "RemoveFirstWhere(\\x: x[1] = p)(channelBuffer)" not in result.fixed_spec
     assert "RemoveAt(head - 1, q)" in result.fixed_spec
-    assert "RemoveFirstWhere(\\x: x[1] = p, channelBuffer)" in result.fixed_spec
+    assert "rewrote backslash lambda predicates as LAMBDA" in result.fixes_applied
+    assert "RemoveFirstWhere(LAMBDA x : x[1] = p, channelBuffer)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_backslash_lambda_predicates() -> None:
+    spec = """---- MODULE QueueOps ----
+ConsumerAction ==
+    /\\ channelBuffer' = RemoveFirstWhere(\\x: x[1] = p, channelBuffer)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote backslash lambda predicates as LAMBDA" in result.fixes_applied
+    assert "RemoveFirstWhere(\\x: x[1] = p, channelBuffer)" not in result.fixed_spec
+    assert "RemoveFirstWhere(LAMBDA x : x[1] = p, channelBuffer)" in result.fixed_spec
 
 
 def test_fix_tla_syntax_normalizes_multiline_spec_temporal_formula_with_stray_backslash() -> None:
@@ -1017,6 +1032,45 @@ retryCount'[p] = MAX_RETRY
     assert "/\\ (~(p \\in sentChunks) \\/ p > LEN(channelBuffer))" in result.fixed_spec
     assert "/\\ channelBuffer' = Append(channelBuffer, <<p>>)" in result.fixed_spec
     assert "/\\ retryCount' = [retryCount EXCEPT ![p] = MAX_RETRY]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_unless_skip_else_block_to_if_unchanged_else() -> None:
+    spec = """---- MODULE FileTransfer ----
+VARIABLES sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount
+
+AckReceived(p) ==
+UNLESS p \\# IN CHANNEL_BUFFER then skip else (
+    /\\ ackedPackets' = ackedPackets \\cup {p}
+    /\\ channelBuffer' = channelBuffer
+)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote UNLESS skip/else pseudocode as IF/UNCHANGED/ELSE" in result.fixes_applied
+    assert "UNLESS p \\# IN CHANNEL_BUFFER then skip else" not in result.fixed_spec
+    assert (
+        "IF ~(p \\in CHANNEL_BUFFER) THEN UNCHANGED <<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> ELSE ("
+        in result.fixed_spec
+    )
+
+
+def test_fix_tla_syntax_rewrites_disjoined_implication_pair_as_if_then_else() -> None:
+    spec = """---- MODULE FileTransfer ----
+RetransmitIfNeeded(p) ==
+((retryCount[p] > 0) => SendPacket(p))
+ \\/ ((retryCount[p] <= 0) =>
+     (* Give up - no further action needed. *)
+      UnchangedVars )
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote disjoined implication pair as IF THEN ELSE" in result.fixes_applied
+    assert "((retryCount[p] > 0) => SendPacket(p))" not in result.fixed_spec
+    assert "IF retryCount[p] > 0 THEN SendPacket(p) ELSE UnchangedVars" in result.fixed_spec
 
 
 def test_fix_tla_syntax_rewrites_nested_lambda_zero_initializer() -> None:

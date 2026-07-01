@@ -613,6 +613,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized guarded disjunct lines")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"(?ms)\(\(\s*([^)]+?)\s*\)\s*=>\s*([A-Za-z_][A-Za-z0-9_]*(?:\([^)\n]*\))?)\s*\)\s*\n\s*\\/\s*/\\\s*\(\(\s*([^)]+?)\s*\)\s*\n(?:\s*\(\*.*?\*\)\s*\n)*\s*([A-Za-z_][A-Za-z0-9_]*(?:\([^)\n]*\))?)\s*\)",
+        lambda m: f"IF {m.group(1).strip()} THEN {m.group(2).strip()} ELSE {m.group(4).strip()}",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote disjoined implication pair as IF THEN ELSE")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\[\]\s*\[\]\s*(\[\s*Next\s*]_\w+)", r"[]\1", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized duplicate temporal box operators")
@@ -951,6 +960,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized curried-style operator calls")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"\\([A-Za-z_][A-Za-z0-9_]*)\s*:",
+        r"LAMBDA \1 :",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote backslash lambda predicates as LAMBDA")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"(?m)(=\s*)\[\](?=\s*(?:$|\\\*|\(\*))", r"\1<<>>", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("rewrote [] sequence literals to <<>>")
@@ -1151,6 +1169,31 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if fixed_new != fixed:
             fixed = fixed_new
             result.fixes_applied.append("realigned vars tuple with VARIABLES declaration")
+
+        def _normalize_unless_condition(expr: str) -> str:
+            expr = expr.strip()
+            expr = re.sub(
+                r"([A-Za-z_][A-Za-z0-9_\[\]]*)\s*\\#\s*IN\s*([A-Za-z_][A-Za-z0-9_]*)",
+                r"~(\1 \\in \2)",
+                expr,
+            )
+            expr = re.sub(r"\bIN\b", r"\\in", expr)
+            return expr
+
+        unchanged_expr = f"UNCHANGED {vars_tuple}"
+        fixed_new = re.sub(
+            r"(?mi)^(\s*)UNLESS\s+(.+?)\s+then\s+skip\s+else\s+\($",
+            lambda m: f"{m.group(1)}IF {_normalize_unless_condition(m.group(2))} THEN {unchanged_expr} ELSE (",
+            fixed,
+        )
+        fixed_new = re.sub(
+            r"(?mi)^(\s*)UNLESS\s+(.+?)\s+then\s+skip\s+else\s+(.+)$",
+            lambda m: f"{m.group(1)}IF {_normalize_unless_condition(m.group(2))} THEN {unchanged_expr} ELSE {m.group(3).strip()}",
+            fixed_new,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("rewrote UNLESS skip/else pseudocode as IF/UNCHANGED/ELSE")
 
     const_decl = re.search(r"^CONSTANTS?\s+(.+)$", fixed, re.MULTILINE)
     if const_decl:
