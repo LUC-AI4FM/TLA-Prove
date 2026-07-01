@@ -37,12 +37,17 @@ from src.training.publish_hf import (
     next_version_for_publish,
     publish_readiness_blockers,
 )
+from src.training.self_improve import fix_tla_syntax
+from src.validators.sany_validator import validate_string
 
 DEFAULT_OUT = REPO / "outputs" / "manifests" / "hf_publish_readiness.json"
 DEFAULT_BENCHMARK_MAX_AGE_HOURS = 24.0
 DEFAULT_GGUF_SEARCH_DIRS = (
     _GGUF_DIR,
     REPO / "outputs" / "gguf_fc128_best",
+)
+DEFAULT_REPAIR_PAIR_FRONTIER_SOURCE = (
+    REPO / "data" / "processed" / "benchmark_repair_pairs_fc128best.jsonl"
 )
 _AUTO = object()
 _CORE_COMPONENT_FIELDS = (
@@ -197,6 +202,38 @@ def build_failure_surface(source_path: Path, *, benchmark_model: str | None = No
     }
 
 
+def build_repair_pair_frontier(source_path: Path) -> dict[str, Any] | None:
+    try:
+        rows = [json.loads(line) for line in source_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    valid_ids: list[str] = []
+    for row in rows:
+        broken_spec = row.get("broken_spec")
+        benchmark_id = str(row.get("benchmark_id", "")).strip()
+        if not isinstance(broken_spec, str) or not broken_spec.strip():
+            continue
+        fixed = fix_tla_syntax(broken_spec)
+        module_match = re.search(
+            r"^---- MODULE\s+([^\s-]+)\s+----",
+            fixed.fixed_spec,
+            re.MULTILINE,
+        )
+        module_name = module_match.group(1) if module_match else benchmark_id
+        validation = validate_string(fixed.fixed_spec, module_name=module_name or "BenchmarkRepair")
+        if validation.valid and benchmark_id:
+            valid_ids.append(benchmark_id)
+
+    return {
+        "source_path": _display_path(source_path),
+        "rows": len(rows),
+        "sany_valid": len(valid_ids),
+        "invalid_rows": max(0, len(rows) - len(valid_ids)),
+        "valid_ids": valid_ids,
+    }
+
+
 def build_report(
     *,
     repo_id: str = _DEFAULT_REPO,
@@ -209,6 +246,8 @@ def build_report(
     benchmark_model: str | None = None,
     fetch_remote_paths: Callable[[str], list[str] | None] | None = None,
     benchmark_stats: object = _AUTO,
+    repair_pair_frontier: object = _AUTO,
+    repair_pair_source: Path = DEFAULT_REPAIR_PAIR_FRONTIER_SOURCE,
     now_fn: Callable[[], float] = time.time,
 ) -> dict[str, Any]:
     state = _load_state() if state_path == _STATE_PATH else json.loads(state_path.read_text(encoding="utf-8"))
@@ -237,6 +276,13 @@ def build_report(
             )
         except (OSError, csv.Error):
             failure_surface = None
+    if repair_pair_frontier is _AUTO:
+        if benchmark_model == "chattla:20b-fc128best" and repair_pair_source.is_file():
+            frontier = build_repair_pair_frontier(repair_pair_source)
+        else:
+            frontier = None
+    else:
+        frontier = repair_pair_frontier
 
     remote_paths = fetch_remote_paths(repo_id) if fetch_remote_paths else None
     remote_last = max_published_version(remote_paths or [])
@@ -303,6 +349,7 @@ def build_report(
             "fresh_within_hours": benchmark_max_age_hours,
             "execution": stats.get("execution"),
         },
+        "repair_pair_frontier": frontier,
         "failure_surface": failure_surface,
         "remote": {
             "gguf_files": [path for path in (remote_paths or []) if path.startswith("gguf/")],

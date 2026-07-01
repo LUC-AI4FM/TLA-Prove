@@ -289,6 +289,58 @@ def test_build_report_requests_specific_benchmark_model(tmp_path: Path, monkeypa
     assert report["benchmark"]["model"] == "chattla:20b"
 
 
+def test_build_report_includes_lane_specific_repair_pair_frontier(tmp_path: Path) -> None:
+    state_path = tmp_path / "hf_publish_state.json"
+    _write(
+        state_path,
+        json.dumps(
+            {
+                "last_published_version": 21,
+                "last_repo": "EricSpencer00/chattla-20b",
+                "note": "aligned",
+            }
+        ),
+    )
+    gguf_dir = tmp_path / "outputs" / "gguf"
+    _write(gguf_dir / "chattla-20b-Q8_0.gguf", "placeholder gguf")
+    readme = tmp_path / "outputs" / "hf_readme" / "README.md"
+    _write(readme, "# README\n")
+
+    report = build_report(
+        repo_id="EricSpencer00/chattla-20b",
+        gguf_dir=gguf_dir,
+        gguf_search_dirs=(gguf_dir,),
+        state_path=state_path,
+        readme_template=readme,
+        benchmark_max_age_hours=24,
+        fetch_remote_paths=lambda _repo: ["gguf/chattla-20b-v21-Q8_0.gguf"],
+        benchmark_model="chattla:20b-fc128best",
+        benchmark_stats={
+            "n": 20,
+            "sany": 0,
+            "tlc": 0,
+            "avg_struct": 0.7,
+            "source_csv": "benchmark_results_fc128best_full.csv",
+            "source_path": str(tmp_path / "benchmark_results_fc128best_full.csv"),
+            "mtime": 0,
+            "model": "chattla:20b-fc128best",
+        },
+        repair_pair_frontier={
+            "source_path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+            "rows": 20,
+            "sany_valid": 7,
+            "invalid_rows": 13,
+            "valid_ids": ["BM002", "BM005", "BM007"],
+        },
+        now_fn=lambda: 3600,
+    )
+
+    assert report["repair_pair_frontier"]["rows"] == 20
+    assert report["repair_pair_frontier"]["sany_valid"] == 7
+    assert report["repair_pair_frontier"]["invalid_rows"] == 13
+    assert report["repair_pair_frontier"]["valid_ids"] == ["BM002", "BM005", "BM007"]
+
+
 def test_sync_state_to_remote_updates_local_counter(tmp_path: Path) -> None:
     state_path = tmp_path / "hf_publish_state.json"
     _write(

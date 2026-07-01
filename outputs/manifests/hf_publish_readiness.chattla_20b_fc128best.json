@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 46.5390806889534,
+    "age_hours": 47.861359796192914,
     "avg_struct": 0.8557,
     "execution": null,
     "fresh_within_hours": 24.0,
@@ -13,7 +13,7 @@
   },
   "benchmark_model": "chattla:20b-fc128best",
   "blockers": [
-    "latest full benchmark is stale at 46.5h (limit 24.0h)",
+    "latest full benchmark is stale at 47.9h (limit 24.0h)",
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
   "claim_status": {
@@ -61,7 +61,7 @@
       ]
     }
   },
-  "generated_at": "2026-07-01T03:33:24.752871+00:00",
+  "generated_at": "2026-07-01T04:52:47.350896+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [
@@ -96,6 +96,21 @@
       "gguf/chattla-20b-v21-Q8_0.gguf"
     ],
     "latest_published_version": 21
+  },
+  "repair_pair_frontier": {
+    "invalid_rows": 13,
+    "rows": 20,
+    "sany_valid": 7,
+    "source_path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
+    "valid_ids": [
+      "BM002",
+      "BM005",
+      "BM007",
+      "BM009",
+      "BM012",
+      "BM014",
+      "BM020"
+    ]
   },
   "repo_id": "EricSpencer00/chattla-20b",
   "state": {
