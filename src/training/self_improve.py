@@ -590,7 +590,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             return f"UNCHANGED <<{', '.join(names)}>>"
         return match.group(0)
 
-    fixed_new = re.sub(r"UNCHANGED\[([^\]\n]+)\]", _rewrite_unchanged_brackets, fixed)
+    fixed_new = re.sub(r"(?i)unchanged\[([^\]\n]+)\]", _rewrite_unchanged_brackets, fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("rewrote bracketed UNCHANGED form")
         fixed = fixed_new
@@ -717,6 +717,12 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"\bWHERE\b", ":", fixed_new)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized alternate quantifier keywords")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"(\\[AE]\s+\w+)\s+IN\b", r"\1 \\in", fixed)
+    fixed_new = re.sub(r"(\[\s*[A-Za-z_][A-Za-z0-9_]*\s+)IN\b", r"\1\\in", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized generic IN quantifiers and constructors")
         fixed = fixed_new
 
     fixed_new = re.sub(r"\bUNCHANGE\s+([A-Za-z_][A-Za-z0-9_]*)'\b", r"UNCHANGED \1", fixed)

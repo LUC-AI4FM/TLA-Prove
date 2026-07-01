@@ -263,3 +263,40 @@ Spec == Init /\\ []_[{pc,queue,turn}](Next)
 
     assert "normalized bracket-set Spec temporal formula" in result.fixes_applied
     assert "Spec == Init /\\ [Next]_<<pc, queue, turn>>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_generic_quantifier_in_and_function_constructor_in() -> None:
+    spec = """---- MODULE DiningPhilosophers ----
+VARIABLES pc, forkOwner
+Init ==
+   /\\ pc = [j IN 1 .. N |-> "hungry"]
+allFree(forkSeq) ==
+   \\A f IN forkSeq: ~ \\E p IN 1 .. N: forkOwner[p] = f
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized generic IN quantifiers and constructors" in result.fixes_applied
+    assert "[j IN 1 .. N" not in result.fixed_spec
+    assert "\\A f IN forkSeq" not in result.fixed_spec
+    assert "\\E p IN 1 .. N" not in result.fixed_spec
+    assert '[j \\in 1 .. N |-> "hungry"]' in result.fixed_spec
+    assert "\\A f \\in forkSeq:" in result.fixed_spec
+    assert "\\E p \\in 1 .. N:" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_mixed_case_bracketed_unchanged() -> None:
+    spec = """---- MODULE MutualExclusion ----
+VARIABLES turn
+Next ==
+   /\\ turn' = turn
+   /\\ Unchanged[<<>>]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote bracketed UNCHANGED form" in result.fixes_applied
+    assert "removed UNCHANGED <<>> (empty tuple)" in result.fixes_applied
+    assert "Unchanged[" not in result.fixed_spec
