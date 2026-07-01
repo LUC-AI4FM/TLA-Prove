@@ -896,6 +896,26 @@ StepDrift ==
     assert "[n \\in 1..NumNodes |-> offsets[n] + RandomChoice(-MaxOffset .. MaxOffset)]" in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_malformed_delta_set_as_function_initializer() -> None:
+    spec = """---- MODULE ClockSync ----
+SyncRound ==
+    LET delta == { c \\in DOMAIN clocks :
+
+                          Sign(avgClock - clocks[c])
+
+                         0 }
+        updatedClks == [i \\in DOMAIN clocks |-> clocks[i]+delta(i)]
+    IN
+        /\\ clocks' = updatedClks
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote malformed delta set as function initializer" in result.fixes_applied
+    assert "delta == [c \\in DOMAIN clocks |-> Sign(avgClock - clocks[c])]" in result.fixed_spec
+
+
 def test_fix_tla_syntax_normalizes_sum_set_aggregate_notation() -> None:
     spec = """---- MODULE ClockSync ----
 Avg ==

@@ -730,6 +730,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote multiline function initializer missing |->")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"(?ms)(delta\s*==)\s*\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^:]+):\s*Sign\(([^)]+)\)\s*0\s*\}",
+        lambda m: f"{m.group(1)} [{m.group(2)} \\in {m.group(3).strip()} |-> Sign({m.group(4).strip()})]",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote malformed delta set as function initializer")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\.\.\s*\+([A-Za-z_][A-Za-z0-9_]*)", r".. \1", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized signed upper bounds in ranges")
