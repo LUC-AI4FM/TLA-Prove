@@ -608,7 +608,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("removed conjunct labels")
         fixed = fixed_new
 
-    fixed_new = re.sub(r"(^\s*/\\\s+\w+(?:\[[^]\n]+\])?)\s*:\s*", r"\1 \\in ", fixed, flags=re.MULTILINE)
+    fixed_new = re.sub(r"(^\s*)(?:\\/|/\\+)\s+(\w+(?:\[[^]\n]+\])?)\s*:\s*", r"\1/\\ \2 \\in ", fixed, flags=re.MULTILINE)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized colon membership conjuncts")
         fixed = fixed_new
@@ -742,6 +742,104 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
                 fixed = fixed[:const_decl.start()] + cleaned_decl + fixed[const_decl.end():]
                 result.fixes_applied.append("cleaned single-line CONSTANTS declaration")
 
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    merged_orphaned_constants = False
+    normalized_orphaned_constraints = False
+    while i < len(lines):
+        line = lines[i]
+        match = re.match(r"^(CONSTANTS?)\s+(.+)$", line)
+        if not match:
+            rebuilt_lines.append(line)
+            i += 1
+            continue
+
+        keyword = match.group(1)
+        parts = [part.strip() for part in match.group(2).split(",")]
+        names = []
+        seen = set()
+        for part in parts:
+            name_match = re.match(r"[A-Za-z_][A-Za-z0-9_]*", part)
+            if not name_match:
+                continue
+            name = name_match.group(0)
+            if name in seen:
+                continue
+            seen.add(name)
+            names.append(name)
+
+        assume_lines: list[str] = []
+        j = i + 1
+        while j < len(lines):
+            continuation = lines[j]
+            stripped = continuation.strip()
+            if not stripped:
+                j += 1
+                continue
+            if stripped.startswith(("(*", "\\*")):
+                j += 1
+                continue
+
+            candidate = re.sub(r"\(\*.*?\*\)", " ", stripped)
+            candidate = re.sub(r"\\\*.*$", " ", candidate)
+            candidate = re.sub(r"\\+.*$", " ", candidate)
+            candidate = candidate.rstrip(",").strip()
+            if not candidate:
+                j += 1
+                continue
+
+            bare_match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)", candidate)
+            typed_match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+)", candidate)
+            constrained_match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|>|<|=|#)\s*(.+)", candidate)
+
+            if bare_match:
+                name = bare_match.group(1)
+                if name not in seen:
+                    seen.add(name)
+                    names.append(name)
+                    merged_orphaned_constants = True
+                j += 1
+                continue
+
+            if typed_match:
+                name = typed_match.group(1)
+                expr = typed_match.group(2).strip()
+                if name not in seen:
+                    seen.add(name)
+                    names.append(name)
+                    merged_orphaned_constants = True
+                assume_lines.append(f"ASSUME {name} \\in {expr}")
+                normalized_orphaned_constraints = True
+                j += 1
+                continue
+
+            if constrained_match:
+                name = constrained_match.group(1)
+                op = constrained_match.group(2)
+                expr = constrained_match.group(3).strip()
+                if name not in seen:
+                    seen.add(name)
+                    names.append(name)
+                    merged_orphaned_constants = True
+                assume_lines.append(f"ASSUME {name} {op} {expr}")
+                normalized_orphaned_constraints = True
+                j += 1
+                continue
+
+            break
+
+        rebuilt_lines.append(f"{keyword} {', '.join(names)}")
+        rebuilt_lines.extend(assume_lines)
+        i = j
+
+    if merged_orphaned_constants or normalized_orphaned_constraints:
+        fixed = "\n".join(rebuilt_lines)
+        if merged_orphaned_constants:
+            result.fixes_applied.append("merged orphaned constant annotations")
+        if normalized_orphaned_constraints:
+            result.fixes_applied.append("normalized orphaned constant constraints to ASSUME")
+
     fixed_new = re.sub(r"\bUnchanged\(([^)\n]+)\)", r"UNCHANGED \1", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized lowercase Unchanged operator")
@@ -757,8 +855,8 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized alternate quantifier keywords")
         fixed = fixed_new
 
-    fixed_new = re.sub(r"\bforall\s+(\w+)\s+in\b", r"\\A \1 \\in", fixed, flags=re.IGNORECASE)
-    fixed_new = re.sub(r"\bexists\s+(\w+)\s+in\b", r"\\E \1 \\in", fixed_new, flags=re.IGNORECASE)
+    fixed_new = re.sub(r"(?<!\\)\bforall\s+(\w+)\s+(?:in|\\in)\b", r"\\A \1 \\in", fixed, flags=re.IGNORECASE)
+    fixed_new = re.sub(r"(?<!\\)\bexists\s+(\w+)\s+(?:in|\\in)\b", r"\\E \1 \\in", fixed_new, flags=re.IGNORECASE)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized bare quantifier words")
         fixed = fixed_new
@@ -877,8 +975,8 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     for line in lines:
         stripped = line.lstrip()
         indent = line[:len(line) - len(stripped)]
-        if previous_disjunct and stripped.startswith("/\\ Terminating"):
-            branch = stripped.removeprefix("/\\ ").strip()
+        if previous_disjunct and re.match(r"/\\+\s+Terminating\b", stripped):
+            branch = re.sub(r"^/\\+\s+", "", stripped).strip()
             normalized_lines.append(f"{indent}\\/ {branch}")
             terminating_branch_changed = True
             previous_disjunct = True

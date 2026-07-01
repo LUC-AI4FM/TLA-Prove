@@ -455,3 +455,90 @@ Next ==
     assert "LEFT_FORK_INIT:" not in result.fixed_spec
     assert "\\A f \\in 1..N: procState[f] = 0" in result.fixed_spec
     assert "    \\/ Terminating" in result.fixed_spec
+
+
+def test_fix_tla_syntax_collects_orphaned_constant_names_and_constraints() -> None:
+    spec = """---- MODULE FileTransfer ----
+CONSTANT CHUNK_SIZE, FILE_LENGTH, PACKET_IDS
+
+    (* Maximum number of retries for each chunk *)
+    MAX_RETRY >= 1,
+
+    (* Set of all possible packet identifiers *)
+    PACKET_IDS : SUBSET Nat,
+VARIABLES sentChunks
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "merged orphaned constant annotations" in result.fixes_applied
+    assert "normalized orphaned constant constraints to ASSUME" in result.fixes_applied
+    assert "CONSTANT CHUNK_SIZE, FILE_LENGTH, PACKET_IDS, MAX_RETRY" in result.fixed_spec
+    assert "ASSUME MAX_RETRY >= 1" in result.fixed_spec
+    assert "ASSUME PACKET_IDS \\in SUBSET Nat" in result.fixed_spec
+
+
+def test_fix_tla_syntax_collects_bare_orphaned_constant_names() -> None:
+    spec = """---- MODULE GCounter ----
+CONSTANT NodeSet
+ MaxVal    \\ Upper bound for any individual increment per step
+VARIABLES counts
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "merged orphaned constant annotations" in result.fixes_applied
+    assert "CONSTANT NodeSet, MaxVal" in result.fixed_spec
+    assert "Upper bound for any individual increment per step" not in result.fixed_spec
+
+
+def test_fix_tla_syntax_collects_orphaned_constants_after_top_level_comment() -> None:
+    spec = """---- MODULE MemoryAllocator ----
+CONSTANT N, Client
+\\* Enumerate all possible client identifiers; for simplicity we bound it by M
+M           \\ Maximum number of distinct clients
+ASSUME N >= 1
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "merged orphaned constant annotations" in result.fixes_applied
+    assert "CONSTANT N, Client, M" in result.fixed_spec
+    assert "\\* Enumerate all possible client identifiers" not in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_bare_quantifiers_with_backslash_in_and_doubled_conjunctions() -> None:
+    spec = """---- MODULE FileTransfer ----
+TypeOK ==
+           /\\ forall p \\in PACKET_IDS:
+                retryCount[p] \\in 0..MAX_RETRY
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized bare quantifier words" in result.fixes_applied
+    assert "\\A p \\in PACKET_IDS:" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_colon_membership_from_disjunctive_and_doubled_backslash_lines() -> None:
+    spec = """---- MODULE Broker ----
+TypeOk ==
+    \\/ subs : [Topic |-> SUBSET(SubIds)]
+       /\\\\ msgSeqs : [Topic |-> Seq(Message)]
+       /\\\\ delivered : [SubscriberId -> BOOLEAN]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized colon membership conjuncts" in result.fixes_applied
+    assert "\\/ subs :" not in result.fixed_spec
+    assert "/\\\\ msgSeqs :" not in result.fixed_spec
+    assert "/\\\\ delivered :" not in result.fixed_spec
+    assert "/\\ subs \\in [Topic |-> SUBSET(SubIds)]" in result.fixed_spec
+    assert "/\\ msgSeqs \\in [Topic |-> Seq(Message)]" in result.fixed_spec
+    assert "/\\ delivered \\in [SubscriberId -> BOOLEAN]" in result.fixed_spec
