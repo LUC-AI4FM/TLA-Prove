@@ -118,6 +118,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     )
     fixed = spec
     constant_alias_map: dict[str, str] = {}
+    inserted_helper_operator_names: set[str] = set()
 
     def _strip_wrapping_parens(expr: str) -> str:
         expr = expr.strip()
@@ -184,7 +185,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             text,
         ) is not None
 
-    def _collect_missing_helper_definitions(text: str) -> list[tuple[str, str]]:
+    def _collect_missing_helper_definitions(text: str) -> list[tuple[str, str, str]]:
         helpers = [
             (
                 "RandomChoice",
@@ -221,10 +222,10 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
                 "auto-defined Max helper",
             ),
         ]
-        missing: list[tuple[str, str]] = []
+        missing: list[tuple[str, str, str]] = []
         for name, use_pattern, definition, message in helpers:
             if re.search(use_pattern, text) and not _has_operator_definition(text, name):
-                missing.append((definition, message))
+                missing.append((name, definition, message))
         return missing
 
     def _insert_helper_definitions(text: str, definitions: list[str]) -> str:
@@ -542,8 +543,9 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             result.fixes_applied.append("added Sequences to EXTENDS for Len")
     missing_helper_defs = _collect_missing_helper_definitions(fixed)
     if missing_helper_defs:
-        fixed = _insert_helper_definitions(fixed, [definition for definition, _ in missing_helper_defs])
-        for _, message in missing_helper_defs:
+        fixed = _insert_helper_definitions(fixed, [definition for _, definition, _ in missing_helper_defs])
+        inserted_helper_operator_names.update(name for name, _, _ in missing_helper_defs)
+        for _, _, message in missing_helper_defs:
             result.fixes_applied.append(message)
 
     # ── Fix 18: Fix single-line ASSUME with \notin cleanup artifacts ─────
@@ -1051,8 +1053,9 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
 
     late_helper_defs = _collect_missing_helper_definitions(fixed)
     if late_helper_defs:
-        fixed = _insert_helper_definitions(fixed, [definition for definition, _ in late_helper_defs])
-        for _, message in late_helper_defs:
+        fixed = _insert_helper_definitions(fixed, [definition for _, definition, _ in late_helper_defs])
+        inserted_helper_operator_names.update(name for name, _, _ in late_helper_defs)
+        for _, _, message in late_helper_defs:
             if message not in result.fixes_applied:
                 result.fixes_applied.append(message)
 
@@ -1084,6 +1087,19 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     )
     if fixed_new != fixed:
         result.fixes_applied.append("removed UNCHANGED conjunct from TypeOK")
+        fixed = fixed_new
+
+    def _remove_unchanged_from_init(match: re.Match) -> str:
+        block = match.group(0)
+        return re.sub(r"(?m)^\s*/\\\s*UNCHANGED\s+<<[^>\n]+>>\s*\n?", "", block)
+
+    fixed_new = re.sub(
+        r"(?ms)^Init\s*==.*?(?=^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==|^====)",
+        _remove_unchanged_from_init,
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed UNCHANGED conjunct from Init")
         fixed = fixed_new
 
     fixed_new = re.sub(
@@ -1851,6 +1867,55 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             fixed = "\n".join(remainder[:insert_idx] + block + remainder[insert_idx:])
             result.fixes_applied.append("moved UnchangedVars definition before first use")
 
+    lines = fixed.splitlines()
+    moved_later_operator = False
+    changed = True
+    while changed:
+        changed = False
+        op_defs: list[tuple[str, int, int]] = []
+        i = 0
+        while i < len(lines):
+            match = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?:\([^)]*\))?\s*==", lines[i])
+            if not match:
+                i += 1
+                continue
+            name = match.group(1)
+            block_end = i + 1
+            while block_end < len(lines):
+                if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", lines[block_end]) or lines[block_end].strip() == "====":
+                    break
+                block_end += 1
+            op_defs.append((name, i, block_end))
+            i = block_end
+        for name, def_start, def_end in op_defs:
+            use_pat = re.compile(rf"\b{re.escape(name)}\s*(?:\(|\b)")
+            first_use_idx = next(
+                (
+                    idx
+                    for idx, line in enumerate(lines[:def_start])
+                    if use_pat.search(line) and not line.strip().startswith(("(*", "\\*"))
+                ),
+                None,
+            )
+            if first_use_idx is None:
+                continue
+            insert_idx = first_use_idx
+            while insert_idx > 0:
+                if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", lines[insert_idx]):
+                    break
+                insert_idx -= 1
+            block = lines[def_start:def_end]
+            remainder = lines[:def_start] + lines[def_end:]
+            if def_start < insert_idx:
+                insert_idx -= len(block)
+            lines = remainder[:insert_idx] + block + remainder[insert_idx:]
+            moved_later_operator = True
+            changed = True
+            break
+    if moved_later_operator:
+        fixed = "\n".join(lines)
+        result.fixes_applied.append("moved later operator definition before first use")
+
     fixed_new = fixed.replace("≜", "==")
     if fixed_new != fixed:
         result.fixes_applied.append("normalized definition symbol to ==")
@@ -2289,7 +2354,67 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if normalized_orphaned_constraints:
             result.fixes_applied.append("normalized orphaned constant constraints to ASSUME")
 
+    if last_constant_names is not None:
+        builtin_caps = {
+            "Append", "BOOLEAN", "CASE", "CONSTANT", "CONSTANTS", "DOMAIN",
+            "CHOOSE", "ELSE", "EXCEPT", "EXTENDS", "FALSE", "Head", "IF",
+            "IN", "Init", "Int", "LAMBDA", "LET", "Len", "MODULE", "Nat",
+            "Next", "OTHER", "PROPERTY", "Seq", "Sequence", "SPECIFICATION",
+            "Spec", "SUBSEQ", "SubSeq", "SubSequence", "SUBSET", "Tail",
+            "THEN", "TRUE", "THEOREM", "Terminating", "TypeInvariant",
+            "TypeOK", "TypeOk", "UNCHANGED", "UNION", "Unchanged",
+            "VARIABLE", "VARIABLES",
+        }
+        builtin_caps_upper = {name.upper() for name in builtin_caps}
+        declared_names = set(last_constant_names)
+        if last_variable_names:
+            declared_names.update(last_variable_names)
+        declared_names.update(re.findall(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\s*(?:\([^)]*\))?\s*==", fixed))
+        missing_caps: list[str] = []
+        in_inserted_helper_block = False
+        for line in fixed.splitlines():
+            stripped = line.strip()
+            top_level_def = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?:\([^)]*\))?\s*==", line)
+            if top_level_def and top_level_def.group(1) in inserted_helper_operator_names:
+                in_inserted_helper_block = True
+                continue
+            if in_inserted_helper_block:
+                if top_level_def or stripped.startswith(("CONSTANT", "VARIABLE", "EXTENDS", "ASSUME")) or stripped == "====":
+                    in_inserted_helper_block = False
+                else:
+                    continue
+            if (
+                not stripped
+                or stripped.startswith(("---- MODULE", "EXTENDS", "CONSTANT", "VARIABLE", "ASSUME", "(*", "\\*"))
+                or re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped)
+            ):
+                continue
+            candidate = re.sub(r"\(\*.*?\*\)", " ", stripped)
+            candidate = re.sub(r"\\\*.*$", " ", candidate)
+            candidate = re.sub(r'"[^"\n]*"', " ", candidate)
+            candidate = re.sub(r"\\[A-Za-z_]+", " ", candidate)
+            for match in re.finditer(r"\b[A-Z][A-Za-z0-9_]*\b", candidate):
+                token = match.group(0)
+                if candidate[match.end():match.end() + 1] in {"(", "["}:
+                    continue
+                if token.upper() in builtin_caps_upper or token in declared_names or token in known_modules:
+                    continue
+                missing_caps.append(token)
+        ordered_missing_caps = list(dict.fromkeys(missing_caps))
+        if ordered_missing_caps:
+            const_decl = re.search(r"^(CONSTANTS?)\s+(.+)$", fixed, re.MULTILINE)
+            if const_decl:
+                keyword = const_decl.group(1)
+                current = [part.strip() for part in const_decl.group(2).split(",") if part.strip()]
+                merged = current + [name for name in ordered_missing_caps if name not in current]
+                fixed = fixed[:const_decl.start()] + f"{keyword} {', '.join(merged)}" + fixed[const_decl.end():]
+                last_constant_names = merged
+                result.fixes_applied.append("collected missing capitalized placeholders into CONSTANTS")
+
     if last_constant_names:
+        operator_names = set(
+            re.findall(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\s*(?:\([^)]*\))?\s*==", fixed)
+        )
         protected_lower_aliases = {
             name
             for name in re.findall(r"\\(?:A|E)\s+([a-z_][A-Za-z0-9_]*)\s+\\in\b", fixed)
@@ -2300,7 +2425,12 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         )
         for name in last_constant_names:
             alias = name.lower()
-            if alias != name and alias not in constant_alias_map and alias not in protected_lower_aliases:
+            if (
+                alias != name
+                and alias not in constant_alias_map
+                and alias not in protected_lower_aliases
+                and (not last_variable_names or alias not in last_variable_names)
+            ):
                 constant_alias_map[alias] = name
         fixed_new = fixed
         for alias, name in constant_alias_map.items():
@@ -2311,6 +2441,8 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
 
         fixed_new = fixed
         for name in last_constant_names:
+            if name in operator_names:
+                continue
             fixed_new = re.sub(
                 rf"\b{re.escape(name)}\(([^()\n]+)\)",
                 rf"{name}[\1]",

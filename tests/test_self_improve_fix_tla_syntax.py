@@ -1977,6 +1977,22 @@ TypeOK == /\\ sentChunks \\in Seq(PACKET_IDS)
     assert "TypeOK == /\\ sentChunks \\in Seq(PACKET_IDS)" in result.fixed_spec
 
 
+def test_fix_tla_syntax_removes_unchanged_conjunct_from_init() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+VARIABLES procState, chanMsg
+
+Init == /\\ procState = "idle"
+        /\\ UNCHANGED <<chanMsg>>
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed UNCHANGED conjunct from Init" in result.fixes_applied
+    assert "/\\ UNCHANGED <<chanMsg>>" not in result.fixed_spec
+    assert 'Init == /\\ procState = "idle"' in result.fixed_spec
+
+
 def test_fix_tla_syntax_moves_unchangedvars_definition_before_first_use() -> None:
     spec = """---- MODULE FileTransfer ----
 RetransmitIfNeeded(p) ==
@@ -1990,6 +2006,86 @@ UnchangedVars == /\\ retryCount' = retryCount
 
     assert "moved UnchangedVars definition before first use" in result.fixes_applied
     assert result.fixed_spec.index("UnchangedVars ==") < result.fixed_spec.index("RetransmitIfNeeded(p) ==")
+
+
+def test_fix_tla_syntax_moves_later_operator_definition_before_first_use() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+VARIABLES procState, recorder, chanMsg
+
+Next ==
+    /\\ SEND_MARKERS_TO_OUTGOING("p")
+
+SEND_MARKERS_TO_OUTGOING(proc) ==
+    /\\ UNCHANGED <<procState, recorder, chanMsg>>
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "moved later operator definition before first use" in result.fixes_applied
+    assert result.fixed_spec.index("SEND_MARKERS_TO_OUTGOING(proc) ==") < result.fixed_spec.index("Next ==")
+
+
+def test_fix_tla_syntax_does_not_treat_let_local_operators_as_top_level_moves() -> None:
+    spec = """---- MODULE LocalLet ----
+VARIABLE x
+
+Next ==
+    LET helper(v) == v + 1
+    IN helper(x)
+
+Init == x = 0
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert result.fixed_spec.index("Next ==") < result.fixed_spec.index("helper(v) ==")
+    assert result.fixed_spec.index("Init ==") > result.fixed_spec.index("Next ==")
+
+
+def test_fix_tla_syntax_collects_missing_capitalized_placeholders_into_constants() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+CONSTANT P, OutNeighbors
+VARIABLES procState, recorder, chanMsg
+
+TypeInvariant ==
+    /\\ chanMsg \\in [(OutChannels \\X InChannels) -> Seq(Message)]
+
+SEND_MARKERS_TO_OUTGOING(proc) ==
+    /\\ \\A q \\in OutNeighbors[proc]:
+       /\\ chanMsg' = [chanMsg EXCEPT ![<<proc, q>>] = Append(chanMsg[<<proc, q>>], Marker)]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "collected missing capitalized placeholders into CONSTANTS" in result.fixes_applied
+    assert "CONSTANT P, OutNeighbors, OutChannels, InChannels, Message, Marker" in result.fixed_spec
+
+
+def test_fix_tla_syntax_does_not_collect_helper_binders_or_comments_into_constants() -> None:
+    spec = """---- MODULE ClockSync ----
+EXTENDS Naturals, Sequences
+CONSTANT NumNodes, MaxOffset
+VARIABLES clocks, offsets
+
+Step ==
+    /\\ offsets' = [n \\in 1..NumNodes |-> offsets[n] + RandomChoice(-MaxOffset .. MaxOffset)]
+    /\\ clocks' = [i \\in 1..NumNodes |-> Sum([j \\in 1..NumNodes |-> offsets[j]])]
+    /\\ UNCHANGED clocks
+
+\\* STRING should not become a constant from comments.
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "CONSTANT NumNodes, MaxOffset" in result.fixed_spec
+    assert "CONSTANT NumNodes, MaxOffset, S" not in result.fixed_spec
+    assert "STRING" not in next(
+        line for line in result.fixed_spec.splitlines() if line.startswith("CONSTANT")
+    )
 
 
 def test_fix_tla_syntax_realigns_multiline_spec_tuple_with_variables_declaration() -> None:
@@ -2019,6 +2115,59 @@ Spec == Init /\\ [] ( Next \\/ Terminating )
 
     assert "normalized parenthesized Spec temporal formula" in result.fixes_applied
     assert "Spec == Init /\\ [][Next \\/ Terminating]_<<procState, recChanMsgs, recorder, chanMsg>>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_makes_bm008_shape_sany_valid() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+
+EXTENDS Naturals, Sequences, FiniteSets
+
+CONSTANT P, OutNeighbors
+VARIABLES procState, recChanMsgs, recorder, chanMsg
+
+TypeInvariant ==
+    /\\ procState : P -> {"unrecorded","recorder"}
+    /\\ chanMsg : (OutChannels x InChannels) -> Sequence[Message]
+
+Init ==
+    /\\ \\A p \\in P :
+          \\/ procState[p] = "unrecorded"
+            /\\ UNCHANGED <<chanMsg>>
+    /\\ recorder = NULL
+    /\\ recChanMsgs = {}
+
+Next ==
+    LET nextProc(p) == IF procState[p]="unrecorded" THEN
+                        /\\ recorder' = p
+                        /\\ procState'[p] = "recorder"
+                      ELSEIF procState[p]="recorder" AND recorder'=NULL THEN
+                            /\\ SEND_MARKERS_TO_OUTGOING(p)
+
+    in  /\\ (\\E p \\in P : nextProc(p))
+      /\\ UNCHANGED <<procState, recorder>>
+
+SEND_MARKERS_TO_OUTGOING(proc) ==
+    /\\ \\A q \\in OutNeighbors(proc):
+           chanMsg'[(proc,q)] = Append(chanMsg[(proc,q)], Marker)
+       /\\ UNCHANGED [x |-> y IN {proc} UNION OUTCHANNELS  \\union  RECCHANMS]
+
+Terminating ==
+     /\\ recorder = NULL
+     /\\ UNCHANGED <<procState, chanMsg>>
+
+Spec == Init /\\ [] ( Next \\/ Terminating )
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="DistributedSnapshot")
+
+    assert "moved later operator definition before first use" in result.fixes_applied
+    assert "collected missing capitalized placeholders into CONSTANTS" in result.fixes_applied
+    assert "removed UNCHANGED conjunct from Init" in result.fixes_applied
+    assert "normalized parenthesized Spec temporal formula" in result.fixes_applied
+    assert sany_result.valid, sany_result.raw_output
 
 
 def test_fix_tla_syntax_repairs_remaining_filetransfer_semantic_artifacts_to_sany_clean() -> None:
