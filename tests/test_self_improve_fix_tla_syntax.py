@@ -1,4 +1,5 @@
 from src.training.self_improve import fix_tla_syntax
+from src.validators.sany_validator import validate_string
 
 
 def test_fix_tla_syntax_repairs_common_benchmark_parser_artifacts() -> None:
@@ -1273,6 +1274,38 @@ AckReceived(p) ==
     assert "ackedPackets' = ackedPackets \\cup {p}" in result.fixed_spec
 
 
+def test_fix_tla_syntax_infers_function_domain_from_quantified_usage() -> None:
+    spec = """---- MODULE FileTransfer ----
+TypeOK ==
+    /\\ \\A p \\in PACKET_IDS :
+         retryCount[p] \\in 0..MAX_RETRY
+
+Init ==
+    /\\ retryCount = [p |-> (IF p <= FILE_LENGTH THEN MAX_RETRY ELSE -1)]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "added inferred domain to function initializer" in result.fixes_applied
+    assert "/\\ retryCount = [p \\in PACKET_IDS |-> (IF p <= FILE_LENGTH THEN MAX_RETRY ELSE -1)]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_removes_unchanged_conjunct_from_typeok() -> None:
+    spec = """---- MODULE FileTransfer ----
+TypeOK == /\\ sentChunks \\in Seq(PACKET_IDS)
+          /\\ UNCHANGED <<sentChunks>>
+          /\\ ackedPackets \\subseteq PACKET_IDS
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed UNCHANGED conjunct from TypeOK" in result.fixes_applied
+    assert "/\\ UNCHANGED <<sentChunks>>" not in result.fixed_spec
+    assert "TypeOK == /\\ sentChunks \\in Seq(PACKET_IDS)" in result.fixed_spec
+
+
 def test_fix_tla_syntax_moves_unchangedvars_definition_before_first_use() -> None:
     spec = """---- MODULE FileTransfer ----
 RetransmitIfNeeded(p) ==
@@ -1301,6 +1334,64 @@ Spec == Init /\\\\ [][ Next ]_<< sentChunks ,ackdPackets ,retryCount ,
 
     assert "realigned Spec vars tuple with VARIABLES declaration" in result.fixes_applied
     assert "Spec == Init /\\ [][Next]_<<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> /\\ TypeOK" in result.fixed_spec
+
+
+def test_fix_tla_syntax_repairs_remaining_filetransfer_semantic_artifacts_to_sany_clean() -> None:
+    spec = """---- MODULE FileTransfer ----
+EXTENDS Naturals, Sequences, FiniteSets, Integers
+
+CONSTANT FILE_LENGTH, PACKET_IDS, MAX_RETRY
+ASSUME FILE_LENGTH \\in Nat
+ASSUME PACKET_IDS \\subseteq Nat
+ASSUME MAX_RETRY \\in Nat
+
+VARIABLES sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount
+
+TypeOK == /\\ sentChunks \\in Seq(PACKET_IDS)
+          /\\ ackedPackets \\subseteq PACKET_IDS
+          /\\ channelBuffer \\in Seq(Seq(Nat))
+          /\\ currentChunkIndex \\in Nat
+          /\\ retryCount \\in [PACKET_IDS -> Int]
+
+Init ==
+    /\\ sentChunks = <<>>
+    /\\ ackedPackets = {}
+    /\\ retryCount = [p |-> (IF p <= FILE_LENGTH THEN MAX_RETRY ELSE -1)]
+    /\\ currentChunkIndex = 0
+    /\\ channelBuffer = <<>>
+
+AckReceived(p) ==
+    IF ~(p \\in channelBuffer) THEN
+        UNCHANGED <<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>>
+    ELSE (
+        /\\ sentChunks' = sentChunks
+        /\\ ackedPackets' = ackedPackets \\cup {p}
+        /\\ channelBuffer' = RemoveFirstWhere(LAMBDA x : x[1] = p, channelBuffer)
+        /\\ currentChunkIndex' = currentChunkIndex
+        /\\ retryCount' = retryCount
+    )
+
+Next ==
+    \\/ /\\ currentChunkIndex < FILE_LENGTH
+       /\\ sentChunks' = sentChunks
+       /\\ ackedPackets' = ackedPackets
+       /\\ channelBuffer' = Append(channelBuffer, <<currentChunkIndex + 1>>)
+       /\\ currentChunkIndex' = currentChunkIndex + 1
+       /\\ retryCount' = [retryCount EXCEPT ![currentChunkIndex + 1] = MAX_RETRY]
+    \\/ /\\ Len(channelBuffer) > 0
+       /\\ AckReceived([first |-> first][currentChannel])
+
+Spec == Init /\\ [][Next]_<<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> /\\ TypeOK
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    validation = validate_string(result.fixed_spec, module_name="FileTransfer")
+
+    assert "added inferred domain to function initializer" in result.fixes_applied
+    assert "defined RemoveFirstWhere helper operator" in result.fixes_applied
+    assert "rewrote channel placeholder ack target as Head(channelBuffer)[1]" in result.fixes_applied
+    assert validation.valid, validation.raw_output
 
 
 def test_fix_tla_syntax_rewrites_nested_lambda_zero_initializer() -> None:

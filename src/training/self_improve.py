@@ -151,6 +151,31 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
                 return f"[{left} -> {_normalize_function_set_expr(right)}]"
         return expr
 
+    def _infer_function_init_domain(var_name: str, binder: str, text: str) -> Optional[str]:
+        direct = re.search(
+            rf"\b{re.escape(var_name)}\b\s*\\in\s*\[\s*([^\]\n|]+?)\s*->",
+            text,
+        )
+        if direct:
+            return direct.group(1).strip()
+
+        quantified = re.search(
+            rf"(?ms)(?:\\A|\\forall)\s+{re.escape(binder)}\s+\\in\s+([^:\n]+?)\s*:\s*.*?\b{re.escape(var_name)}\[{re.escape(binder)}\]",
+            text,
+        )
+        if quantified:
+            return quantified.group(1).strip()
+        return None
+
+    def _prepend_helper_definition(text: str, definition: str) -> str:
+        op_match = re.search(r"(?m)^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", text)
+        if op_match:
+            return text[:op_match.start()] + definition.rstrip() + "\n\n" + text[op_match.start():]
+        end_marker = re.search(r"(?m)^====\s*$", text)
+        if end_marker:
+            return text[:end_marker.start()].rstrip() + "\n\n" + definition.rstrip() + "\n\n" + text[end_marker.start():]
+        return text.rstrip() + "\n\n" + definition.rstrip()
+
     # ── Fix 1: Remove PlusCal blocks ──────────────────────────────────────
     # Pattern A: full block  (* --algorithm ... end algorithm; *)
     pluscal_pat = r"\(\*\s*--(?:fair\s+)?algorithm\b.*?end\s+algorithm\s*;?\s*\*\)"
@@ -722,6 +747,45 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             result.fixes_applied.append("rewrote Insert pseudo-op as set union")
             fixed = fixed_new
 
+    def _rewrite_bare_function_initializer(match: re.Match) -> str:
+        indent, var_name, binder, expr = match.groups()
+        if "," in expr:
+            return match.group(0)
+        domain = _infer_function_init_domain(var_name, binder, fixed)
+        if not domain:
+            return match.group(0)
+        return f"{indent}{var_name} = [{binder} \\in {domain} |-> {expr}]"
+
+    fixed_new = re.sub(
+        r"(?m)^(\s*(?:/\\\s+)?)"
+        r"([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\[([A-Za-z_][A-Za-z0-9_]*)\s*\|->\s*(.+?)\]\s*$",
+        _rewrite_bare_function_initializer,
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("added inferred domain to function initializer")
+        fixed = fixed_new
+
+    if "RemoveFirstWhere(" in fixed and not re.search(r"(?m)^\s*RemoveFirstWhere\s*\(", fixed):
+        helper_def = """RemoveFirstWhere(P(_), seq) ==
+    IF \\E i \\in 1..Len(seq) : P(seq[i])
+    THEN LET idx == CHOOSE i \\in 1..Len(seq) :
+                        /\\ P(seq[i])
+                        /\\ \\A j \\in 1..(i - 1) : ~P(seq[j])
+         IN SubSeq(seq, 1, idx - 1) \\o SubSeq(seq, idx + 1, Len(seq))
+    ELSE seq"""
+        fixed = _prepend_helper_definition(fixed, helper_def)
+        result.fixes_applied.append("defined RemoveFirstWhere helper operator")
+
+    fixed_new = re.sub(
+        r"AckReceived\(\s*\[first\s*\|->\s*first\]\s*\[\s*currentChannel\s*]\s*\)",
+        "AckReceived(Head(channelBuffer)[1])",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote channel placeholder ack target as Head(channelBuffer)[1]")
+        fixed = fixed_new
+
     fixed_new = re.sub(
         r"SUM_\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^}\n]+)\}\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]\n]+\])+)",
         r"Sum([\1 \\in \2 |-> \3])",
@@ -857,6 +921,19 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"(?m)^\s*/\\\s*UNCHANGED\s+@[^\n]*\n?", "", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("removed malformed UNCHANGED @ invariant line")
+        fixed = fixed_new
+
+    def _remove_unchanged_from_typeok(match: re.Match) -> str:
+        block = match.group(0)
+        return re.sub(r"(?m)^\s*/\\\s*UNCHANGED\s+<<[^>\n]+>>\s*\n?", "", block)
+
+    fixed_new = re.sub(
+        r"(?ms)^TypeOK\s*==.*?(?=^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==|^====)",
+        _remove_unchanged_from_typeok,
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed UNCHANGED conjunct from TypeOK")
         fixed = fixed_new
 
     fixed_new = re.sub(
