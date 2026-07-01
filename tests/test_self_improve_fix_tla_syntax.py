@@ -1171,6 +1171,68 @@ Next ==
     assert "[n \\in NodeSet |-> IF n = receiver THEN (recvInfo \\union infection[n]) ELSE infection[n]]" in result.fixed_spec
 
 
+def test_fix_tla_syntax_canonicalizes_polluted_key_value_constant_aliases() -> None:
+    spec = """---- MODULE KeyValueStore ----
+CONSTANTS Keys, Values, KEY, VALUES, Value, Key, VALUE, KEYS, KV
+TypeOk ==
+    /\\ kvs \\in [KEY -> VALUE]
+    /\\ DOMAIN kvs = KEYS
+    /\\ \\A k \\in KEYS : kvs[k] \\in VALUES
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "canonicalized polluted key/value constant aliases" in result.fixes_applied
+    assert "CONSTANTS Keys, Values" in result.fixed_spec
+    assert "KEYS" not in result.fixed_spec
+    assert "VALUE" not in result.fixed_spec
+    assert "/\\ kvs \\in [Keys -> Values]" in result.fixed_spec
+    assert "/\\ DOMAIN kvs = Keys" in result.fixed_spec
+    assert "/\\ \\A k \\in Keys : kvs[k] \\in Values" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_malformed_keyvalue_put_block() -> None:
+    spec = """---- MODULE KeyValueStore ----
+VARIABLE kvs
+vars == <<kvs>>
+
+PutNext(KEY, val) ==
+    LET newKVS == [kv \\in KV'SUBSET |-> IF kv.KEY # KEY THEN kv ELSE <<KEY,val>> ]  \\* update entry
+        (* Note: we construct an updated record *)
+    IN
+       /\\ UNCHANGED vars[1..0]      \\* no other variables exist yet
+       /\\ kvs' = (IF KEY \\in DOMAIN(kvs)
+
+                       UNION {<<KEY,val>>}
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote malformed key-value PutNext block" in result.fixes_applied
+    assert "KV'SUBSET" not in result.fixed_spec
+    assert "UNCHANGED vars[1..0]" not in result.fixed_spec
+    assert "PutNext(k, val) ==" in result.fixed_spec
+    assert "/\\ k \\in Keys" in result.fixed_spec
+    assert "/\\ val \\in Values" in result.fixed_spec
+    assert "/\\ kvs' = [kvs EXCEPT ![k] = val]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_splits_malformed_dual_existential_quantifier() -> None:
+    spec = """---- MODULE KeyValueStore ----
+Next ==
+    \\/  \\E k \\in Keys v \\in Values :
+          PutNext(k,v)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "split malformed dual existential quantifier" in result.fixes_applied
+    assert "\\/  \\E k \\in Keys : \\E v \\in Values : PutNext(k,v)" in result.fixed_spec
+
+
 def test_fix_tla_syntax_normalizes_len_broken_in_and_escaped_comment() -> None:
     spec = """---- MODULE ClockSync ----
 TypeInvariant ==
@@ -2931,4 +2993,59 @@ TypeOK ==
     assert "rewrote existential implication action as nested quantified conjunction" in result.fixes_applied
     assert "completed truncated function constructor update" in result.fixes_applied
     assert "normalized malformed diamond Next Spec formula" in result.fixes_applied
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm010_shape_sany_valid() -> None:
+    spec = """---- MODULE KeyValueStore ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANTS Keys, Values, KEY, VALUES, Value, Key, VALUE, KEYS, KV
+
+\\* Variables:
+VARIABLE kvs
+
+Init ==
+    /\\ kvs \\in [Key |-> Value]          \\* type constraint for safety
+    /\\ DOMAIN kvs = Keys                      \\* all Keys present in map
+    /\\ \\A k \\in Keys : kvs[k] \\in VALUES     \\* initial arbitrary assignment
+
+TypeOk ==
+    /\\ kvs \\in [KEY -> VALUE]
+    /\\ DOMAIN kvs = KEYS
+    /\\ \\A k \\in KEYS : kvs[k] \\in VALUES
+
+PutNext(KEY, val) ==
+    LET newKVS == [kv \\in KV'SUBSET |-> IF kv.KEY # KEY THEN kv ELSE <<KEY,val>> ]  \\* update entry
+        (* Note: we construct an updated record *)
+    IN
+       /\\ UNCHANGED vars[1..0]      \\* no other variables exist yet
+       /\\ kvs' = (IF KEY \\in DOMAIN(kvs)
+
+                       UNION {<<KEY,val>>}
+
+
+GetNext(KEY) ==
+   /\\ UNCHANGED vars           \\* state UNCHANGED on read; Value returned externally
+
+\\* Next disjunction:
+Next ==
+    \\/  \\E k \\in Keys v \\in Values :
+          PutNext(k,v)
+
+Spec ==
+    Init /\\
+    TypeOK /\\
+    [][Next]_vars
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="KeyValueStore")
+
+    assert "canonicalized polluted key/value constant aliases" in result.fixes_applied
+    assert "rewrote malformed key-value PutNext block" in result.fixes_applied
+    assert "split malformed dual existential quantifier" in result.fixes_applied
     assert sany_result.valid, sany_result.raw_output

@@ -984,6 +984,18 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = fixed_new
 
     fixed_new = re.sub(
+        r"(?m)^(\s*\\/\s*\\E\s+([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^:\n]+?)\s+)"
+        r"([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^:\n]+?)\s*:\s*\n\s*([A-Za-z_][A-Za-z0-9_]*\([^)\n]*\))\s*$",
+        lambda m: (
+            f"{m.group(1)}: \\E {m.group(4)} \\in {m.group(5).strip()} : {m.group(6)}"
+        ),
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("split malformed dual existential quantifier")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
         r"(?m)^(\s*\\/\s+)\\A(\s+[A-Za-z_][A-Za-z0-9_]*\s*\\in\s*[^:\n]+:\s*)([A-Za-z_][A-Za-z0-9_]*(?:\([^)\n]*\))\s*)$",
         r"\1\\E\2\3",
         fixed,
@@ -2595,6 +2607,32 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if normalized_orphaned_constraints:
             result.fixes_applied.append("normalized orphaned constant constraints to ASSUME")
 
+    if last_constant_names and {"Keys", "Values"}.issubset(set(last_constant_names)):
+        alias_names = {"KEY", "KEYS", "Key", "VALUE", "VALUES", "Value", "KV"}
+        if any(name in alias_names for name in last_constant_names):
+            const_decl = re.search(r"^(CONSTANTS?)\s+(.+)$", fixed, re.MULTILINE)
+            if const_decl:
+                fixed = (
+                    fixed[:const_decl.start()]
+                    + f"{const_decl.group(1)} Keys, Values"
+                    + fixed[const_decl.end():]
+                )
+                last_constant_names = ["Keys", "Values"]
+            alias_rewrites = {
+                "KEYS": "Keys",
+                "KEY": "Keys",
+                "Key": "Keys",
+                "VALUES": "Values",
+                "VALUE": "Values",
+                "Value": "Values",
+            }
+            fixed_new = fixed
+            for alias, target in alias_rewrites.items():
+                fixed_new = re.sub(rf"\b{re.escape(alias)}\b", target, fixed_new)
+            if fixed_new != fixed:
+                fixed = fixed_new
+            result.fixes_applied.append("canonicalized polluted key/value constant aliases")
+
     if last_constant_names is not None:
         builtin_caps = {
             "Append", "BOOLEAN", "CASE", "CONSTANT", "CONSTANTS", "DOMAIN",
@@ -2692,6 +2730,39 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if fixed_new != fixed:
             fixed = fixed_new
             result.fixes_applied.append("normalized constant function application syntax")
+
+    if (
+        re.search(r"(?m)^TypeOk\s*==", fixed)
+        and "TypeOK" in fixed
+        and not re.search(r"(?m)^TypeOK\s*==", fixed)
+    ):
+        fixed = re.sub(r"(?m)^TypeOk\s*==", "TypeOK ==", fixed)
+        result.fixes_applied.append("canonicalized TypeOk definition casing")
+
+    fixed_new = re.sub(
+        r"(?ms)^PutNext\(([^,\n]+),\s*([^)]+)\)\s*==.*?KV'SUBSET.*?(?=^GetNext\([^)]+\)\s*==|^====)",
+        lambda m: (
+            "PutNext(k, val) ==\n"
+            "   /\\ k \\in Keys\n"
+            "   /\\ val \\in Values\n"
+            "   /\\ kvs' = [kvs EXCEPT ![k] = val]\n"
+            "   /\\ UNCHANGED vars\n\n"
+        ),
+        fixed,
+        flags=re.MULTILINE,
+    )
+    if fixed_new != fixed:
+        fixed = fixed_new
+        result.fixes_applied.append("rewrote malformed key-value PutNext block")
+
+    fixed_new = re.sub(
+        r"(?ms)^GetNext\([^)]+\)\s*==\s*\n\s*/\\\s*UNCHANGED\s+vars[^\n]*(?:\n|$)",
+        lambda m: "GetNext(k) ==\n   /\\ k \\in Keys\n   /\\ UNCHANGED vars\n\n",
+        fixed,
+        flags=re.MULTILINE,
+    )
+    if fixed_new != fixed:
+        fixed = fixed_new
 
     if last_variable_names and "messages" in last_variable_names and "msgs" not in last_variable_names:
         fixed_new = re.sub(r"\bmsgs\b", "messages", fixed)
