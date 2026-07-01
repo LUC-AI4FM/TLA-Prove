@@ -177,3 +177,89 @@ Init ==
     assert "VARIABLES turn, flag" in result.fixed_spec
     assert "process" not in result.fixed_spec
     assert "Flag array indicating" not in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_unicode_membership_and_temporal_tokens() -> None:
+    spec = """---- MODULE DiningPhilosophers ----
+VARIABLES pc
+Acquire ==
+   /\\ \\E i ∊ 1..N : pc[i] = "hungry"
+EventualGrant ==
+   \\square \\diamond (\\A i ∊ 1..N : pc[i] = "eating")
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized unicode/operator temporal tokens" in result.fixes_applied
+    assert "∊" not in result.fixed_spec
+    assert "\\square" not in result.fixed_spec
+    assert "\\diamond" not in result.fixed_spec
+    assert "\\E i \\in 1..N" in result.fixed_spec
+    assert "[] <> (\\A i \\in 1..N : pc[i] = \"eating\")" in result.fixed_spec
+
+
+def test_fix_tla_syntax_removes_parenthesized_empty_unchanged_tuple() -> None:
+    spec = """---- MODULE DiningPhilosophers ----
+VARIABLES pc
+Acquire ==
+   /\\ pc = "hungry"
+   /\\ UNCHANGED (<<>>)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed UNCHANGED <<>> (empty tuple)" in result.fixes_applied
+    assert "UNCHANGED (<<>>)" not in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_plain_spec_box_next_spacing() -> None:
+    spec = """---- MODULE MutualExclusion ----
+VARIABLES pc
+Init == pc = "idle"
+Next == pc' = "idle"
+Spec == Init /\\ [] Next
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized plain Spec [] Next spacing" in result.fixes_applied
+    assert "Spec == Init /\\ []Next" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_quantifier_in_where_and_unchange_tokens() -> None:
+    spec = """---- MODULE DiningPhilosophers ----
+VARIABLES forkHeldBy
+TypeOK ==
+    /\\ ALL i IN 1 .. N :
+        /\\ NOT \\E p WHERE forkHeldBy[p] = i
+Next ==
+    /\\ UNCHANGE forkHeldBy'
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized alternate quantifier keywords" in result.fixes_applied
+    assert "normalized UNCHANGE operator" in result.fixes_applied
+    assert "ALL i IN" not in result.fixed_spec
+    assert "WHERE" not in result.fixed_spec
+    assert "UNCHANGE forkHeldBy'" not in result.fixed_spec
+    assert "\\A i \\in 1 .. N :" in result.fixed_spec
+    assert "~ \\E p : forkHeldBy[p] = i" in result.fixed_spec
+    assert "UNCHANGED forkHeldBy" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_spec_bracket_set_next_form() -> None:
+    spec = """---- MODULE MutualExclusion ----
+VARIABLES pc, queue, turn
+Spec == Init /\\ []_[{pc,queue,turn}](Next)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized bracket-set Spec temporal formula" in result.fixes_applied
+    assert "Spec == Init /\\ [Next]_<<pc, queue, turn>>" in result.fixed_spec

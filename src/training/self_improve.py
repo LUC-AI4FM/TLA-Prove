@@ -535,6 +535,20 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized malformed Spec temporal formula")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"Spec\s*==\s*Init\s*/\\\s*\[\]_\[\{([^}]+)\}\]\(\s*Next\s*\)",
+        lambda m: "Spec == Init /\\ [Next]_<<" + ", ".join(part.strip() for part in m.group(1).split(",") if part.strip()) + ">>",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized bracket-set Spec temporal formula")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"Spec\s*==\s*Init\s*/\\\s*\[\]\s+Next\b", r"Spec == Init /\\ []Next", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized plain Spec [] Next spacing")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\bCONSTDEF\b", "", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("removed CONSTDEF pseudo-keyword")
@@ -695,6 +709,29 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized lowercase Unchanged operator")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"\bALL\s+(\w+)\s+IN\b", r"\\A \1 \\in", fixed)
+    fixed_new = re.sub(r"\bFORALL\s+(\w+)\s+IN\b", r"\\A \1 \\in", fixed_new)
+    fixed_new = re.sub(r"\bEXISTS\s+(\w+)\s+IN\b", r"\\E \1 \\in", fixed_new)
+    fixed_new = re.sub(r"\bNOT\s+\\E\s+(\w+)\s+WHERE\b", r"~ \\E \1 :", fixed_new)
+    fixed_new = re.sub(r"\bNOT\s+\\A\s+(\w+)\s+WHERE\b", r"~ \\A \1 :", fixed_new)
+    fixed_new = re.sub(r"\bWHERE\b", ":", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized alternate quantifier keywords")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\bUNCHANGE\s+([A-Za-z_][A-Za-z0-9_]*)'\b", r"UNCHANGED \1", fixed)
+    fixed_new = re.sub(r"\bUNCHANGE\s+([A-Za-z_][A-Za-z0-9_]*)\b", r"UNCHANGED \1", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized UNCHANGE operator")
+        fixed = fixed_new
+
+    fixed_new = fixed.replace("∊", "\\in")
+    fixed_new = fixed_new.replace("\\square", "[]")
+    fixed_new = fixed_new.replace("\\diamond", "<>")
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized unicode/operator temporal tokens")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\\forall\b", r"\\A", fixed, flags=re.IGNORECASE)
     fixed_new = re.sub(r"\\exists\b", r"\\E", fixed_new, flags=re.IGNORECASE)
     if fixed_new != fixed:
@@ -766,7 +803,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
 
     # ── Fix 25: Fix UNCHANGED <<>> (empty tuple) ─────────────────────────
     # UNCHANGED <<>> is invalid — remove the line entirely
-    fixed_new = re.sub(r"^\s*/\\.*UNCHANGED\s*<<\s*>>\s*$", "", fixed, flags=re.MULTILINE)
+    fixed_new = re.sub(r"^\s*/\\.*UNCHANGED\s*\(?\s*<<\s*>>\s*\)?\s*$", "", fixed, flags=re.MULTILINE)
     if fixed_new != fixed:
         result.fixes_applied.append("removed UNCHANGED <<>> (empty tuple)")
         fixed = fixed_new
