@@ -2140,6 +2140,42 @@ Next ==
     assert "/\\ UNCHANGED <<turn>>" in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_subseteq_domain_boolean_from_initializer() -> None:
+    spec = """---- MODULE Peterson ----
+CONSTANT n
+VARIABLE flags
+
+Init ==
+    /\\ flags = [i \\in 1 .. n |-> FALSE]
+
+TypeOK ==
+    /\\ flags \\subseteq DOMAIN[BOOLEAN]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote subseteq DOMAIN[BOOLEAN] as boolean function set" in result.fixes_applied
+    assert "/\\ flags \\in [1 .. n -> BOOLEAN]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_synthesizes_missing_process_operator_before_next() -> None:
+    spec = """---- MODULE Peterson ----
+VARIABLES flags, turn
+
+Next ==
+    \\/ Process(1)
+    \\/ Process(2)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "synthesized missing Process operator stub" in result.fixes_applied
+    assert result.fixed_spec.index("Process(i) ==") < result.fixed_spec.index("Next ==")
+    assert "/\\ UNCHANGED <<flags, turn>>" in result.fixed_spec
+
+
 def test_fix_tla_syntax_realigns_multiline_spec_tuple_with_variables_declaration() -> None:
     spec = """---- MODULE FileTransfer ----
 VARIABLES sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount
@@ -2278,6 +2314,41 @@ Spec == Init /\\ []Next
     assert "rewrote boolean choice tuple placeholder as function set" in result.fixes_applied
     assert "stripped trailing bracket after UNCHANGED tuple" in result.fixes_applied
     assert "normalized plain Spec [] Next spacing" in result.fixes_applied
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm015_shape_sany_valid() -> None:
+    spec = """---- MODULE Peterson ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANT n
+
+VARIABLES flags, turn
+
+Init ==
+    /\\ flags = [i \\in 1 .. n |-> FALSE]
+    /\\ turn = 1
+
+Next ==
+    \\/ Process(1)
+     \\/ Process(2)
+
+Spec == Init /\\
+        [][][Next]_<<flags, turn>>
+
+TypeOK ==
+    /\\ flags \\subseteq DOMAIN[BOOLEAN]
+    /\\ turn \\in {1 , 2}
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="Peterson")
+
+    assert "synthesized missing Process operator stub" in result.fixes_applied
+    assert "rewrote subseteq DOMAIN[BOOLEAN] as boolean function set" in result.fixes_applied
+    assert "normalized duplicate temporal box operators" in result.fixes_applied
     assert sany_result.valid, sany_result.raw_output
 
 

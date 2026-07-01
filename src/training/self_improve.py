@@ -765,7 +765,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("completed quantified action IF missing ELSE branch")
         fixed = fixed_new
 
-    fixed_new = re.sub(r"\[\]\s*\[\]\s*(\[\s*Next\s*]_\w+)", r"[]\1", fixed)
+    fixed_new = re.sub(r"\[\]\s*\[\]\s*(\[\s*Next\s*]_(?:\w+|<<[^>\n]+>>))", r"[]\1", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized duplicate temporal box operators")
         fixed = fixed_new
@@ -2215,6 +2215,42 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             fixed = fixed_new
             if "normalized plain Spec [] Next spacing" not in result.fixes_applied:
                 result.fixes_applied.append("normalized plain Spec [] Next spacing")
+
+        def _rewrite_subseteq_domain_boolean(match: re.Match) -> str:
+            prefix = match.group(1)
+            var_name = match.group(2)
+            init_match = re.search(
+                rf"\b{re.escape(var_name)}\s*=\s*\[[A-Za-z_][A-Za-z0-9_]*\s*\\in\s*([^\]\n|]+?)\s*\|->\s*(?:TRUE|FALSE)\]",
+                fixed,
+            )
+            if not init_match:
+                return match.group(0)
+            domain = init_match.group(1).strip()
+            return f"{prefix}{var_name} \\in [{domain} -> BOOLEAN]"
+
+        fixed_new = re.sub(
+            r"(?m)^(\s*/\\\s*)([A-Za-z_][A-Za-z0-9_]*)\s*\\subseteq\s*DOMAIN\[BOOLEAN]\s*$",
+            _rewrite_subseteq_domain_boolean,
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("rewrote subseteq DOMAIN[BOOLEAN] as boolean function set")
+
+        if not re.search(r"(?m)^\s*Process\s*\(", fixed):
+            process_args = list(
+                dict.fromkeys(re.findall(r"(?m)^\s*\\/\s+Process\(([^)\n]+)\)", fixed))
+            )
+            simple_args = [arg.strip() for arg in process_args if re.fullmatch(r"[A-Za-z0-9_]+", arg.strip())]
+            next_match = re.search(r"(?m)^Next\s*==", fixed)
+            if next_match and simple_args:
+                process_def = (
+                    "Process(i) ==\n"
+                    f"    /\\ i \\in {{{', '.join(simple_args)}}}\n"
+                    f"    /\\ UNCHANGED {vars_tuple}\n\n"
+                )
+                fixed = fixed[:next_match.start()] + process_def + fixed[next_match.start():]
+                result.fixes_applied.append("synthesized missing Process operator stub")
 
         alias_map: dict[str, str] = {}
         for name in last_variable_names:
