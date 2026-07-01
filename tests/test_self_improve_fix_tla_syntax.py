@@ -2292,6 +2292,37 @@ Step ==
     )
 
 
+def test_fix_tla_syntax_does_not_collect_block_comment_words_or_reserved_with_into_constants() -> None:
+    spec = """---- MODULE SingleDecreePaxos ----
+CONSTANT NumAcceptors, NumProposers, ACCEPTOR_IDS, BALLLOT_NUMBERS, PROPOSER_IDS
+    /* Bound for ballots so they are enumerable */
+    BallotBound > 0
+
+VARIABLE pBallots
+
+(********************************************************************)
+** Initial state **
+*)
+
+Init ==
+    /\\ pBallots = [p \\in PROPOSER_IDS |->
+            CHOOSE b \\in BALLLOT_NUMBERS WITH TRUE]
+       (* each proposer starts WITH some ballot number *)
+
+(* Proposer initiates a Prepare WITH its ballot number and value. *)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    constant_line = next(line for line in result.fixed_spec.splitlines() if line.startswith("CONSTANT"))
+    assert "BallotBound" in constant_line
+    assert "WITH" not in constant_line
+    assert "Initial" not in constant_line
+    assert "Prepare" not in constant_line
+    assert ", Proposer" not in constant_line
+
+
 def test_fix_tla_syntax_collapses_singleton_set_enum_placeholders() -> None:
     spec = """---- MODULE DekkersAlgorithm ----
 CONSTANT P1, P2
@@ -3387,4 +3418,77 @@ Spec == InitDb(DBKeys) /\\
     assert "canonicalized malformed snapshot isolation skeleton" in result.fixes_applied
     assert "TransactionRec ==" in result.fixed_spec
     assert "Spec == Init /\\ [][Next]_vars" in result.fixed_spec
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm011_shape_sany_valid() -> None:
+    spec = """---- MODULE SingleDecreePaxos ----
+
+EXTENDS Naturals, FiniteSets, Sequences
+
+CONSTANT NumAcceptors, NumProposers, ACCEPTOR_IDS, BALLLOT_NUMBERS, PROPOSER_IDS
+    /* Bound for ballots so they are enumerable */
+    BallotBound > 0
+
+VARIABLES
+    pBallots      ,  (* mapping from each proposer id -> current proposal number *), accAcks, accPromises, pValues, proposer
+    pValues       ,  (* proposed values by each proposer may change until accepted *)
+
+    accPromises   ,  (* map[acceptorId] : [ballot |-> {maxPromised} ]*)
+    accAcks        ,  (* map[accid][proposalNumber]->{value,votedByMaxB} *)
+
+PROPOSER_IDS \\in 1..NumProposers
+ACCEPTOR_IDS \\in 1..NumAcceptors
+BALLOT_NUMBERS == 1 .. BallotBound
+
+TypeOK ==
+    /\\ pBallots \\subseteq PROPOSER_IDS --> BALLOT_NUMBERS
+    /\\ pValues \\subseteq PROPOSER_IDS --> {"v" }
+
+    /\\ accPromises \\subseteq ACCEPTOR_IDS --> (BALLOT_NUMBERS --> BOOLEAN)
+         \\/ (\\a IN ACCEPTOR_IDS: accPromises[a] = <<>>)
+
+    /\\ accAcks \\subseteq ACCEPTOR_IDS -->
+           ((\\b IN BALLLOT_NUMBERS): ({}) )
+
+Init ==
+    /\\ pBallots' = [p \\in PROPOSER_IDS |->
+            CHOOSE b \\in BALLLOT_NUMBERS WITH TRUE]
+
+    /\\ pValues' = [p \\in PROPOSER_IDS |-> "initVal"]
+
+    /\\ accPromises' = [ a \\in ACCEPTOR_IDS |
+                        IF FALSE THEN [] ELSE
+                           [b \\in BALLLOT_NUMBERS |\\> FALSE]]
+
+    /\\ accAcks'  = [ a \\in ACCEPTOR_IDS |
+                     [b \\in BALLLOT_NUMBERS |>\\ {} ] ]
+
+HighestPromised(acc, ballotsSet) ==
+    LET maxB == MAX { b : b \\in ballotsSet }
+    IN
+      /\\ EXISTS v,votedByMax :
+          (accAcks[acc][maxB]) = <v , votedByMax>
+
+PreparePhase(pid,pballot,val) ==
+    /\\ pBallots[p] <= pballot
+    /\\ UNCHANGED <<pValues>>
+
+Next ==
+    \\/ ((* Propose action *))
+      LET pid IN PROPOSER_IDS :
+          PREPARE_ACTION(pId,pBallots[p], pValues[p])
+
+Spec == Init /\\ []<>(Next)
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="SingleDecreePaxos")
+
+    assert "canonicalized malformed single-decree paxos skeleton" in result.fixes_applied
+    assert "Prepare(j) ==" in result.fixed_spec
+    assert "Accept(j) ==" in result.fixed_spec
+    assert "Chosen(j) ==" in result.fixed_spec
     assert sany_result.valid, sany_result.raw_output

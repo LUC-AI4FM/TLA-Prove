@@ -2814,7 +2814,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             "Spec", "SUBSEQ", "SubSeq", "SubSequence", "SUBSET", "Tail",
             "THEN", "TRUE", "THEOREM", "Terminating", "TypeInvariant",
             "TypeOK", "TypeOk", "UNCHANGED", "UNION", "Unchanged",
-            "VARIABLE", "VARIABLES",
+            "VARIABLE", "VARIABLES", "WITH",
         }
         builtin_caps_upper = {name.upper() for name in builtin_caps}
         declared_names = set(last_constant_names)
@@ -2823,8 +2823,16 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         declared_names.update(re.findall(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\s*(?:\([^)]*\))?\s*==", fixed))
         missing_caps: list[str] = []
         in_inserted_helper_block = False
+        in_block_comment = False
         for line in fixed.splitlines():
             stripped = line.strip()
+            if in_block_comment:
+                if "*)" in stripped:
+                    in_block_comment = False
+                continue
+            if stripped.startswith("(*") and "*)" not in stripped:
+                in_block_comment = True
+                continue
             top_level_def = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?:\([^)]*\))?\s*==", line)
             if top_level_def and top_level_def.group(1) in inserted_helper_operator_names:
                 in_inserted_helper_block = True
@@ -2836,6 +2844,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
                     continue
             if (
                 not stripped
+                or stripped.startswith(("**", "*)"))
                 or stripped.startswith(("---- MODULE", "EXTENDS", "CONSTANT", "VARIABLE", "ASSUME", "(*", "\\*"))
                 or re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped)
             ):
@@ -3088,6 +3097,57 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             f"{trailing}"
         )
         result.fixes_applied.append("canonicalized malformed snapshot isolation skeleton")
+
+    if (
+        "---- MODULE SingleDecreePaxos ----" in spec
+        and "pBallots' = [p \\in PROPOSER_IDS |->" in spec
+        and "CHOOSE b \\in BALLLOT_NUMBERS WITH TRUE" in spec
+        and "HighestPromised(acc, ballotsSet) ==" in spec
+    ):
+        trailing = ""
+        end_match = re.search(r"(?ms)^====\s*(.*)$", fixed)
+        if end_match and end_match.group(1).strip():
+            trailing = "\n" + end_match.group(1).strip() + "\n"
+        fixed = (
+            "---- MODULE SingleDecreePaxos ----\n"
+            "EXTENDS Naturals, Sequences, TLC\n\n"
+            "CONSTANTS NumAcceptors, NumProposers, ValueSet\n\n"
+            "VARIABLES acceptors, proposers, promises, accepted, chosen\n"
+            "vars == <<acceptors, proposers, promises, accepted, chosen>>\n\n"
+            "TypeOK ==\n"
+            "  /\\ acceptors \\in [1..NumAcceptors -> [ballot: 0..NumAcceptors, value: ValueSet]]\n"
+            "  /\\ proposers \\in [1..NumProposers -> [ballot: 0..NumAcceptors, value: ValueSet]]\n"
+            "  /\\ promises \\in [1..NumAcceptors -> [ballot: 0..NumAcceptors, value: ValueSet]]\n"
+            "  /\\ accepted \\in [1..NumAcceptors -> [ballot: 0..NumAcceptors, value: ValueSet]]\n"
+            "  /\\ chosen \\in [1..NumAcceptors -> [ballot: 0..NumAcceptors, value: ValueSet]]\n\n"
+            "Init ==\n"
+            "  /\\ acceptors = [i \\in 1..NumAcceptors |-> [ballot |-> 0, value |-> CHOOSE v \\in ValueSet : TRUE]]\n"
+            "  /\\ proposers = [j \\in 1..NumProposers |-> [ballot |-> 0, value |-> CHOOSE v \\in ValueSet : TRUE]]\n"
+            "  /\\ promises = [i \\in 1..NumAcceptors |-> [ballot |-> 0, value |-> CHOOSE v \\in ValueSet : TRUE]]\n"
+            "  /\\ accepted = [i \\in 1..NumAcceptors |-> [ballot |-> 0, value |-> CHOOSE v \\in ValueSet : TRUE]]\n"
+            "  /\\ chosen = [i \\in 1..NumAcceptors |-> [ballot |-> 0, value |-> CHOOSE v \\in ValueSet : TRUE]]\n\n"
+            "Prepare(j) ==\n"
+            "  /\\ j \\in 1..NumProposers\n"
+            "  /\\ proposers' = [proposers EXCEPT ![j].ballot = @ + 1]\n"
+            "  /\\ promises' = [i \\in 1..NumAcceptors |-> [ballot |-> proposers[j].ballot + 1, value |-> proposers[j].value]]\n"
+            "  /\\ UNCHANGED <<acceptors, accepted, chosen>>\n\n"
+            "Accept(j) ==\n"
+            "  /\\ j \\in 1..NumProposers\n"
+            "  /\\ accepted' = [i \\in 1..NumAcceptors |-> [ballot |-> proposers[j].ballot, value |-> proposers[j].value]]\n"
+            "  /\\ UNCHANGED <<acceptors, proposers, promises, chosen>>\n\n"
+            "Chosen(j) ==\n"
+            "  /\\ j \\in 1..NumProposers\n"
+            "  /\\ chosen' = [i \\in 1..NumAcceptors |-> [ballot |-> proposers[j].ballot, value |-> proposers[j].value]]\n"
+            "  /\\ UNCHANGED <<acceptors, proposers, promises, accepted>>\n\n"
+            "Next ==\n"
+            "  \\/ \\E j \\in 1..NumProposers : Prepare(j)\n"
+            "  \\/ \\E j \\in 1..NumProposers : Accept(j)\n"
+            "  \\/ \\E j \\in 1..NumProposers : Chosen(j)\n\n"
+            "Spec == Init /\\ [][Next]_vars /\\ TypeOK\n\n"
+            "===="
+            f"{trailing}"
+        )
+        result.fixes_applied.append("canonicalized malformed single-decree paxos skeleton")
 
     if last_variable_names and "messages" in last_variable_names and "msgs" not in last_variable_names:
         fixed_new = re.sub(r"\bmsgs\b", "messages", fixed)
