@@ -1,0 +1,71 @@
+#!/bin/bash
+# Stage-0 re-measure: run the TLAPS prover diagnose + checkpoint eval with the
+# channel-aware harmony extractor (src/harmony_extract.py) on a GPU node with
+# tlapm available. This answers whether the ~0% prover eval was extraction
+# damage (prose leaking into SANY) or genuine model weakness — per-row status
+# lands in outputs/prover_diagnose.json and the eval dump.
+#
+# Requires at submit time:
+#   CHATTLA_TLAPM  — absolute path to tlapm 1.5.0 (validator resolves it)
+# Queue shape must stay by-gpu; single-node stalls on queue_tags (job 161463).
+#PBS -q by-gpu
+#PBS -l select=1:ngpus=1:ncpus=32:mem=120gb
+#PBS -l walltime=02:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N prover_diag
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+mkdir -p outputs/logs
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+exec > "outputs/logs/diagnose_prover_extraction_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+PY="${CHATTLA_PYTHON:-python3}"
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "CHATTLA_TLAPM=${CHATTLA_TLAPM:-unset}"
+
+echo
+echo "===== Toolchain ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+java -version
+"${CHATTLA_TLAPM:?set CHATTLA_TLAPM to the tlapm binary}" --version
+
+echo
+echo "===== diagnose_prover (channel-aware extraction) ====="
+date
+"$PY" -u scripts/diagnose_prover.py
+
+echo
+echo "===== eval_prover_checkpoint ====="
+date
+"$PY" -u scripts/eval_prover_checkpoint.py \
+  --checkpoint outputs/checkpoints_prover/checkpoint-48 \
+  --out "outputs/prover_eval_dump_${PBS_JOBNUM}.json"
+
+echo
+echo "===== reports ====="
+ls -la outputs/prover_diagnose.json "outputs/prover_eval_dump_${PBS_JOBNUM}.json" || true
+
+if [ -n "${CHATTLA_ARTIFACT_ROOT:-}" ]; then
+  DEST="$CHATTLA_ARTIFACT_ROOT/prover_diagnose/$PBS_JOBNUM"
+  mkdir -p "$DEST"
+  cp outputs/prover_diagnose.json "outputs/prover_eval_dump_${PBS_JOBNUM}.json" \
+     "outputs/logs/diagnose_prover_extraction_${PBS_JOBNUM}.log" "$DEST/" || true
+  echo "mirrored to $DEST"
+fi
+
+echo
+echo "===== done ====="
+date
