@@ -674,9 +674,27 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized SUM_{x in S} aggregate notation")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"\bIF\s+([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]\n]+\])?)\s+IN\s+(\{[^\n]+?\})\s+THEN\b",
+        r"IF \1 \\in \2 THEN",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized uppercase IN membership in IF guard")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\\i\s+n\b", r"\\in", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized broken \\i n token")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(?ms)(/\\\s*counts\s*=\s*<<>>\s*\\/\s*)\(\\lambda\s+_\s+\\in\s+([^:\n]+):\s*\(\\lambda\s+_\s+\\in\s+([^:\n]+):\s*0\)\)",
+        lambda m: f"{m.group(1)}[i \\in {m.group(2).strip()} |-> [j \\in {m.group(3).strip()} |-> 0]]",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote nested lambda zero initializer")
         fixed = fixed_new
 
     fixed_new = re.sub(r"\(\\\*\s*(.*?)\s*\\\*\)", r"(* \1 *)", fixed)

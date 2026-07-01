@@ -912,3 +912,32 @@ Total ==
     assert "(Sum([c \\in DOMAIN clocks |-> clocks[c]])) \\div Len(DOMAIN clocks)" in result.fixed_spec
     assert "Sum([n \\in NodeSet |-> MAX({counts[n][m] : m \\in NodeSet})])" not in result.fixed_spec
     assert "Sum([n \\in NodeSet |-> MAX({counts[n][m] : m \\in NodeSet}]))" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_nested_lambda_zero_initializer() -> None:
+    spec = """---- MODULE GCounter ----
+Init ==
+    /\\ counts = <<>> \\/
+       (\\lambda _ \\in NodeSet:
+           (\\lambda _ \\in NodeSet: 0))
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote nested lambda zero initializer" in result.fixes_applied
+    assert "(\\lambda _ \\in NodeSet:" not in result.fixed_spec
+    assert "[i \\in NodeSet |-> [j \\in NodeSet |-> 0]]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_uppercase_in_membership_in_if_guard() -> None:
+    spec = """---- MODULE GCounter ----
+Merge ==
+    /\\ IF j IN {i} THEN MAX(counts[m][j], counts[p][j])
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized uppercase IN membership in IF guard" in result.fixes_applied
+    assert "IF j \\in {i} THEN MAX(counts[m][j], counts[p][j])" in result.fixed_spec
