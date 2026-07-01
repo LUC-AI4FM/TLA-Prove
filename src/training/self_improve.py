@@ -1051,7 +1051,10 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
 
             bare_match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)", candidate)
             typed_match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+)", candidate)
-            constrained_match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|>|<|=|#)\s*(.+)", candidate)
+            constrained_match = re.fullmatch(
+                r"([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|>|<|#|=(?!=))\s*(.+)",
+                candidate,
+            )
 
             if bare_match:
                 name = bare_match.group(1)

@@ -44,6 +44,8 @@ _STATE_EATING_ = 3
     assert "removed CONSTDEF pseudo-keyword" in result.fixes_applied
     assert "normalized top-level = definitions to ==" in result.fixes_applied
     assert "CONSTDEF" not in result.fixed_spec
+    assert "ParticipantSet == [p \\in Participants |-> p]" in result.fixed_spec
+    assert "ASSUME ParticipantSet = =" not in result.fixed_spec
     assert "STATE_THINKING == 1" in result.fixed_spec
     assert "_STATE_EATING_ == 3" in result.fixed_spec
 
