@@ -310,7 +310,7 @@ Spec == Init /\\ [] Next
     result = fix_tla_syntax(spec)
 
     assert "normalized plain Spec [] Next spacing" in result.fixes_applied
-    assert "Spec == Init /\\ []Next" in result.fixed_spec
+    assert "Spec == Init /\\ [][Next]_<<pc>>" in result.fixed_spec
 
 
 def test_fix_tla_syntax_normalizes_quantifier_in_where_and_unchange_tokens() -> None:
@@ -2088,6 +2088,58 @@ Step ==
     )
 
 
+def test_fix_tla_syntax_collapses_singleton_set_enum_placeholders() -> None:
+    spec = """---- MODULE DekkersAlgorithm ----
+CONSTANT P1, P2
+VARIABLE turn
+
+TypeOk ==
+    /\\ turn \\in {{P1},{P2}}
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "collapsed singleton-set enum placeholders" in result.fixes_applied
+    assert "/\\ turn \\in {P1, P2}" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_boolean_choice_tuple_placeholder_to_function_set() -> None:
+    spec = """---- MODULE DekkersAlgorithm ----
+CONSTANT P1, P2
+VARIABLE want
+
+TypeOk ==
+    /\\ want = <<TRUE/FALSE>>
+
+Init ==
+    /\\ want[P1] = FALSE
+    /\\ want[P2] = FALSE
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote boolean choice tuple placeholder as function set" in result.fixes_applied
+    assert "/\\ want \\in [{P1, P2} -> BOOLEAN]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_strips_trailing_bracket_after_unchanged_tuple() -> None:
+    spec = """---- MODULE DekkersAlgorithm ----
+VARIABLE turn
+
+Next ==
+    /\\ UNCHANGED <<turn>>]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "stripped trailing bracket after UNCHANGED tuple" in result.fixes_applied
+    assert "/\\ UNCHANGED <<turn>>]" not in result.fixed_spec
+    assert "/\\ UNCHANGED <<turn>>" in result.fixed_spec
+
+
 def test_fix_tla_syntax_realigns_multiline_spec_tuple_with_variables_declaration() -> None:
     spec = """---- MODULE FileTransfer ----
 VARIABLES sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount
@@ -2167,6 +2219,65 @@ Spec == Init /\\ [] ( Next \\/ Terminating )
     assert "collected missing capitalized placeholders into CONSTANTS" in result.fixes_applied
     assert "removed UNCHANGED conjunct from Init" in result.fixes_applied
     assert "normalized parenthesized Spec temporal formula" in result.fixes_applied
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm019_shape_sany_valid() -> None:
+    spec = """---- MODULE DekkersAlgorithm ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANT P1, P2
+VARIABLES turn, want
+
+TypeOk ==
+    /\\ turn \\in {{P1},{P2}}
+    /\\ want = <<TRUE/FALSE>> (* placeholder will refine below *)
+
+Init ==
+    /\\ turn \\in {{P1},{P2}}
+    /\\ want[P1] = FALSE
+    /\\ want[P2] = FALSE
+
+ProcessOneEntry ==
+    /\\ want' = [w \\in {P1,P2} |-> IF w=P1 THEN TRUE ELSE want[w]]
+    /\\ UNCHANGED turn
+    /\\ (turn'=P1)
+
+ProcessTwoEntry ==
+    /\\ want' = [w \\in {P1,P2} |-> IF w=P2 THEN TRUE ELSE want[w]]
+    /\\ UNCHANGED turn
+    /\\ (turn'=P2)
+
+ProcessOneExit  ==
+    /\\ want' = [want EXCEPT ![P1] = FALSE]
+    /\\ UNCHANGED <<turn>>]
+
+Terminating ==
+   /\\ UNCHANGED <<want,turn>>
+
+Next ==
+    \\/ ProcessOneEntry
+    \\/ ProcessTwoEntry
+    \\/ ProcessOneExit
+    \\/ Terminating
+
+ProcessTwoExit ==
+    /\\ want' = [want EXCEPT ![P2] = FALSE]
+    /\\ UNCHANGED <<turn>>]
+
+Spec == Init /\\ []Next
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="DekkersAlgorithm")
+
+    assert "collapsed singleton-set enum placeholders" in result.fixes_applied
+    assert "rewrote boolean choice tuple placeholder as function set" in result.fixes_applied
+    assert "stripped trailing bracket after UNCHANGED tuple" in result.fixes_applied
+    assert "normalized plain Spec [] Next spacing" in result.fixes_applied
     assert sany_result.valid, sany_result.raw_output
 
 

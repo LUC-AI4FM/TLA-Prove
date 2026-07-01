@@ -2181,6 +2181,41 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             fixed = fixed_new
             result.fixes_applied.append("realigned Spec vars tuple with VARIABLES declaration")
 
+        def _rewrite_boolean_choice_tuple_placeholder(match: re.Match) -> str:
+            prefix = match.group(1)
+            var_name = match.group(2)
+            comment = match.group(3) or ""
+            keys = list(
+                dict.fromkeys(
+                    re.findall(rf"\b{re.escape(var_name)}\[([A-Za-z_][A-Za-z0-9_]*)\]", fixed)
+                )
+            )
+            keys = [key for key in keys if re.match(r"[A-Z][A-Za-z0-9_]*$", key)]
+            if not keys:
+                return match.group(0)
+            domain = "{" + ", ".join(keys) + "}"
+            suffix = f" {comment.strip()}" if comment.strip() else ""
+            return f"{prefix}{var_name} \\in [{domain} -> BOOLEAN]{suffix}"
+
+        fixed_new = re.sub(
+            r"(?mi)^(\s*/\\\s*)([A-Za-z_][A-Za-z0-9_]*)\s*=\s*<<\s*TRUE\s*/\s*FALSE\s*>>\s*(\(\*.*\*\))?\s*$",
+            _rewrite_boolean_choice_tuple_placeholder,
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("rewrote boolean choice tuple placeholder as function set")
+
+        fixed_new = re.sub(
+            r"Spec\s*==\s*Init\s*/\\\s*\[\]\s*Next\b(?!\s*_)",
+            f"Spec == Init /\\ [][Next]_{vars_tuple}",
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            if "normalized plain Spec [] Next spacing" not in result.fixes_applied:
+                result.fixes_applied.append("normalized plain Spec [] Next spacing")
+
         alias_map: dict[str, str] = {}
         for name in last_variable_names:
             alias = re.sub(r"(?<!^)([A-Z])", r"_\1", name).upper()
@@ -2501,6 +2536,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized UNCHANGED operator casing")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"(?m)^(\s*/\\\s*UNCHANGED\s+<<[^>\n]+>>)]\s*$",
+        r"\1",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("stripped trailing bracket after UNCHANGED tuple")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\\IN\b", r"\\in", fixed)
     fixed_new = re.sub(r"\\In\b", r"\\in", fixed_new)
     if fixed_new != fixed:
@@ -2517,6 +2561,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = fixed_new.replace("\\diamond", "<>")
     if fixed_new != fixed:
         result.fixes_applied.append("normalized unicode/operator temporal tokens")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"\{\s*(?:\{[A-Za-z_][A-Za-z0-9_]*\}\s*,\s*)+\{[A-Za-z_][A-Za-z0-9_]*\}\s*\}",
+        lambda m: "{" + ", ".join(re.findall(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", m.group(0))) + "}",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("collapsed singleton-set enum placeholders")
         fixed = fixed_new
 
     fixed_new = re.sub(r"\\forall\b", r"\\A", fixed, flags=re.IGNORECASE)
