@@ -792,6 +792,96 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("inserted missing record field commas")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"(?m)^\s*/\\\s*UNCHANGED\s+@[^\n]*\n?", "", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed malformed UNCHANGED @ invariant line")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"\[\{\s*([A-Za-z_][\s\S]*?)\s*\}\]",
+        lambda m: "[" + " ".join(m.group(1).split()) + "]" if ":" in m.group(1) and "|->" not in m.group(1) else m.group(0),
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote bracketed record-set syntax")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(?<!<)<\s*([^<>\n]+,\s*[^<>\n]+(?:,\s*[^<>\n]+)*)\s*>(?!>)",
+        lambda m: f"<<{m.group(1)}>>",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote single-angle tuple syntax")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"\{(<<[^{}\n]+>>)\s*\|\s*([A-Za-z_][^{}\n]*\\in[^{}\n]*)\}",
+        r"{\1 : \2}",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote tuple set-comprehension pipe to colon")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"\[\s*([A-Za-z_][A-Za-z0-9_]*)\s+(?:\\in|IN)\s+([^\]\n|]+?)\s*\|\s*(?!->)(?=\S)",
+        r"[\1 \\in \2 |-> ",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("inserted missing function constructor |->")
+        fixed = fixed_new
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    grouped_mixed_guard = False
+    promoted_dangling_updates = False
+    while i < len(lines):
+        line = lines[i]
+        mixed_guard = re.match(r"^(\s*)/\\\s+(.+?)\s*$", line)
+        if mixed_guard and i + 3 < len(lines):
+            indent = mixed_guard.group(1)
+            disjunct = re.match(rf"^{re.escape(indent)}\\/\s+(.+?)\s*$", lines[i + 1])
+            dangling_conj = re.match(rf"^{re.escape(indent)}/\\\s*$", lines[i + 2])
+            if disjunct and dangling_conj:
+                promoted_updates = []
+                j = i + 3
+                while j < len(lines):
+                    candidate = lines[j]
+                    stripped = candidate.strip()
+                    if not stripped:
+                        break
+                    if re.match(rf"^{re.escape(indent)}(?:/\\|\\/)\b", candidate):
+                        break
+                    if re.match(r"^\w+(?:\([^)]*\))?\s*==", stripped):
+                        break
+                    if "=" not in stripped and not stripped.startswith("UNCHANGED"):
+                        break
+                    promoted_updates.append(stripped)
+                    j += 1
+                if promoted_updates:
+                    rebuilt_lines.append(
+                        f"{indent}/\\ ({mixed_guard.group(2)} \\/ {disjunct.group(1)})"
+                    )
+                    rebuilt_lines.extend(
+                        f"{indent}/\\ {update}" for update in promoted_updates
+                    )
+                    grouped_mixed_guard = True
+                    promoted_dangling_updates = True
+                    i = j
+                    continue
+        rebuilt_lines.append(line)
+        i += 1
+    fixed_new = "\n".join(rebuilt_lines)
+    if fixed_new != fixed:
+        if grouped_mixed_guard:
+            result.fixes_applied.append("grouped mixed disjunct guard into conjunction block")
+        if promoted_dangling_updates:
+            result.fixes_applied.append("promoted dangling update lines into conjunction block")
+        fixed = fixed_new
+
     lines = fixed.splitlines()
     rebuilt_lines = []
     i = 0

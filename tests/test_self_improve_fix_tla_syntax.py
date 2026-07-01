@@ -947,6 +947,78 @@ GlobalCount ==
     assert "Sum([n \\in NodeSet |-> Max({counts[m][n] : m \\in NodeSet})])" in result.fixed_spec
 
 
+def test_fix_tla_syntax_removes_malformed_unchanged_at_invariant_line() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+TypeOK ==
+    /\\ phase \\in {"init", "prepare", "commit", "abort"}
+    /\\ UNCHANGED @votes[*] \\/ (\\A v : Votes[v]) #v = NONE => FALSE
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed malformed UNCHANGED @ invariant line" in result.fixes_applied
+    assert "UNCHANGED @votes[*]" not in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_record_set_and_single_angle_tuple_forms() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+TypeOK ==
+    /\\ messages \\subseteq [{ sender: ANY,
+                              receiver: ANY,
+                              kind: MessageTypes }]
+
+Init ==
+    /\\ messages =
+        {<"Coordinator", p, "Prepare"> | p \\in Participants}
+
+sendMsg(s,r,m) == < s , r , m >
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote bracketed record-set syntax" in result.fixes_applied
+    assert "rewrote single-angle tuple syntax" in result.fixes_applied
+    assert "[sender: ANY, receiver: ANY, kind: MessageTypes]" in result.fixed_spec
+    assert '{<<"Coordinator", p, "Prepare">> : p \\in Participants}' in result.fixed_spec
+    assert "sendMsg(s,r,m) == <<s , r , m >>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_inserts_missing_function_constructor_arrow() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+UpdateMsgs ==
+    /\\ msgs' = [msgKind IN MessageTypes |
+                  IF msgKind = "VoteYes" \\/ msgKind = "VoteNo" THEN TRUE ELSE FALSE]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "inserted missing function constructor |->" in result.fixes_applied
+    assert "[msgKind \\in MessageTypes |->" in result.fixed_spec
+
+
+def test_fix_tla_syntax_groups_mixed_guard_block_and_promotes_updates() -> None:
+    spec = """---- MODULE FileTransfer ----
+SendPacket(p) ==
+    /\\ ~(p \\in sentChunks)
+    \\/ p > LEN(channelBuffer)
+    /\\
+channelBuffer' = Append(channelBuffer, <<p>>)
+retryCount'[p] = MAX_RETRY
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "grouped mixed disjunct guard into conjunction block" in result.fixes_applied
+    assert "promoted dangling update lines into conjunction block" in result.fixes_applied
+    assert "/\\ (~(p \\in sentChunks) \\/ p > LEN(channelBuffer))" in result.fixed_spec
+    assert "/\\ channelBuffer' = Append(channelBuffer, <<p>>)" in result.fixed_spec
+    assert "/\\ retryCount' = [retryCount EXCEPT ![p] = MAX_RETRY]" in result.fixed_spec
+
+
 def test_fix_tla_syntax_rewrites_nested_lambda_zero_initializer() -> None:
     spec = """---- MODULE GCounter ----
 Init ==
