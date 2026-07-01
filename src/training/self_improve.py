@@ -630,6 +630,64 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized bare star comment lines")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"\bELSEIF\b", "ELSE IF", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized ELSEIF tokenization")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\bAND\b", r"/\\", fixed)
+    fixed_new = re.sub(r"\bOR\b", r"\\/", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized word AND/OR operators")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"(?m)(=\s*)\[\](?=\s*(?:$|\\\*|\(\*))", r"\1<<>>", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote [] sequence literals to <<>>")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\bSequence\[\s*([^\]\n]+?)\s*\]", r"Seq(\1)", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized Sequence[...] type notation")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\(\s*([A-Za-z_][A-Za-z0-9_]*)\s+x\s+([A-Za-z_][A-Za-z0-9_]*)\s*\)", r"(\1 \\X \2)", fixed)
+    fixed_new = re.sub(r"\b([A-Za-z_][A-Za-z0-9_]*)\s+x\s+([A-Za-z_][A-Za-z0-9_]*)\b", r"\1 \\X \2", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized cartesian product notation")
+        fixed = fixed_new
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    in_operator_body = False
+    indented_root_level_conj = False
+    for line in lines:
+        stripped = line.strip()
+        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==$", stripped):
+            in_operator_body = True
+            rebuilt_lines.append(line)
+            continue
+        if in_operator_body:
+            if stripped == "" or stripped.startswith(("(*", "\\*")):
+                rebuilt_lines.append(line)
+                continue
+            if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped):
+                in_operator_body = True
+                rebuilt_lines.append(line)
+                continue
+            if re.match(r"^(====|EXTENDS|CONSTANTS?\b|VARIABLES?\b|ASSUME\b|THEOREM\b|LEMMA\b|PROPOSITION\b|PROPERTY\b)", stripped):
+                in_operator_body = False
+                rebuilt_lines.append(line)
+                continue
+            if line.startswith(("/\\", "\\/")):
+                rebuilt_lines.append("    " + line)
+                indented_root_level_conj = True
+                continue
+        rebuilt_lines.append(line)
+    if indented_root_level_conj:
+        fixed = "\n".join(rebuilt_lines)
+        result.fixes_applied.append("indented root-level operator conjunctions/disjunctions")
+
     fixed_new = fixed.replace("≜", "==")
     if fixed_new != fixed:
         result.fixes_applied.append("normalized definition symbol to ==")

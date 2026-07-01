@@ -429,7 +429,7 @@ Next ==
     assert "\\vee" not in result.fixed_spec
     assert "(* Initial state comment *)" in result.fixed_spec
     assert "\\* fallback branch" in result.fixed_spec
-    assert "/\\ sent = []" in result.fixed_spec
+    assert "/\\ sent = <<>>" in result.fixed_spec
     assert "/\\ acked = {}" in result.fixed_spec
     assert "\\/ Retry" in result.fixed_spec
 
@@ -556,7 +556,7 @@ TypeInvariant ==
 
     assert "normalized function-set arrow notation" in result.fixes_applied
     assert '/\\ procState \\in [P -> {"unrecorded","recorder"}]' in result.fixed_spec
-    assert '/\\ chanMsg \\in [(OutChannels x InChannels) -> Sequence[Message]]' in result.fixed_spec
+    assert '/\\ chanMsg \\in [(OutChannels \\X InChannels) -> Seq(Message)]' in result.fixed_spec
 
 
 def test_fix_tla_syntax_normalizes_subseteq_function_set_arrow_notation() -> None:
@@ -609,3 +609,89 @@ Next ==
     assert " * If there was an outgoing message" not in result.fixed_spec
     assert "\\/ /\\ (tpos < N)" in result.fixed_spec
     assert "\\* If there was an outgoing message it stays until delivered." in result.fixed_spec
+
+
+def test_fix_tla_syntax_indents_root_level_operator_conjunctions() -> None:
+    spec = """---- MODULE FileTransfer ----
+Init ==
+(* comment *)
+/\\ sentChunks = []
+/\\ ackedPackets = {}
+
+Next ==
+\\/
+/\\ currentChunkIndex < FILE_LENGTH
+/\\ SendPacket(currentChunkIndex+1)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "indented root-level operator conjunctions/disjunctions" in result.fixes_applied
+    assert "Init ==\n(* comment *)\n    /\\ sentChunks = <<>>" in result.fixed_spec
+    assert "\nNext ==\n    \\/\n    /\\ currentChunkIndex < FILE_LENGTH" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_empty_bracket_sequence_literals() -> None:
+    spec = """---- MODULE FileTransfer ----
+Init ==
+    /\\ sentChunks = []
+    /\\ channelBuffer = []
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote [] sequence literals to <<>>" in result.fixes_applied
+    assert "/\\ sentChunks = <<>>" in result.fixed_spec
+    assert "/\\ channelBuffer = <<>>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_cartesian_product_and_sequence_type_notation() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+TypeInvariant ==
+    /\\ chanMsg \\in [(OutChannels x InChannels) -> Sequence[Message]]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized cartesian product notation" in result.fixes_applied
+    assert "normalized Sequence[...] type notation" in result.fixes_applied
+    assert "\\in [(OutChannels \\X InChannels) -> Seq(Message)]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_elseif_tokenization() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+NextProc(p) ==
+    IF procState[p] = "unrecorded" THEN
+        procState
+    ELSEIF procState[p] = "recorder" THEN
+        recorder
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized ELSEIF tokenization" in result.fixes_applied
+    assert "ELSEIF" not in result.fixed_spec
+    assert "ELSE IF procState[p] = \"recorder\" THEN" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_word_and_or_operators() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+NextProc(p) ==
+    IF procState[p] = "recorder" AND recorder = NULL THEN
+        recorder
+    ELSE IF procState[p] = "other" OR recorder = p THEN
+        procState
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized word AND/OR operators" in result.fixes_applied
+    assert " AND " not in result.fixed_spec
+    assert " OR " not in result.fixed_spec
+    assert 'IF procState[p] = "recorder" /\\ recorder = NULL THEN' in result.fixed_spec
+    assert 'ELSE IF procState[p] = "other" \\/ recorder = p THEN' in result.fixed_spec
