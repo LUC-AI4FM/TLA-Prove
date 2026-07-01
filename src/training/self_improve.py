@@ -660,6 +660,20 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized Len(...) casing")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"SUM_\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^}\n]+)\}\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]\n]+\])+)",
+        r"Sum([\1 \\in \2 |-> \3])",
+        fixed,
+    )
+    fixed_new = re.sub(
+        r"SUM_\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^}\n]+)\}\s*\(\s*([^)][^\n]*?)\s*\)",
+        r"Sum([\1 \\in \2 |-> \3])",
+        fixed_new,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized SUM_{x in S} aggregate notation")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\\i\s+n\b", r"\\in", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized broken \\i n token")

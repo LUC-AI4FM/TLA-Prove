@@ -894,3 +894,21 @@ StepDrift ==
     assert "rewrote multiline function initializer missing |->" in result.fixes_applied
     assert "normalized signed upper bounds in ranges" in result.fixes_applied
     assert "[n \\in 1..NumNodes |-> offsets[n] + RandomChoice(-MaxOffset .. MaxOffset)]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_sum_set_aggregate_notation() -> None:
+    spec = """---- MODULE ClockSync ----
+Avg ==
+    (SUM_{c \\in DOMAIN clocks} clocks[c]) \\div Len(DOMAIN clocks)
+
+Total ==
+    SUM_{n \\in NodeSet}(MAX({counts[n][m] : m \\in NodeSet}))
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized SUM_{x in S} aggregate notation" in result.fixes_applied
+    assert "(Sum([c \\in DOMAIN clocks |-> clocks[c]])) \\div Len(DOMAIN clocks)" in result.fixed_spec
+    assert "Sum([n \\in NodeSet |-> MAX({counts[n][m] : m \\in NodeSet})])" not in result.fixed_spec
+    assert "Sum([n \\in NodeSet |-> MAX({counts[n][m] : m \\in NodeSet}]))" in result.fixed_spec
