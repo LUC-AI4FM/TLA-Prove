@@ -1079,6 +1079,64 @@ Next ==
     assert "ANY == ANY" not in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_malformed_unchanged_double_bracket_slice_to_tuple() -> None:
+    spec = """---- MODULE Bakery ----
+VARIABLES num, flag
+
+Choose(p) ==
+    /\\ UNCHANGED[[q \\in [1 .. n | -> q # p][num[q]]]]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote malformed UNCHANGED double-bracket slice as tuple" in result.fixes_applied
+    assert "/\\ UNCHANGED <<num>>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_unary_max_over_slice_to_set_max() -> None:
+    spec = """---- MODULE Bakery ----
+EXTENDS Naturals, FiniteSets
+
+Choose(p) ==
+    LET maxNum == MAX(num[1..n])
+    IN /\\ TRUE
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote unary MAX slice as set maximum" in result.fixes_applied
+    assert "auto-defined Max helper" in result.fixes_applied
+    assert "LET maxNum == Max({num[i] : i \\in 1 .. n})" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_quantified_action_disjunct_from_forall_to_exists() -> None:
+    spec = """---- MODULE Bakery ----
+Next ==
+    \\/  \\A  p \\in 1 .. n : EnterCriticalSection(p)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote quantified action disjunct from forall to exists" in result.fixes_applied
+    assert "\\/  \\E  p \\in 1 .. n : EnterCriticalSection(p)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_escaped_spec_conjunction_tail() -> None:
+    spec = """---- MODULE Bakery ----
+VARIABLES num, flag
+Spec == Init /\\ [][Next]_<<num, flag>> /\\\\ TypeOK
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized escaped Spec conjunction tail" in result.fixes_applied
+    assert "Spec == Init /\\ [][Next]_<<num, flag>> /\\ TypeOK" in result.fixed_spec
+
+
 def test_fix_tla_syntax_normalizes_len_broken_in_and_escaped_comment() -> None:
     spec = """---- MODULE ClockSync ----
 TypeInvariant ==
@@ -2467,6 +2525,72 @@ Spec == Init /\\ [][Next]_vars
     assert "rewrote constant set-builder ASSUME as range equality" in result.fixes_applied
     assert "expanded indexed vars UNCHANGED to named tuple" in result.fixes_applied
     assert "rewrote ANY placeholder constant alias invocations" in result.fixes_applied
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm004_shape_sany_valid() -> None:
+    spec = """---- MODULE Bakery ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANT n
+
+VARIABLES num, flag
+
+vars == <<num, flag>>
+
+TypeOK ==
+        /\\ num \\in [1 .. n -> Nat]
+        /\\ flag \\in [1 .. n -> BOOLEAN]
+
+Init ==
+        /\\ num = [p \\in 1 .. n |-> 0]
+        /\\ flag = [p \\in 1 .. n |-> FALSE]
+
+Choose(p) ==
+        LET maxNum == MAX(num[1..n])
+            newTicket == IF maxNum # 0 THEN maxNum + 1 ELSE 1 IN
+          /\\ flag' = [flag EXCEPT ![p] =TRUE]
+          /\\ UNCHANGED <<num>>
+        \\/ /\\ flag' = [flag EXCEPT ![p] =FALSE]
+           /\\ num' = [num EXCEPT ![p] = newTicket]
+           /\\ UNCHANGED[[q \\in [1 .. n | -> q # p][num[q]]]]
+
+EnterCriticalSection(p) ==
+        /\\ flag[p] = TRUE
+        /\\ \\A r \\in 1 .. n :
+           /\\ (\\(r#p =>
+           /\\ ((num[r]=0) \\/
+                     (IF num[r]<num[p] THEN TRUE
+
+                      (* If equal numbers then lower id wins *)
+                       THEN r < p)))
+               )
+        /\\ UNCHANGED <<flag, num>>
+
+ExitProcess(p) ==
+        /\\ num' = [num EXCEPT ![p]='\\*']
+        /\\ UNCHANGED <<flag>>
+
+Terminating == /\\ UNCHANGED vars
+
+Next ==
+     \\E  p \\in 1 .. n : Choose(p)
+   \\/  \\A  p \\in 1 .. n : EnterCriticalSection(p)
+   \\/ Terminating
+
+Spec == Init /\\ [][Next]_<<num, flag>> /\\\\ TypeOK
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="Bakery")
+
+    assert "rewrote malformed UNCHANGED double-bracket slice as tuple" in result.fixes_applied
+    assert "rewrote unary MAX slice as set maximum" in result.fixes_applied
+    assert "rewrote quantified action disjunct from forall to exists" in result.fixes_applied
+    assert "normalized escaped Spec conjunction tail" in result.fixes_applied
     assert sany_result.valid, sany_result.raw_output
 
 

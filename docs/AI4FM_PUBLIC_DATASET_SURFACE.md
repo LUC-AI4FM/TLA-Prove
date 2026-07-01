@@ -81,7 +81,7 @@ We also re-checked the current upstream public repos directly on 2026-06-29:
     TLA+ specifications on the research landing page and paper pages
   - the visible public site narrative is aligned with the `205`-entry
     benchmark layer, not with the stale `1800+` architecture-doc note
-- stale `1800+` note worth not over-trusting
+- older `1800+` note
   - `FormaLLM/doc/ARCHITECTURE.md` still says `all_models.json` is metadata for
     `1800+ specifications`
   - that line no longer matches the current committed public metadata file,
@@ -107,7 +107,7 @@ Important interpretation:
 - the local `1005` normalized `ai4fm_public_tlaprove_import_v1` rows and `168`
   `ai4fm_public_seed_prover_candidates_v1` rows are ChatTLA-derived downstream
   corpora, not counts published by the two upstream repos above
-- the older `1800+` language appears to describe an earlier or broader internal
+- the older `1800+` language appears to describe an earlier or broader source
   surface, not the current committed public benchmark layer
 - if someone cites `1800+` for the current public AI4FM GitHub surface, the closest reproducible interpretations today are the broader expansion lanes: `2757` committed `TLA-Prove` JSONL rows, `2110` public seed `.tla` files, or `2108` usable seed modules, not the canonical `205`-entry `FormaLLM` benchmark
 - our local public-seed lane is now reconciled:

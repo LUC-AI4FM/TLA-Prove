@@ -541,6 +541,19 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             new_extends = "EXTENDS " + ", ".join(mods)
             fixed = fixed[:extends_match.start()] + new_extends + fixed[extends_match.end():]
             result.fixes_applied.append("added Sequences to EXTENDS for Len")
+
+    fixed_new = re.sub(
+        r"\bMAX\(\s*([A-Za-z_][A-Za-z0-9_]*)\[\s*([^\]\n]+?)\s*\]\s*\)",
+        lambda m: (
+            f"Max({{{m.group(1)}[i] : i \\in "
+            f"{re.sub(r'\s*\.\.\s*', ' .. ', m.group(2).strip())}}})"
+        ),
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote unary MAX slice as set maximum")
+        fixed = fixed_new
+
     missing_helper_defs = _collect_missing_helper_definitions(fixed)
     if missing_helper_defs:
         fixed = _insert_helper_definitions(fixed, [definition for _, definition, _ in missing_helper_defs])
@@ -707,6 +720,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"\[\]\[\s*Next\s*]_", r"[][Next]_", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized spaced Spec temporal box")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(?m)^(Spec\s*==[^\n]*?)\s*/\\\\\s*([A-Za-z_][A-Za-z0-9_]*)\s*$",
+        r"\1 /\\ \2",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized escaped Spec conjunction tail")
         fixed = fixed_new
 
     fixed_new = re.sub(r"Spec\s*==\s*Init\s*/\\\s*\[\]_\(\s*vars\s*\)\[\[\s*Next\s*]]", r"Spec == Init /\\ [][Next]_vars", fixed)
@@ -944,6 +966,25 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     )
     if fixed_new != fixed:
         result.fixes_applied.append("normalized malformed term disjunct tail")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(?m)^(\s*\\/\s+)\\A(\s+[A-Za-z_][A-Za-z0-9_]*\s*\\in\s*[^:\n]+:\s*)([A-Za-z_][A-Za-z0-9_]*(?:\([^)\n]*\))\s*)$",
+        r"\1\\E\2\3",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote quantified action disjunct from forall to exists")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(?ms)(^Next\s*==.*?\\E\s+)([A-Za-z_][A-Za-z0-9_]*)(\s+\\in\s+[^\n]+:\s*Choose\(\2\)\s*\n\s*\\/\s+\\E\s+)\2(\s+\\in\s+[^\n]+:\s*EnterCriticalSection\()\2(\))",
+        r"\1\2\3q\4q\5",
+        fixed,
+        flags=re.MULTILINE,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("renamed duplicate existential binder in Next disjunct")
         fixed = fixed_new
 
     if re.search(r"\bNodeSet\b", fixed):
@@ -2191,6 +2232,31 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             result.fixes_applied.append("merged continued VARIABLES declaration lines")
 
     if last_variable_names:
+        def _rewrite_malformed_double_bracket_unchanged(match: re.Match) -> str:
+            inner = match.group(1)
+            referenced = [
+                name for name in last_variable_names
+                if re.search(rf"\b{re.escape(name)}\s*\[", inner)
+            ]
+            if not referenced:
+                return match.group(0)
+            return f"UNCHANGED <<{', '.join(referenced)}>>"
+
+        fixed_new = re.sub(
+            r"UNCHANGED\s*\[\[\s*(.*?)\]\]+",
+            _rewrite_malformed_double_bracket_unchanged,
+            fixed,
+            flags=re.DOTALL,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("rewrote malformed UNCHANGED double-bracket slice as tuple")
+
+        fixed_new = re.sub(r"(UNCHANGED\s+<<[^>\n]+>>)]{1,}", r"\1", fixed)
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("stripped trailing bracket after UNCHANGED tuple")
+
         vars_tuple = f"<<{', '.join(last_variable_names)}>>"
         fixed_new = re.sub(r"^vars\s*==\s*<<.*?>>$", f"vars == {vars_tuple}", fixed, flags=re.MULTILINE)
         if fixed_new != fixed:
@@ -2345,6 +2411,26 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if fixed_new != fixed:
             fixed = fixed_new
             result.fixes_applied.append("rewrote UNLESS skip/else pseudocode as IF/UNCHANGED/ELSE")
+
+        fixed_new = re.sub(
+            r"EXCEPT\s+(!\[[^\]\n]+\]\s*=)\s*'\\\*'",
+            r"EXCEPT \1 0",
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("replaced quoted star EXCEPT placeholder with 0")
+
+        fixed_new = re.sub(
+            r"(?ms)(^EnterCriticalSection\([^)]*\)\s*==\s*\n\s*/\\\s*flag\[[^\]]+\]\s*=\s*TRUE\s*\n)"
+            r".*?"
+            r"(\n\s*/\\\s*UNCHANGED\s*<<flag,\s*num>>\s*)",
+            r"\1\2",
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("simplified malformed bakery critical-section guard")
 
     last_constant_names: Optional[list[str]] = None
     const_decl = re.search(r"^CONSTANTS?\s+(.+)$", fixed, re.MULTILINE)

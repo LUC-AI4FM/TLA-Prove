@@ -15,8 +15,8 @@ Hugging Face release**.
 
 Authoritative checked-in evidence:
 
-- [outputs/manifests/hf_publish_readiness.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/manifests/hf_publish_readiness.json)
-- [outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json](/Users/eric/GitHub/ChatTLA/ChatTLA/outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json)
+- [outputs/manifests/hf_publish_readiness.json](outputs/manifests/hf_publish_readiness.json)
+- [outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json](outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json)
 
 As of the latest checked-in manifests:
 
@@ -76,7 +76,7 @@ Current public benchmark surface: `20` items in `data/benchmarks/benchmark_suite
 - `data/processed/diamond_eval_holdout.jsonl`: separate 30-row holdout artifact
 - `data/processed/formalllm_eval_v1.jsonl`: canonical 205-row `FormaLLM` benchmark/eval layer
 
-For the full public-source audit trail, see [docs/AI4FM_PUBLIC_DATASET_SURFACE.md](/Users/eric/GitHub/ChatTLA/ChatTLA/docs/AI4FM_PUBLIC_DATASET_SURFACE.md), [docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md](/Users/eric/GitHub/ChatTLA/ChatTLA/docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md), and [docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md](/Users/eric/GitHub/ChatTLA/ChatTLA/docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md).
+For the full public-source audit trail, see [docs/AI4FM_PUBLIC_DATASET_SURFACE.md](docs/AI4FM_PUBLIC_DATASET_SURFACE.md), [docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md](docs/AI4FM_PUBLIC_SURFACE_2026_06_29_LIVE_VERIFICATION.md), and [docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md](docs/TLA_PROVER_2026_06_29_PUBLIC_CORPUS_NEXT_MOVE_STRATEGY.md).
 
 ## Quick Start
 
