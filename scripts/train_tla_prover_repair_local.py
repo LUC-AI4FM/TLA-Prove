@@ -238,6 +238,7 @@ def _build_train_rl_repair_args(
     *,
     trajectory_files: list[str] | None,
     include_benchmark_repair_pairs: bool,
+    repair_corpus_profile: str,
     output_dir: str | None,
     extra_args: list[str],
 ) -> Namespace:
@@ -245,6 +246,7 @@ def _build_train_rl_repair_args(
     parsed = parser.parse_args(extra_args)
     parsed.trajectory_file = list(trajectory_files or [])
     parsed.include_benchmark_repair_pairs = include_benchmark_repair_pairs
+    parsed.repair_corpus_profile = repair_corpus_profile
     if output_dir is not None:
         parsed.output_dir = output_dir
     return parsed
@@ -256,12 +258,14 @@ def _resolve_preflight_report(
     python_executable: str,
     trajectory_files: list[str] | None,
     include_benchmark_repair_pairs: bool,
+    repair_corpus_profile: str,
     extra_args: list[str],
     runtime_import_timeout_s: float,
 ) -> dict[str, Any]:
     preflight_args = _build_train_rl_repair_args(
         trajectory_files=trajectory_files,
         include_benchmark_repair_pairs=include_benchmark_repair_pairs,
+        repair_corpus_profile=repair_corpus_profile,
         output_dir=None,
         extra_args=extra_args,
     )
@@ -281,6 +285,8 @@ def _resolve_preflight_report(
         command.extend(["--trajectory-file", path])
     if include_benchmark_repair_pairs:
         command.append("--include-benchmark-repair-pairs")
+    if repair_corpus_profile != DEFAULT_PROFILE:
+        command.extend(["--repair-corpus-profile", repair_corpus_profile])
     command.extend(extra_args)
 
     completed = subprocess.run(
@@ -348,6 +354,7 @@ def build_run_plan(
         python_executable=resolved_python,
         trajectory_files=preflight_trajectory_files,
         include_benchmark_repair_pairs=False,
+        repair_corpus_profile=repair_corpus_profile,
         extra_args=extra_args,
         runtime_import_timeout_s=effective_runtime_import_timeout_s,
     )

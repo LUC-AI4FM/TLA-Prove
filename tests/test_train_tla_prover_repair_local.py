@@ -1,10 +1,16 @@
 import os
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 from scripts.train_rl_repair import DEFAULT_SMOKE_MODEL
-from scripts.train_tla_prover_repair_local import build_run_plan, compact_plan, run_refresh_pipeline
+from scripts.train_tla_prover_repair_local import (
+    _resolve_preflight_report,
+    build_run_plan,
+    compact_plan,
+    run_refresh_pipeline,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "train_tla_prover_repair_local.py"
@@ -218,6 +224,44 @@ def test_build_run_plan_can_preflight_profile_refresh_before_profile_exists(tmp_
     assert captured["trajectory_files"] == [
         "data/processed/benchmark_repair_pairs_fc128best.jsonl"
     ]
+
+
+def test_resolve_preflight_report_preserves_named_profile_for_local_preflight(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_build_preflight_report(args, repo_root, runtime_import_timeout_s=None):
+        captured["repair_corpus_profile"] = args.repair_corpus_profile
+        captured["trajectory_file"] = list(args.trajectory_file)
+        captured["repo_root"] = repo_root
+        captured["runtime_import_timeout_s"] = runtime_import_timeout_s
+        return {
+            "ok": True,
+            "repair_corpus_profile": args.repair_corpus_profile,
+            "runtime_dependencies": {"ok": True, "available": ["torch"], "missing": []},
+        }
+
+    monkeypatch.setattr(
+        "scripts.train_tla_prover_repair_local.build_preflight_report",
+        fake_build_preflight_report,
+    )
+
+    report = _resolve_preflight_report(
+        repo=REPO,
+        python_executable=sys.executable,
+        trajectory_files=["data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl"],
+        include_benchmark_repair_pairs=False,
+        repair_corpus_profile="proof_repair_primary",
+        extra_args=[],
+        runtime_import_timeout_s=7.5,
+    )
+
+    assert captured["repair_corpus_profile"] == "proof_repair_primary"
+    assert captured["trajectory_file"] == [
+        "data/processed/tla_prover_repair_train_proof_repair_primary_v1.jsonl"
+    ]
+    assert captured["repo_root"] == REPO
+    assert captured["runtime_import_timeout_s"] == 7.5
+    assert report["repair_corpus_profile"] == "proof_repair_primary"
 
 
 def test_cli_preflight_dry_run_executes_without_import_error() -> None:
