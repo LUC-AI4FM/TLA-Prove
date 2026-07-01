@@ -1762,3 +1762,71 @@ Next ==
 
     assert "normalized malformed term disjunct tail" in result.fixes_applied
     assert "(merge(ANY, ANY)) \\/" in result.fixed_spec
+
+
+def test_fix_tla_syntax_auto_defines_sum_helper_for_line_start_use() -> None:
+    spec = """---- MODULE GCounter ----
+EXTENDS Naturals, FiniteSets
+CONSTANT NodeSet
+VARIABLES counts
+
+GlobalCount ==
+    Sum([n \\in NodeSet |-> counts[n]])
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "auto-defined Sum helper" in result.fixes_applied
+    assert "Sum(S) ==" in result.fixed_spec
+
+
+def test_fix_tla_syntax_auto_defines_max_helpers_for_binary_and_set_forms() -> None:
+    spec = """---- MODULE GCounter ----
+EXTENDS Naturals, FiniteSets
+
+MergeValue ==
+    MAX(a, b)
+
+GlobalCount ==
+    Max({1, 2})
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "auto-defined MAX helper" in result.fixes_applied
+    assert "auto-defined Max helper" in result.fixes_applied
+    assert "MAX(a, b) == IF a >= b THEN a ELSE b" in result.fixed_spec
+    assert "Max(S) == CHOOSE x \\in S : \\A y \\in S : x >= y" in result.fixed_spec
+
+
+def test_fix_tla_syntax_quantifies_node_and_any_placeholder_action_invocations() -> None:
+    spec = """---- MODULE GCounter ----
+EXTENDS Naturals, FiniteSets
+CONSTANT NodeSet
+VARIABLES counts
+
+Next ==
+    LET
+        inc(n) ==
+            /\\ UNCHANGED <<counts>>
+        merge(m, p) ==
+            /\\ UNCHANGED <<counts>>
+        term ==
+            /\\ UNCHANGED <<counts>>
+    IN
+        (inc(Node)) \\/
+        (merge(ANY, ANY)) \\/
+        term
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote Node placeholder action invocation as quantified choice" in result.fixes_applied
+    assert "rewrote ANY placeholder action invocation as quantified choice" in result.fixes_applied
+    assert "(\\E n \\in NodeSet : inc(n)) \\/" in result.fixed_spec
+    assert "(\\E m \\in NodeSet : \\E p \\in NodeSet : merge(m, p)) \\/" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="GCounter")
+    assert sany_result.valid, sany_result.raw_output

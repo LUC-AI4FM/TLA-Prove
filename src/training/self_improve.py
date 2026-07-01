@@ -177,6 +177,66 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             return text[:end_marker.start()].rstrip() + "\n\n" + definition.rstrip() + "\n\n" + text[end_marker.start():]
         return text.rstrip() + "\n\n" + definition.rstrip()
 
+    def _has_operator_definition(text: str, name: str) -> bool:
+        return re.search(
+            rf"(?m)^\s*{re.escape(name)}\s*\(\s*[A-Za-z_][A-Za-z0-9_]*"
+            rf"(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*\s*\)\s*==",
+            text,
+        ) is not None
+
+    def _collect_missing_helper_definitions(text: str) -> list[tuple[str, str]]:
+        helpers = [
+            (
+                "RandomChoice",
+                r"\bRandomChoice\(",
+                "RandomChoice(S) == CHOOSE x \\in S : TRUE",
+                "auto-defined RandomChoice helper",
+            ),
+            (
+                "Sign",
+                r"\bSign\(",
+                "Sign(x) == IF x > 0 THEN 1 ELSE IF x < 0 THEN -1 ELSE 0",
+                "auto-defined Sign helper",
+            ),
+            (
+                "Sum",
+                r"\bSum\(",
+                "Sum(S) == LET __SumHelper[ss \\in SUBSET DOMAIN S] ==\n"
+                "            IF ss = {} THEN 0\n"
+                "            ELSE LET x == CHOOSE x \\in ss : TRUE\n"
+                "                 IN S[x] + __SumHelper[ss \\ {x}]\n"
+                "          IN __SumHelper[DOMAIN S]",
+                "auto-defined Sum helper",
+            ),
+            (
+                "MAX",
+                r"\bMAX\(",
+                "MAX(a, b) == IF a >= b THEN a ELSE b",
+                "auto-defined MAX helper",
+            ),
+            (
+                "Max",
+                r"\bMax\(",
+                "Max(S) == CHOOSE x \\in S : \\A y \\in S : x >= y",
+                "auto-defined Max helper",
+            ),
+        ]
+        missing: list[tuple[str, str]] = []
+        for name, use_pattern, definition, message in helpers:
+            if re.search(use_pattern, text) and not _has_operator_definition(text, name):
+                missing.append((definition, message))
+        return missing
+
+    def _insert_helper_definitions(text: str, definitions: list[str]) -> str:
+        if not definitions:
+            return text
+        extends_match = re.search(r"^EXTENDS\s+.+$", text, re.MULTILINE)
+        helper_block = "\n\n" + "\n\n".join(definitions).rstrip() + "\n"
+        if extends_match:
+            insert_at = extends_match.end()
+            return text[:insert_at] + helper_block + text[insert_at:]
+        return _prepend_helper_definition(text, "\n\n".join(definitions))
+
     # ── Fix 1: Remove PlusCal blocks ──────────────────────────────────────
     # Pattern A: full block  (* --algorithm ... end algorithm; *)
     pluscal_pat = r"\(\*\s*--(?:fair\s+)?algorithm\b.*?end\s+algorithm\s*;?\s*\*\)"
@@ -480,27 +540,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             new_extends = "EXTENDS " + ", ".join(mods)
             fixed = fixed[:extends_match.start()] + new_extends + fixed[extends_match.end():]
             result.fixes_applied.append("added Sequences to EXTENDS for Len")
-    extends_match = re.search(r"^EXTENDS\s+.+$", fixed, re.MULTILINE)
-    helper_defs = []
-    if re.search(r"\bRandomChoice\(", fixed) and not re.search(r"(?m)^\s*RandomChoice\s*\(", fixed):
-        helper_defs.append("RandomChoice(S) == CHOOSE x \\in S : TRUE\n")
-        result.fixes_applied.append("auto-defined RandomChoice helper")
-    if re.search(r"\bSign\(", fixed) and not re.search(r"(?m)^\s*Sign\s*\(", fixed):
-        helper_defs.append("Sign(x) == IF x > 0 THEN 1 ELSE IF x < 0 THEN -1 ELSE 0\n")
-        result.fixes_applied.append("auto-defined Sign helper")
-    if re.search(r"\bSum\(", fixed) and not re.search(r"(?m)^\s*Sum\s*\(", fixed):
-        helper_defs.append(
-            "Sum(S) == LET __SumHelper[ss \\in SUBSET DOMAIN S] ==\n"
-            "            IF ss = {} THEN 0\n"
-            "            ELSE LET x == CHOOSE x \\in ss : TRUE\n"
-            "                 IN S[x] + __SumHelper[ss \\ {x}]\n"
-            "          IN __SumHelper[DOMAIN S]\n"
-        )
-        result.fixes_applied.append("auto-defined Sum helper")
-    if extends_match and helper_defs:
-        insert_at = extends_match.end()
-        helper_block = "\n\n" + "\n".join(helper_defs).rstrip() + "\n"
-        fixed = fixed[:insert_at] + helper_block + fixed[insert_at:]
+    missing_helper_defs = _collect_missing_helper_definitions(fixed)
+    if missing_helper_defs:
+        fixed = _insert_helper_definitions(fixed, [definition for definition, _ in missing_helper_defs])
+        for _, message in missing_helper_defs:
+            result.fixes_applied.append(message)
 
     # ── Fix 18: Fix single-line ASSUME with \notin cleanup artifacts ─────
     # Remove ASSUME lines that are now syntactically broken
@@ -886,6 +930,25 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized malformed term disjunct tail")
         fixed = fixed_new
 
+    if re.search(r"\bNodeSet\b", fixed):
+        fixed_new = re.sub(
+            r"(?m)^(\s*)\(([A-Za-z_][A-Za-z0-9_]*)\(Node\)\)(\s*\\/\s*)(.*)$",
+            lambda m: f"{m.group(1)}(\\E n \\in NodeSet : {m.group(2)}(n)){m.group(3)}{m.group(4)}",
+            fixed,
+        )
+        if fixed_new != fixed:
+            result.fixes_applied.append("rewrote Node placeholder action invocation as quantified choice")
+            fixed = fixed_new
+
+        fixed_new = re.sub(
+            r"(?m)^(\s*)\(([A-Za-z_][A-Za-z0-9_]*)\(ANY,\s*ANY\)\)(\s*\\/\s*)(.*)$",
+            lambda m: f"{m.group(1)}(\\E m \\in NodeSet : \\E p \\in NodeSet : {m.group(2)}(m, p)){m.group(3)}{m.group(4)}",
+            fixed,
+        )
+        if fixed_new != fixed:
+            result.fixes_applied.append("rewrote ANY placeholder action invocation as quantified choice")
+            fixed = fixed_new
+
     fixed_new = re.sub(r"\(\\\*\s*(.*?)\s*\\\*\)", r"(* \1 *)", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized escaped TLA comments")
@@ -980,26 +1043,12 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
                 fixed = rebuilt
                 result.fixes_applied.append("moved forward action definitions before Next")
 
-    extends_match = re.search(r"^EXTENDS\s+.+$", fixed, re.MULTILINE)
-    late_helper_defs = []
-    if re.search(r"\bSign\(", fixed) and not re.search(r"(?m)^\s*Sign\s*\(", fixed):
-        late_helper_defs.append("Sign(x) == IF x > 0 THEN 1 ELSE IF x < 0 THEN -1 ELSE 0\n")
-        if "auto-defined Sign helper" not in result.fixes_applied:
-            result.fixes_applied.append("auto-defined Sign helper")
-    if re.search(r"\bSum\(", fixed) and not re.search(r"(?m)^\s*Sum\s*\(", fixed):
-        late_helper_defs.append(
-            "Sum(S) == LET __SumHelper[ss \\in SUBSET DOMAIN S] ==\n"
-            "            IF ss = {} THEN 0\n"
-            "            ELSE LET x == CHOOSE x \\in ss : TRUE\n"
-            "                 IN S[x] + __SumHelper[ss \\ {x}]\n"
-            "          IN __SumHelper[DOMAIN S]\n"
-        )
-        if "auto-defined Sum helper" not in result.fixes_applied:
-            result.fixes_applied.append("auto-defined Sum helper")
-    if extends_match and late_helper_defs:
-        insert_at = extends_match.end()
-        helper_block = "\n\n" + "\n".join(late_helper_defs).rstrip() + "\n"
-        fixed = fixed[:insert_at] + helper_block + fixed[insert_at:]
+    late_helper_defs = _collect_missing_helper_definitions(fixed)
+    if late_helper_defs:
+        fixed = _insert_helper_definitions(fixed, [definition for definition, _ in late_helper_defs])
+        for _, message in late_helper_defs:
+            if message not in result.fixes_applied:
+                result.fixes_applied.append(message)
 
     def _insert_record_field_commas(match: re.Match) -> str:
         content = match.group(1)
