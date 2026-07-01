@@ -542,3 +542,70 @@ TypeOk ==
     assert "/\\ subs \\in [Topic |-> SUBSET(SubIds)]" in result.fixed_spec
     assert "/\\ msgSeqs \\in [Topic |-> Seq(Message)]" in result.fixed_spec
     assert "/\\ delivered \\in [SubscriberId -> BOOLEAN]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_function_set_arrow_notation() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+TypeInvariant ==
+    /\\ procState \\in P -> {"unrecorded","recorder"}
+    /\\ chanMsg \\in (OutChannels x InChannels) -> Sequence[Message]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized function-set arrow notation" in result.fixes_applied
+    assert '/\\ procState \\in [P -> {"unrecorded","recorder"}]' in result.fixed_spec
+    assert '/\\ chanMsg \\in [(OutChannels x InChannels) -> Sequence[Message]]' in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_subseteq_function_set_arrow_notation() -> None:
+    spec = """---- MODULE SingleDecreePaxos ----
+TypeOK ==
+    /\\ pBallots \\subseteq PROPOSER_IDS --> BALLOT_NUMBERS
+    /\\ accPromises \\subseteq ACCEPTOR_IDS --> (BALLOT_NUMBERS --> BOOLEAN)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized function-set arrow notation" in result.fixes_applied
+    assert '/\\ pBallots \\in [PROPOSER_IDS -> BALLOT_NUMBERS]' in result.fixed_spec
+    assert '/\\ accPromises \\in [ACCEPTOR_IDS -> [BALLOT_NUMBERS -> BOOLEAN]]' in result.fixed_spec
+
+
+def test_fix_tla_syntax_removes_orphan_variable_annotation_lines() -> None:
+    spec = """---- MODULE SingleDecreePaxos ----
+VARIABLES pBallots, accAcks, accPromises, pValues, proposer
+
+    accPromises   ,  (* map[acceptorId] : [ballot |-> {maxPromised} ]*)
+    accAcks        ,  (* map[accid][proposalNumber]->{value,votedByMaxB} *)
+
+TypeOK == TRUE
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed orphan variable annotation lines" in result.fixes_applied
+    assert "accPromises   ,  (*" not in result.fixed_spec
+    assert "accAcks        ,  (*" not in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_bare_star_comments_and_guarded_disjuncts() -> None:
+    spec = """---- MODULE TokenRing ----
+Next ==
+        \\/ (tpos < N) =>
+            /\\ tpos' = tpos + 1
+               * If there was an outgoing message it stays until delivered.
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized bare star comment lines" in result.fixes_applied
+    assert "normalized guarded disjunct lines" in result.fixes_applied
+    assert "\\/ (tpos < N) =>" not in result.fixed_spec
+    assert " * If there was an outgoing message" not in result.fixed_spec
+    assert "\\/ /\\ (tpos < N)" in result.fixed_spec
+    assert "\\* If there was an outgoing message it stays until delivered." in result.fixed_spec

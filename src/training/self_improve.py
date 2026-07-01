@@ -118,6 +118,39 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     )
     fixed = spec
 
+    def _strip_wrapping_parens(expr: str) -> str:
+        expr = expr.strip()
+        while expr.startswith("(") and expr.endswith(")"):
+            depth = 0
+            balanced = True
+            for i, ch in enumerate(expr):
+                if ch == "(":
+                    depth += 1
+                elif ch == ")":
+                    depth -= 1
+                    if depth == 0 and i != len(expr) - 1:
+                        balanced = False
+                        break
+            if not balanced or depth != 0:
+                break
+            expr = expr[1:-1].strip()
+        return expr
+
+    def _normalize_function_set_expr(expr: str) -> str:
+        expr = _strip_wrapping_parens(expr.replace("-->", "->").strip())
+        depth = 0
+        for i in range(len(expr) - 1):
+            ch = expr[i]
+            if ch in "([{":
+                depth += 1
+            elif ch in ")]}":
+                depth -= 1
+            elif depth == 0 and expr[i:i + 2] == "->":
+                left = expr[:i].strip()
+                right = expr[i + 2:].strip()
+                return f"[{left} -> {_normalize_function_set_expr(right)}]"
+        return expr
+
     # ── Fix 1: Remove PlusCal blocks ──────────────────────────────────────
     # Pattern A: full block  (* --algorithm ... end algorithm; *)
     pluscal_pat = r"\(\*\s*--(?:fair\s+)?algorithm\b.*?end\s+algorithm\s*;?\s*\*\)"
@@ -561,6 +594,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized plain Spec [] Next spacing")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"(?m)^(\s*)\\/\s*(\([^\n]+\)|[A-Za-z_][^\n]*?)\s*=>\s*$", r"\1\\/ /\\ \2", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized guarded disjunct lines")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\[\]\s*\[\]\s*(\[\s*Next\s*]_\w+)", r"[]\1", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized duplicate temporal box operators")
@@ -585,6 +623,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = fixed.replace("\\land", "/\\").replace("\\and", "/\\").replace("\\vee", "\\/")
     if fixed_new != fixed:
         result.fixes_applied.append("normalized logical word operators")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"(?m)^(\s*)\*\s+(.*)$", r"\1\\* \2", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized bare star comment lines")
         fixed = fixed_new
 
     fixed_new = fixed.replace("≜", "==")
@@ -612,6 +655,26 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     if fixed_new != fixed:
         result.fixes_applied.append("normalized colon membership conjuncts")
         fixed = fixed_new
+
+    normalized_lines = []
+    function_set_changed = False
+    for line in fixed.splitlines():
+        match = re.match(r"^(\s*/\\\s+.+?)\s+(\\in|\\subseteq)\s+(.+)$", line)
+        if not match:
+            normalized_lines.append(line)
+            continue
+        prefix, op, rhs = match.groups()
+        if "->" not in rhs and "-->" not in rhs:
+            normalized_lines.append(line)
+            continue
+        normalized_rhs = _normalize_function_set_expr(rhs)
+        normalized_op = "\\in" if op == "\\subseteq" else op
+        rebuilt = f"{prefix} {normalized_op} {normalized_rhs}"
+        function_set_changed = function_set_changed or rebuilt != line
+        normalized_lines.append(rebuilt)
+    if function_set_changed:
+        fixed = "\n".join(normalized_lines)
+        result.fixes_applied.append("normalized function-set arrow notation")
 
     def _rewrite_unchanged_brackets(match: re.Match) -> str:
         inner = match.group(1).strip()
@@ -839,6 +902,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             result.fixes_applied.append("merged orphaned constant annotations")
         if normalized_orphaned_constraints:
             result.fixes_applied.append("normalized orphaned constant constraints to ASSUME")
+
+    fixed_new = re.sub(r"(?m)^\s+[A-Za-z_][A-Za-z0-9_]*\s*,\s*\(\*.*\n?", "", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed orphan variable annotation lines")
+        fixed = fixed_new
 
     fixed_new = re.sub(r"\bUnchanged\(([^)\n]+)\)", r"UNCHANGED \1", fixed)
     if fixed_new != fixed:
