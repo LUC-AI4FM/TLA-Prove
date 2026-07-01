@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 1461.416652428839,
+    "age_hours": 1462.6889402825302,
     "avg_struct": 0.70575,
     "execution": null,
     "fresh_within_hours": 24.0,
@@ -13,7 +13,7 @@
   },
   "benchmark_model": "chattla:20b",
   "blockers": [
-    "latest full benchmark is stale at 1461.4h (limit 24.0h)",
+    "latest full benchmark is stale at 1462.7h (limit 24.0h)",
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
   "claim_status": {
@@ -55,7 +55,7 @@
       "obvious_placeholder_rows": []
     }
   },
-  "generated_at": "2026-07-01T21:22:39.162914+00:00",
+  "generated_at": "2026-07-01T22:38:59.418105+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [

@@ -1,40 +1,40 @@
 {
   "benchmark": {
-    "age_hours": 0.023241450322998895,
-    "avg_struct": 0.19445,
+    "age_hours": 0.15819438497225444,
+    "avg_struct": 0.69445,
     "execution": {
-      "attempts": 1,
-      "inference_mode": "single-shot",
-      "self_correct": false,
+      "attempts": 5,
+      "inference_mode": "self-correct+best-of-5",
+      "self_correct": true,
       "use_plan": false
     },
     "fresh_within_hours": 24.0,
     "model": "chattla:20b-fc128best",
     "rows": 20,
-    "sany": 4,
-    "source_csv": "benchmark_results_fc128best_full_20260701_161720.csv",
-    "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260701_161720.csv",
-    "tlc": 1
+    "sany": 14,
+    "source_csv": "benchmark_results_fc128best_full_20260701_163601.csv",
+    "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260701_163601.csv",
+    "tlc": 9
   },
   "benchmark_model": "chattla:20b-fc128best",
   "blockers": [],
   "claim_status": {
-    "reason": "Latest full benchmark reaches only 4/20 SANY and 1/20 TLC, so the public benchmark claim is unsupported.",
+    "reason": "Latest full benchmark reaches only 14/20 SANY and 9/20 TLC, so the public benchmark claim is unsupported.",
     "supports_public_benchmark_100_percent_claim": false
   },
   "failure_surface": {
     "aggregate": {
-      "rows_with_all_core_components": 3,
-      "rows_with_any_core_component": 6,
-      "rows_with_no_core_components": 14
+      "rows_with_all_core_components": 11,
+      "rows_with_any_core_component": 14,
+      "rows_with_no_core_components": 6
     },
     "core_component_failures": {
-      "missing_init_level_ok_rows": 16,
-      "missing_init_present_rows": 14,
-      "missing_invariants_declared_rows": 16,
-      "missing_next_level_ok_rows": 16,
-      "missing_next_present_rows": 14,
-      "missing_tlc_depth1_ok_rows": 17
+      "missing_init_level_ok_rows": 6,
+      "missing_init_present_rows": 6,
+      "missing_invariants_declared_rows": 6,
+      "missing_next_level_ok_rows": 6,
+      "missing_next_present_rows": 6,
+      "missing_tlc_depth1_ok_rows": 9
     },
     "planning": {
       "plan_unused_rows": 20,
@@ -48,18 +48,18 @@
     "rows": 20,
     "sample_benchmark_ids": {
       "no_core_components": [
-        "BM001",
-        "BM003",
-        "BM004",
-        "BM005",
-        "BM008"
+        "BM008",
+        "BM010",
+        "BM013",
+        "BM014",
+        "BM018"
       ],
       "obvious_placeholder_rows": [
         "BM014"
       ]
     }
   },
-  "generated_at": "2026-07-01T21:22:12.506570+00:00",
+  "generated_at": "2026-07-01T22:38:59.142806+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [
