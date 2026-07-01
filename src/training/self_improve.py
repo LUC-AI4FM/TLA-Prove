@@ -594,6 +594,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized plain Spec [] Next spacing")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"Spec\s*==\s*Init\s*/\\\s*\n\s*\[\]\[\s*Next\s*]_(.+?)\s*\\\s*\n\s*/\\\s*(.+)",
+        lambda m: f"Spec == Init /\\ [][Next]_{m.group(1).strip()} /\\ {m.group(2).strip()}",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized multiline Spec temporal formula")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"(?m)^(\s*)\\/\s*(\([^\n]+\)|[A-Za-z_][^\n]*?)\s*=>\s*$", r"\1\\/ /\\ \2", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized guarded disjunct lines")

@@ -712,3 +712,18 @@ ConsumerAction ==
     assert "RemoveFirstWhere(\\x: x[1] = p)(channelBuffer)" not in result.fixed_spec
     assert "RemoveAt(head - 1, q)" in result.fixed_spec
     assert "RemoveFirstWhere(\\x: x[1] = p, channelBuffer)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_multiline_spec_temporal_formula_with_stray_backslash() -> None:
+    spec = """---- MODULE BoundedFIFO ----
+Spec == Init /\\
+        [][ Next ]_vars \\
+        /\\ TypeOk
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized multiline Spec temporal formula" in result.fixes_applied
+    assert "[][ Next ]_vars \\" not in result.fixed_spec
+    assert "Spec == Init /\\ [][Next]_vars /\\ TypeOk" in result.fixed_spec
