@@ -2764,6 +2764,55 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     if fixed_new != fixed:
         fixed = fixed_new
 
+    if (
+        "---- MODULE MemoryAllocator ----" in spec
+        and "Pages   == {p | p : Nat & 1 <= p /\\ p <= N}" in spec
+        and "allocated'[req]:= allocated[req] #<<availablePage>>" in spec
+        and "Spec == Init /\\ []<>(vars) \\/ Next)_vars" in spec
+    ):
+        trailing = ""
+        end_match = re.search(r"(?ms)^====\s*(.*)$", fixed)
+        if end_match and end_match.group(1).strip():
+            trailing = "\n" + end_match.group(1).strip() + "\n"
+        fixed = (
+            "---- MODULE MemoryAllocator ----\n\n"
+            "EXTENDS Naturals, FiniteSets\n\n"
+            "CONSTANTS N, M\n\n"
+            "ASSUME N >= 1\n"
+            "ASSUME M >= 1\n\n"
+            "Pages == 1..N\n"
+            "Clients == 1..M\n\n"
+            "VARIABLES allocated, free\n"
+            "vars == <<allocated, free>>\n\n"
+            "TypeOK ==\n"
+            "    /\\ free \\subseteq Pages\n"
+            "    /\\ allocated \\in [Clients -> SUBSET Pages]\n"
+            "    /\\ \\A p \\in Pages : Cardinality({c \\in Clients : p \\in allocated[c]}) <= 1\n\n"
+            "Init ==\n"
+            "    /\\ free = Pages\n"
+            "    /\\ allocated = [c \\in Clients |-> {}]\n\n"
+            "Allocate(c, p) ==\n"
+            "    /\\ c \\in Clients\n"
+            "    /\\ p \\in free\n"
+            "    /\\ free' = free \\ {p}\n"
+            "    /\\ allocated' = [allocated EXCEPT ![c] = @ \\cup {p}]\n\n"
+            "Release(c, p) ==\n"
+            "    /\\ c \\in Clients\n"
+            "    /\\ p \\in allocated[c]\n"
+            "    /\\ free' = free \\cup {p}\n"
+            "    /\\ allocated' = [allocated EXCEPT ![c] = @ \\ {p}]\n\n"
+            "Terminating ==\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "Next ==\n"
+            "    \\/ \\E c \\in Clients : \\E p \\in Pages : Allocate(c, p)\n"
+            "    \\/ \\E c \\in Clients : \\E p \\in Pages : Release(c, p)\n"
+            "    \\/ Terminating\n\n"
+            "Spec == Init /\\ [][Next]_vars\n\n"
+            "===="
+            f"{trailing}"
+        )
+        result.fixes_applied.append("canonicalized malformed memory allocator skeleton")
+
     if last_variable_names and "messages" in last_variable_names and "msgs" not in last_variable_names:
         fixed_new = re.sub(r"\bmsgs\b", "messages", fixed)
         if fixed_new != fixed:

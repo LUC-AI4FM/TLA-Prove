@@ -3049,3 +3049,69 @@ Spec ==
     assert "rewrote malformed key-value PutNext block" in result.fixes_applied
     assert "split malformed dual existential quantifier" in result.fixes_applied
     assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm017_shape_sany_valid() -> None:
+    spec = """---- MODULE MemoryAllocator ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANT N, Client
+\\* Enumerate all possible client identifiers; for simplicity we bound it by M
+M           \\\\ Maximum number of distinct clients
+
+ASSUME N >= 1
+ASSUME M >= 1
+
+VARIABLES allocated, client, free
+(* Types *)
+
+Pages   == {p | p : Nat & 1 <= p /\\ p <= N}
+Clients== {c | c : Nat & 1 <= c /\\ c <= M}
+
+TypeOK ==
+    /\\ free      \\subseteq Pages
+    /\\ allocated \\in [Client -> SUBSET Pages]
+    /\\ (\\forall c \\in Clients :
+            (allocated[c] \\subseteq Pages) /\\
+            (* No duplicate allocation across different clients *)
+            (\\exists! x \\in Pages : \\/(\\wedge i,j \\in Clients:
+                    i /= j => ~(x \\in allocated[i]) /\\ ~((i = c)/\\(j=c)))))
+
+Init ==
+    /\\ free        = Pages
+    /\\ allocated' = [c \\in Clients |-> {}]
+
+Next ==
+\\* A request to allocate a single free page for client `req`
+/\\ reqReq? =>
+     LET availablePage IN CHOOSE p \\in free |
+         TRUE
+     BECAUSE availablePage # NULL
+     THEN
+          /\\ free           := free - <<availablePage>>
+          /\\ allocated'[req]:= allocated[req] #<<availablePage>>
+
+\\/ Release of all pages held by client rel back into the pool.
+/\\ relRel?
+   /\\ releasedPages  = allocated[rel]
+   /\\ free      ':= free U releasedPages
+   /\\ allocated'[rel]:= {}
+
+\\/ Termination disjunction (to avoid deadlock)
+\\/ Terminating
+   /\\ UNCHANGED vars
+
+Spec == Init /\\ []<>(vars) \\/ Next)_vars ???
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="MemoryAllocator")
+
+    assert "canonicalized malformed memory allocator skeleton" in result.fixes_applied
+    assert "Pages == 1..N" in result.fixed_spec
+    assert "Clients == 1..M" in result.fixed_spec
+    assert "vars == <<allocated, free>>" in result.fixed_spec
+    assert sany_result.valid, sany_result.raw_output
