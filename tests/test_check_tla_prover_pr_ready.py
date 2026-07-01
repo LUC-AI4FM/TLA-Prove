@@ -21,7 +21,7 @@ def test_scan_files_flags_private_hosts_and_paths(tmp_path: Path) -> None:
                 "ssh " + "eric" + "spencer@" + "100." + "117.97.102",
                 "export CHATTLA_TLAPM=/grand/" + "EVITA/user/tools/tlapm",
                 "open /Users/" + "eric" + "/GitHub/ChatTLA/ChatTLA/scripts/check_tla_prover_pr_ready.py",
-                "snapshot=" + "REDACTED-HOST:/home/" + "REDACTED-USER/ChatTLA/data/processed/long_ralph/run_20260609_083126",
+                "snapshot=" + "plan" + "tain:/home/" + "espen" + "cer2/ChatTLA/data/processed/long_ralph/run_20260609_083126",
                 "still blocked by final " + "manual publish " + "approval",
                 "dataset=EricSpencer00/chattla-tla-prover-corpora-v1",
             ]
@@ -31,7 +31,7 @@ def test_scan_files_flags_private_hosts_and_paths(tmp_path: Path) -> None:
 
     findings = scan_files([candidate])
 
-    assert len(findings) == 6
+    assert len(findings) == 8
     assert {finding["pattern"] for finding in findings} == {
         "private_ssh_user",
         "private_tailscale_or_lan_ip",
@@ -39,6 +39,8 @@ def test_scan_files_flags_private_hosts_and_paths(tmp_path: Path) -> None:
         "local_workspace_repo_path",
         "remote_home_repo_path",
         "manual_publish_approval",
+        "site_lab_host",
+        "site_lab_user",
     }
 
 

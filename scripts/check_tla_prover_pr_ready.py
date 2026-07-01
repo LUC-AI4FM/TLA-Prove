@@ -68,6 +68,8 @@ SENSITIVE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("private_control_socket", re.compile("codex" + "-sophia")),
     ("specific_compute_node", re.compile(r"sophia-gpu-\d+")),
     ("aisec_specific_host", re.compile("aisec" + r"-102|aisec" + "102")),
+    ("site_lab_host", re.compile("plan" + "tain")),
+    ("site_lab_user", re.compile("espen" + "cer2")),
     ("manual_publish_approval", re.compile(r"\bmanual" + r" publish approval\b", re.IGNORECASE)),
 ]
 TIMEOUT_ERROR_RE = re.compile(r"timed out after (?P<seconds>\d+(?:\.\d+)?)s", re.IGNORECASE)

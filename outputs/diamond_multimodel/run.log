@@ -425,8 +425,8 @@
 2026-04-21 18:12:59 INFO HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
 [warn] model not available in Ollama, skipping: llama3.1:70b
 [warn] model not available in Ollama, skipping: qwen2.5:72b
-[info] holdout: /home/REDACTED-USER/ChatTLA/data/processed/diamond_eval_holdout.jsonl (30 problems)
-[info] output:  /home/REDACTED-USER/ChatTLA/outputs/diamond_multimodel/results.csv
+[info] holdout: ~/ChatTLA/data/processed/diamond_eval_holdout.jsonl (30 problems)
+[info] output:  ~/ChatTLA/outputs/diamond_multimodel/results.csv
 [info] models:  ['chattla:20b', 'gpt-oss:20b']
 [info] regimes: ['single_shot', 'piecewise']
 [info] resume:  0 completed triples already in CSV
