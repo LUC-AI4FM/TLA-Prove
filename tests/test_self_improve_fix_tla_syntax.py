@@ -761,9 +761,72 @@ ConsumerAction ==
     assert "normalized curried-style operator calls" in result.fixes_applied
     assert "RemoveAt(head - 1)(q)" not in result.fixed_spec
     assert "RemoveFirstWhere(\\x: x[1] = p)(channelBuffer)" not in result.fixed_spec
-    assert "RemoveAt(head - 1, q)" in result.fixed_spec
+    assert "rewrote remove-front sequence helpers as Tail" in result.fixes_applied
+    assert "RemoveAt(head - 1, q)" not in result.fixed_spec
+    assert "Tail(q)" in result.fixed_spec
     assert "rewrote backslash lambda predicates as LAMBDA" in result.fixes_applied
     assert "RemoveFirstWhere(LAMBDA x : x[1] = p, channelBuffer)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_sequence_helper_aliases() -> None:
+    spec = """---- MODULE BoundedFIFO ----
+EXTENDS Sequences
+VARIABLES q, size
+
+ProducerAction(item) ==
+    /\\ q' = Append(SeqSubseq(q, 1..size), SeqFromList([item]))
+ConsumerAction ==
+    LET oldHeadVal == SubSequence(q, 1, size) IN
+        /\\ q' = oldHeadVal
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized sequence helper aliases" in result.fixes_applied
+    assert "SeqSubseq" not in result.fixed_spec
+    assert "SeqFromList" not in result.fixed_spec
+    assert "SubSequence" not in result.fixed_spec
+    assert "Append(SubSeq(q, 1, size), <<item>>)" in result.fixed_spec
+    assert "LET oldHeadVal == SubSeq(q, 1, size) IN" in result.fixed_spec
+
+
+def test_fix_tla_syntax_removes_primes_from_operator_parameters() -> None:
+    spec = """---- MODULE QueueOps ----
+EXTENDS Sequences
+VARIABLES q
+
+ProducerAction(item) ==
+    /\\ item' \\in q
+    /\\ q' = Append(q, item)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed primes from operator parameters" in result.fixes_applied
+    assert "item' \\in q" not in result.fixed_spec
+    assert "/\\ item \\in q" in result.fixed_spec
+
+
+def test_fix_tla_syntax_removes_shadowed_variable_names_from_declaration() -> None:
+    spec = """---- MODULE BoundedFIFO ----
+EXTENDS Sequences
+VARIABLE q, head, item, q, size, tail
+
+vars == <<q, head, tail, size>>
+
+ProducerAction(item) ==
+    /\\ q' = Append(q, item)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed shadowed variable names from declaration" in result.fixes_applied
+    assert "VARIABLE q, head, tail, size" in result.fixed_spec
+    assert "VARIABLE q, head, item, size, tail" not in result.fixed_spec
+    assert "vars == <<q, head, tail, size>>" in result.fixed_spec
 
 
 def test_fix_tla_syntax_rewrites_backslash_lambda_predicates() -> None:
@@ -1972,4 +2035,70 @@ Next ==
     assert "(\\E n \\in NodeSet : inc(n)) \\/" in result.fixed_spec
     assert "(\\E m \\in NodeSet : \\E p \\in NodeSet : merge(m, p)) \\/" in result.fixed_spec
     sany_result = validate_string(result.fixed_spec, module_name="GCounter")
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm005_shape_sany_valid() -> None:
+    spec = """---- MODULE BoundedFIFO ----
+
+EXTENDS Naturals, Sequences
+
+CONSTANT K
+
+VARIABLE q, head, item, q, size, tail
+          head
+          tail
+          size
+
+vars == <<q, head, tail, size>>
+
+TypeOk ==
+    /\\ q \\subseteq Nat
+       /\\ Len(q) = size
+       /\\ head \\in 1 .. K + 1
+       /\\ tail \\in 1 .. K + 1
+       /\\ size \\in 0 .. K
+
+Init ==
+    /\\ q = []
+    /\\ head = 1
+    /\\ tail = 2
+    /\\ size = 0
+
+ProducerAction(item) ==
+    LET newTail == IF tail # K THEN tail + 1 ELSE 1 IN
+        /\\ size < K
+        /\\ item' \\notin q
+        /\\ q' = Append(SeqSubseq(q, 1..size), SeqFromList([item]))
+        /\\ head' = head
+        /\\ tail' = newTail
+        /\\ size' = size + 1
+
+ConsumerAction ==
+    LET oldHeadVal == SubSequence(q, head-1, head)
+          nextIndex == IF head # K THEN head + 1 ELSE 1 IN
+        /\\ size > 0
+        /\\ q' = RemoveAt(head - 1)(q)
+           \\/ UNCHANGED <<head>>
+
+Next ==
+    \\E item \\in Nat :
+        ProducerAction(item)
+
+\\vee
+    ConsumerAction
+
+Spec == Init /\\
+        [][ Next ]_vars \\
+        /\\ TypeOk
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized sequence helper aliases" in result.fixes_applied
+    assert "removed primes from operator parameters" in result.fixes_applied
+    assert "removed shadowed variable names from declaration" in result.fixes_applied
+    sany_result = validate_string(result.fixed_spec, module_name="BoundedFIFO")
     assert sany_result.valid, sany_result.raw_output

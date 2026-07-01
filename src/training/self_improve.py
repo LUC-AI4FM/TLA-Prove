@@ -1345,6 +1345,17 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = fixed_new
 
     fixed_new = re.sub(
+        r"\bSeqSubseq\(\s*([^,\n]+?)\s*,\s*([^,\n()]+?)\s*\.\.\s*([^) \n][^)\n]*?)\s*\)",
+        r"SubSeq(\1, \2, \3)",
+        fixed,
+    )
+    fixed_new = re.sub(r"\bSubSequence\(", "SubSeq(", fixed_new)
+    fixed_new = re.sub(r"\bSeqFromList\(\[\s*([^\]\n]+?)\s*\]\)", r"<<\1>>", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized sequence helper aliases")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
         r"\b([A-Za-z_][A-Za-z0-9_]*)\(([^()\n]+)\)\(([^()\n]+)\)",
         r"\1(\2, \3)",
         fixed,
@@ -1365,6 +1376,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"(?m)(=\s*)\[\](?=\s*(?:$|\\\*|\(\*))", r"\1<<>>", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("rewrote [] sequence literals to <<>>")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"\bRemoveAt\(\s*head\s*-\s*1\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)",
+        r"Tail(\1)",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote remove-front sequence helpers as Tail")
         fixed = fixed_new
 
     fixed_new = re.sub(r"\bSequence\[\s*([^\]\n]+?)\s*\]", r"Seq(\1)", fixed)
@@ -1865,6 +1885,32 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         return names
 
     defined_ops = set(re.findall(r"^([A-Za-z_][A-Za-z0-9_]*)\s*==", fixed, re.MULTILINE))
+    op_params = {
+        param.strip()
+        for params in re.findall(r"(?m)^[A-Za-z_][A-Za-z0-9_]*\(([^)]*)\)\s*==", fixed)
+        for param in params.split(",")
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", param.strip())
+    }
+    if op_params:
+        fixed_new = fixed
+        for param in sorted(op_params):
+            fixed_new = re.sub(
+                rf"(?<![A-Za-z0-9_]){re.escape(param)}'(?![A-Za-z0-9_])",
+                param,
+                fixed_new,
+            )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("removed primes from operator parameters")
+
+    existing_vars_tuple_names: Optional[list[str]] = None
+    vars_tuple_match = re.search(r"(?m)^vars\s*==\s*<<\s*(.*?)\s*>>\s*$", fixed)
+    if vars_tuple_match:
+        existing_vars_tuple_names = [
+            part.strip()
+            for part in vars_tuple_match.group(1).split(",")
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", part.strip())
+        ]
     lines = fixed.splitlines()
     rebuilt_lines = []
     i = 0
@@ -1900,6 +1946,17 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             j += 1
 
         names = _extract_decl_names(fragments, defined_ops=defined_ops)
+        if existing_vars_tuple_names and op_params:
+            filtered_names = [
+                name
+                for name in names
+                if not (name in op_params and name not in existing_vars_tuple_names)
+            ]
+            if filtered_names != names:
+                names = filtered_names
+                result.fixes_applied.append("removed shadowed variable names from declaration")
+            if all(name in filtered_names for name in existing_vars_tuple_names):
+                names = [name for name in existing_vars_tuple_names if name in filtered_names]
         if not names:
             rebuilt_lines.append(line)
             i += 1
