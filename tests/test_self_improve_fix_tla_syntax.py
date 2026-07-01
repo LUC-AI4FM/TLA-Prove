@@ -631,7 +631,8 @@ Next ==
 
     assert "indented root-level operator conjunctions/disjunctions" in result.fixes_applied
     assert "Init ==\n(* comment *)\n    /\\ sentChunks = <<>>" in result.fixed_spec
-    assert "\nNext ==\n    \\/\n    /\\ currentChunkIndex < FILE_LENGTH" in result.fixed_spec
+    assert "\nNext ==\n    \\/ /\\ currentChunkIndex < FILE_LENGTH" in result.fixed_spec
+    assert "\n       /\\ SendPacket(currentChunkIndex+1)" in result.fixed_spec
 
 
 def test_fix_tla_syntax_rewrites_empty_bracket_sequence_literals() -> None:
@@ -1071,6 +1072,55 @@ RetransmitIfNeeded(p) ==
     assert "rewrote disjoined implication pair as IF THEN ELSE" in result.fixes_applied
     assert "((retryCount[p] > 0) => SendPacket(p))" not in result.fixed_spec
     assert "IF retryCount[p] > 0 THEN SendPacket(p) ELSE UnchangedVars" in result.fixed_spec
+
+
+def test_fix_tla_syntax_inlines_standalone_next_disjunct_and_dangling_conj_lines() -> None:
+    spec = """---- MODULE FileTransfer ----
+Next ==
+    \\/
+    /\\ currentChunkIndex < FILE_LENGTH
+    /\\
+SendPacket(currentChunkIndex+1)
+    /\\ currentChunkIndex' = currentChunkIndex + 1
+
+\\\\/
+    /\\ Len(channelBuffer) > 0
+\\\\ AckReceived(msg)
+
+\\\\/
+\\A p \\in PACKET_IDS :
+    RetransmitIfNeeded(p)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "inlined standalone disjunct lines" in result.fixes_applied
+    assert "merged dangling conjunction lines" in result.fixes_applied
+    assert "normalized malformed backslash-leading action lines" in result.fixes_applied
+    assert "\n    \\/ /\\ currentChunkIndex < FILE_LENGTH" in result.fixed_spec
+    assert "\n       /\\ SendPacket(currentChunkIndex+1)" in result.fixed_spec
+    assert "\n    \\/ /\\ Len(channelBuffer) > 0" in result.fixed_spec
+    assert "\n       /\\ AckReceived(msg)" in result.fixed_spec
+    assert "\n    \\/ \\A p \\in PACKET_IDS :" in result.fixed_spec
+
+
+def test_fix_tla_syntax_inlines_quantified_implication_disjunct_body() -> None:
+    spec = """---- MODULE FileTransfer ----
+Next ==
+    \\/ \\A p \\in PACKET_IDS :
+    (\\E r : r=retryCount[p]) -> (
+        IF retryCount[p]>0 THEN RetransmitIfNeeded(p)
+
+       )
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "inlined quantified implication disjunct body" in result.fixes_applied
+    assert "(\\E r : r=retryCount[p]) -> (" not in result.fixed_spec
+    assert "\\/ \\A p \\in PACKET_IDS : ((\\E r : r=retryCount[p]) => IF retryCount[p]>0 THEN RetransmitIfNeeded(p))" in result.fixed_spec
 
 
 def test_fix_tla_syntax_rewrites_nested_lambda_zero_initializer() -> None:

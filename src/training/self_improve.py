@@ -622,6 +622,16 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote disjoined implication pair as IF THEN ELSE")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"(?ms)(^\s*\\/\s+\\A\s+[^\n:]+:\s*)\n\s*(\([^\n]+?\))\s*->\s*\(\s*\n\s*([^\n]+?)\s*\n\s*\)",
+        lambda m: f"{m.group(1)} ({m.group(2).strip()} => {m.group(3).strip()})",
+        fixed,
+        flags=re.MULTILINE,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("inlined quantified implication disjunct body")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\[\]\s*\[\]\s*(\[\s*Next\s*]_\w+)", r"[]\1", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized duplicate temporal box operators")
@@ -1015,6 +1025,137 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     if indented_root_level_conj:
         fixed = "\n".join(rebuilt_lines)
         result.fixes_applied.append("indented root-level operator conjunctions/disjunctions")
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    inlined_disjunct = False
+    merged_dangling_conj = False
+    normalized_backslash_action = False
+    while i < len(lines):
+        line = lines[i]
+        standalone_disj = re.match(r"^(\s*)\\{1,2}/\s*$", line)
+        if standalone_disj and i + 1 < len(lines):
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                rebuilt_lines.append(lines[j])
+                j += 1
+            if j < len(lines):
+                next_stripped = lines[j].strip()
+                if next_stripped and not re.match(r"^(====|[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==)$", next_stripped):
+                    rebuilt_lines.append(f"{standalone_disj.group(1)}\\/ {next_stripped}")
+                    inlined_disjunct = True
+                    i = j + 1
+                    continue
+
+        standalone_conj = re.match(r"^(\s*)/\\\s*$", line)
+        if standalone_conj and i + 1 < len(lines):
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                rebuilt_lines.append(lines[j])
+                j += 1
+            if j < len(lines):
+                next_stripped = lines[j].strip()
+                if next_stripped and not re.match(r"^(====|[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==)$", next_stripped):
+                    rebuilt_lines.append(f"{standalone_conj.group(1)}/\\ {next_stripped}")
+                    merged_dangling_conj = True
+                    i = j + 1
+                    continue
+
+        malformed_backslash = re.match(r"^(\s*)\\\\\s+(.+?)\s*$", line)
+        if malformed_backslash:
+            rebuilt_lines.append(f"{malformed_backslash.group(1)}/\\ {malformed_backslash.group(2)}")
+            normalized_backslash_action = True
+            i += 1
+            continue
+
+        rebuilt_lines.append(line)
+        i += 1
+    fixed_new = "\n".join(rebuilt_lines)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if inlined_disjunct:
+            result.fixes_applied.append("inlined standalone disjunct lines")
+        if merged_dangling_conj:
+            result.fixes_applied.append("merged dangling conjunction lines")
+        if normalized_backslash_action:
+            result.fixes_applied.append("normalized malformed backslash-leading action lines")
+
+        lines = fixed.splitlines()
+        rebuilt_lines = []
+        in_operator_body = False
+        second_indent_pass = False
+        for line in lines:
+            stripped = line.strip()
+            if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==$", stripped):
+                in_operator_body = True
+                rebuilt_lines.append(line)
+                continue
+            if in_operator_body:
+                if stripped == "" or stripped.startswith(("(*", "\\*")):
+                    rebuilt_lines.append(line)
+                    continue
+                if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped):
+                    in_operator_body = True
+                    rebuilt_lines.append(line)
+                    continue
+                if re.match(r"^(====|EXTENDS|CONSTANTS?\b|VARIABLES?\b|ASSUME\b|THEOREM\b|LEMMA\b|PROPOSITION\b|PROPERTY\b)", stripped):
+                    in_operator_body = False
+                    rebuilt_lines.append(line)
+                    continue
+                if line.startswith(("/\\", "\\/")):
+                    rebuilt_lines.append("    " + line)
+                    second_indent_pass = True
+                    continue
+            rebuilt_lines.append(line)
+        if second_indent_pass:
+            fixed = "\n".join(rebuilt_lines)
+
+        lines = fixed.splitlines()
+        rebuilt_lines = []
+        i = 0
+        nested_conj_indent = False
+        while i < len(lines):
+            line = lines[i]
+            inline_disj_conj = re.match(r"^(\s*)\\/\s+/\\\s+.+$", line)
+            if inline_disj_conj:
+                rebuilt_lines.append(line)
+                base_indent = inline_disj_conj.group(1)
+                child_indent = base_indent + "   "
+                i += 1
+                while i < len(lines):
+                    candidate = lines[i]
+                    if not candidate.strip():
+                        rebuilt_lines.append(candidate)
+                        i += 1
+                        continue
+                    if re.match(rf"^{re.escape(base_indent)}\\/\b", candidate):
+                        break
+                    if re.match(r"^(====|[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==)", candidate.strip()):
+                        break
+                    if candidate.startswith(base_indent + "/\\"):
+                        rebuilt_lines.append(child_indent + candidate[len(base_indent):])
+                        nested_conj_indent = True
+                        i += 1
+                        continue
+                    rebuilt_lines.append(candidate)
+                    i += 1
+                continue
+            rebuilt_lines.append(line)
+            i += 1
+        if nested_conj_indent:
+            fixed = "\n".join(rebuilt_lines)
+
+        fixed_new = re.sub(
+            r"(?ms)(^\s*\\/\s+\\A\s+[^\n:]+:\s*)\n\s*(\([^\n]+?\))\s*->\s*\(\s*\n\s*([^\n]+?)\s*\n\s*\)",
+            lambda m: f"{m.group(1)} ({m.group(2).strip()} => {m.group(3).strip()})",
+            fixed,
+            flags=re.MULTILINE,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            if "inlined quantified implication disjunct body" not in result.fixes_applied:
+                result.fixes_applied.append("inlined quantified implication disjunct body")
 
     fixed_new = fixed.replace("≜", "==")
     if fixed_new != fixed:
