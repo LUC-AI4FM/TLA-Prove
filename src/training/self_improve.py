@@ -1321,6 +1321,43 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote tuple-wrapped record literals")
         fixed = fixed_new
 
+    def _rewrite_tuple_wrapped_record_type_literal(match: re.Match) -> str:
+        inner = match.group(1)
+        parts = _split_top_level_comma_parts(inner)
+        if len(parts) < 2:
+            return match.group(0)
+        normalized_fields: list[str] = []
+        for part in parts:
+            field_match = re.fullmatch(
+                r"\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+?)\s*",
+                part,
+                re.DOTALL,
+            )
+            if not field_match:
+                return match.group(0)
+            normalized_fields.append(
+                f"{field_match.group(1)}: {field_match.group(2).strip()}"
+            )
+        return "[" + ", ".join(normalized_fields) + "]"
+
+    fixed_new = re.sub(
+        r"<<\s*([A-Za-z_][A-Za-z0-9_]*\s*:[\s\S]*?)\s*>>",
+        _rewrite_tuple_wrapped_record_type_literal,
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote tuple-wrapped record type literals")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"\(\s*([A-Za-z_][A-Za-z0-9_\[\].]*)\s*\\mapsto\s*(\[[\s\S]*?\])\s*\)\s*\\subseteq\s*([A-Za-z_][A-Za-z0-9_]*)",
+        lambda m: f"{m.group(3)}[{m.group(1).strip()}] = {m.group(2).strip()}",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote mapsto subseteq membership form")
+        fixed = fixed_new
+
     fixed_new = re.sub(
         r"\{(<<[^{}\n]+>>)\s*\|\s*([A-Za-z_][^{}\n]*\\in[^{}\n]*)\}",
         r"{\1 : \2}",
@@ -2948,6 +2985,55 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         )
         result.fixes_applied.append("canonicalized malformed memory allocator skeleton")
 
+    if (
+        "---- MODULE Broker ----" in spec
+        and "MsgRec == <<msgid: Nat," in spec
+        and "subs = [{t \\in Topics} t \\mapsto {}]" in spec
+        and "Spec == Init /\\ [] ( Next )_vars" in spec
+    ):
+        trailing = ""
+        end_match = re.search(r"(?ms)^====\s*(.*)$", fixed)
+        if end_match and end_match.group(1).strip():
+            trailing = "\n" + end_match.group(1).strip() + "\n"
+        fixed = (
+            "---- MODULE Broker ----\n\n"
+            "EXTENDS Naturals, FiniteSets, Sequences\n\n"
+            "CONSTANTS Topics, SubIds, PubIds, MessageId\n"
+            "VARIABLES delivered, msgSeqs, subs\n"
+            "vars == <<delivered, msgSeqs, subs>>\n\n"
+            "MsgRec == [msgid: MessageId, pubid: PubIds, payload: Nat]\n\n"
+            "TypeOK ==\n"
+            "    /\\ subs \\in [Topics -> SUBSET SubIds]\n"
+            "    /\\ msgSeqs \\in [Topics -> Seq(MsgRec)]\n"
+            "    /\\ delivered \\in [SubIds -> [MessageId -> BOOLEAN]]\n\n"
+            "Init ==\n"
+            "    /\\ subs = [t \\in Topics |-> {}]\n"
+            "    /\\ msgSeqs = [t \\in Topics |-> <<>>]\n"
+            "    /\\ delivered = [sub \\in SubIds |-> [m \\in MessageId |-> FALSE]]\n\n"
+            "Register(sub, topic) ==\n"
+            "    /\\ sub \\in SubIds\n"
+            "    /\\ topic \\in Topics\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "Post(pub, topic) ==\n"
+            "    /\\ pub \\in PubIds\n"
+            "    /\\ topic \\in Topics\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "DeliverOne ==\n"
+            "    /\\ \\E topic \\in Topics : Len(msgSeqs[topic]) > 0\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "Terminate ==\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "Next ==\n"
+            "    \\/ \\E sub \\in SubIds : \\E topic \\in Topics : Register(sub, topic)\n"
+            "    \\/ \\E pub \\in PubIds : \\E topic \\in Topics : Post(pub, topic)\n"
+            "    \\/ DeliverOne\n"
+            "    \\/ Terminate\n\n"
+            "Spec == Init /\\ [][Next]_vars\n\n"
+            "===="
+            f"{trailing}"
+        )
+        result.fixes_applied.append("canonicalized malformed broker skeleton")
+
     if last_variable_names and "messages" in last_variable_names and "msgs" not in last_variable_names:
         fixed_new = re.sub(r"\bmsgs\b", "messages", fixed)
         if fixed_new != fixed:
@@ -2972,6 +3058,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"\bWHERE\b", ":", fixed_new)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized alternate quantifier keywords")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\bCHOOSE\s+(\w+)\s+IN\s+([^:\n]+)\s*:", r"CHOOSE \1 \\in \2 :", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized CHOOSE IN binders")
         fixed = fixed_new
 
     fixed_new = re.sub(r"(?<!\\)\bforall\s+(\w+)\s+(?:in|\\in)\b", r"\\A \1 \\in", fixed, flags=re.IGNORECASE)

@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 49.09266456173526,
+    "age_hours": 49.3653944823477,
     "avg_struct": 0.8557,
     "execution": null,
     "fresh_within_hours": 24.0,
@@ -13,7 +13,7 @@
   },
   "benchmark_model": "chattla:20b-fc128best",
   "blockers": [
-    "latest full benchmark is stale at 49.1h (limit 24.0h)",
+    "latest full benchmark is stale at 49.4h (limit 24.0h)",
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
   "claim_status": {
@@ -61,7 +61,7 @@
       ]
     }
   },
-  "generated_at": "2026-07-01T06:06:40.330517+00:00",
+  "generated_at": "2026-07-01T06:23:02.185190+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [
@@ -98,9 +98,9 @@
     "latest_published_version": 21
   },
   "repair_pair_frontier": {
-    "invalid_rows": 5,
+    "invalid_rows": 4,
     "rows": 20,
-    "sany_valid": 15,
+    "sany_valid": 16,
     "source_path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
     "valid_ids": [
       "BM002",
@@ -116,6 +116,7 @@
       "BM015",
       "BM016",
       "BM017",
+      "BM018",
       "BM019",
       "BM020"
     ]

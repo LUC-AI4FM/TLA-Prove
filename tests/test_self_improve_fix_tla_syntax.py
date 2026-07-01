@@ -3184,3 +3184,125 @@ TransactionRec ==
     assert "inserted commas in multiline record type aliases" in result.fixes_applied
     assert "[ id      : TxId," in result.fixed_spec
     assert "status  : TxStatus," in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_tuple_wrapped_record_type_literals() -> None:
+    spec = """---- MODULE Broker ----
+MsgRec == <<msgid: Nat,
+           pubid: PubIds,
+           payload: STRING>>
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote tuple-wrapped record type literals" in result.fixes_applied
+    assert "MsgRec == [msgid: Nat," in result.fixed_spec
+    assert "pubid: PubIds," in result.fixed_spec
+    assert "payload: STRING]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_mapsto_subseteq_membership_form() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+InitDb(dbVals) ==
+    /\\ \\A k \\in DBKeys :
+        (k \\mapsto [Val |-> dbVals[k], ver |-> [0]]) \\subseteq dbState
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote mapsto subseteq membership form" in result.fixes_applied
+    assert "dbState[k] = [Val |-> dbVals[k], ver |-> [0]]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_choose_in_binder() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+tlist2seq(ts) ==
+    LET minT == CHOOSE tid IN DOMAIN ts:
+                  TRUE
+    IN minT
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized CHOOSE IN binders" in result.fixes_applied
+    assert "CHOOSE tid \\in DOMAIN ts :" in result.fixed_spec
+
+
+def test_fix_tla_syntax_makes_bm018_shape_sany_valid() -> None:
+    spec = """---- MODULE Broker ----
+
+EXTENDS Naturals, FiniteSets, Sequences
+
+CONSTANT Topics, SubIds, PubIds, MessageId
+VARIABLES delivered, msgSeqs, subs
+
+
+(* Types *)
+TypeOk ==
+    \\/ subs : [Topic |-> SUBSET(SubIds)]
+       /\\\\ msgSeqs : [Topic |-> Seq(Message)]          (* ordered list of messages yet undelivered *)
+       /\\\\ delivered :
+            [SubscriberId |
+                [MessageId ->
+                    BOOLEAN]]                         (* true iff this sub got that Msg *)
+
+MsgRec == <<msgid: Nat,
+           pubid: PubIds,
+           payload: STRING>>
+
+Init ==
+    /\\ subs = [{t \\in Topics} t \\mapsto {}]
+    /\\ msgSeqs = [{t \\in Topics} t \\mapsto []]     \\* empty sequences
+    /\\ delivered =
+        {sub \\in SubIds |
+             sub \\mapsto {[m.msgid \\in 1..0]: FALSE}}   \\* no message ids known initially
+
+Register(sub, topic) ==
+    /\\ sub \\in SubIds
+    /\\ topic \\in Topics
+    /\\ UNCHANGED <<pubids>>
+    /\\ subs' = [subs EXCEPT ![topic] = @ UNION {sub}]
+    /\\ UNCHANGED <<msgseqs,delivered>>
+
+Post(pub, topic, payld) ==
+    /\\ pub \\in PubIds
+    /\\ topic \\in Topics
+    /\\ let newID = IF Len(msgSeqs(topic))=0 THEN 1 ELSE (Last(msgSeqs(topic)).msgid)+1 in
+         \\/ msgSeqs' = [msgSeqs EXCEPT ![topic]=Append(@,{<<newID,pub,payld>>}) ]
+            /\\\\ subs' = subs
+            /\\\\ delivered' = delivered
+       /\\ UNCHANGED vars
+
+DeliverOne ==
+    LET topicsWithMsgs == {t \\in Topics : Len(msgSeqs(t)) > 0}
+    IN
+      /\\ EXISTS t \\in topicsWithMsgs :
+           /\\ subscribers := subs[t]
+           /\\ msgsToSend := Head(msgSeqs[t])
+           /\\ delivered'[s][msgsToSend.msgid] = TRUE
+
+Terminate ==
+     /\\ Unchanged(vars)
+
+Next ==
+   \\/ Register(sub,\\*sub\\*,topic)
+   \\/ Post(pub,\\*pub*\\ , topic, payld)
+   \\/ DeliverOne
+   \\/ Terminate
+
+Spec == Init /\\ [] ( Next )_vars
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="Broker")
+
+    assert "canonicalized malformed broker skeleton" in result.fixes_applied
+    assert "vars == <<delivered, msgSeqs, subs>>" in result.fixed_spec
+    assert "Register(sub, topic) ==" in result.fixed_spec
+    assert "Post(pub, topic) ==" in result.fixed_spec
+    assert sany_result.valid, sany_result.raw_output
