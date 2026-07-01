@@ -946,6 +946,21 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote bracketed record-set syntax")
         fixed = fixed_new
 
+    actor_domain = None
+    if re.search(r"(?m)^CONSTANTS?\s+.*\bParticipants\b", fixed):
+        actor_domain = "Participants"
+        if '"Coordinator"' in fixed:
+            actor_domain = 'Participants \\cup {"Coordinator"}'
+    if actor_domain:
+        fixed_new = re.sub(
+            r"\[sender:\s*ANY,\s*receiver:\s*ANY,\s*kind:\s*([A-Za-z_][A-Za-z0-9_]*)\]",
+            lambda m: f"[sender: {actor_domain}, receiver: {actor_domain}, kind: {m.group(1)}]",
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("rewrote ANY message record fields to actor domain")
+
     fixed_new = re.sub(
         r"(?<!<)<\s*([^<>\n]+,\s*[^<>\n]+(?:,\s*[^<>\n]+)*)\s*>(?!>)",
         lambda m: f"<<{m.group(1)}>>",

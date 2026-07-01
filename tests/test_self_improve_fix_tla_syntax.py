@@ -1156,6 +1156,32 @@ UpdateMsgs ==
     assert sany_result.valid, sany_result.raw_output
 
 
+def test_fix_tla_syntax_rewrites_message_record_any_fields_to_actor_domain() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+CONSTANT Participants
+VARIABLES messages
+
+MessageTypes == {"Prepare", "VoteYes", "VoteNo", "Commit", "Abort"}
+
+TypeOK ==
+    /\\ messages \\subseteq [{ sender: ANY,
+                              receiver: ANY,
+                              kind: MessageTypes }]
+
+Init ==
+    /\\ messages = {<<"Coordinator", p, "Prepare">> : p \\in Participants}
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote ANY message record fields to actor domain" in result.fixes_applied
+    assert "[sender: ANY, receiver: ANY, kind: MessageTypes]" not in result.fixed_spec
+    assert '[sender: Participants \\cup {"Coordinator"}, receiver: Participants \\cup {"Coordinator"}, kind: MessageTypes]' in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="TwoPhaseCommit")
+    assert sany_result.valid, sany_result.raw_output
+
+
 def test_fix_tla_syntax_completes_conjunctive_if_block_missing_else() -> None:
     spec = """---- MODULE TwoPhaseCommit ----
 deliver(msg) ==
