@@ -1120,7 +1120,84 @@ Next ==
 
     assert "inlined quantified implication disjunct body" in result.fixes_applied
     assert "(\\E r : r=retryCount[p]) -> (" not in result.fixed_spec
-    assert "\\/ \\A p \\in PACKET_IDS : ((\\E r : r=retryCount[p]) => IF retryCount[p]>0 THEN RetransmitIfNeeded(p))" in result.fixed_spec
+    assert "completed quantified action IF missing ELSE branch" in result.fixes_applied
+    assert "\\/ \\A p \\in PACKET_IDS : ((\\E r : r=retryCount[p]) => IF retryCount[p]>0 THEN RetransmitIfNeeded(p) ELSE UnchangedVars)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_completes_quantified_action_if_missing_else() -> None:
+    spec = """---- MODULE FileTransfer ----
+Next ==
+    \\/ \\A p \\in PACKET_IDS : ((\\E r : r=retryCount[p]) => IF retryCount[p]>0 THEN RetransmitIfNeeded(p))
+
+UnchangedVars == x' = x
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "completed quantified action IF missing ELSE branch" in result.fixes_applied
+    assert "IF retryCount[p]>0 THEN RetransmitIfNeeded(p) ELSE UnchangedVars" in result.fixed_spec
+
+
+def test_fix_tla_syntax_benchmark_shape_inlines_and_completes_quantified_action_if() -> None:
+    spec = """---- MODULE FileTransfer ----
+Next ==
+    \\/ \\A p \\in PACKET_IDS :
+    (\\E r : r=retryCount[p]) -> (
+        IF retryCount[p]>0 THEN RetransmitIfNeeded(p)
+
+       )
+
+UnchangedVars == x' = x
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "inlined quantified implication disjunct body" in result.fixes_applied
+    assert "completed quantified action IF missing ELSE branch" in result.fixes_applied
+    assert "\\/ \\A p \\in PACKET_IDS : ((\\E r : r=retryCount[p]) => IF retryCount[p]>0 THEN RetransmitIfNeeded(p) ELSE UnchangedVars)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_late_stage_quantified_action_if_completion() -> None:
+    spec = """---- MODULE FileTransfer ----
+Next ==
+    \\/
+    /\\ currentChunkIndex < FILE_LENGTH
+    /\\
+SendPacket(currentChunkIndex+1)
+
+\\\\/
+\\A p \\in PACKET_IDS :
+    (\\E r : r=retryCount[p]) -> (
+        IF retryCount[p]>0 THEN RetransmitIfNeeded(p)
+
+       )
+
+UnchangedVars == x' = x
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "inlined standalone disjunct lines" in result.fixes_applied
+    assert "inlined quantified implication disjunct body" in result.fixes_applied
+    assert "completed quantified action IF missing ELSE branch" in result.fixes_applied
+    assert "\\/ \\A p \\in PACKET_IDS : ((\\E r : r=retryCount[p]) => IF retryCount[p]>0 THEN RetransmitIfNeeded(p) ELSE UnchangedVars)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_benchmark_shaped_spec_temporal_box_spacing() -> None:
+    spec = """---- MODULE FileTransfer ----
+Spec == Init /\\ [][ Next ]_<< sentChunks ,ackdPackets ,retryCount ,
+                               currentChunkIndex ,channelBuffer >> /\\ TypeOK
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized spaced Spec temporal box" in result.fixes_applied
+    assert "[][ Next ]_" not in result.fixed_spec
+    assert "Spec == Init /\\ [][Next]_<< sentChunks ,ackdPackets ,retryCount ," in result.fixed_spec
 
 
 def test_fix_tla_syntax_rewrites_nested_lambda_zero_initializer() -> None:

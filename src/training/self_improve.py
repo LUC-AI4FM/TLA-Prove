@@ -603,6 +603,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized multiline Spec temporal formula")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"\[\]\[\s*Next\s*]_", r"[][Next]_", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized spaced Spec temporal box")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"Spec\s*==\s*Init\s*/\\\s*\[\]_\(\s*vars\s*\)\[\[\s*Next\s*]]", r"Spec == Init /\\ [][Next]_vars", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized malformed vars Spec temporal formula")
@@ -630,6 +635,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     )
     if fixed_new != fixed:
         result.fixes_applied.append("inlined quantified implication disjunct body")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(?m)(^\s*\\/\s+\\A\s+[^\n:]+:\s*\(\([^\n]+?=>\s*IF\s+.+?\s+THEN\s+[A-Za-z_][A-Za-z0-9_]*(?:\([^)\n]*\))?)\)$",
+        r"\1 ELSE UnchangedVars)",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("completed quantified action IF missing ELSE branch")
         fixed = fixed_new
 
     fixed_new = re.sub(r"\[\]\s*\[\]\s*(\[\s*Next\s*]_\w+)", r"[]\1", fixed)
@@ -1156,6 +1170,16 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             fixed = fixed_new
             if "inlined quantified implication disjunct body" not in result.fixes_applied:
                 result.fixes_applied.append("inlined quantified implication disjunct body")
+
+        fixed_new = re.sub(
+            r"(?m)(^\s*\\/\s+\\A\s+[^\n:]+:\s*\(\([^\n]+?=>\s*IF\s+.+?\s+THEN\s+[A-Za-z_][A-Za-z0-9_]*(?:\([^)\n]*\))?)\)$",
+            r"\1 ELSE UnchangedVars)",
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            if "completed quantified action IF missing ELSE branch" not in result.fixes_applied:
+                result.fixes_applied.append("completed quantified action IF missing ELSE branch")
 
     fixed_new = fixed.replace("≜", "==")
     if fixed_new != fixed:
