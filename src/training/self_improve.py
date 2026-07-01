@@ -613,6 +613,19 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized malformed vars Spec temporal formula")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"(?m)^IF\s+([A-Za-z_][A-Za-z0-9_]*)\s*#\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\/\s*(?:\\E|EXISTS)\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\\\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*<=\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*&\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]+\])?)\s*<=\s*(-?\d+)\s+THEN\s+(.+?)\s+ELSE\s+(.+)$",
+        lambda m: (
+            f"IF ({m.group(1)} # {m.group(2)}) \\/ "
+            f"(\\E {m.group(3)} : ({m.group(4)} <= {m.group(5)}) /\\ {m.group(6)} <= {m.group(7)}) "
+            f"THEN {m.group(8)} ELSE {m.group(9)}"
+        ),
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized malformed terminating IF condition")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"(?m)^(\s*)\\/\s*(\([^\n]+\)|[A-Za-z_][^\n]*?)\s*=>\s*$", r"\1\\/ /\\ \2", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized guarded disjunct lines")
@@ -689,9 +702,25 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = fixed_new
 
     fixed_new = re.sub(r"\blen\(", "Len(", fixed)
+    fixed_new = re.sub(r"\bLEN\(", "Len(", fixed_new)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized Len(...) casing")
         fixed = fixed_new
+
+    fixed_new = re.sub(r"\[\[\s*([^\[\]\n]+?)\s*\]\]", r"<<\1>>", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote double-bracket singleton sequence literal")
+        fixed = fixed_new
+
+    if not re.search(r"(?m)^\s*Insert\s*\(", fixed):
+        fixed_new = re.sub(
+            r"\bInsert\(\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]+\])?)\s*,\s*([^)]+?)\s*\)",
+            r"\1 \\cup {\2}",
+            fixed,
+        )
+        if fixed_new != fixed:
+            result.fixes_applied.append("rewrote Insert pseudo-op as set union")
+            fixed = fixed_new
 
     fixed_new = re.sub(
         r"SUM_\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^}\n]+)\}\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]\n]+\])+)",
@@ -1181,6 +1210,30 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             if "completed quantified action IF missing ELSE branch" not in result.fixes_applied:
                 result.fixes_applied.append("completed quantified action IF missing ELSE branch")
 
+    lines = fixed.splitlines()
+    def_idx = next((idx for idx, line in enumerate(lines) if re.match(r"^\s*UnchangedVars\s*==", line)), None)
+    if def_idx is not None:
+        first_use_idx = next((idx for idx, line in enumerate(lines) if idx != def_idx and "UnchangedVars" in line), None)
+        if first_use_idx is not None and first_use_idx < def_idx:
+            block_end = def_idx + 1
+            while block_end < len(lines):
+                stripped = lines[block_end].strip()
+                if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped) or stripped == "====":
+                    break
+                block_end += 1
+            insert_idx = first_use_idx
+            while insert_idx > 0:
+                stripped = lines[insert_idx].strip()
+                if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped):
+                    break
+                insert_idx -= 1
+            block = lines[def_idx:block_end]
+            remainder = lines[:def_idx] + lines[block_end:]
+            if def_idx < insert_idx:
+                insert_idx -= len(block)
+            fixed = "\n".join(remainder[:insert_idx] + block + remainder[insert_idx:])
+            result.fixes_applied.append("moved UnchangedVars definition before first use")
+
     fixed_new = fixed.replace("≜", "==")
     if fixed_new != fixed:
         result.fixes_applied.append("normalized definition symbol to ==")
@@ -1335,11 +1388,40 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             fixed = fixed_new
             result.fixes_applied.append("realigned vars tuple with VARIABLES declaration")
 
+        fixed_new = re.sub(
+            r"(?ms)Spec\s*==\s*Init\s*/\\+\s*\[\]\[\s*Next\s*]_\s*<<.+?>>\s*/\\+\s*([^\n]+)",
+            lambda m: f"Spec == Init /\\ [][Next]_{vars_tuple} /\\ {m.group(1).strip()}",
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("realigned Spec vars tuple with VARIABLES declaration")
+
+        alias_map: dict[str, str] = {}
+        for name in last_variable_names:
+            alias = re.sub(r"(?<!^)([A-Z])", r"_\1", name).upper()
+            if alias != name and alias not in alias_map:
+                alias_map[alias] = name
+        fixed_new = fixed
+        for alias, name in alias_map.items():
+            fixed_new = re.sub(rf"\b{re.escape(alias)}\b", name, fixed_new)
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("normalized uppercase variable aliases")
+
         def _normalize_unless_condition(expr: str) -> str:
             expr = expr.strip()
             expr = re.sub(
                 r"([A-Za-z_][A-Za-z0-9_\[\]]*)\s*\\#\s*IN\s*([A-Za-z_][A-Za-z0-9_]*)",
                 r"~(\1 \\in \2)",
+                expr,
+            )
+            expr = re.sub(
+                r"([A-Za-z_][A-Za-z0-9_]*)\s*#\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\/\s*(?:\\E|EXISTS)\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\\\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*<=\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*&\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]+\])?)\s*<=\s*(-?\d+)",
+                lambda m: (
+                    f"({m.group(1)} # {m.group(2)}) \\/ "
+                    f"(\\E {m.group(3)} : ({m.group(4)} <= {m.group(5)}) /\\ {m.group(6)} <= {m.group(7)})"
+                ),
                 expr,
             )
             expr = re.sub(r"\bIN\b", r"\\in", expr)

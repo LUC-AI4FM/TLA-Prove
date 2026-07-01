@@ -817,6 +817,20 @@ TypeInvariant ==
     assert "(* All variables must be finite sets. *)" in result.fixed_spec
 
 
+def test_fix_tla_syntax_normalizes_uppercase_len_casing() -> None:
+    spec = """---- MODULE FileTransfer ----
+SendPacket(p) ==
+    /\\ p > LEN(channelBuffer)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized Len(...) casing" in result.fixes_applied
+    assert "LEN(channelBuffer)" not in result.fixed_spec
+    assert "Len(channelBuffer)" in result.fixed_spec
+
+
 def test_fix_tla_syntax_rewrites_chained_inequalities() -> None:
     spec = """---- MODULE ClockSync ----
 TypeInvariant ==
@@ -1030,7 +1044,7 @@ retryCount'[p] = MAX_RETRY
 
     assert "grouped mixed disjunct guard into conjunction block" in result.fixes_applied
     assert "promoted dangling update lines into conjunction block" in result.fixes_applied
-    assert "/\\ (~(p \\in sentChunks) \\/ p > LEN(channelBuffer))" in result.fixed_spec
+    assert "/\\ (~(p \\in sentChunks) \\/ p > Len(channelBuffer))" in result.fixed_spec
     assert "/\\ channelBuffer' = Append(channelBuffer, <<p>>)" in result.fixed_spec
     assert "/\\ retryCount' = [retryCount EXCEPT ![p] = MAX_RETRY]" in result.fixed_spec
 
@@ -1052,7 +1066,7 @@ UNLESS p \\# IN CHANNEL_BUFFER then skip else (
     assert "rewrote UNLESS skip/else pseudocode as IF/UNCHANGED/ELSE" in result.fixes_applied
     assert "UNLESS p \\# IN CHANNEL_BUFFER then skip else" not in result.fixed_spec
     assert (
-        "IF ~(p \\in CHANNEL_BUFFER) THEN UNCHANGED <<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> ELSE ("
+        "IF ~(p \\in channelBuffer) THEN UNCHANGED <<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> ELSE ("
         in result.fixed_spec
     )
 
@@ -1103,6 +1117,20 @@ SendPacket(currentChunkIndex+1)
     assert "\n    \\/ /\\ Len(channelBuffer) > 0" in result.fixed_spec
     assert "\n       /\\ AckReceived(msg)" in result.fixed_spec
     assert "\n    \\/ \\A p \\in PACKET_IDS :" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_double_bracket_singleton_sequence_literal() -> None:
+    spec = """---- MODULE FileTransfer ----
+SendPacket(p) ==
+    /\\ channelBuffer' = Append(channelBuffer, [[p]])
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote double-bracket singleton sequence literal" in result.fixes_applied
+    assert "[[p]]" not in result.fixed_spec
+    assert "Append(channelBuffer, <<p>>)" in result.fixed_spec
 
 
 def test_fix_tla_syntax_inlines_quantified_implication_disjunct_body() -> None:
@@ -1198,6 +1226,81 @@ Spec == Init /\\ [][ Next ]_<< sentChunks ,ackdPackets ,retryCount ,
     assert "normalized spaced Spec temporal box" in result.fixes_applied
     assert "[][ Next ]_" not in result.fixed_spec
     assert "Spec == Init /\\ [][Next]_<< sentChunks ,ackdPackets ,retryCount ," in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_malformed_terminating_if_condition() -> None:
+    spec = """---- MODULE FileTransfer ----
+Terminating ==
+IF ackedPackets # PACKET_IDS \\/ \\E p:\\(p <=FILE_LENGTH) & retryCount[p]<=-1 THEN UNCHANGED <<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> ELSE UnchangedVars
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized malformed terminating IF condition" in result.fixes_applied
+    assert "\\E p:\\(" not in result.fixed_spec
+    assert " & " not in result.fixed_spec
+    assert "IF (ackedPackets # PACKET_IDS) \\/ (\\E p : (p <= FILE_LENGTH) /\\ retryCount[p] <= -1) THEN UNCHANGED <<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> ELSE UnchangedVars" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_upper_snake_variable_aliases() -> None:
+    spec = """---- MODULE FileTransfer ----
+VARIABLES channelBuffer, currentChunkIndex
+
+AckReceived(p) ==
+    /\\ IF ~(p \\in CHANNEL_BUFFER) THEN currentChunkIndex' = currentChunkIndex ELSE currentChunkIndex' = currentChunkIndex
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized uppercase variable aliases" in result.fixes_applied
+    assert "CHANNEL_BUFFER" not in result.fixed_spec
+    assert "channelBuffer" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_insert_pseudo_op_as_set_union() -> None:
+    spec = """---- MODULE FileTransfer ----
+AckReceived(p) ==
+    /\\ ackedPackets' = Insert(ackedPackets,p)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote Insert pseudo-op as set union" in result.fixes_applied
+    assert "Insert(ackedPackets,p)" not in result.fixed_spec
+    assert "ackedPackets' = ackedPackets \\cup {p}" in result.fixed_spec
+
+
+def test_fix_tla_syntax_moves_unchangedvars_definition_before_first_use() -> None:
+    spec = """---- MODULE FileTransfer ----
+RetransmitIfNeeded(p) ==
+    IF retryCount[p] > 0 THEN SendPacket(p) ELSE UnchangedVars
+
+UnchangedVars == /\\ retryCount' = retryCount
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "moved UnchangedVars definition before first use" in result.fixes_applied
+    assert result.fixed_spec.index("UnchangedVars ==") < result.fixed_spec.index("RetransmitIfNeeded(p) ==")
+
+
+def test_fix_tla_syntax_realigns_multiline_spec_tuple_with_variables_declaration() -> None:
+    spec = """---- MODULE FileTransfer ----
+VARIABLES sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount
+
+Spec == Init /\\\\ [][ Next ]_<< sentChunks ,ackdPackets ,retryCount ,
+                               currentChunkIndex ,channelBuffer >> /\\ TypeOK
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "realigned Spec vars tuple with VARIABLES declaration" in result.fixes_applied
+    assert "Spec == Init /\\ [][Next]_<<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> /\\ TypeOK" in result.fixed_spec
 
 
 def test_fix_tla_syntax_rewrites_nested_lambda_zero_initializer() -> None:
