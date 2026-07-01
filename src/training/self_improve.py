@@ -571,6 +571,22 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("removed CONSTDEF pseudo-keyword")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"(?m)^\*{3,}.*\*{3,}\s*$", "", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed markdown-style banner lines")
+        fixed = fixed_new
+
+    fixed_new = fixed.replace("/*", "(*").replace("*/", "*)")
+    fixed_new = re.sub(r"(?m)//\s?(.*)$", r"\\* \1", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized non-TLA comment styles")
+        fixed = fixed_new
+
+    fixed_new = fixed.replace("\\land", "/\\").replace("\\and", "/\\").replace("\\vee", "\\/")
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized logical word operators")
+        fixed = fixed_new
+
     fixed_new = fixed.replace("≜", "==")
     if fixed_new != fixed:
         result.fixes_applied.append("normalized definition symbol to ==")
@@ -585,6 +601,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"/=", "#", fixed_new)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized pseudo-inequality operators")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"(^\s*/\\\s+)[A-Z][A-Z0-9_]*:\s*", r"\1", fixed, flags=re.MULTILINE)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed conjunct labels")
         fixed = fixed_new
 
     fixed_new = re.sub(r"(^\s*/\\\s+\w+(?:\[[^]\n]+\])?)\s*:\s*", r"\1 \\in ", fixed, flags=re.MULTILINE)
@@ -736,6 +757,12 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized alternate quantifier keywords")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"\bforall\s+(\w+)\s+in\b", r"\\A \1 \\in", fixed, flags=re.IGNORECASE)
+    fixed_new = re.sub(r"\bexists\s+(\w+)\s+in\b", r"\\E \1 \\in", fixed_new, flags=re.IGNORECASE)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized bare quantifier words")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"(\\[AE]\s+\w+)\s+IN\b", r"\1 \\in", fixed)
     fixed_new = re.sub(r"(\[\s*[A-Za-z_][A-Za-z0-9_]*\s+)IN\b", r"\1\\in", fixed_new)
     if fixed_new != fixed:
@@ -746,6 +773,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"\bUNCHANGE\s+([A-Za-z_][A-Za-z0-9_]*)\b", r"UNCHANGED \1", fixed_new)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized UNCHANGE operator")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\b(?i:unchanged)\b(?=\s|[\[(])", "UNCHANGED", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized UNCHANGED operator casing")
         fixed = fixed_new
 
     fixed_new = re.sub(r"\\IN\b", r"\\in", fixed)
@@ -770,6 +802,16 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"\\exists\b", r"\\E", fixed_new, flags=re.IGNORECASE)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized lowercase TeX quantifiers")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"(?<![\w\"])\bTRUE\b(?!\")", "TRUE", fixed)
+    fixed_new = re.sub(r"(?<![\w\"])\bFALSE\b(?!\")", "FALSE", fixed_new)
+    fixed_new = re.sub(r"(?<![\w\"])\bTrue\b(?!\")", "TRUE", fixed_new)
+    fixed_new = re.sub(r"(?<![\w\"])\bFalse\b(?!\")", "FALSE", fixed_new)
+    fixed_new = re.sub(r"(?<![\w\"])\btrue\b(?!\")", "TRUE", fixed_new)
+    fixed_new = re.sub(r"(?<![\w\"])\bfalse\b(?!\")", "FALSE", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized boolean literal casing")
         fixed = fixed_new
 
     fixed_new = re.sub(r"EXCEPT\s+(!\[[^]]+\]\s*=\s*)@\(([^()\n]+)\)", r"EXCEPT \1\2", fixed)
@@ -802,6 +844,24 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote tuple-comprehension function initializer")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"DOMAIN\s*\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\|->\s*\1\s+IN\s+([^\]\n]+)\]",
+        r"DOMAIN [\1 \\in \2 |-> \1]",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote DOMAIN function-constructor membership form")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"\[\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^\]\n]+)\]\s*\|->\s*([^\n]+?)\]",
+        r"[\1 \\in \2 |-> \3]",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized double-bracket function constructors")
+        fixed = fixed_new
+
     init_match = re.search(r"(^Init\s*==\s*\n.*?)(?=^\w+(?:\([^)]*\))?\s*==|\Z)", fixed, re.MULTILINE | re.DOTALL)
     if init_match:
         init_block = init_match.group(1)
@@ -809,6 +869,25 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if repaired_init != init_block:
             fixed = fixed[:init_match.start(1)] + repaired_init + fixed[init_match.end(1):]
             result.fixes_applied.append("removed primed assignments from Init")
+
+    lines = fixed.splitlines()
+    normalized_lines: list[str] = []
+    previous_disjunct = False
+    terminating_branch_changed = False
+    for line in lines:
+        stripped = line.lstrip()
+        indent = line[:len(line) - len(stripped)]
+        if previous_disjunct and stripped.startswith("/\\ Terminating"):
+            branch = stripped.removeprefix("/\\ ").strip()
+            normalized_lines.append(f"{indent}\\/ {branch}")
+            terminating_branch_changed = True
+            previous_disjunct = True
+            continue
+        normalized_lines.append(line)
+        previous_disjunct = stripped.startswith("\\/")
+    if terminating_branch_changed:
+        fixed = "\n".join(normalized_lines)
+        result.fixes_applied.append("normalized terminating branch in disjunction block")
 
     # ── Fix 24: Remove invalid SUM/PRODUCT operators ─────────────────────
     # TLA+ has no built-in SUM. Common pattern:

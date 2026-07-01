@@ -360,3 +360,98 @@ TypeOK ==
     assert "???" not in result.fixed_spec
     assert "conflict ==" in result.fixed_spec
     assert "stale(k) ==" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_bare_quantifier_words_and_boolean_casing() -> None:
+    spec = """---- MODULE PubSub ----
+VARIABLES topics
+Invariant ==
+    /\\ forall s in Subscribers:
+         exists t in Topics: topics[t] = False
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized bare quantifier words" in result.fixes_applied
+    assert "normalized boolean literal casing" in result.fixes_applied
+    assert "forall" not in result.fixed_spec
+    assert "exists" not in result.fixed_spec
+    assert "FALSE" in result.fixed_spec
+    assert "\\A s \\in Subscribers:" in result.fixed_spec
+    assert "\\E t \\in Topics:" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_double_bracket_function_constructor_and_unchanged_case() -> None:
+    spec = """---- MODULE DekkersAlgorithm ----
+VARIABLES want, turn
+Next ==
+    /\\ want' = [[w IN {P1,P2}] |-> IF w=P1 THEN TRUE ELSE want[w]]
+    /\\ UNCHANGEd turn
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized generic IN quantifiers and constructors" in result.fixes_applied
+    assert "normalized double-bracket function constructors" in result.fixes_applied
+    assert "normalized UNCHANGED operator casing" in result.fixes_applied
+    assert "[[w" not in result.fixed_spec
+    assert "UNCHANGEd" not in result.fixed_spec
+    assert "[w \\in {P1,P2} |-> IF w=P1 THEN TRUE ELSE want[w]]" in result.fixed_spec
+    assert "UNCHANGED turn" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_comment_styles_banner_lines_and_logic_words() -> None:
+    spec = """---- MODULE FileTransfer ----
+*** Type invariant ***
+/* Initial state comment */
+Init ==
+    \\land sent = []
+    \\and acked = {}
+// fallback branch
+Next ==
+    \\vee Retry
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed markdown-style banner lines" in result.fixes_applied
+    assert "normalized non-TLA comment styles" in result.fixes_applied
+    assert "normalized logical word operators" in result.fixes_applied
+    assert "*** Type invariant ***" not in result.fixed_spec
+    assert "/*" not in result.fixed_spec
+    assert "*/" not in result.fixed_spec
+    assert "//" not in result.fixed_spec
+    assert "\\land" not in result.fixed_spec
+    assert "\\and" not in result.fixed_spec
+    assert "\\vee" not in result.fixed_spec
+    assert "(* Initial state comment *)" in result.fixed_spec
+    assert "\\* fallback branch" in result.fixed_spec
+    assert "/\\ sent = []" in result.fixed_spec
+    assert "/\\ acked = {}" in result.fixed_spec
+    assert "\\/ Retry" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_domain_pipe_in_strips_labels_and_normalizes_terminating_branch() -> None:
+    spec = """---- MODULE MutualExclusion ----
+VARIABLES procState
+ProcessIds == DOMAIN [i |-> i IN 1 .. N]
+Init ==
+    /\\ LEFT_FORK_INIT: forall f in 1..N: procState[f] = 0
+Next ==
+    \\/ StepOne
+    /\\ Terminating
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote DOMAIN function-constructor membership form" in result.fixes_applied
+    assert "removed conjunct labels" in result.fixes_applied
+    assert "normalized terminating branch in disjunction block" in result.fixes_applied
+    assert "DOMAIN [i \\in 1 .. N |-> i]" in result.fixed_spec
+    assert "LEFT_FORK_INIT:" not in result.fixed_spec
+    assert "\\A f \\in 1..N: procState[f] = 0" in result.fixed_spec
+    assert "    \\/ Terminating" in result.fixed_spec
