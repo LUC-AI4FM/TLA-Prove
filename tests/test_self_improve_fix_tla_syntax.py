@@ -88,6 +88,87 @@ Acquire(i) ==
     assert 'EXCEPT ![i] = "trying"' in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_tuple_indexed_prime_assignment_as_except_update() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+VARIABLES chanMsg
+
+SendMarker(proc, q) ==
+   /\\ chanMsg'[(proc,q)] = Append(chanMsg[(proc,q)], Marker)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote indexed prime assignment as EXCEPT update" in result.fixes_applied
+    assert "chanMsg'[(proc,q)]" not in result.fixed_spec
+    assert "chanMsg' = [chanMsg EXCEPT ![<<proc, q>>] = Append(chanMsg[<<proc, q>>], Marker)]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_tuple_indexed_function_lookup() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+VARIABLES chanMsg
+
+SendMarker(proc, q) ==
+   /\\ msg = Append(chanMsg[(proc,q)], Marker)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized tuple-indexed function lookup" in result.fixes_applied
+    assert "chanMsg[(proc,q)]" not in result.fixed_spec
+    assert "Append(chanMsg[<<proc, q>>], Marker)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_malformed_bracketed_unchanged_function_constructor() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+VARIABLES procState, recChanMsgs, recorder, chanMsg
+vars == <<procState, recChanMsgs, recorder, chanMsg>>
+
+SendMarker(proc) ==
+   /\\ UNCHANGED [x |-> y IN {proc} UNION OUTCHANNELS  \\union  RECCHANMS]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote malformed bracketed UNCHANGED constructor as vars" in result.fixes_applied
+    assert "UNCHANGED [x |-> y IN {proc} UNION OUTCHANNELS  \\union  RECCHANMS]" not in result.fixed_spec
+    assert "/\\ UNCHANGED vars" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_malformed_bracketed_unchanged_constructor_to_declared_tuple() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+VARIABLES procState, recChanMsgs, recorder, chanMsg
+
+SendMarker(proc) ==
+   /\\ UNCHANGED [x |-> y IN {proc} UNION OUTCHANNELS  \\union  RECCHANMS]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote malformed bracketed UNCHANGED constructor as declared tuple" in result.fixes_applied
+    assert "UNCHANGED [x |-> y IN {proc} UNION OUTCHANNELS  \\union  RECCHANMS]" not in result.fixed_spec
+    assert "/\\ UNCHANGED <<procState, recChanMsgs, recorder, chanMsg>>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_promotes_dangling_update_lines_under_quantified_conjunct() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+SEND_MARKERS_TO_OUTGOING(proc) ==
+    /\\ \\A q \\in OutNeighbors(proc):
+           chanMsg'[(proc,q)] = Append(chanMsg[(proc,q)], Marker)
+       /\\ UNCHANGED <<proc>>
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "promoted dangling quantified update lines into conjunction block" in result.fixes_applied
+    assert "chanMsg'[(proc,q)]" not in result.fixed_spec
+    assert "/\\ chanMsg' = [chanMsg EXCEPT ![<<proc, q>>] = Append(chanMsg[<<proc, q>>], Marker)]" in result.fixed_spec
+
+
 def test_fix_tla_syntax_removes_init_primes_and_alternate_function_initializer_shape() -> None:
     spec = """---- MODULE MutexAlgorithm ----
 VARIABLES pc, queue
@@ -744,8 +825,35 @@ NextProc(p) ==
     assert "normalized word AND/OR operators" in result.fixes_applied
     assert " AND " not in result.fixed_spec
     assert " OR " not in result.fixed_spec
-    assert 'IF procState[p] = "recorder" /\\ recorder = NULL THEN' in result.fixed_spec
+    assert "normalized NULL placeholder to Nil" in result.fixes_applied
+    assert 'IF procState[p] = "recorder" /\\ recorder = Nil THEN' in result.fixed_spec
     assert 'ELSE IF procState[p] = "other" \\/ recorder = p THEN' in result.fixed_spec
+
+
+def test_fix_tla_syntax_completes_let_helper_if_chain_and_normalizes_in_keyword() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+CONSTANT P
+VARIABLES procState, recorder
+vars == <<procState, recorder>>
+
+Next ==
+    LET nextProc(p) == IF procState[p] = "unrecorded" THEN
+                        /\\ recorder' = p
+                        /\\ UNCHANGED <<procState>>
+                      ELSE IF procState[p] = "recorded" /\\ recorder = Nil THEN
+                            /\\ UNCHANGED vars
+
+    in  /\\ (\\E p \\in P : nextProc(p))
+      /\\ UNCHANGED <<procState, recorder>>
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "completed LET helper IF chain missing final ELSE" in result.fixes_applied
+    assert "normalized lowercase in keyword after LET helper" in result.fixes_applied
+    assert "ELSE TRUE" in result.fixed_spec
+    assert "\n    IN  /\\ (\\E p \\in P : nextProc(p))" in result.fixed_spec
 
 
 def test_fix_tla_syntax_normalizes_curried_style_operator_calls() -> None:
@@ -766,6 +874,22 @@ ConsumerAction ==
     assert "Tail(q)" in result.fixed_spec
     assert "rewrote backslash lambda predicates as LAMBDA" in result.fixes_applied
     assert "RemoveFirstWhere(LAMBDA x : x[1] = p, channelBuffer)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_does_not_uppercase_quantified_binder_when_constant_alias_exists() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+CONSTANT P
+VARIABLES procState
+
+Init ==
+    /\\ \\A p \\in P : procState[p] = "unrecorded"
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "\\A P \\in P" not in result.fixed_spec
+    assert "\\A p \\in P : procState[p] = \"unrecorded\"" in result.fixed_spec
 
 
 def test_fix_tla_syntax_normalizes_sequence_helper_aliases() -> None:
@@ -1220,6 +1344,38 @@ sendMsg(s,r,m) == < s , r , m >
     assert "[sender: ANY, receiver: ANY, kind: MessageTypes]" in result.fixed_spec
     assert '{<<"Coordinator", p, "Prepare">> : p \\in Participants}' in result.fixed_spec
     assert "sendMsg(s,r,m) == <<s , r , m >>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_constant_function_application() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+CONSTANT OutNeighbors
+
+SendMarker(proc) ==
+    /\\ \\A q \\in OutNeighbors(proc): TRUE
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized constant function application syntax" in result.fixes_applied
+    assert "OutNeighbors(proc)" not in result.fixed_spec
+    assert "\\A q \\in OutNeighbors[proc]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_null_placeholder_to_nil() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+VARIABLES recorder
+
+Init ==
+    /\\ recorder = NULL
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized NULL placeholder to Nil" in result.fixes_applied
+    assert 'Nil == "nil"' in result.fixed_spec
+    assert "/\\ recorder = Nil" in result.fixed_spec
 
 
 def test_fix_tla_syntax_inserts_missing_function_constructor_arrow() -> None:
@@ -1849,6 +2005,20 @@ Spec == Init /\\\\ [][ Next ]_<< sentChunks ,ackdPackets ,retryCount ,
 
     assert "realigned Spec vars tuple with VARIABLES declaration" in result.fixes_applied
     assert "Spec == Init /\\ [][Next]_<<sentChunks, ackedPackets, channelBuffer, currentChunkIndex, retryCount>> /\\ TypeOK" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_parenthesized_next_termination_spec_formula() -> None:
+    spec = """---- MODULE DistributedSnapshot ----
+VARIABLES procState, recChanMsgs, recorder, chanMsg
+
+Spec == Init /\\ [] ( Next \\/ Terminating )
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized parenthesized Spec temporal formula" in result.fixes_applied
+    assert "Spec == Init /\\ [][Next \\/ Terminating]_<<procState, recChanMsgs, recorder, chanMsg>>" in result.fixed_spec
 
 
 def test_fix_tla_syntax_repairs_remaining_filetransfer_semantic_artifacts_to_sany_clean() -> None:

@@ -1241,6 +1241,45 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     lines = fixed.splitlines()
     rebuilt_lines = []
     i = 0
+    promoted_quantified_updates = False
+    while i < len(lines):
+        line = lines[i]
+        quantified_conj = re.match(r"^(\s*)/\\\s+\\(?:A|E)\s+.+:\s*$", line)
+        if not quantified_conj:
+            rebuilt_lines.append(line)
+            i += 1
+            continue
+        rebuilt_lines.append(line)
+        base_indent = len(quantified_conj.group(1))
+        child_indent = " " * (base_indent + 3)
+        i += 1
+        while i < len(lines):
+            candidate = lines[i]
+            stripped = candidate.strip()
+            if not stripped:
+                rebuilt_lines.append(candidate)
+                i += 1
+                continue
+            candidate_indent = len(candidate) - len(candidate.lstrip())
+            if candidate_indent <= base_indent:
+                break
+            if candidate.lstrip().startswith(("/\\", "\\/", "ELSE", "IN", "THEN")):
+                rebuilt_lines.append(candidate)
+            elif "=" in stripped or stripped.startswith("UNCHANGED"):
+                rebuilt_lines.append(f"{child_indent}/\\ {stripped}")
+                promoted_quantified_updates = True
+            else:
+                rebuilt_lines.append(candidate)
+            i += 1
+    fixed_new = "\n".join(rebuilt_lines)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if promoted_quantified_updates:
+            result.fixes_applied.append("promoted dangling quantified update lines into conjunction block")
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
     replaced_malformed_let_in_tail = False
     while i < len(lines):
         line = lines[i]
@@ -1274,6 +1313,68 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = fixed_new
         if replaced_malformed_let_in_tail:
             result.fixes_applied.append("replaced malformed LET-IN placeholder tail with IN TRUE")
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    completed_let_helper_if_chain = False
+    normalized_lowercase_in_after_let_helper = False
+    while i < len(lines):
+        line = lines[i]
+        let_if_header = re.match(
+            r"^(\s*)LET\s+[A-Za-z_][A-Za-z0-9_]*\([^)]*\)\s*==\s*IF\b.+\bTHEN\s*$",
+            line,
+        )
+        if not let_if_header:
+            rebuilt_lines.append(line)
+            i += 1
+            continue
+        rebuilt_lines.append(line)
+        base_indent = len(let_if_header.group(1))
+        j = i + 1
+        saw_else_if = False
+        saw_else = False
+        branch_indent_str: Optional[str] = None
+        while j < len(lines):
+            candidate = lines[j]
+            stripped = candidate.strip()
+            if not stripped:
+                rebuilt_lines.append(candidate)
+                j += 1
+                continue
+            in_match = re.match(r"^(\s*)(?:in|IN)\b(.*)$", candidate)
+            if in_match and len(in_match.group(1)) <= base_indent + 4:
+                if saw_else_if and not saw_else:
+                    indent = branch_indent_str or (" " * (base_indent + 3))
+                    rebuilt_lines.append(f"{indent}ELSE TRUE")
+                    completed_let_helper_if_chain = True
+                if candidate.lstrip().startswith("in"):
+                    rebuilt_lines.append(f"{in_match.group(1)}IN{in_match.group(2)}")
+                    normalized_lowercase_in_after_let_helper = True
+                else:
+                    rebuilt_lines.append(candidate)
+                j += 1
+                break
+            if re.match(r"^(====|[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==)", stripped):
+                break
+            else_if_match = re.match(r"^(\s*)ELSE IF\b", candidate)
+            else_match = re.match(r"^(\s*)ELSE\b", candidate)
+            if else_if_match:
+                saw_else_if = True
+                branch_indent_str = else_if_match.group(1)
+            elif else_match:
+                saw_else = True
+                branch_indent_str = else_match.group(1)
+            rebuilt_lines.append(candidate)
+            j += 1
+        i = j
+    fixed_new = "\n".join(rebuilt_lines)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if completed_let_helper_if_chain:
+            result.fixes_applied.append("completed LET helper IF chain missing final ELSE")
+        if normalized_lowercase_in_after_let_helper:
+            result.fixes_applied.append("normalized lowercase in keyword after LET helper")
 
     lines = fixed.splitlines()
     rebuilt_lines = []
@@ -1841,6 +1942,14 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
 
     def _rewrite_unchanged_brackets(match: re.Match) -> str:
         inner = match.group(1).strip()
+        if "|->" in inner and re.search(r"(?m)^\s*vars\s*==", fixed):
+            return "UNCHANGED vars"
+        if "|->" in inner:
+            var_match = re.search(r"(?m)^VARIABLES?\s+(.+)$", fixed)
+            if var_match:
+                names = [part.strip() for part in var_match.group(1).split(",") if part.strip()]
+                if names:
+                    return f"UNCHANGED <<{', '.join(names)}>>"
         if not inner or any(token in inner for token in ("\\A", "\\E", "\\\\", ":", "\n")):
             return match.group(0)
         unused = re.fullmatch(r"UNUSED\((\w+)\)", inner)
@@ -1854,9 +1963,13 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             return f"UNCHANGED <<{', '.join(names)}>>"
         return match.group(0)
 
-    fixed_new = re.sub(r"(?i)unchanged\[([^\]\n]+)\]", _rewrite_unchanged_brackets, fixed)
+    fixed_new = re.sub(r"(?i)unchanged\s*\[([^\]\n]+)\]", _rewrite_unchanged_brackets, fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("rewrote bracketed UNCHANGED form")
+        if "UNCHANGED vars" in fixed_new and "UNCHANGED vars" not in fixed:
+            result.fixes_applied.append("rewrote malformed bracketed UNCHANGED constructor as vars")
+        elif "UNCHANGED <<" in fixed_new and "UNCHANGED <<" not in fixed:
+            result.fixes_applied.append("rewrote malformed bracketed UNCHANGED constructor as declared tuple")
         fixed = fixed_new
 
     def _extract_decl_names(fragments: list[str], *, defined_ops: set[str]) -> list[str]:
@@ -1984,6 +2097,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if fixed_new != fixed:
             fixed = fixed_new
             result.fixes_applied.append("realigned vars tuple with VARIABLES declaration")
+
+        fixed_new = re.sub(
+            r"Spec\s*==\s*Init\s*/\\+\s*\[\]\s*\(\s*([^\n()]+?)\s*\)",
+            lambda m: f"Spec == Init /\\ [][{m.group(1).strip()}]_{vars_tuple}",
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("normalized parenthesized Spec temporal formula")
 
         fixed_new = re.sub(
             r"(?ms)Spec\s*==\s*Init\s*/\\+\s*\[\]\[\s*Next\s*]_\s*<<.+?>>\s*/\\+\s*([^\n]+)",
@@ -2168,9 +2290,17 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             result.fixes_applied.append("normalized orphaned constant constraints to ASSUME")
 
     if last_constant_names:
+        protected_lower_aliases = {
+            name
+            for name in re.findall(r"\\(?:A|E)\s+([a-z_][A-Za-z0-9_]*)\s+\\in\b", fixed)
+        }
+        protected_lower_aliases.update(
+            name
+            for name in re.findall(r"\[\s*([a-z_][A-Za-z0-9_]*)\s+\\in\b", fixed)
+        )
         for name in last_constant_names:
             alias = name.lower()
-            if alias != name and alias not in constant_alias_map:
+            if alias != name and alias not in constant_alias_map and alias not in protected_lower_aliases:
                 constant_alias_map[alias] = name
         fixed_new = fixed
         for alias, name in constant_alias_map.items():
@@ -2178,6 +2308,17 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if fixed_new != fixed:
             fixed = fixed_new
             result.fixes_applied.append("normalized lowercase constant aliases")
+
+        fixed_new = fixed
+        for name in last_constant_names:
+            fixed_new = re.sub(
+                rf"\b{re.escape(name)}\(([^()\n]+)\)",
+                rf"{name}[\1]",
+                fixed_new,
+            )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("normalized constant function application syntax")
 
     if last_variable_names and "messages" in last_variable_names and "msgs" not in last_variable_names:
         fixed_new = re.sub(r"\bmsgs\b", "messages", fixed)
@@ -2275,14 +2416,46 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             fixed = _prepend_helper_definition(fixed, 'Nil == "nil"')
         result.fixes_applied.append("normalized standalone @ placeholder to Nil")
 
+    if (
+        "NULL" in fixed
+        and not re.search(r"(?m)^\s*NULL\s*==", fixed)
+        and not re.search(r"(?m)^\s*CONSTANTS?\b.*\bNULL\b", fixed)
+    ):
+        fixed_new = re.sub(r"(?<![A-Za-z0-9_])NULL(?![A-Za-z0-9_])", "Nil", fixed)
+        if fixed_new != fixed:
+            fixed = fixed_new
+            if not re.search(r"(?m)^\s*Nil\s*==", fixed):
+                fixed = _prepend_helper_definition(fixed, 'Nil == "nil"')
+            result.fixes_applied.append("normalized NULL placeholder to Nil")
+
+    def _rewrite_indexed_prime_assignment(match: re.Match) -> str:
+        prefix = match.group(1)
+        var_name = match.group(2)
+        index_expr = match.group(3).strip()
+        rhs = match.group(4)
+        if index_expr.startswith("(") and index_expr.endswith(")") and "," in index_expr:
+            pieces = [part.strip() for part in index_expr[1:-1].split(",")]
+            if all(pieces):
+                index_expr = f"<<{', '.join(pieces)}>>"
+        return f"{prefix}{var_name}' = [{var_name} EXCEPT ![{index_expr}] = {rhs}]"
+
     fixed_new = re.sub(
         r"(^\s*/\\\s+)([A-Za-z_][A-Za-z0-9_]*)'\[([^\]\n]+)\]\s*=\s*([^\n]+)$",
-        r"\1\2' = [\2 EXCEPT ![\3] = \4]",
+        _rewrite_indexed_prime_assignment,
         fixed,
         flags=re.MULTILINE,
     )
     if fixed_new != fixed:
         result.fixes_applied.append("rewrote indexed prime assignment as EXCEPT update")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"([A-Za-z_][A-Za-z0-9_]*)\[\(\s*([^,\]\n]+?)\s*,\s*([^\)\]\n]+?)\s*\)\]",
+        r"\1[<<\2, \3>>]",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized tuple-indexed function lookup")
         fixed = fixed_new
 
     fixed_new = re.sub(
