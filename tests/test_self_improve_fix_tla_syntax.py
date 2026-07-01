@@ -300,3 +300,63 @@ Next ==
     assert "rewrote bracketed UNCHANGED form" in result.fixes_applied
     assert "removed UNCHANGED <<>> (empty tuple)" in result.fixes_applied
     assert "Unchanged[" not in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_double_box_temporal_forms() -> None:
+    spec = """---- MODULE KeyValueStore ----
+VARIABLES kvs
+vars == <<kvs>>
+Spec == Init /\\ [][][Next]_vars
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized duplicate temporal box operators" in result.fixes_applied
+    assert "[][][Next]_vars" not in result.fixed_spec
+    assert "Spec == Init /\\ [][Next]_vars" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_backslash_in_case_and_set_comprehension_arrow() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+VARIABLES txs
+TypeOK ==
+    /\\ FORALL k \\In KEYS : k \\IN VALUES
+MaxId ==
+    MAX({tx.id | tx <- txs} \\cup {1-1})
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized backslash operator casing" in result.fixes_applied
+    assert "normalized set-comprehension <- to \\in" in result.fixes_applied
+    assert "\\In" not in result.fixed_spec
+    assert "\\IN" not in result.fixed_spec
+    assert "<-" not in result.fixed_spec
+    assert "tx \\in txs" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_identifier_question_suffix_and_stray_question_runs() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+VARIABLES committed
+conflict? ==
+    \\E w1, w2 \\in committed : w1 # w2
+stale?(k) ==
+    ~conflict?
+Spec == Init /\\ []<>(vars) \\/ Next)_vars ???
+TypeOK ==
+    /\\ want = <<TRUE/FALSE>>?
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized identifier question suffixes" in result.fixes_applied
+    assert "removed stray question-mark runs" in result.fixes_applied
+    assert "conflict?" not in result.fixed_spec
+    assert "stale?" not in result.fixed_spec
+    assert ">>>?" not in result.fixed_spec
+    assert "???" not in result.fixed_spec
+    assert "conflict ==" in result.fixed_spec
+    assert "stale(k) ==" in result.fixed_spec

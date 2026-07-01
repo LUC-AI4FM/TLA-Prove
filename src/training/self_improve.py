@@ -418,6 +418,18 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     # Remove ASSUME lines that are now syntactically broken
     fixed = re.sub(r"^\s*ASSUME\s*~?\s*\(\s*\)\s*$", "", fixed, flags=re.MULTILINE)
 
+    # ── Fix 18b: Remove question-mark junk from identifiers / expressions ─
+    fixed_new = re.sub(r"([A-Za-z_][A-Za-z0-9_]*)\?(?![A-Za-z0-9_])", r"\1", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized identifier question suffixes")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"([>\]A-Za-z0-9_])\?+(?=\s*(?:\(\*|\\\*|$))", r"\1", fixed)
+    fixed_new = re.sub(r"\?{2,}", "", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("removed stray question-mark runs")
+        fixed = fixed_new
+
     # ── Fix 19: Auto-define `vars` if referenced but not defined ──────────
     # Models often use WF_vars(Next) or SF_vars(Next) without defining vars.
     if re.search(r"\bvars\b", fixed) and not re.search(r"^\s*vars\s*==", fixed, re.MULTILINE):
@@ -547,6 +559,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"Spec\s*==\s*Init\s*/\\\s*\[\]\s+Next\b", r"Spec == Init /\\ []Next", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized plain Spec [] Next spacing")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\[\]\s*\[\]\s*(\[\s*Next\s*]_\w+)", r"[]\1", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized duplicate temporal box operators")
         fixed = fixed_new
 
     fixed_new = re.sub(r"\bCONSTDEF\b", "", fixed)
@@ -729,6 +746,17 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"\bUNCHANGE\s+([A-Za-z_][A-Za-z0-9_]*)\b", r"UNCHANGED \1", fixed_new)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized UNCHANGE operator")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\\IN\b", r"\\in", fixed)
+    fixed_new = re.sub(r"\\In\b", r"\\in", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized backslash operator casing")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\|\s*([A-Za-z_][A-Za-z0-9_.]*)\s*<-\s*([^}|]+)", r"| \1 \\in \2", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized set-comprehension <- to \\in")
         fixed = fixed_new
 
     fixed_new = fixed.replace("∊", "\\in")
