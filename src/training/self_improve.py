@@ -641,6 +641,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized word AND/OR operators")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"\b([A-Za-z_][A-Za-z0-9_]*)\(([^()\n]+)\)\(([^()\n]+)\)",
+        r"\1(\2, \3)",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized curried-style operator calls")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"(?m)(=\s*)\[\](?=\s*(?:$|\\\*|\(\*))", r"\1<<>>", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("rewrote [] sequence literals to <<>>")

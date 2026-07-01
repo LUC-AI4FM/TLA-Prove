@@ -695,3 +695,20 @@ NextProc(p) ==
     assert " OR " not in result.fixed_spec
     assert 'IF procState[p] = "recorder" /\\ recorder = NULL THEN' in result.fixed_spec
     assert 'ELSE IF procState[p] = "other" \\/ recorder = p THEN' in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_curried_style_operator_calls() -> None:
+    spec = """---- MODULE QueueOps ----
+ConsumerAction ==
+    /\\ q' = RemoveAt(head - 1)(q)
+    /\\ channelBuffer' = RemoveFirstWhere(\\x: x[1] = p)(channelBuffer)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized curried-style operator calls" in result.fixes_applied
+    assert "RemoveAt(head - 1)(q)" not in result.fixed_spec
+    assert "RemoveFirstWhere(\\x: x[1] = p)(channelBuffer)" not in result.fixed_spec
+    assert "RemoveAt(head - 1, q)" in result.fixed_spec
+    assert "RemoveFirstWhere(\\x: x[1] = p, channelBuffer)" in result.fixed_spec
