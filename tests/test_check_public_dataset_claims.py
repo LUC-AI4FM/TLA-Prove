@@ -252,6 +252,7 @@ def _write_manifests(repo: Path) -> None:
         json.dumps(
             {
                 "blockers": [
+                    "latest full benchmark is stale at 46.5h (limit 24.0h)",
                     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
                 ],
                 "failure_surface": {

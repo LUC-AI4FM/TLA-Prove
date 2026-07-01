@@ -69,7 +69,7 @@ This bundle ships prover corpora plus metadata summaries for the broader public 
 - `metadata/hf_publish_readiness.json`: canonical publish-readiness gate (`2`
   blockers; `20` latest benchmark rows still missing every core TLA component).
 - `metadata/hf_publish_readiness.chattla_20b_fc128best.json`: fresh `fc128best`
-  publish-readiness gate (`1` blocker; `20` rows still missing every core component,
+  publish-readiness gate (`2` blocker; `20` rows still missing every core component,
   `8` with obvious placeholder text).
 - `metadata/benchmark_repair_pairs_fc128best.summary.json`: benchmark-derived
   repair curriculum summary (`20` rows covering `20` of `20` failed fresh-benchmark

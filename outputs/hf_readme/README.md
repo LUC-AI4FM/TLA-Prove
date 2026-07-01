@@ -20,16 +20,18 @@ datasets:
 pipeline_tag: text-generation
 ---
 
-# ChatTLA-20b (v21)
+# ChatTLA-20b
 
 ChatTLA is a fine-tuned version of [openai/gpt-oss-20b](https://huggingface.co/openai/gpt-oss-20b) specialised in generating **TLA+ formal specifications** — the language used by AWS, Microsoft, and Intel to mathematically verify distributed systems.
 
 Given a plain-English description of a concurrent or distributed system, ChatTLA outputs a complete, syntactically valid TLA+ module including `Init`, `Next`, `Spec`, `TypeOK`, and domain invariants, together with a TLC model-checker configuration block.
-The default prover training corpus is `1330` rows and already includes all `205` canonical `FormaLLM` benchmark examples; the `30`-spec corpus below is an eval-only holdout.
+The default prover training corpus is `1330` rows and already includes all `205` canonical `FormaLLM` benchmark examples.
+
+Current checked-in publish-readiness gates do **not** support a fresh `v21` release. The `30`-spec corpus below is archived holdout evidence from the earlier `v15` evaluation path, not the current publish-readiness basis.
 
 ---
 
-## 30-spec Eval Results (v21, 3-shot self-correct)
+## Archived 30-spec Eval Results (v15, 3-shot self-correct)
 
 Evaluated on a 30-spec held-out suite spanning communication protocols, concurrency primitives, consensus, data structures, memory/caches, mutual exclusion, classical puzzles, scheduling, transactions, and workflow state machines. Each spec gets up to 3 self-correction attempts using TLC error feedback. Tiers are defined by what the spec actually does under SANY and TLC, not just whether it parses:
 
