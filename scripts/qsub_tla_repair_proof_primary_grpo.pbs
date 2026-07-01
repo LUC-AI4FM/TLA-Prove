@@ -5,11 +5,12 @@
 # Queue shape: this MUST stay on by-gpu. The single-node queue with
 # select=1:ncpus=128:ngpus=4 does not schedule (default_chunk.queue_tags=prod
 # leaves the job queued indefinitely with "Insufficient amount of resource:
-# queue_tags" — job 161463 sat 6+ hours without starting). The by-gpu shape
-# below matches previously scheduled jobs. Before submitting, sanity-check the
-# queue limits with: qstat -Qf by-gpu | grep -E "max_walltime|resources_max"
+# queue_tags" — job 161463 sat 6+ hours without starting). The select line
+# below is the exact Resource_List of finished job 161011 (Exit_status 0);
+# multi-GPU chunks on by-gpu need the ngpu_pairs resource. Queue max walltime
+# is 24:00:00 (qstat -Qf by-gpu).
 #PBS -q by-gpu
-#PBS -l select=1:ngpus=4:ncpus=32:mem=480gb
+#PBS -l select=1:ngpus=2:ncpus=64:mem=240gb:ngpu_pairs=1
 #PBS -l walltime=06:00:00
 #PBS -l filesystems=home_fs:grand_fs
 #PBS -N repair_primary
@@ -35,6 +36,11 @@ export MKL_NUM_THREADS=4
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 PY="${CHATTLA_PYTHON:-python3}"
+# Batch jobs do not source conda; the env that provides $PY also provides
+# java (needed by the SANY/TLC reward path), so put its bin dir on PATH.
+case "$PY" in
+  /*) export PATH="$(dirname "$PY"):$PATH" ;;
+esac
 MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
 PROFILE=proof_repair_primary
 OUT_DIR="${CHATTLA_REPAIR_OUT:-outputs/checkpoints_rl_repair_proof_primary}"

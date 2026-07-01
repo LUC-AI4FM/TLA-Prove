@@ -31,6 +31,11 @@ export HF_DATASETS_OFFLINE=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 PY="${CHATTLA_PYTHON:-python3}"
+# Batch jobs do not source conda; the env that provides $PY also provides
+# java, so put its bin dir on PATH.
+case "$PY" in
+  /*) export PATH="$(dirname "$PY"):$PATH" ;;
+esac
 
 echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
 date
