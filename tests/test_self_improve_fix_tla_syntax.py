@@ -1030,6 +1030,93 @@ UpdateMsgs ==
     assert "[msgKind \\in MessageTypes |->" in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_malformed_vote_message_function_update() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+CONSTANT Participants
+
+UpdateMsgs(msg) ==
+    /\\ msgs' = [msgKind IN MessageTypes |
+                  (IF msgKind = "VoteYes" \\/ msgKind="VoteNo") =>
+                      IF \\E x \\in participants :
+                         ((x,msgKind)=msg)
+                      THEN [msgs EXCEPT ![msgKind]=TRUE]]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote malformed vote message function update" in result.fixes_applied
+    assert "normalized lowercase constant aliases" in result.fixes_applied
+    assert "=>" not in result.fixed_spec
+    assert "[msgs EXCEPT ![msgKind]=TRUE]" not in result.fixed_spec
+    assert '[msgKind \\in MessageTypes |-> IF (msgKind = "VoteYes" \\/ msgKind="VoteNo") /\\ (\\E x \\in Participants : <<x, "Coordinator", msgKind>> = msg) THEN TRUE ELSE FALSE]' in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_malformed_slash_double_backslash_action_line() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+deliver(msg) ==
+    /\\\\ UNCHANGED <<phase, votes>>
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized malformed backslash-leading action lines" in result.fixes_applied
+    assert "/\\\\ UNCHANGED" not in result.fixed_spec
+    assert "/\\ UNCHANGED <<phase, votes>>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_disjoined_if_branch_as_else_if() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+deliver(msg) ==
+    /\\ IF msg.receiver = "Coordinator" THEN
+          CASE msg.sender \\in Participants ->
+              /\\ msgs' = msgs
+              /\\ UNCHANGED <<phase, votes>>
+           [] TRUE -> UNCHANGED <<phase, votes>>
+       \\/ IF msg.receiver \\in Participants THEN
+              /\\ phase' = phase
+              /\\ votes' = votes
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote disjoined IF branch as ELSE IF" in result.fixes_applied
+    assert "\\/ IF msg.receiver \\in Participants THEN" not in result.fixed_spec
+    assert "ELSE IF msg.receiver \\in Participants THEN" in result.fixed_spec
+
+
+def test_fix_tla_syntax_completes_conjunctive_if_block_missing_else() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+deliver(msg) ==
+    /\\ IF msg.kind = "Commit" THEN
+           /\\ UNCHANGED <<votes, messages>>
+       /\\ phase' = phase
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "completed conjunctive IF block missing ELSE branch" in result.fixes_applied
+    assert "ELSE TRUE" in result.fixed_spec
+    assert result.fixed_spec.index("ELSE TRUE") < result.fixed_spec.index("/\\ phase' = phase")
+
+
+def test_fix_tla_syntax_rewrites_malformed_union_singleton_update() -> None:
+    spec = """---- MODULE TwoPhaseCommit ----
+deliver(msg) ==
+    /\\ messages'=UNION(messages,\\{sendMsg(msg.receiver,"Coordinator","Ack"\\})\\}
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote malformed UNION singleton update" in result.fixes_applied
+    assert 'UNION(messages,\\{sendMsg(msg.receiver,"Coordinator","Ack"\\})\\}' not in result.fixed_spec
+    assert 'messages\' = messages \\cup {sendMsg(msg.receiver, "Coordinator", "Ack")}' in result.fixed_spec
+
+
 def test_fix_tla_syntax_groups_mixed_guard_block_and_promotes_updates() -> None:
     spec = """---- MODULE FileTransfer ----
 SendPacket(p) ==

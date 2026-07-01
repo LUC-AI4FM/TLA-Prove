@@ -117,6 +117,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         sany_errors=sany_errors,
     )
     fixed = spec
+    constant_alias_map: dict[str, str] = {}
 
     def _strip_wrapping_parens(expr: str) -> str:
         expr = expr.strip()
@@ -963,6 +964,29 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote tuple set-comprehension pipe to colon")
         fixed = fixed_new
 
+    def _rewrite_malformed_union_singleton_update(match: re.Match) -> str:
+        item = match.group("item").replace("\\}", "").strip()
+        item = re.sub(r",\s*", ", ", item)
+        if not item.endswith(")"):
+            item = f"{item})"
+        return f"{match.group('target')} = {match.group('base')} \\cup {{{item}}}"
+
+    fixed_new = re.sub(
+        r"(?P<target>[A-Za-z_][A-Za-z0-9_]*')\s*=\s*UNION\(\s*(?P<base>[A-Za-z_][A-Za-z0-9_]*)\s*,\s*"
+        r"\\\{\s*(?P<item>[^\n]+?)\\\}\)\s*\\\}",
+        _rewrite_malformed_union_singleton_update,
+        fixed,
+    )
+    fixed_new = re.sub(
+        r"(?P<target>[A-Za-z_][A-Za-z0-9_]*')\s*=\s*UNION\(\s*(?P<base>[A-Za-z_][A-Za-z0-9_]*)\s*,\s*"
+        r"\\\{\s*(?P<item>[^\n]+?)\s*\\\}\s*\\\}",
+        _rewrite_malformed_union_singleton_update,
+        fixed_new,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote malformed UNION singleton update")
+        fixed = fixed_new
+
     fixed_new = re.sub(
         r"\[\s*([A-Za-z_][A-Za-z0-9_]*)\s+(?:\\in|IN)\s+([^\]\n|]+?)\s*\|\s*(?!->)(?=\S)",
         r"[\1 \\in \2 |-> ",
@@ -970,6 +994,35 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     )
     if fixed_new != fixed:
         result.fixes_applied.append("inserted missing function constructor |->")
+        fixed = fixed_new
+
+    def _rewrite_malformed_vote_message_function_update(match: re.Match) -> str:
+        msg_kind = match.group("msg_kind")
+        domain = match.group("domain").strip()
+        condition = re.sub(r"^IF\s+", "", match.group("condition").strip())
+        witness = match.group("witness")
+        witness_set = match.group("witness_set")
+        msg_var = match.group("msg_var")
+        normalized_set = constant_alias_map.get(witness_set.lower(), witness_set)
+        return (
+            f"[{msg_kind} \\in {domain} |-> "
+            f"IF ({condition}) /\\ (\\E {witness} \\in {normalized_set} : "
+            f"<<{witness}, \"Coordinator\", {msg_kind}>> = {msg_var}) "
+            f"THEN TRUE ELSE FALSE]"
+        )
+
+    fixed_new = re.sub(
+        r"\[(?P<msg_kind>[A-Za-z_][A-Za-z0-9_]*)\s+\\in\s+(?P<domain>[^\]\n|]+?)\s*\|->\s*"
+        r"\((?P<condition>IF\s+.+?)\)\s*=>\s*IF\s+\\E\s+(?P<witness>[A-Za-z_][A-Za-z0-9_]*)\s+"
+        r"\\in\s+(?P<witness_set>[A-Za-z_][A-Za-z0-9_]*)\s*:\s*"
+        r"\(\(\s*(?P=witness)\s*,\s*(?P=msg_kind)\s*\)\s*=\s*(?P<msg_var>[A-Za-z_][A-Za-z0-9_]*)\s*\)\s*"
+        r"THEN\s+\[[A-Za-z_][A-Za-z0-9_]*\s+EXCEPT\s+!\[(?P=msg_kind)\]\s*=\s*TRUE\]",
+        _rewrite_malformed_vote_message_function_update,
+        fixed,
+        flags=re.DOTALL,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote malformed vote message function update")
         fixed = fixed_new
 
     lines = fixed.splitlines()
@@ -1189,6 +1242,13 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             i += 1
             continue
 
+        malformed_slash_backslash = re.match(r"^(\s*)/\\\\\s+(.+?)\s*$", line)
+        if malformed_slash_backslash:
+            rebuilt_lines.append(f"{malformed_slash_backslash.group(1)}/\\ {malformed_slash_backslash.group(2)}")
+            normalized_backslash_action = True
+            i += 1
+            continue
+
         rebuilt_lines.append(line)
         i += 1
     fixed_new = "\n".join(rebuilt_lines)
@@ -1201,70 +1261,175 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if normalized_backslash_action:
             result.fixes_applied.append("normalized malformed backslash-leading action lines")
 
-        lines = fixed.splitlines()
-        rebuilt_lines = []
-        in_operator_body = False
-        second_indent_pass = False
-        for line in lines:
-            stripped = line.strip()
-            if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==$", stripped):
-                in_operator_body = True
-                rebuilt_lines.append(line)
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    rewrote_disjoined_if_branch = False
+    for idx, line in enumerate(lines):
+        disjoined_if = re.match(r"^(\s*)\\/\s+IF\b(.+?)\s+THEN\s*$", line)
+        if disjoined_if:
+            candidate_indent = len(disjoined_if.group(1))
+            saw_prior_if = False
+            j = idx - 1
+            while j >= 0:
+                prev = lines[j]
+                stripped = prev.strip()
+                if not stripped or re.match(r"^\(\*.*\*\)$", stripped):
+                    j -= 1
+                    continue
+                if stripped == "====" or re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==$", stripped):
+                    break
+                if stripped.startswith("ELSE "):
+                    break
+                prior_if = re.match(r"^(\s*)/\\\s+IF\b.+\bTHEN\s*$", prev)
+                if prior_if and len(prior_if.group(1)) <= candidate_indent:
+                    saw_prior_if = True
+                    break
+                j -= 1
+            if saw_prior_if:
+                rebuilt_lines.append(f"{disjoined_if.group(1)}ELSE IF{disjoined_if.group(2)} THEN")
+                rewrote_disjoined_if_branch = True
                 continue
-            if in_operator_body:
-                if stripped == "" or stripped.startswith(("(*", "\\*")):
-                    rebuilt_lines.append(line)
-                    continue
-                if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped):
-                    in_operator_body = True
-                    rebuilt_lines.append(line)
-                    continue
-                if re.match(r"^(====|EXTENDS|CONSTANTS?\b|VARIABLES?\b|ASSUME\b|THEOREM\b|LEMMA\b|PROPOSITION\b|PROPERTY\b)", stripped):
-                    in_operator_body = False
-                    rebuilt_lines.append(line)
-                    continue
-                if line.startswith(("/\\", "\\/")):
-                    rebuilt_lines.append("    " + line)
-                    second_indent_pass = True
-                    continue
-            rebuilt_lines.append(line)
-        if second_indent_pass:
-            fixed = "\n".join(rebuilt_lines)
+        rebuilt_lines.append(line)
+    fixed_new = "\n".join(rebuilt_lines)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if rewrote_disjoined_if_branch:
+            result.fixes_applied.append("rewrote disjoined IF branch as ELSE IF")
 
-        lines = fixed.splitlines()
-        rebuilt_lines = []
-        i = 0
-        nested_conj_indent = False
-        while i < len(lines):
-            line = lines[i]
-            inline_disj_conj = re.match(r"^(\s*)\\/\s+/\\\s+.+$", line)
-            if inline_disj_conj:
-                rebuilt_lines.append(line)
-                base_indent = inline_disj_conj.group(1)
-                child_indent = base_indent + "   "
-                i += 1
-                while i < len(lines):
-                    candidate = lines[i]
-                    if not candidate.strip():
-                        rebuilt_lines.append(candidate)
-                        i += 1
-                        continue
-                    if re.match(rf"^{re.escape(base_indent)}\\/\b", candidate):
-                        break
-                    if re.match(r"^(====|[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==)", candidate.strip()):
-                        break
-                    if candidate.startswith(base_indent + "/\\"):
-                        rebuilt_lines.append(child_indent + candidate[len(base_indent):])
-                        nested_conj_indent = True
-                        i += 1
-                        continue
-                    rebuilt_lines.append(candidate)
-                    i += 1
-                continue
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    completed_conjunctive_if = False
+    while i < len(lines):
+        line = lines[i]
+        if_header = re.match(r"^(\s*)/\\\s+IF\b.+\bTHEN\s*$", line)
+        if not if_header:
             rebuilt_lines.append(line)
             i += 1
-        if nested_conj_indent:
-            fixed = "\n".join(rebuilt_lines)
+            continue
+        rebuilt_lines.append(line)
+        base_indent = len(if_header.group(1))
+        branch_indent = base_indent + 3
+        j = i + 1
+        saw_nested_conjunct = False
+        saw_else = False
+        nested_indent: Optional[int] = None
+        while j < len(lines):
+            candidate = lines[j]
+            stripped = candidate.strip()
+            if not stripped or stripped.startswith(("(*", "\\*")):
+                rebuilt_lines.append(candidate)
+                j += 1
+                continue
+            if re.match(r"^\s*ELSE\b", candidate):
+                saw_else = True
+                break
+            candidate_indent = len(candidate) - len(candidate.lstrip())
+            if (
+                candidate_indent > base_indent
+                and candidate.lstrip().startswith("/\\")
+                and (nested_indent is None or candidate_indent >= nested_indent)
+            ):
+                rebuilt_lines.append(candidate)
+                saw_nested_conjunct = True
+                if nested_indent is None:
+                    nested_indent = candidate_indent
+                j += 1
+                continue
+            break
+        if saw_nested_conjunct and not saw_else:
+            rebuilt_lines.append(" " * branch_indent + "ELSE TRUE")
+            completed_conjunctive_if = True
+        i = j
+    fixed_new = "\n".join(rebuilt_lines)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if completed_conjunctive_if:
+            result.fixes_applied.append("completed conjunctive IF block missing ELSE branch")
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    in_operator_body = False
+    second_indent_pass = False
+    pending_else_indent: Optional[int] = None
+    for line in lines:
+        stripped = line.strip()
+        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==$", stripped):
+            in_operator_body = True
+            pending_else_indent = None
+            rebuilt_lines.append(line)
+            continue
+        if in_operator_body:
+            if stripped == "" or stripped.startswith(("(*", "\\*")):
+                rebuilt_lines.append(line)
+                continue
+            if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped):
+                in_operator_body = True
+                pending_else_indent = None
+                rebuilt_lines.append(line)
+                continue
+            if re.match(r"^(====|EXTENDS|CONSTANTS?\b|VARIABLES?\b|ASSUME\b|THEOREM\b|LEMMA\b|PROPOSITION\b|PROPERTY\b)", stripped):
+                in_operator_body = False
+                pending_else_indent = None
+                rebuilt_lines.append(line)
+                continue
+            if re.match(r"^\s*ELSE TRUE\s*$", line):
+                pending_else_indent = len(line) - len(line.lstrip())
+                rebuilt_lines.append(line)
+                continue
+            if pending_else_indent is not None:
+                if line.lstrip().startswith("/\\"):
+                    current_indent = len(line) - len(line.lstrip())
+                    if current_indent != pending_else_indent:
+                        rebuilt_lines.append(" " * pending_else_indent + line.lstrip())
+                        second_indent_pass = True
+                        continue
+                    rebuilt_lines.append(line)
+                    continue
+                if stripped and not stripped.startswith(("(*", "\\*")):
+                    pending_else_indent = None
+            if line.startswith(("/\\", "\\/")):
+                rebuilt_lines.append("    " + line)
+                second_indent_pass = True
+                continue
+        rebuilt_lines.append(line)
+    if second_indent_pass:
+        fixed = "\n".join(rebuilt_lines)
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    nested_conj_indent = False
+    while i < len(lines):
+        line = lines[i]
+        inline_disj_conj = re.match(r"^(\s*)\\/\s+/\\\s+.+$", line)
+        if inline_disj_conj:
+            rebuilt_lines.append(line)
+            base_indent = inline_disj_conj.group(1)
+            child_indent = base_indent + "   "
+            i += 1
+            while i < len(lines):
+                candidate = lines[i]
+                if not candidate.strip():
+                    rebuilt_lines.append(candidate)
+                    i += 1
+                    continue
+                if re.match(rf"^{re.escape(base_indent)}\\/\b", candidate):
+                    break
+                if re.match(r"^(====|[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==)", candidate.strip()):
+                    break
+                if candidate.startswith(base_indent + "/\\"):
+                    rebuilt_lines.append(child_indent + candidate[len(base_indent):])
+                    nested_conj_indent = True
+                    i += 1
+                    continue
+                rebuilt_lines.append(candidate)
+                i += 1
+            continue
+        rebuilt_lines.append(line)
+        i += 1
+    if nested_conj_indent:
+        fixed = "\n".join(rebuilt_lines)
 
         fixed_new = re.sub(
             r"(?ms)(^\s*\\/\s+\\A\s+[^\n:]+:\s*)\n\s*(\([^\n]+?\))\s*->\s*\(\s*\n\s*([^\n]+?)\s*\n\s*\)",
@@ -1519,6 +1684,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             fixed = fixed_new
             result.fixes_applied.append("rewrote UNLESS skip/else pseudocode as IF/UNCHANGED/ELSE")
 
+    last_constant_names: Optional[list[str]] = None
     const_decl = re.search(r"^CONSTANTS?\s+(.+)$", fixed, re.MULTILINE)
     if const_decl:
         raw_consts = re.sub(r"\\\*.*$", "", const_decl.group(1)).strip()
@@ -1542,6 +1708,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             if cleaned_decl != const_decl.group(0):
                 fixed = fixed[:const_decl.start()] + cleaned_decl + fixed[const_decl.end():]
                 result.fixes_applied.append("cleaned single-line CONSTANTS declaration")
+            last_constant_names = names
 
     lines = fixed.splitlines()
     rebuilt_lines = []
@@ -1634,6 +1801,7 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             break
 
         rebuilt_lines.append(f"{keyword} {', '.join(names)}")
+        last_constant_names = names
         rebuilt_lines.extend(assume_lines)
         i = j
 
@@ -1643,6 +1811,18 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             result.fixes_applied.append("merged orphaned constant annotations")
         if normalized_orphaned_constraints:
             result.fixes_applied.append("normalized orphaned constant constraints to ASSUME")
+
+    if last_constant_names:
+        for name in last_constant_names:
+            alias = name.lower()
+            if alias != name and alias not in constant_alias_map:
+                constant_alias_map[alias] = name
+        fixed_new = fixed
+        for alias, name in constant_alias_map.items():
+            fixed_new = re.sub(rf"\b{re.escape(alias)}\b", name, fixed_new)
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("normalized lowercase constant aliases")
 
     fixed_new = re.sub(r"(?m)^\s+[A-Za-z_][A-Za-z0-9_]*\s*,\s*\(\*.*\n?", "", fixed)
     if fixed_new != fixed:
