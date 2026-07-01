@@ -240,6 +240,7 @@ def _write_manifests(repo: Path) -> None:
                     "latest full benchmark is stale at 1405.2h (limit 24.0h)",
                     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model",
                 ],
+                "benchmark": {"sany": 0, "tlc": 0, "rows": 20},
                 "failure_surface": {
                     "aggregate": {"rows_with_no_core_components": 20},
                     "red_flags": {"obvious_placeholder_rows": 0},
@@ -252,9 +253,15 @@ def _write_manifests(repo: Path) -> None:
         json.dumps(
             {
                 "blockers": [],
+                "benchmark": {
+                    "sany": 14,
+                    "tlc": 9,
+                    "rows": 20,
+                    "execution": {"inference_mode": "self-correct+best-of-5"},
+                },
                 "failure_surface": {
                     "rows": 20,
-                    "aggregate": {"rows_with_no_core_components": 14},
+                    "aggregate": {"rows_with_no_core_components": 6},
                     "red_flags": {"obvious_placeholder_rows": 1},
                 },
             }

@@ -128,6 +128,6 @@ def test_injected_ind_init_preserves_continuation_indentation():
 
 
 def test_subseteq_clause_rewrite_parenthesizes_interval_rhs():
-    clause = _rewrite_enumerable_clause("req", "/\\ req \\subseteq 1..N")
+    clause = _rewrite_enumerable_clause("req", "/\\ req \\subseteq 1..N", None)
 
     assert clause == "/\\ req \\in (SUBSET (1..N))"

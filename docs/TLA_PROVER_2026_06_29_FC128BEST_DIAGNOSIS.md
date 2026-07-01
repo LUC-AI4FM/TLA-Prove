@@ -1,6 +1,16 @@
 # FC128Best Benchmark Diagnosis
 
-## Verdict
+> **RESOLVED 2026-07-01.** The "model-side parse corruption" below was
+> harness-side after all: the Ollama client hardcoded `repeat_penalty: 1.3`,
+> which mangles formal-language output (TLA+ re-emits identifiers constantly,
+> so the penalty steers generation into near-miss tokens). With the penalty
+> removed (`CHATTLA_REPEAT_PENALTY`, default `1.0`) the same checkpoint scores
+> `4/20` SANY / `1/20` TLC single-shot and `14/20` SANY / `9/20` TLC with
+> best-of-5 + self-correct. See `tests/test_ollama_client_sampling.py` and the
+> fresh readiness manifests. The section below is kept as a historical record
+> of the 2026-06-28 state.
+
+## Verdict (historical, superseded)
 
 `chattla:20b-fc128best` is currently non-deployable. A fresh full benchmark on
 2026-06-28 reproduced `0/20` SANY and `0/20` TLC, and the failures are

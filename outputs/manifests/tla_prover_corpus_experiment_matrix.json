@@ -13,7 +13,7 @@
     "default_train_path": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
     "diamond_eval_holdout_leakage_ok": true
   },
-  "generated_at": "2026-07-01T14:05:04.347339+00:00",
+  "generated_at": "2026-07-01T22:41:50.245958+00:00",
   "lanes": {
     "default": {
       "alias": "default",
@@ -130,15 +130,25 @@
     }
   },
   "local_repair_runtime_status": {
-    "bootstrap_recommendation": null,
-    "local_runtime_ready": true,
-    "observed_timeout_s": 10.0,
+    "bootstrap_recommendation": {
+      "command": null,
+      "message": "Selected Python timed out while importing required repair-training modules. This looks like a native import/runtime blocker; bootstrap alone may not resolve native import/runtime blockers.",
+      "reason": "selected_python_runtime_import_timeouts"
+    },
+    "local_runtime_ready": false,
+    "observed_timeout_s": 2.0,
     "path": "outputs/manifests/tla_prover_local_repair_plan.json",
-    "preflight_ok": true,
+    "preflight_ok": false,
     "present": true,
-    "runtime_import_timeout_s": 10.0,
-    "runtime_missing_modules": [],
-    "timeout_reprobe_recommended": false
+    "runtime_import_timeout_s": 2.0,
+    "runtime_missing_modules": [
+      "peft.LoraConfig",
+      "transformers.AutoModelForCausalLM",
+      "transformers.AutoTokenizer",
+      "trl.GRPOConfig",
+      "trl.GRPOTrainer"
+    ],
+    "timeout_reprobe_recommended": true
   },
   "named_corpora": {
     "default": "data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl",
@@ -164,10 +174,10 @@
   "publish_baseline_lane": "default",
   "publish_readiness": {
     "default_model": {
-      "age_hours": 1443.5959274480078,
+      "age_hours": 1462.6889402825302,
       "benchmark_model": "chattla:20b",
       "blockers": [
-        "latest full benchmark is stale at 1443.6h (limit 24.0h)",
+        "latest full benchmark is stale at 1462.7h (limit 24.0h)",
         "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
       ],
       "ready_to_publish": false,
@@ -177,17 +187,14 @@
       "tlc": 0
     },
     "fc128best_model": {
-      "age_hours": 49.58234956171778,
+      "age_hours": 0.15819438497225444,
       "benchmark_model": "chattla:20b-fc128best",
-      "blockers": [
-        "latest full benchmark is stale at 49.6h (limit 24.0h)",
-        "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
-      ],
-      "ready_to_publish": false,
+      "blockers": [],
+      "ready_to_publish": true,
       "rows": 20,
-      "sany": 0,
-      "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv",
-      "tlc": 0
+      "sany": 14,
+      "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260701_163601.csv",
+      "tlc": 9
     }
   },
   "repair_corpus_status": {

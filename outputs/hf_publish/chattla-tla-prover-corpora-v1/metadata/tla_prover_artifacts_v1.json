@@ -2119,13 +2119,13 @@
       "summary_path": "data/processed/formalllm_public_prover_surface_v1.summary.json"
     },
     "hf_publish_readiness": {
-      "bytes": 3192,
+      "bytes": 3224,
       "exists": true,
       "kind": "model_hf_publish_readiness_report",
       "path": "outputs/manifests/hf_publish_readiness.json",
       "report_excerpt": {
         "blockers": [
-          "latest full benchmark is stale at 1443.6h (limit 24.0h)",
+          "latest full benchmark is stale at 1462.7h (limit 24.0h)",
           "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
         ],
         "failure_surface": {
@@ -2166,63 +2166,56 @@
         "ready_to_publish": false
       },
       "rows": null,
-      "sha256": "53fc672f1b5fd2fbf88820b2ee8cc2647950dc9899e78316d134f9f46d573fbb"
+      "sha256": "a4f41bd3df23f021184716287d8e56a715227aa85515014a8ded96ecb896d0ad"
     },
     "hf_publish_readiness_fc128best": {
-      "bytes": 3838,
+      "bytes": 3741,
       "exists": true,
       "kind": "model_hf_publish_readiness_report",
       "path": "outputs/manifests/hf_publish_readiness.chattla_20b_fc128best.json",
       "report_excerpt": {
-        "blockers": [
-          "latest full benchmark is stale at 49.6h (limit 24.0h)",
-          "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
-        ],
+        "blockers": [],
         "failure_surface": {
           "aggregate": {
-            "rows_with_all_core_components": 0,
-            "rows_with_any_core_component": 0,
-            "rows_with_no_core_components": 20
+            "rows_with_all_core_components": 11,
+            "rows_with_any_core_component": 14,
+            "rows_with_no_core_components": 6
           },
           "core_component_failures": {
-            "missing_init_level_ok_rows": 20,
-            "missing_init_present_rows": 20,
-            "missing_invariants_declared_rows": 20,
-            "missing_next_level_ok_rows": 20,
-            "missing_next_present_rows": 20,
-            "missing_tlc_depth1_ok_rows": 20
+            "missing_init_level_ok_rows": 6,
+            "missing_init_present_rows": 6,
+            "missing_invariants_declared_rows": 6,
+            "missing_next_level_ok_rows": 6,
+            "missing_next_present_rows": 6,
+            "missing_tlc_depth1_ok_rows": 9
           },
           "planning": {
             "plan_unused_rows": 20,
             "plan_used_rows": 0
           },
           "red_flags": {
-            "duplicate_variables_rows": 2,
-            "obvious_placeholder_rows": 8,
-            "pseudo_tla_token_rows": 14
+            "duplicate_variables_rows": 0,
+            "obvious_placeholder_rows": 1,
+            "pseudo_tla_token_rows": 0
           },
           "rows": 20,
           "sample_benchmark_ids": {
             "no_core_components": [
-              "BM001",
-              "BM002",
-              "BM003",
-              "BM004",
-              "BM005"
+              "BM008",
+              "BM010",
+              "BM013",
+              "BM014",
+              "BM018"
             ],
             "obvious_placeholder_rows": [
-              "BM001",
-              "BM002",
-              "BM003",
-              "BM007",
-              "BM011"
+              "BM014"
             ]
           }
         },
-        "ready_to_publish": false
+        "ready_to_publish": true
       },
       "rows": null,
-      "sha256": "bd874ccb298f5e923e453319b7f5111b9316d9e06da640c8908b928736b817b1"
+      "sha256": "c15d08ac2c8d32b8a5e57462ecd87b5e0c96309da916696559124b1e79b38dd1"
     },
     "known18_module_list": {
       "bytes": 1194,
@@ -2240,7 +2233,7 @@
       "rows": 18,
       "sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
       "summary": {
-        "generated_at": "2026-06-30T00:36:41.879585+00:00",
+        "generated_at": "2026-07-01T22:41:49.305982+00:00",
         "invalid_modules": [],
         "jsonl_sha256": "2a0e846e5ff7cfd1c4fae282a9ae1a64e8b3f677dac27fe32379dd839c710357",
         "kept_rows": 18,
@@ -2280,7 +2273,7 @@
       "kind": "sany_tlc_pass_corpus_quality_gate",
       "path": "outputs/manifests/sany_tlc_pass_corpus_diagnostic.json",
       "rows": null,
-      "sha256": "509b6b1e7695e86017d12655018f0348670d8982f57b188c7f1344edf164e308"
+      "sha256": "742235035a96ec8600d0660b247129de7d8f19f8e22927707c36882d7b1a35ad"
     },
     "sany_tlc_pass_eval_v1": {
       "bytes": 110701,
@@ -2290,7 +2283,7 @@
       "rows": 30,
       "sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
       "summary": {
-        "generated_at": "2026-06-30T00:36:41.943950+00:00",
+        "generated_at": "2026-07-01T22:41:49.372920+00:00",
         "jsonl_sha256": "6c0da974d2abb6582a3a2648d0f9eb15c3eb98da9bd0692f73204e4e53f1dd8d",
         "kept_rows": 30,
         "modules": [
@@ -2526,12 +2519,12 @@
       "summary_path": "data/processed/sany_tlc_pass_sft_v1.summary.json"
     },
     "tla_prover_corpus_experiment_matrix": {
-      "bytes": 9365,
+      "bytes": 9651,
       "exists": true,
       "kind": "corpus_experiment_matrix_report",
       "path": "outputs/manifests/tla_prover_corpus_experiment_matrix.json",
       "rows": null,
-      "sha256": "09a2f8249d354aad977aa0ab6c7b88ccd01a08eef3d133fb84181c69dbe66125"
+      "sha256": "1ee203da2154ac72569f0788fb59e9cfd5e66fdd475645aa6fea323402179329"
     },
     "tla_prover_corpus_preflight": {
       "bytes": 7941,
@@ -2578,7 +2571,7 @@
         }
       },
       "rows": null,
-      "sha256": "8e98b4f6eebd9099639f1bdf14e181e6b8313ff1208577982248d34ae81644e4"
+      "sha256": "dac6c150e5c639a82bbfb99f00c36f7b2be4f2816dc2772764e83a80e7610106"
     },
     "tla_prover_full_dataset_failure_analysis": {
       "bytes": 20913,
@@ -2838,19 +2831,29 @@
       "sha256": "fc6cfd19095cd363b5a4ccb65544cc6edff5a6d3d166b2aef250668de592e785"
     },
     "tla_prover_local_repair_plan": {
-      "bytes": 4562,
+      "bytes": 5427,
       "exists": true,
       "kind": "local_tla_prover_repair_preflight_plan",
       "path": "outputs/manifests/tla_prover_local_repair_plan.json",
       "report_excerpt": {
-        "bootstrap_recommendation": null,
-        "local_runtime_ready": true,
-        "preflight_ok": true,
-        "runtime_import_timeout_s": 10.0,
-        "runtime_missing_modules": []
+        "bootstrap_recommendation": {
+          "command": null,
+          "message": "Selected Python timed out while importing required repair-training modules. This looks like a native import/runtime blocker; bootstrap alone may not resolve native import/runtime blockers.",
+          "reason": "selected_python_runtime_import_timeouts"
+        },
+        "local_runtime_ready": false,
+        "preflight_ok": false,
+        "runtime_import_timeout_s": 2.0,
+        "runtime_missing_modules": [
+          "peft.LoraConfig",
+          "transformers.AutoModelForCausalLM",
+          "transformers.AutoTokenizer",
+          "trl.GRPOConfig",
+          "trl.GRPOTrainer"
+        ]
       },
       "rows": null,
-      "sha256": "452f505d539874be15ff05374a42cf6852cdfc421d855f63e10eb91d2f55673b"
+      "sha256": "b090067ee121b2714f4ba510cb0d3117976b599125f999a370eabd5770c2cafd"
     },
     "tla_prover_next_experiment": {
       "bytes": 39640,
@@ -3249,7 +3252,7 @@
       "summary_path": "data/processed/tla_prover/tlaps_verified_autoprover_traces_v1.summary.json"
     }
   },
-  "generated_at": "2026-07-01T14:05:04.383819+00:00",
+  "generated_at": "2026-07-01T22:47:22.526453+00:00",
   "promotion_gate": "Do not promote or publish a new model until fresh evals beat or match base without syntax/module regressions.",
   "remote_next_steps": {
     "build_ai4fm_public_discovery_manifest": "python3 scripts/build_ai4fm_public_discovery_manifest.py",

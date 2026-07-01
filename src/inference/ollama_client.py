@@ -1049,7 +1049,7 @@ def _sanitize_spec(spec: str) -> str:
 
 
 def _auto_define_max_min(spec: str) -> str:
-    """
+    r"""
     If Max or Min is used as an operator (Max(...) or Min(...)) but not defined
     with ==, inject a definition after the EXTENDS line.
 

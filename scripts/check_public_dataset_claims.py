@@ -414,6 +414,15 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
     fc128best_no_core_rows = int(readiness_fc128best["failure_surface"]["aggregate"]["rows_with_no_core_components"])
     fc128best_bench_rows = int(readiness_fc128best["failure_surface"].get("rows", fc128best_no_core_rows))
     fc128best_gate_status = "blocked" if fc128best_blockers else "ready"
+    fc128best_bench = readiness_fc128best.get("benchmark") or {}
+    fc128best_bench_sany = int(fc128best_bench.get("sany") or 0)
+    fc128best_bench_tlc = int(fc128best_bench.get("tlc") or 0)
+    fc128best_bench_total = int(fc128best_bench.get("rows") or 0)
+    fc128best_bench_mode = str((fc128best_bench.get("execution") or {}).get("inference_mode") or "unrecorded")
+    canonical_bench = readiness.get("benchmark") or {}
+    canonical_bench_sany = int(canonical_bench.get("sany") or 0)
+    canonical_bench_tlc = int(canonical_bench.get("tlc") or 0)
+    canonical_bench_total = int(canonical_bench.get("rows") or 0)
     fc128best_placeholder_rows = int(
         readiness_fc128best["failure_surface"]["red_flags"]["obvious_placeholder_rows"]
     )
@@ -511,14 +520,23 @@ def _expected_snippets(repo: Path) -> dict[str, list[str]]:
                 f"`data/processed/formalllm_public_prover_surface_v1.jsonl` joins the {formalllm_public_scanned_rows} canonical `.tla` rows against the latest full-dataset smoke and currently isolates {formalllm_public_repair_candidate_rows} TLC repair candidates."
             ),
             (
-                "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in "
+                f"- `chattla:20b-fc128best` latest full benchmark records `{fc128best_bench_sany}/{fc128best_bench_total}` SANY passes and "
+                f"`{fc128best_bench_tlc}/{fc128best_bench_total}` TLC passes (inference mode: `{fc128best_bench_mode}`); "
+                f"its publish-readiness gate is {fc128best_gate_status} with `{len(fc128best_blockers)}` blockers."
+            ),
+            (
+                f"- `chattla:20b` (no longer served locally) last records `{canonical_bench_sany}/{canonical_bench_total}` SANY passes and "
+                f"`{canonical_bench_tlc}/{canonical_bench_total}` TLC passes; its canonical gate is {canonical_gate_status}."
+            ),
+            (
+                "The repair curriculum built from the prior failing `fc128best` benchmark run is summarized in "
                 f"`data/processed/benchmark_repair_pairs_fc128best.summary.json`: `{repair_pair_rows}` repair pairs cover "
                 f"`{repair_gold_coverage}/{repair_failed_rows_seen}` failed benchmark rows, leaving only "
                 f"`{repair_missing_gold_ids[0]}` without a public gold target today."
             )
             if repair_missing_gold
             else (
-                "The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in "
+                "The repair curriculum built from the prior failing `fc128best` benchmark run is summarized in "
                 f"`data/processed/benchmark_repair_pairs_fc128best.summary.json`: `{repair_pair_rows}` repair pairs now cover "
                 f"all `{repair_gold_coverage}/{repair_failed_rows_seen}` failed benchmark rows, including the "
                 f"`{', '.join(repair_public_fallback_ids)}` public-module fallback."

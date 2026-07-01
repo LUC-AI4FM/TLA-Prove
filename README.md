@@ -20,16 +20,14 @@ Authoritative checked-in evidence:
 
 As of the latest checked-in manifests:
 
-- `chattla:20b` latest full 20-problem benchmark is stale and records `0/20`
-  SANY passes and `0/20` TLC passes.
-- `chattla:20b-fc128best` latest full 20-problem benchmark is also stale and
-  records `0/20` SANY passes and `0/20` TLC passes.
+- `chattla:20b-fc128best` latest full benchmark records `14/20` SANY passes and `9/20` TLC passes (inference mode: `self-correct+best-of-5`); its publish-readiness gate is ready with `0` blockers.
+- `chattla:20b` (no longer served locally) last records `0/20` SANY passes and `0/20` TLC passes; its canonical gate is blocked.
 - The latest published GGUF tracked in repo state remains
   `gguf/chattla-20b-v21-Q8_0.gguf`.
 
-That means the public benchmark claim is currently unsupported by the checked-in
-benchmark evidence, and the repo reflects that directly instead of claiming a
-new publish is ready.
+These numbers restate the checked-in readiness manifests (which also record the
+exact benchmark CSV and inference mode); regenerate the benchmark and manifests
+together before publishing anything new.
 
 ## Public Datasets
 
@@ -54,7 +52,7 @@ The verifier-backed preflight manifest at `outputs/manifests/tla_prover_corpus_p
 
 The checked-in broader `FormaLLM` repo surface is also materialized directly: `data/processed/formalllm_public_module_manifest_v1.jsonl` records 666 public file records spanning 503 `.tla` files, 163 `.cfg` files, and the full 410-file canonical module tree, while `data/processed/formalllm_public_prover_surface_v1.jsonl` joins the 410 canonical `.tla` rows against the latest full-dataset smoke and currently isolates 7 TLC repair candidates.
 
-The current fresh-benchmark repair curriculum for that blocked `fc128best` lane is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `20` repair pairs now cover all `20/20` failed benchmark rows, including the `BM020` public-module fallback.
+The repair curriculum built from the prior failing `fc128best` benchmark run is summarized in `data/processed/benchmark_repair_pairs_fc128best.summary.json`: `20` repair pairs now cover all `20/20` failed benchmark rows, including the `BM020` public-module fallback.
 
 If someone cites a public AI4FM GitHub surface of `1,800+`, the reproducible interpretation today is the broader expansion lanes above: `2,757` committed `TLA-Prove` JSONL rows, `2,110` public seed `.tla` files, and `2,108` usable seed modules.
 
