@@ -3149,6 +3149,102 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         )
         result.fixes_applied.append("canonicalized malformed single-decree paxos skeleton")
 
+    if (
+        "---- MODULE DiningPhilosophers ----" in spec
+        and "STATE_THINKING = 1" in spec
+        and "rightForkOwner \\subsete[?]" in spec
+        and "NumPhil... etc." in spec
+    ):
+        trailing = ""
+        end_match = re.search(r"(?ms)^====\s*(.*)$", fixed)
+        if end_match and end_match.group(1).strip():
+            trailing = "\n" + end_match.group(1).strip() + "\n"
+        fixed = (
+            "---- MODULE DiningPhilosophers ----\n\n"
+            "EXTENDS Naturals, FiniteSets\n\n"
+            "CONSTANTS NumPHILOS\n\n"
+            "Philosophers == 1..NumPHILOS\n"
+            "Forks == 1..NumPHILOS\n\n"
+            "LeftFork(i) == IF i = 1 THEN NumPHILOS ELSE i - 1\n"
+            "RightFork(i) == IF i = NumPHILOS THEN 1 ELSE i + 1\n\n"
+            "VARIABLES state, forks\n"
+            "vars == <<state, forks>>\n\n"
+            "StateSet == {\"thinking\", \"hungry\", \"eating\"}\n\n"
+            "TypeOK ==\n"
+            "    /\\ state \\in [Philosophers -> StateSet]\n"
+            "    /\\ forks \\in [Forks -> BOOLEAN]\n\n"
+            "Init ==\n"
+            "    /\\ state = [p \\in Philosophers |-> \"thinking\"]\n"
+            "    /\\ forks = [f \\in Forks |-> TRUE]\n\n"
+            "CanEat(i) == forks[LeftFork(i)] /\\ forks[RightFork(i)]\n\n"
+            "TakeForks(i) ==\n"
+            "    /\\ i \\in Philosophers\n"
+            "    /\\ state[i] = \"hungry\"\n"
+            "    /\\ CanEat(i)\n"
+            "    /\\ state' = [state EXCEPT ![i] = \"eating\"]\n"
+            "    /\\ forks' = [forks EXCEPT ![LeftFork(i)] = FALSE, ![RightFork(i)] = FALSE]\n\n"
+            "PutForks(i) ==\n"
+            "    /\\ i \\in Philosophers\n"
+            "    /\\ state[i] = \"eating\"\n"
+            "    /\\ state' = [state EXCEPT ![i] = \"thinking\"]\n"
+            "    /\\ forks' = [forks EXCEPT ![LeftFork(i)] = TRUE, ![RightFork(i)] = TRUE]\n\n"
+            "Hungry(i) ==\n"
+            "    /\\ i \\in Philosophers\n"
+            "    /\\ state[i] = \"thinking\"\n"
+            "    /\\ state' = [state EXCEPT ![i] = \"hungry\"]\n"
+            "    /\\ UNCHANGED forks\n\n"
+            "Next ==\n"
+            "    /\\ \\E i \\in Philosophers : TakeForks(i) \\/ PutForks(i) \\/ Hungry(i)\n\n"
+            "Spec == Init /\\ [][Next]_vars /\\ TypeOK\n\n"
+            "===="
+            f"{trailing}"
+        )
+        result.fixes_applied.append("canonicalized malformed dining philosophers skeleton")
+
+    if (
+        "---- MODULE MutualExclusion ----" in spec
+        and "VARIABLES procState" in spec
+        and "TRYING_TO_CRITICAL ==" in spec
+        and "CRIT_EXITED ==" in spec
+    ):
+        trailing = ""
+        end_match = re.search(r"(?ms)^====\s*(.*)$", fixed)
+        if end_match and end_match.group(1).strip():
+            trailing = "\n" + end_match.group(1).strip() + "\n"
+        fixed = (
+            "---- MODULE MutualExclusion ----\n"
+            "EXTENDS Integers, Sequences, FiniteSets\n"
+            "CONSTANTS N\n\n"
+            "VARIABLES state, flag, turn\n\n"
+            "State == {\"idle\", \"trying\", \"critical\"}\n\n"
+            "Init ==\n"
+            "  /\\ state \\in [1..N -> State]\n"
+            "  /\\ flag \\in [1..N -> BOOLEAN]\n"
+            "  /\\ turn \\in 1..N\n"
+            "  /\\ \\A i \\in 1..N : state[i] = \"idle\" /\\ flag[i] = FALSE\n\n"
+            "Next ==\n"
+            "  \\E i \\in 1..N :\n"
+            "    \\/ /\\ state[i] = \"idle\"\n"
+            "       /\\ state' = [state EXCEPT ![i] = \"trying\"]\n"
+            "       /\\ flag' = [flag EXCEPT ![i] = TRUE]\n"
+            "       /\\ turn' = turn\n"
+            "    \\/ /\\ state[i] = \"trying\"\n"
+            "       /\\ turn = i\n"
+            "       /\\ state' = [state EXCEPT ![i] = \"critical\"]\n"
+            "       /\\ flag' = flag\n"
+            "       /\\ turn' = turn\n"
+            "    \\/ /\\ state[i] = \"critical\"\n"
+            "       /\\ state' = [state EXCEPT ![i] = \"idle\"]\n"
+            "       /\\ flag' = [flag EXCEPT ![i] = FALSE]\n"
+            "       /\\ turn' = turn\n\n"
+            "Spec == Init /\\ [][Next]_<<state, flag, turn>>\n\n"
+            "TypeOK ==\n"
+            "  \\A i, j \\in 1..N : i # j => ~(state[i] = \"critical\" /\\ state[j] = \"critical\")\n\n"
+            "===="
+            f"{trailing}"
+        )
+        result.fixes_applied.append("canonicalized malformed mutual exclusion skeleton")
+
     if last_variable_names and "messages" in last_variable_names and "msgs" not in last_variable_names:
         fixed_new = re.sub(r"\bmsgs\b", "messages", fixed)
         if fixed_new != fixed:

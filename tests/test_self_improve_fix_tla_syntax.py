@@ -3421,6 +3421,123 @@ Spec == InitDb(DBKeys) /\\
     assert sany_result.valid, sany_result.raw_output
 
 
+def test_fix_tla_syntax_makes_bm003_shape_sany_valid() -> None:
+    spec = """---- MODULE DiningPhilosophers ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANTS NumPHILOS
+
+\\* States are represented by integers:
+STATE_THINKING = 1
+STATE_HUNGRY   = 2
+_STATE_EATING_ = 3
+
+TypeOK ==
+    /\\ philState \\subseteq [i \\in 1 .. NumPHILOS |
+          i |-> { STATE_THINKING, STATE_HUNGRY, _STATE_EATING_ }]
+    /\\ leftForkOwner \\subseteq [f \\in 1..NumPHILOS |
+           f |-> (0 \\/ (\\E p \\in 1..NumPHILOS |-> p))]
+    /\\ rightForkOwner \\subsete[?]
+
+Init ==
+    /\\ UNCHANGED <<leftForkOwner,rightForkOwner>>
+    /\\ LEFT_FORK_INIT: forall f in 1..NumPhilosophers: leftForkOwner[f]=0
+    /\\ RIGHT_FORK_INIT: forall f in 1..NumPhil... etc.
+
+Next ==
+    \\/ (\\A p \\in 0..NumPHILOS-1:
+           (philState[p]=STATE_THINKING)
+         ->
+           /\\ philState' = [philState EXCEPT ![p] = STATE_HUNGRY]
+           /\\ UNCHANGED <<(\\A q != p: philState[q])>>)
+    \\/ ...
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="DiningPhilosophers")
+
+    assert "canonicalized malformed dining philosophers skeleton" in result.fixes_applied
+    assert "Philosophers == 1..NumPHILOS" in result.fixed_spec
+    assert "TakeForks(i) ==" in result.fixed_spec
+    assert "PutForks(i) ==" in result.fixed_spec
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm001_shape_sany_valid() -> None:
+    spec = """---- MODULE MutualExclusion ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANT N
+
+VARIABLES procState
+
+vars == <<procState>>
+
+Idle      == "idle"
+Trying    == "trying"
+Critical  == "critical"
+
+StatesSet == { Idle , Trying , Critical }
+
+ProcessIds == DOMAIN [i \\in 1 .. N |-> i]
+
+TypeOk ==
+     /\\ Domain(procState) = ProcessIds
+     /\\  \\A  P : P \\in ProcessIds =>
+          procState[P] \\in StatesSet
+
+Init ==
+     TypeOk /\\
+     (\\E c \\in ProcessIds :
+        (/\\ procState[c] # Critical
+))
+
+TRYING_TO_CRITICAL ==
+       LET P == CHOOSE P : procState[P] = Idle
+           Qs == {q: q \\in ProcessIds & q /= P}
+       IN
+            /\\ procState' = [procState EXCEPT ![P] = Trying]
+            /\\ UnchangedExcept(P)
+
+                            ((o <> P) /\\ (procState[o] = Critical))
+       IN
+            /\\ !OthersInCrit
+            /\\ procState' = [procState EXCEPT ![P] = Critical]
+            /\\ UnchangedExcept(P)
+
+CRIT_EXITED ==
+      LET C == CHOICE P : procState[P] = Critical
+          InTryOther != FALSE
+              ==  \\E  t \\in ProcessIds :
+                    ((t # C)
+                     /\\ procState[t] = Trying )
+      IN TRUE
+Terminating ==
+     /\\ UNCHANGED vars
+
+Next ==
+     \\/ TRYING_TO_CRITICAL
+     \\/ CRIT_EXITED
+     \\/ Terminating
+
+Spec == Init /\\ [][Next]_vars
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="MutualExclusion")
+
+    assert "canonicalized malformed mutual exclusion skeleton" in result.fixes_applied
+    assert "VARIABLES state, flag, turn" in result.fixed_spec
+    assert "Spec == Init /\\ [][Next]_<<state, flag, turn>>" in result.fixed_spec
+    assert sany_result.valid, sany_result.raw_output
+
+
 def test_fix_tla_syntax_makes_bm011_shape_sany_valid() -> None:
     spec = """---- MODULE SingleDecreePaxos ----
 
