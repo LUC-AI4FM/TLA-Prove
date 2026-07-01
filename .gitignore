@@ -149,3 +149,7 @@ outputs/tlaps_*.json
 
 # Internal operational log — never track
 memory.md
+
+# Model weights anywhere in the tree
+*.gguf
+*.safetensors
