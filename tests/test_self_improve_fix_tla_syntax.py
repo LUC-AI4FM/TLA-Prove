@@ -874,3 +874,23 @@ Spec == Init /\\ [][Next]_<<tail, size>>
     assert "LET newTail == IF tail # 3 THEN tail + 1 ELSE 1 IN" in result.fixed_spec
     assert "/\\ tail' = newTail" in result.fixed_spec
     assert "Next ==" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_multiline_function_initializer_missing_arrow() -> None:
+    spec = """---- MODULE ClockSync ----
+StepDrift ==
+    LET newOffsets == [n \\in 1..NumNodes |
+
+                            offsets[n] + RandomChoice(-MaxOffset .. +MaxOffset)
+
+                           offsets[n]]
+     IN
+        /\\ offsets' = newOffsets
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote multiline function initializer missing |->" in result.fixes_applied
+    assert "normalized signed upper bounds in ranges" in result.fixes_applied
+    assert "[n \\in 1..NumNodes |-> offsets[n] + RandomChoice(-MaxOffset .. MaxOffset)]" in result.fixed_spec

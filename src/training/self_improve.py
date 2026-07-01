@@ -688,6 +688,21 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote nested function initializer body")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"\[\s*([A-Za-z_][A-Za-z0-9_]*)\s+\\in\s+([^\]\n|]+?)\s*\|\s*(.*?)\n\s*([A-Za-z_][A-Za-z0-9_]*)\[\1\]\s*\]",
+        lambda m: f"[{m.group(1)} \\in {m.group(2).strip()} |-> {' '.join(m.group(3).split())}]",
+        fixed,
+        flags=re.DOTALL,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote multiline function initializer missing |->")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\.\.\s*\+([A-Za-z_][A-Za-z0-9_]*)", r".. \1", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized signed upper bounds in ranges")
+        fixed = fixed_new
+
     zero_arg_names = re.findall(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\(\)\s*==", fixed)
     fixed_new = re.sub(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\(\)\s*==", r"\1 ==", fixed)
     for name in zero_arg_names:
