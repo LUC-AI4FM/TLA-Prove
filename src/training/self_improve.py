@@ -603,6 +603,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized multiline Spec temporal formula")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"Spec\s*==\s*Init\s*/\\\s*\[\]_\(\s*vars\s*\)\[\[\s*Next\s*]]", r"Spec == Init /\\ [][Next]_vars", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized malformed vars Spec temporal formula")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"(?m)^(\s*)\\/\s*(\([^\n]+\)|[A-Za-z_][^\n]*?)\s*=>\s*$", r"\1\\/ /\\ \2", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized guarded disjunct lines")
@@ -649,6 +654,60 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     if fixed_new != fixed:
         result.fixes_applied.append("normalized word AND/OR operators")
         fixed = fixed_new
+
+    zero_arg_names = re.findall(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\(\)\s*==", fixed)
+    fixed_new = re.sub(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\(\)\s*==", r"\1 ==", fixed)
+    for name in zero_arg_names:
+        fixed_new = re.sub(rf"\b{name}\(\)", name, fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized zero-arg operator definitions/calls")
+        fixed = fixed_new
+
+    def _insert_record_field_commas(match: re.Match) -> str:
+        content = match.group(1)
+        if any(token in content for token in ("|->", "EXCEPT", "\\in")):
+            return match.group(0)
+        updated = re.sub(r"(?<=\S)\s+([A-Za-z_][A-Za-z0-9_]*\s*:)", r", \1", content)
+        return "[" + updated + "]"
+
+    fixed_new = re.sub(r"\[([^\]\n]+)\]", _insert_record_field_commas, fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("inserted missing record field commas")
+        fixed = fixed_new
+
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    removed_dangling_else_if = False
+    while i < len(lines):
+        line = lines[i]
+        rebuilt_lines.append(line)
+        if "LET " not in line or " IN" not in line:
+            i += 1
+            continue
+        j = i + 1
+        saw_conjunct = False
+        while j < len(lines) and not lines[j].strip():
+            rebuilt_lines.append(lines[j])
+            j += 1
+        while j < len(lines) and lines[j].lstrip().startswith("/\\"):
+            rebuilt_lines.append(lines[j])
+            saw_conjunct = True
+            j += 1
+        if saw_conjunct and j < len(lines) and lines[j].lstrip().startswith("ELSE IF"):
+            removed_dangling_else_if = True
+            j += 1
+            while j < len(lines):
+                stripped = lines[j].strip()
+                if re.match(r"^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==", stripped) or stripped == "====":
+                    break
+                j += 1
+            i = j
+            continue
+        i = j if saw_conjunct else i + 1
+    if removed_dangling_else_if:
+        fixed = "\n".join(rebuilt_lines)
+        result.fixes_applied.append("removed dangling ELSE IF after LET-IN action")
 
     fixed_new = re.sub(
         r"\b([A-Za-z_][A-Za-z0-9_]*)\(([^()\n]+)\)\(([^()\n]+)\)",

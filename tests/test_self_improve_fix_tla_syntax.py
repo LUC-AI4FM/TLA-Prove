@@ -727,3 +727,50 @@ Spec == Init /\\
     assert "normalized multiline Spec temporal formula" in result.fixes_applied
     assert "[][ Next ]_vars \\" not in result.fixed_spec
     assert "Spec == Init /\\ [][Next]_vars /\\ TypeOk" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_zero_arg_operator_defs_and_calls() -> None:
+    spec = """---- MODULE RaftLeaderElection ----
+LeaderCommit ==
+    /\\ majorityVotesReceived()
+majorityVotesReceived() ==
+    TRUE
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized zero-arg operator definitions/calls" in result.fixes_applied
+    assert "majorityVotesReceived() ==" not in result.fixed_spec
+    assert "/\\ majorityVotesReceived" in result.fixed_spec
+    assert "majorityVotesReceived ==" in result.fixed_spec
+
+
+def test_fix_tla_syntax_inserts_missing_record_type_commas() -> None:
+    spec = """---- MODULE RaftLeaderElection ----
+CANDIDATE_MSG == [id: ServerSet term: Int]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "inserted missing record field commas" in result.fixes_applied
+    assert "CANDIDATE_MSG == [id: ServerSet, term: Int]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_removes_dangling_else_if_after_let_in_action() -> None:
+    spec = """---- MODULE RaftLeaderElection ----
+VoteRequest(cand) ==
+    LET newTerm == cand.term IN
+            /\\ currentTerm' = newTerm
+            /\\ votedFor' = cand.id
+        ELSE IF newTerm < currentTerm THEN
+            /\\ UNCHANGED vars
+Next == TRUE
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed dangling ELSE IF after LET-IN action" in result.fixes_applied
+    assert "ELSE IF newTerm < currentTerm THEN" not in result.fixed_spec
