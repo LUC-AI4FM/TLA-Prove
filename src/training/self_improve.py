@@ -969,6 +969,21 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = fixed_new
 
     fixed_new = re.sub(
+        r"(?ms)^(\s*)\\/\s*\(\s*\\E\s+([A-Za-z_][A-Za-z0-9_]*)\s+\\in\s+([^:\n]+?)\s*:\s*"
+        r"\(\s*\\E\s+([A-Za-z_][A-Za-z0-9_]*)\s+\\in\s+([^:\n]+?)\s*:\s*(.+?)\s*\)\s*->\s*$",
+        lambda m: (
+            f"{m.group(1)}\\/ \\E {m.group(2)} \\in {m.group(3).strip()} :\n"
+            f"{m.group(1)}        \\E {m.group(4)} \\in {m.group(5).strip()} :\n"
+            f"{m.group(1)}          /\\ {' '.join(m.group(6).split())}"
+        ),
+        fixed,
+        flags=re.MULTILINE,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote existential implication action as nested quantified conjunction")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
         r"(?m)^(\s*\\/\s+)\\A(\s+[A-Za-z_][A-Za-z0-9_]*\s*\\in\s*[^:\n]+:\s*)([A-Za-z_][A-Za-z0-9_]*(?:\([^)\n]*\))\s*)$",
         r"\1\\E\2\3",
         fixed,
@@ -1249,6 +1264,26 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     )
     if fixed_new != fixed:
         result.fixes_applied.append("inserted missing function constructor |->")
+        fixed = fixed_new
+
+    def _complete_truncated_function_constructor_update(match: re.Match) -> str:
+        prefix, var_name, binder, domain, receiver, then_expr = match.groups()
+        normalized_expr = " ".join(then_expr.split())
+        return (
+            f"{prefix}[{binder} \\in {domain.strip()} |-> "
+            f"IF {binder} = {receiver} THEN ({normalized_expr}) ELSE {var_name}[{binder}]]"
+        )
+
+    fixed_new = re.sub(
+        r"(?ms)(^\s*/\\\s*([A-Za-z_][A-Za-z0-9_]*)'\s*=\s*)\s*"
+        r"\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^\]\n|]+?)\s*\|->\s*"
+        r"IF\s+\3\s*=\s*([A-Za-z_][A-Za-z0-9_]*)\s+THEN\s+\(([^)\n]+?)\)\s*$",
+        _complete_truncated_function_constructor_update,
+        fixed,
+        flags=re.MULTILINE,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("completed truncated function constructor update")
         fixed = fixed_new
 
     def _rewrite_malformed_vote_message_function_update(match: re.Match) -> str:

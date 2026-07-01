@@ -1137,6 +1137,40 @@ Spec == Init /\\ [][Next]_<<num, flag>> /\\\\ TypeOK
     assert "Spec == Init /\\ [][Next]_<<num, flag>> /\\ TypeOK" in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_existential_implication_action_as_nested_quantified_conjunction() -> None:
+    spec = """---- MODULE GossipProtocol ----
+Next ==
+    \\/ (\\E sender \\in NodeSet :
+            (\\E receiver \\in NodeSet : receiver # sender ) ->
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote existential implication action as nested quantified conjunction" in result.fixes_applied
+    assert "(\\E receiver \\in NodeSet : receiver # sender ) ->" not in result.fixed_spec
+    assert "\\/ \\E sender \\in NodeSet :" in result.fixed_spec
+    assert "\\E receiver \\in NodeSet :" in result.fixed_spec
+    assert "/\\ receiver # sender" in result.fixed_spec
+
+
+def test_fix_tla_syntax_completes_truncated_function_constructor_update() -> None:
+    spec = """---- MODULE GossipProtocol ----
+VARIABLES infection
+
+Next ==
+    /\\ infection' =
+          [ n \\in NodeSet |
+              IF n = receiver THEN (recvInfo \\union infection[n])
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "completed truncated function constructor update" in result.fixes_applied
+    assert "[n \\in NodeSet |-> IF n = receiver THEN (recvInfo \\union infection[n]) ELSE infection[n]]" in result.fixed_spec
+
+
 def test_fix_tla_syntax_normalizes_len_broken_in_and_escaped_comment() -> None:
     spec = """---- MODULE ClockSync ----
 TypeInvariant ==
@@ -2844,4 +2878,57 @@ Spec == Init /\\
     assert "removed primes from operator parameters" in result.fixes_applied
     assert "removed shadowed variable names from declaration" in result.fixes_applied
     sany_result = validate_string(result.fixed_spec, module_name="BoundedFIFO")
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm016_shape_sany_valid() -> None:
+    spec = """---- MODULE GossipProtocol ----
+
+EXTENDS Naturals, FiniteSets
+
+CONSTANTS NodeSet, Node
+VARIABLES infection
+
+
+(* ------------------------------------------------------------------ *)
+\\* Initial condition:
+Init ==
+    /\\ infection = [n \\in NodeSet |-> {}]   (* no one knows anyone yet *)
+
+(* ------------------------------------------------------------------ *)
+\\* Each round consists of two phases for each node:
+\\* Phase 1 - send phase: choose another node uniformly at random,
+\\*                then spread your entire set of infections to them;
+\\* Phase 2 - receive phase: merge received information into own state.
+Next ==
+    \\/ (\\E sender \\in NodeSet :
+            (\\E receiver \\in NodeSet : receiver # sender ) ->
+              LET recvInfo == infection[sender] IN
+                  /\\ infection' =
+                        [ n \\in NodeSet |
+                            IF n = receiver THEN (recvInfo  \\union  infection[n])
+
+                    UNCHANGED <<>>)
+      \\/ Terminating                     (* allow termination if desired *)
+
+Terminating ==
+    /\\ UNCHANGED vars                 (* system may stop without changing anything *)
+
+Spec == Init /\\ []<>(Next)     (* liveness is expressed separately as a temporal property, not in Spec itself *)
+
+TypeOK ==
+    /\\ NodeSet \\subseteq Nat
+       /\\ NodeSet /= {}
+    /\\ infection \\in [Node -> SUBSET Node]
+        /\\ DOMAIN infection = NodeSet
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="GossipProtocol")
+
+    assert "rewrote existential implication action as nested quantified conjunction" in result.fixes_applied
+    assert "completed truncated function constructor update" in result.fixes_applied
+    assert "normalized malformed diamond Next Spec formula" in result.fixes_applied
     assert sany_result.valid, sany_result.raw_output
