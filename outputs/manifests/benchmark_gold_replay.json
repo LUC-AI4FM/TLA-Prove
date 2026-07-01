@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-07-01T23:07:15.155366+00:00",
+  "gold_rows": 9,
+  "ok": true,
+  "reproduced": 9,
+  "results": [
+    {
+      "benchmark_id": "BM001",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    },
+    {
+      "benchmark_id": "BM003",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    },
+    {
+      "benchmark_id": "BM004",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    },
+    {
+      "benchmark_id": "BM005",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    },
+    {
+      "benchmark_id": "BM006",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    },
+    {
+      "benchmark_id": "BM009",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    },
+    {
+      "benchmark_id": "BM011",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    },
+    {
+      "benchmark_id": "BM017",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    },
+    {
+      "benchmark_id": "BM019",
+      "recorded_tier": "gold",
+      "replayed_tier": "gold",
+      "reproduced": true,
+      "sany_errors": []
+    }
+  ],
+  "source_csv": "outputs/benchmark_results/benchmark_results_fc128best_full_20260701_163601.csv"
+}
