@@ -675,6 +675,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = fixed_new
 
     fixed_new = re.sub(
+        r"Sum\(\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\\in\s*([^\]\n|]+?)\s*\|->\s*MAX\(\\\{counts\[\]\[\1\]\\\}\]\)\)",
+        lambda m: f"Sum([{m.group(1)} \\in {m.group(2).strip()} |-> Max({{counts[m][{m.group(1)}] : m \\in {m.group(2).strip()}}})])",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("expanded counts[][n] max shorthand")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
         r"\bIF\s+([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]\n]+\])?)\s+IN\s+(\{[^\n]+?\})\s+THEN\b",
         r"IF \1 \\in \2 THEN",
         fixed,

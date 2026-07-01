@@ -934,6 +934,19 @@ Total ==
     assert "Sum([n \\in NodeSet |-> MAX({counts[n][m] : m \\in NodeSet}]))" in result.fixed_spec
 
 
+def test_fix_tla_syntax_expands_counts_column_max_shorthand() -> None:
+    spec = """---- MODULE GCounter ----
+GlobalCount ==
+    Sum([n \\in NodeSet |-> MAX(\\{counts[][n]\\}]))
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "expanded counts[][n] max shorthand" in result.fixes_applied
+    assert "Sum([n \\in NodeSet |-> Max({counts[m][n] : m \\in NodeSet})])" in result.fixed_spec
+
+
 def test_fix_tla_syntax_rewrites_nested_lambda_zero_initializer() -> None:
     spec = """---- MODULE GCounter ----
 Init ==
