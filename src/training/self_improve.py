@@ -553,12 +553,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             fixed = fixed[:extends_match.start()] + new_extends + fixed[extends_match.end():]
             result.fixes_applied.append("added Sequences to EXTENDS for Len")
 
+    def _rewrite_max_slice(m: "re.Match[str]") -> str:
+        # Kept out of the f-string: backslashes in f-string expressions are a
+        # SyntaxError before Python 3.12, and the benchmark venv runs 3.11.
+        range_expr = re.sub(r"\s*\.\.\s*", " .. ", m.group(2).strip())
+        return f"Max({{{m.group(1)}[i] : i \\in {range_expr}}})"
+
     fixed_new = re.sub(
         r"\bMAX\(\s*([A-Za-z_][A-Za-z0-9_]*)\[\s*([^\]\n]+?)\s*\]\s*\)",
-        lambda m: (
-            f"Max({{{m.group(1)}[i] : i \\in "
-            f"{re.sub(r'\s*\.\.\s*', ' .. ', m.group(2).strip())}}})"
-        ),
+        _rewrite_max_slice,
         fixed,
     )
     if fixed_new != fixed:
