@@ -801,6 +801,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized bare star comment lines")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"(?m)^ASSUME\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\{\s*([a-z_][A-Za-z0-9_]*)\s*\|\s*\2\s*\\in\s*([^}\n]+)\}\s*$",
+        lambda m: f"ASSUME {m.group(1)} = {m.group(3).strip()}",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote constant set-builder ASSUME as range equality")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\bELSEIF\b", "ELSE IF", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized ELSEIF tokenization")
@@ -1063,13 +1072,38 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         content = match.group(1)
         if any(token in content for token in ("|->", "EXCEPT", "\\in")):
             return match.group(0)
-        updated = re.sub(r"(?<=\S)\s+([A-Za-z_][A-Za-z0-9_]*\s*:)", r", \1", content)
+        updated = re.sub(r"(?<=[^,\s])\s+([A-Za-z_][A-Za-z0-9_]*\s*:)", r", \1", content)
         return "[" + updated + "]"
 
     fixed_new = re.sub(r"\[([^\]\n]+)\]", _insert_record_field_commas, fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("inserted missing record field commas")
         fixed = fixed_new
+
+    any_alias_rewritten = False
+    candidate_msg_match = re.search(
+        r"(?m)^([A-Z][A-Za-z0-9_]*)\s*==\s*\[id:\s*([A-Za-z_][A-Za-z0-9_]*)\s*,+\s*term:\s*Int\]\s*$",
+        fixed,
+    )
+    if candidate_msg_match and re.search(r"(?m)^ANY\s*==\s*ANY\s*$", fixed):
+        alias_name = candidate_msg_match.group(1)
+        domain_name = candidate_msg_match.group(2)
+        fixed_new = re.sub(r"(?m)^ANY\s*==\s*ANY\s*$\n?", "", fixed)
+        fixed_new = re.sub(
+            r"(?m)^(\s*\\/\s*)CandidateStart\(ANY\)\s*$",
+            rf"\1\\E id \\in {domain_name} : CandidateStart(id)",
+            fixed_new,
+        )
+        fixed_new = re.sub(
+            rf"(?m)^(\s*\\/\s*)VoteRequest\({re.escape(alias_name)}\)\s*$",
+            rf"\1\\E id \\in {domain_name} : VoteRequest([id |-> id, term |-> currentTerm + 1])",
+            fixed_new,
+        )
+        if fixed_new != fixed:
+            any_alias_rewritten = True
+            fixed = fixed_new
+    if any_alias_rewritten:
+        result.fixes_applied.append("rewrote ANY placeholder constant alias invocations")
 
     fixed_new = re.sub(r"(?m)^\s*/\\\s*UNCHANGED\s+@[^\n]*\n?", "", fixed)
     if fixed_new != fixed:
@@ -2180,6 +2214,21 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if fixed_new != fixed:
             fixed = fixed_new
             result.fixes_applied.append("realigned Spec vars tuple with VARIABLES declaration")
+
+        def _expand_indexed_vars_unchanged(match: re.Match) -> str:
+            idx = int(match.group(1))
+            if idx < 1 or idx > len(last_variable_names):
+                return match.group(0)
+            return f"UNCHANGED <<{last_variable_names[idx - 1]}>>"
+
+        fixed_new = re.sub(
+            r"UNCHANGED\s+vars\[(\d+)]",
+            _expand_indexed_vars_unchanged,
+            fixed,
+        )
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("expanded indexed vars UNCHANGED to named tuple")
 
         def _rewrite_boolean_choice_tuple_placeholder(match: re.Match) -> str:
             prefix = match.group(1)

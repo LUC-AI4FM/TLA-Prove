@@ -1029,6 +1029,56 @@ Next == TRUE
     assert "ELSE IF newTerm < currentTerm THEN" not in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_constant_set_builder_assume_as_range() -> None:
+    spec = """---- MODULE RaftLeaderElection ----
+CONSTANT ServerSet, MAXSERVERID
+ASSUME ServerSet = {s | s \\in 1 .. MAXSERVERID}
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote constant set-builder ASSUME as range equality" in result.fixes_applied
+    assert "ASSUME ServerSet = 1 .. MAXSERVERID" in result.fixed_spec
+
+
+def test_fix_tla_syntax_expands_vars_index_unchanged_to_named_tuple() -> None:
+    spec = """---- MODULE RaftLeaderElection ----
+VARIABLES votedFor, state, TLC, currentTerm
+vars == <<votedFor, state, TLC, currentTerm>>
+
+VoteRequest(cand) ==
+    /\\ UNCHANGED vars[3]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "expanded indexed vars UNCHANGED to named tuple" in result.fixes_applied
+    assert "/\\ UNCHANGED <<TLC>>" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_any_placeholder_call_from_record_alias() -> None:
+    spec = """---- MODULE RaftLeaderElection ----
+CONSTANT ServerSet
+VARIABLES votedFor, state, TLC, currentTerm
+CANDIDATE_MSG == [id: ServerSet, term: Int]
+ANY == ANY
+
+Next ==
+    \\/ CandidateStart(ANY)
+    \\/ VoteRequest(CANDIDATE_MSG)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote ANY placeholder constant alias invocations" in result.fixes_applied
+    assert "\\E id \\in ServerSet : CandidateStart(id)" in result.fixed_spec
+    assert "\\E id \\in ServerSet : VoteRequest([id |-> id, term |-> currentTerm + 1])" in result.fixed_spec
+    assert "ANY == ANY" not in result.fixed_spec
+
+
 def test_fix_tla_syntax_normalizes_len_broken_in_and_escaped_comment() -> None:
     spec = """---- MODULE ClockSync ----
 TypeInvariant ==
@@ -2349,6 +2399,74 @@ TypeOK ==
     assert "synthesized missing Process operator stub" in result.fixes_applied
     assert "rewrote subseteq DOMAIN[BOOLEAN] as boolean function set" in result.fixes_applied
     assert "normalized duplicate temporal box operators" in result.fixes_applied
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm006_shape_sany_valid() -> None:
+    spec = """---- MODULE RaftLeaderElection ----
+
+EXTENDS Naturals, Sequences, FiniteSets, Integers
+
+CONSTANT ServerSet, MAXSERVERID, NULL, For, We
+ASSUME MAXSERVERID \\in Nat
+ASSUME ServerSet = {s | s \\in 1 .. MAXSERVERID}
+
+VARIABLES votedFor, state, TLC, currentTerm
+StateVal == {"Follower","Candidate","Leader"}
+
+vars == <<votedFor, state, TLC, currentTerm>>
+
+TypeOK ==
+    /\\ currentTerm \\in Int
+    /\\ (votedFor \\in ServerSet \\/ votedFor = NULL)
+    /\\ state \\in StateVal
+
+Init ==
+    /\\ TypeOK
+    /\\ currentTerm = -1
+    /\\ votedFor = NULL
+    /\\ state = "Follower"
+
+VoteRequest(cand) ==
+    LET newTerm == cand.term IN
+
+            /\\ currentTerm' = newTerm
+            /\\ votedFor' = cand.id
+            /\\ UNCHANGED vars[3]
+CandidateStart(id) ==
+    /\\ state = "Follower"
+    /\\ currentTerm' = currentTerm + 1
+    /\\ votedFor' = id
+    /\\ state' = "Candidate"
+
+majorityVotesReceived ==
+    CHOOSE b : (b \\in BOOLEAN)
+
+LeaderCommit ==
+    /\\ state = "Candidate"
+    /\\ majorityVotesReceived
+    /\\ state' = "Leader"
+    /\\ UNCHANGED <<votedFor,currentTerm>>
+
+CANDIDATE_MSG == [id: ServerSet, term: Int]
+ANY == ANY
+
+Next ==
+    \\/ CandidateStart(ANY)
+    \\/ VoteRequest(CANDIDATE_MSG)
+    \\/ LeaderCommit
+
+Spec == Init /\\ [][Next]_vars
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="RaftLeaderElection")
+
+    assert "rewrote constant set-builder ASSUME as range equality" in result.fixes_applied
+    assert "expanded indexed vars UNCHANGED to named tuple" in result.fixes_applied
+    assert "rewrote ANY placeholder constant alias invocations" in result.fixes_applied
     assert sany_result.valid, sany_result.raw_output
 
 
