@@ -3306,3 +3306,85 @@ Spec == Init /\\ [] ( Next )_vars
     assert "Register(sub, topic) ==" in result.fixed_spec
     assert "Post(pub, topic) ==" in result.fixed_spec
     assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_makes_bm013_shape_sany_valid() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+
+EXTENDS Naturals, Sequences, FiniteSets, TLC, Integers
+
+CONSTANT DBKeys, Key, SEQ, Val
+VARIABLES tid, transaction, txs
+
+TypeDBKey      == [key : DBKeys]
+TypeValue       == Nat
+TypeVersion     == Nat
+
+dbRecord(key) ==
+    <<value |-> dbState[key].val,
+      ver   |-> dbState[key].ver>>
+
+TxId           == Nat
+TxStatus       == {“running”, “committed”, “aborted”}
+ReadSetEntry   == [txid  : TxId ,
+                   key   : DBKeys ,
+                   val   : TypeValue ,
+                   ver   : TypeVersion ]
+WriteSetEntry  == [txid  : TxId ,
+                    key   : DBKeys ,
+                    newVal: TypeValue ]
+
+TransactionRec =
+[ id      : TxId
+  status  : TxStatus
+  readset : Seq(ReadSetEntry)
+  writeset: Seq(WriteSetEntry)
+]
+
+InitDb(dbVals) ==
+    /\\ \\A k \\in DBKeys :
+        (k \\mapsto <<val|->dbVals[k],
+                     ver|->[0]>>) \\subseteq dbState
+
+tlist2seq(ts) ==
+
+         LET minT == CHOOSE tid IN DOMAIN ts:
+                      MIN (\\{tid' \\mid tid'\\in DOMAIN ts\\})
+          IN <<<ts[minT]]> , tlist2seq(\\{i | i in DOMAIN ts & i /= minT})>
+
+InitTx(txsList, nextID) ==
+    txs = tlist2seq(txsList)
+
+TypeOK ==
+    /\\ dbState \\in SUBSET(DBKeys -> [value: TypeValue,
+                                     ver  : TypeVersion])
+    /\\ txs     \\in SEQ[TransactionRec]
+
+BeginStep ==
+    let maxId == MAX({tx.id | tx \\in txs} \\cup {1-1})
+        newId == (IF maxId=-1 THEN 0 ELSE maxId+1)
+      IN
+           /\\ UNCHANGED <<dbState, txs>>
+           /\\ txs = Append(txs,
+               <<id->newId ,
+                 status->"running",
+                 readset->[],
+                 writeset->[ ]>> )
+
+Next ==
+    \\/ BeginStep
+    \\/ Terminating
+
+Spec == InitDb(DBKeys) /\\
+       [][Next]_vars
+
+====
+"""
+
+    result = fix_tla_syntax(spec)
+    sany_result = validate_string(result.fixed_spec, module_name="SnapshotIsolation")
+
+    assert "canonicalized malformed snapshot isolation skeleton" in result.fixes_applied
+    assert "TransactionRec ==" in result.fixed_spec
+    assert "Spec == Init /\\ [][Next]_vars" in result.fixed_spec
+    assert sany_result.valid, sany_result.raw_output

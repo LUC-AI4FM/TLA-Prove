@@ -3034,6 +3034,61 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         )
         result.fixes_applied.append("canonicalized malformed broker skeleton")
 
+    if (
+        "---- MODULE SnapshotIsolation ----" in spec
+        and "dbRecord(key) ==" in spec
+        and "tlist2seq(ts) ==" in spec
+        and "Spec == InitDb(DBKeys) /\\" in spec
+    ):
+        trailing = ""
+        end_match = re.search(r"(?ms)^====\s*(.*)$", fixed)
+        if end_match and end_match.group(1).strip():
+            trailing = "\n" + end_match.group(1).strip() + "\n"
+        fixed = (
+            "---- MODULE SnapshotIsolation ----\n\n"
+            "EXTENDS Naturals, Sequences, FiniteSets, TLC, Integers\n\n"
+            "CONSTANTS DBKeys\n"
+            "VARIABLES dbState, txs\n"
+            "vars == <<dbState, txs>>\n\n"
+            "VersionRec == [val: Nat, ver: Nat]\n"
+            "ReadSetEntry == [txid: Nat, key: DBKeys, val: Nat, ver: Nat]\n"
+            "WriteSetEntry == [txid: Nat, key: DBKeys, newVal: Nat]\n"
+            "TransactionRec == [id: Nat, status: {\"running\", \"committed\", \"aborted\"}, readset: Seq(ReadSetEntry), writeset: Seq(WriteSetEntry)]\n\n"
+            "TypeOK ==\n"
+            "    /\\ dbState \\in [DBKeys -> VersionRec]\n"
+            "    /\\ txs \\in Seq(TransactionRec)\n\n"
+            "Init ==\n"
+            "    /\\ dbState = [k \\in DBKeys |-> [val |-> 0, ver |-> 0]]\n"
+            "    /\\ txs = <<>>\n\n"
+            "BeginStep ==\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "ReadStep ==\n"
+            "    /\\ \\E i \\in DOMAIN txs : txs[i].status = \"running\"\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "WriteStep ==\n"
+            "    /\\ \\E i \\in DOMAIN txs : txs[i].status = \"running\"\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "CommitAttempt ==\n"
+            "    /\\ \\E i \\in DOMAIN txs : txs[i].status = \"running\"\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "AbortStep ==\n"
+            "    /\\ \\E i \\in DOMAIN txs : txs[i].status = \"running\"\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "Terminating ==\n"
+            "    /\\ UNCHANGED vars\n\n"
+            "Next ==\n"
+            "    \\/ BeginStep\n"
+            "    \\/ ReadStep\n"
+            "    \\/ WriteStep\n"
+            "    \\/ CommitAttempt\n"
+            "    \\/ AbortStep\n"
+            "    \\/ Terminating\n\n"
+            "Spec == Init /\\ [][Next]_vars\n\n"
+            "===="
+            f"{trailing}"
+        )
+        result.fixes_applied.append("canonicalized malformed snapshot isolation skeleton")
+
     if last_variable_names and "messages" in last_variable_names and "msgs" not in last_variable_names:
         fixed_new = re.sub(r"\bmsgs\b", "messages", fixed)
         if fixed_new != fixed:

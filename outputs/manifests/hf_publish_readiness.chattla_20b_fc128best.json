@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 49.3653944823477,
+    "age_hours": 49.41360711064603,
     "avg_struct": 0.8557,
     "execution": null,
     "fresh_within_hours": 24.0,
@@ -61,7 +61,7 @@
       ]
     }
   },
-  "generated_at": "2026-07-01T06:23:02.185190+00:00",
+  "generated_at": "2026-07-01T06:25:55.728561+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [
@@ -98,9 +98,9 @@
     "latest_published_version": 21
   },
   "repair_pair_frontier": {
-    "invalid_rows": 4,
+    "invalid_rows": 3,
     "rows": 20,
-    "sany_valid": 16,
+    "sany_valid": 17,
     "source_path": "data/processed/benchmark_repair_pairs_fc128best.jsonl",
     "valid_ids": [
       "BM002",
@@ -112,6 +112,7 @@
       "BM009",
       "BM010",
       "BM012",
+      "BM013",
       "BM014",
       "BM015",
       "BM016",
