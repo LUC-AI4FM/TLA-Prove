@@ -540,6 +540,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("removed CONSTDEF pseudo-keyword")
         fixed = fixed_new
 
+    fixed_new = fixed.replace("≜", "==")
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized definition symbol to ==")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"^([A-Z_][A-Z0-9_]*)\s*=\s*(?!=)(.+)$", r"\1 == \2", fixed, flags=re.MULTILINE)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized top-level = definitions to ==")
@@ -576,34 +581,90 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote bracketed UNCHANGED form")
         fixed = fixed_new
 
-    var_decl = re.search(r"^VARIABLES?\s+(.+)$", fixed, re.MULTILINE)
-    if var_decl:
-        raw_names = re.sub(r"\(\*.*?\*\)", "", var_decl.group(1))
+    def _extract_decl_names(fragments: list[str], *, defined_ops: set[str]) -> list[str]:
+        reserved = {
+            "ASSUME", "BOOLEAN", "CASE", "CHOOSE", "CONSTANT", "CONSTANTS",
+            "DOMAIN", "ELSE", "EXTENDS", "FALSE", "IF", "IN", "INSTANCE",
+            "LET", "LOCAL", "OTHER", "SUBSET", "THEOREM", "THEN", "TRUE",
+            "UNION", "VARIABLE", "VARIABLES",
+        }
         names = []
         seen = set()
-        defined_ops = set(re.findall(r"^([A-Za-z_][A-Za-z0-9_]*)\s*==", fixed, re.MULTILINE))
-        for part in raw_names.split(","):
-            candidate = part.strip()
-            if not candidate:
+        for fragment in fragments:
+            fragment = re.sub(r"\(\*.*?\*\)", " ", fragment)
+            fragment = re.sub(r'"[^"\n]*"', " ", fragment)
+            fragment = re.sub(r"\\\*.*$", " ", fragment)
+            fragment = re.sub(r"\\.*$", " ", fragment)
+            for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", fragment):
+                if token.upper() in reserved or token in defined_ops or token in seen:
+                    continue
+                seen.add(token)
+                names.append(token)
+        return names
+
+    defined_ops = set(re.findall(r"^([A-Za-z_][A-Za-z0-9_]*)\s*==", fixed, re.MULTILINE))
+    lines = fixed.splitlines()
+    rebuilt_lines = []
+    i = 0
+    variables_changed = False
+    merged_variable_lines = False
+    last_variable_names: Optional[list[str]] = None
+    while i < len(lines):
+        line = lines[i]
+        match = re.match(r"^(VARIABLES?)\s+(.+)$", line)
+        header_only = re.match(r"^(VARIABLES?)\s*$", line)
+        keyword = None
+        initial_fragment = None
+        header_had_inline_names = False
+        if not match:
+            if not header_only:
+                rebuilt_lines.append(line)
+                i += 1
                 continue
-            name_match = re.match(r"[A-Za-z_][A-Za-z0-9_]*", candidate)
-            if not name_match:
-                continue
-            name = name_match.group(0)
-            if name in seen or name in defined_ops:
-                continue
-            seen.add(name)
-            names.append(name)
-        if names:
-            cleaned_decl = f"VARIABLES {', '.join(names)}"
-            if cleaned_decl != var_decl.group(0):
-                fixed = fixed[:var_decl.start()] + cleaned_decl + fixed[var_decl.end():]
-                result.fixes_applied.append("cleaned single-line VARIABLES declaration")
-            vars_tuple = f"<<{', '.join(names)}>>"
-            fixed_new = re.sub(r"^vars\s*==\s*<<.*?>>$", f"vars == {vars_tuple}", fixed, flags=re.MULTILINE)
-            if fixed_new != fixed:
-                fixed = fixed_new
-                result.fixes_applied.append("realigned vars tuple with VARIABLES declaration")
+            keyword = header_only.group(1)
+            initial_fragment = None
+        else:
+            keyword = match.group(1)
+            initial_fragment = match.group(2)
+            header_had_inline_names = True
+
+        fragments = [initial_fragment] if initial_fragment is not None else []
+        j = i + 1
+        while j < len(lines):
+            continuation = lines[j]
+            if not continuation.strip() or not continuation.startswith((" ", "\t")):
+                break
+            fragments.append(continuation.strip())
+            j += 1
+
+        names = _extract_decl_names(fragments, defined_ops=defined_ops)
+        if not names:
+            rebuilt_lines.append(line)
+            i += 1
+            continue
+
+        cleaned_decl = f"{keyword} {', '.join(names)}"
+        rebuilt_lines.append(cleaned_decl)
+        variables_changed = variables_changed or (header_had_inline_names and cleaned_decl != line)
+        merged_variable_lines = merged_variable_lines or j > i + 1
+        if not header_had_inline_names:
+            result.fixes_applied.append("cleaned multiline VARIABLES declaration")
+        last_variable_names = names
+        i = j
+
+    if variables_changed or merged_variable_lines:
+        fixed = "\n".join(rebuilt_lines)
+        if variables_changed:
+            result.fixes_applied.append("cleaned single-line VARIABLES declaration")
+        if merged_variable_lines:
+            result.fixes_applied.append("merged continued VARIABLES declaration lines")
+
+    if last_variable_names:
+        vars_tuple = f"<<{', '.join(last_variable_names)}>>"
+        fixed_new = re.sub(r"^vars\s*==\s*<<.*?>>$", f"vars == {vars_tuple}", fixed, flags=re.MULTILINE)
+        if fixed_new != fixed:
+            fixed = fixed_new
+            result.fixes_applied.append("realigned vars tuple with VARIABLES declaration")
 
     const_decl = re.search(r"^CONSTANTS?\s+(.+)$", fixed, re.MULTILINE)
     if const_decl:
@@ -632,6 +693,12 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"\bUnchanged\(([^)\n]+)\)", r"UNCHANGED \1", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized lowercase Unchanged operator")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\\forall\b", r"\\A", fixed, flags=re.IGNORECASE)
+    fixed_new = re.sub(r"\\exists\b", r"\\E", fixed_new, flags=re.IGNORECASE)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized lowercase TeX quantifiers")
         fixed = fixed_new
 
     fixed_new = re.sub(r"EXCEPT\s+(!\[[^]]+\]\s*=\s*)@\(([^()\n]+)\)", r"EXCEPT \1\2", fixed)

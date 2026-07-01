@@ -115,3 +115,65 @@ Next ==
     assert "removed @(...) wrapper in EXCEPT updates" in result.fixes_applied
     assert '@"critical"' not in result.fixed_spec
     assert 'EXCEPT ![i] = "critical"' in result.fixed_spec
+
+
+def test_fix_tla_syntax_cleans_continued_variable_declarations() -> None:
+    spec = """---- MODULE DiningPhilosophers ----
+VARIABLES pc, Let, hungry
+          forkOwner
+    votesReceived  ,\\ Mapping from participant -> boolean indicating YES/NO received,
+    decision       ,\\ Final decision by coordinator ("none","committed","aborted"),
+    terminated     .\\ Boolean flag whether process has finished
+Init ==
+   /\\ pc = "idle"
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "cleaned single-line VARIABLES declaration" in result.fixes_applied
+    assert "merged continued VARIABLES declaration lines" in result.fixes_applied
+    assert "VARIABLES pc, hungry, forkOwner, votesReceived, decision, terminated" in result.fixed_spec
+    assert "Let" not in result.fixed_spec
+    assert "Mapping from participant" not in result.fixed_spec
+    assert '"committed"' not in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_tex_quantifiers_and_definition_symbol() -> None:
+    spec = """---- MODULE DiningPhilosophers ----
+VARIABLES pc
+THINKING ≜ <<"thinking">>
+TypeOK ==
+   /\\ \\forall p \\in Procs : pc[p] = THINKING
+Next ==
+   /\\ \\exists p \\in Procs : pc[p] = THINKING
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized definition symbol to ==" in result.fixes_applied
+    assert "normalized lowercase TeX quantifiers" in result.fixes_applied
+    assert "THINKING == <<\"thinking\">>" in result.fixed_spec
+    assert "\\forall" not in result.fixed_spec
+    assert "\\exists" not in result.fixed_spec
+    assert "\\A p \\in Procs" in result.fixed_spec
+    assert "\\E p \\in Procs" in result.fixed_spec
+
+
+def test_fix_tla_syntax_cleans_multiline_variable_header() -> None:
+    spec = """---- MODULE MutualExclusion ----
+VARIABLES
+    turn      ,\\ Process whose turn it currently is, flag, process
+    flag       ,\\ Flag array indicating each process's intent
+Init ==
+   /\\ turn = 1
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "cleaned multiline VARIABLES declaration" in result.fixes_applied
+    assert "VARIABLES turn, flag" in result.fixed_spec
+    assert "process" not in result.fixed_spec
+    assert "Flag array indicating" not in result.fixed_spec
