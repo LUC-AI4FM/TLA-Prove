@@ -1,0 +1,16 @@
+{
+  "schema": "chattla_benchmark_run_meta_v1",
+  "source_csv": "benchmark_results_fc128best_full_20260701_161720.csv",
+  "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260701_161720.csv",
+  "execution": {
+    "self_correct": false,
+    "use_plan": false,
+    "attempts": 1,
+    "inference_mode": "single-shot"
+  },
+  "models": [
+    "chattla:20b-fc128best"
+  ],
+  "problem_ids": null,
+  "limit": null
+}

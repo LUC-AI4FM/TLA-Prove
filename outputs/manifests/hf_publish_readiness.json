@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 1443.5959274480078,
+    "age_hours": 1461.416652428839,
     "avg_struct": 0.70575,
     "execution": null,
     "fresh_within_hours": 24.0,
@@ -13,7 +13,7 @@
   },
   "benchmark_model": "chattla:20b",
   "blockers": [
-    "latest full benchmark is stale at 1443.6h (limit 24.0h)",
+    "latest full benchmark is stale at 1461.4h (limit 24.0h)",
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
   "claim_status": {
@@ -55,7 +55,7 @@
       "obvious_placeholder_rows": []
     }
   },
-  "generated_at": "2026-07-01T03:33:24.541644+00:00",
+  "generated_at": "2026-07-01T21:22:39.162914+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [
@@ -91,6 +91,7 @@
     ],
     "latest_published_version": 21
   },
+  "repair_pair_frontier": null,
   "repo_id": "EricSpencer00/chattla-20b",
   "state": {
     "last_cycle_id": 69,

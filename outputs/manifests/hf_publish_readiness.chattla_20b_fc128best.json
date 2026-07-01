@@ -1,67 +1,65 @@
 {
   "benchmark": {
-    "age_hours": 49.58234956171778,
-    "avg_struct": 0.8557,
-    "execution": null,
+    "age_hours": 0.023241450322998895,
+    "avg_struct": 0.19445,
+    "execution": {
+      "attempts": 1,
+      "inference_mode": "single-shot",
+      "self_correct": false,
+      "use_plan": false
+    },
     "fresh_within_hours": 24.0,
     "model": "chattla:20b-fc128best",
     "rows": 20,
-    "sany": 0,
-    "source_csv": "benchmark_results_fc128best_full_20260628_235102.csv",
-    "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260628_235102.csv",
-    "tlc": 0
+    "sany": 4,
+    "source_csv": "benchmark_results_fc128best_full_20260701_161720.csv",
+    "source_path": "outputs/benchmark_results/benchmark_results_fc128best_full_20260701_161720.csv",
+    "tlc": 1
   },
   "benchmark_model": "chattla:20b-fc128best",
-  "blockers": [
-    "latest full benchmark is stale at 49.6h (limit 24.0h)",
-    "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
-  ],
+  "blockers": [],
   "claim_status": {
-    "reason": "Latest full benchmark reaches only 0/20 SANY and 0/20 TLC, so the public benchmark claim is unsupported.",
+    "reason": "Latest full benchmark reaches only 4/20 SANY and 1/20 TLC, so the public benchmark claim is unsupported.",
     "supports_public_benchmark_100_percent_claim": false
   },
   "failure_surface": {
     "aggregate": {
-      "rows_with_all_core_components": 0,
-      "rows_with_any_core_component": 0,
-      "rows_with_no_core_components": 20
+      "rows_with_all_core_components": 3,
+      "rows_with_any_core_component": 6,
+      "rows_with_no_core_components": 14
     },
     "core_component_failures": {
-      "missing_init_level_ok_rows": 20,
-      "missing_init_present_rows": 20,
-      "missing_invariants_declared_rows": 20,
-      "missing_next_level_ok_rows": 20,
-      "missing_next_present_rows": 20,
-      "missing_tlc_depth1_ok_rows": 20
+      "missing_init_level_ok_rows": 16,
+      "missing_init_present_rows": 14,
+      "missing_invariants_declared_rows": 16,
+      "missing_next_level_ok_rows": 16,
+      "missing_next_present_rows": 14,
+      "missing_tlc_depth1_ok_rows": 17
     },
     "planning": {
       "plan_unused_rows": 20,
       "plan_used_rows": 0
     },
     "red_flags": {
-      "duplicate_variables_rows": 2,
-      "obvious_placeholder_rows": 8,
-      "pseudo_tla_token_rows": 14
+      "duplicate_variables_rows": 0,
+      "obvious_placeholder_rows": 1,
+      "pseudo_tla_token_rows": 0
     },
     "rows": 20,
     "sample_benchmark_ids": {
       "no_core_components": [
         "BM001",
-        "BM002",
         "BM003",
         "BM004",
-        "BM005"
+        "BM005",
+        "BM008"
       ],
       "obvious_placeholder_rows": [
-        "BM001",
-        "BM002",
-        "BM003",
-        "BM007",
-        "BM011"
+        "BM014"
       ]
     }
   },
-  "generated_at": "2026-07-01T06:36:03.317128+00:00",
+  "generated_at": "2026-07-01T21:22:12.506570+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [
@@ -78,7 +76,7 @@
     "readme_template_present": true
   },
   "next_publish_version": 22,
-  "ready_to_publish": false,
+  "ready_to_publish": true,
   "remote": {
     "gguf_files": [
       "gguf/Modelfile",
