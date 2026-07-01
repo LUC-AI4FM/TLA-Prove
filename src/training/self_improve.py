@@ -302,6 +302,17 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         fixed = re.sub(r"^```\w*\s*$", "", fixed, flags=re.MULTILINE)
         result.fixes_applied.append("removed markdown fences")
 
+    smart_quote_map = str.maketrans({
+        "“": '"',
+        "”": '"',
+        "‘": "'",
+        "’": "'",
+    })
+    fixed_new = fixed.translate(smart_quote_map)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        result.fixes_applied.append("normalized smart quotes")
+
     # ── Fix 3: Fix VARIABLES declaration (missing commas) ─────────────────
     # Pattern: VARIABLES followed by identifiers on separate lines without commas
     var_block = re.search(r"(VARIABLES?\s*\n)((?:\s+\w+\s*(?:\\.*)?(?:\n|$))+)", fixed)
@@ -1237,6 +1248,79 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote single-angle tuple syntax")
         fixed = fixed_new
 
+    def _split_top_level_comma_parts(expr: str) -> list[str]:
+        parts: list[str] = []
+        start = 0
+        paren_depth = 0
+        bracket_depth = 0
+        brace_depth = 0
+        angle_depth = 0
+        i = 0
+        while i < len(expr):
+            if expr.startswith("<<", i):
+                angle_depth += 1
+                i += 2
+                continue
+            if expr.startswith(">>", i):
+                angle_depth = max(0, angle_depth - 1)
+                i += 2
+                continue
+            ch = expr[i]
+            if ch == "(":
+                paren_depth += 1
+            elif ch == ")":
+                paren_depth = max(0, paren_depth - 1)
+            elif ch == "[":
+                bracket_depth += 1
+            elif ch == "]":
+                bracket_depth = max(0, bracket_depth - 1)
+            elif ch == "{":
+                brace_depth += 1
+            elif ch == "}":
+                brace_depth = max(0, brace_depth - 1)
+            elif (
+                ch == ","
+                and paren_depth == 0
+                and bracket_depth == 0
+                and brace_depth == 0
+                and angle_depth == 0
+            ):
+                parts.append(expr[start:i].strip())
+                start = i + 1
+            i += 1
+        tail = expr[start:].strip()
+        if tail:
+            parts.append(tail)
+        return parts
+
+    def _rewrite_tuple_wrapped_record_literal(match: re.Match) -> str:
+        inner = match.group(1)
+        parts = _split_top_level_comma_parts(inner)
+        if len(parts) < 2:
+            return match.group(0)
+        normalized_fields: list[str] = []
+        for part in parts:
+            field_match = re.fullmatch(
+                r"\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?:\|->|->)\s*(.+?)\s*",
+                part,
+                re.DOTALL,
+            )
+            if not field_match:
+                return match.group(0)
+            normalized_fields.append(
+                f"{field_match.group(1)} |-> {field_match.group(2).strip()}"
+            )
+        return "[" + ", ".join(normalized_fields) + "]"
+
+    fixed_new = re.sub(
+        r"<<\s*([A-Za-z_][A-Za-z0-9_]*\s*(?:\|->|->)[\s\S]*?)\s*>>",
+        _rewrite_tuple_wrapped_record_literal,
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote tuple-wrapped record literals")
+        fixed = fixed_new
+
     fixed_new = re.sub(
         r"\{(<<[^{}\n]+>>)\s*\|\s*([A-Za-z_][^{}\n]*\\in[^{}\n]*)\}",
         r"{\1 : \2}",
@@ -2043,9 +2127,60 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized definition symbol to ==")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\n(\s*\[)",
+        r"\1 ==\n\2",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized top-level = definitions to ==")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"^([A-Z_][A-Z0-9_]*)\s*=\s*(?!=)(.+)$", r"\1 == \2", fixed, flags=re.MULTILINE)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized top-level = definitions to ==")
+        fixed = fixed_new
+
+    def _insert_record_type_commas(match: re.Match) -> str:
+        prefix = match.group(1)
+        block = match.group(2)
+        lines = block.splitlines()
+        if len(lines) < 2:
+            return match.group(0)
+        field_lines = lines[:-1]
+        closing = lines[-1]
+        if not field_lines:
+            return match.group(0)
+        normalized_fields: list[str] = []
+        for idx, line in enumerate(field_lines):
+            if idx == 0:
+                field_line = line[1:].rstrip()
+                prefix_char = "["
+            else:
+                field_line = line.rstrip()
+                prefix_char = ""
+            if not re.match(r"\s*[A-Za-z_][A-Za-z0-9_]*\s*:\s*.+", field_line):
+                return match.group(0)
+            normalized_fields.append(prefix_char + field_line)
+        rewritten: list[str] = []
+        changed = False
+        for idx, line in enumerate(normalized_fields):
+            updated = line.rstrip()
+            if idx < len(normalized_fields) - 1 and not updated.endswith(","):
+                updated += ","
+                changed = True
+            rewritten.append(updated)
+        if not changed:
+            return match.group(0)
+        return prefix + "\n".join([*rewritten, closing])
+
+    fixed_new = re.sub(
+        r"(?ms)(^[A-Za-z_][A-Za-z0-9_]*\s*==\s*\n)(\[[\s\S]*?\n\])",
+        _insert_record_type_commas,
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("inserted commas in multiline record type aliases")
         fixed = fixed_new
 
     fixed_new = re.sub(r"#=", "#", fixed)

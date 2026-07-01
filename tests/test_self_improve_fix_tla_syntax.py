@@ -3115,3 +3115,72 @@ Spec == Init /\\ []<>(vars) \\/ Next)_vars ???
     assert "Clients == 1..M" in result.fixed_spec
     assert "vars == <<allocated, free>>" in result.fixed_spec
     assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_rewrites_tuple_wrapped_record_literals() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+dbRecord(key) ==
+    <<value |-> dbState[key].val,
+      ver   |-> dbState[key].ver>>
+
+BeginStep ==
+    /\\ txs' =
+        Append(txs,
+            <<id->newId,
+              status->"running",
+              readset->[],
+              writeset->[ ]>>)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote tuple-wrapped record literals" in result.fixes_applied
+    assert "<<value |->" not in result.fixed_spec
+    assert "[value |-> dbState[key].val," in result.fixed_spec
+    assert '[id |-> newId,' in result.fixed_spec
+    assert 'status |-> "running"' in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_smart_quotes_to_ascii_quotes() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+TxStatus == {“running”, “committed”, “aborted”}
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized smart quotes" in result.fixes_applied
+    assert 'TxStatus == {"running", "committed", "aborted"}' in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_top_level_record_alias_equals() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+TransactionRec =
+[ id      : TxId
+  status  : TxStatus
+]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized top-level = definitions to ==" in result.fixes_applied
+    assert "TransactionRec ==" in result.fixed_spec
+
+
+def test_fix_tla_syntax_inserts_commas_in_multiline_record_type_alias() -> None:
+    spec = """---- MODULE SnapshotIsolation ----
+TransactionRec ==
+[ id      : TxId
+  status  : TxStatus
+  readset : Seq(ReadSetEntry)
+]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "inserted commas in multiline record type aliases" in result.fixes_applied
+    assert "[ id      : TxId," in result.fixed_spec
+    assert "status  : TxStatus," in result.fixed_spec
