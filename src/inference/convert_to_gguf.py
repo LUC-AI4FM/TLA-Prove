@@ -100,7 +100,7 @@ Critical TLA+ syntax rules:
 
 PARAMETER temperature 0.3
 PARAMETER num_ctx 4096
-PARAMETER repeat_penalty 1.3
+PARAMETER repeat_penalty 1.0
 PARAMETER repeat_last_n 256
 PARAMETER top_k 40
 PARAMETER top_p 0.9

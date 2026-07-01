@@ -40,6 +40,14 @@ from typing import Optional
 _OLLAMA_HOST   = os.getenv("OLLAMA_HOST",   "http://localhost:11434")
 _DEFAULT_MODEL = os.getenv("CHATTLA_MODEL", "chattla:20b")
 
+# repeat_penalty above 1.0 is actively harmful for formal-language output:
+# TLA+ legitimately repeats identifiers everywhere (each variable recurs in
+# TypeOK, Init, Next, vars), so the penalty steers generation toward mangled
+# near-miss tokens (NumPHILOS, CONSTDEF, duplicated declarations). At 1.3 the
+# fc128best checkpoint scored 0/20 SANY on the benchmark; the same checkpoint
+# at 1.0 produced TLC-gold specs on the same prompts.
+_REPEAT_PENALTY = float(os.getenv("CHATTLA_REPEAT_PENALTY", "1.0"))
+
 # Import the canonical developer prompt from dataset_builder to ensure
 # inference sees the same prompt as training (no distribution shift).
 from src.training.dataset_builder import _DEVELOPER_PROMPT
@@ -222,7 +230,7 @@ class ChatTLAClient:
             raw=True,
             options={
                 "temperature": temp,
-                "repeat_penalty": 1.3,
+                "repeat_penalty": _REPEAT_PENALTY,
                 "num_predict": 4096,
                 "top_k": 40,
                 "top_p": 0.9,
@@ -265,7 +273,7 @@ class ChatTLAClient:
             raw=True,
             options={
                 "temperature": temp,
-                "repeat_penalty": 1.1,
+                "repeat_penalty": _REPEAT_PENALTY,
                 "num_predict": 1024,
                 "top_k": 40,
                 "top_p": 0.9,
@@ -323,7 +331,7 @@ class ChatTLAClient:
             raw=True,
             options={
                 "temperature": temp,
-                "repeat_penalty": 1.3,
+                "repeat_penalty": _REPEAT_PENALTY,
                 "num_predict": 4096,
                 "top_k": 40,
                 "top_p": 0.9,
@@ -489,7 +497,7 @@ class ChatTLAClient:
             raw=True,
             options={
                 "temperature": 0.05,
-                "repeat_penalty": 1.3,
+                "repeat_penalty": _REPEAT_PENALTY,
                 "num_predict": 4096,
                 "stop": ["<|return|>", "<|end|>", "<|start|>"],
             },
@@ -514,7 +522,7 @@ class ChatTLAClient:
             raw=True,
             options={
                 "temperature": 0.05,
-                "repeat_penalty": 1.3,
+                "repeat_penalty": _REPEAT_PENALTY,
                 "num_predict": 4096,
                 "stop": ["<|return|>", "<|end|>", "<|start|>"],
             },
