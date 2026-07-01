@@ -784,6 +784,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized non-TLA comment styles")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"(?m)^(\s*/\\\s+.+?)\s+--(?!\s*>)\s?(.*)$", r"\1 \\* \2", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized inline double-dash comments")
+        fixed = fixed_new
+
     fixed_new = fixed.replace("\\land", "/\\").replace("\\and", "/\\").replace("\\vee", "\\/")
     if fixed_new != fixed:
         result.fixes_applied.append("normalized logical word operators")
@@ -954,8 +959,9 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized escaped TLA comments")
         fixed = fixed_new
 
+    inequality_atom = r"(?:-?\d+|-?[A-Za-z_][A-Za-z0-9_]*(?:\[[^]\n]+\])?)"
     fixed_new = re.sub(
-        r"(-?[A-Za-z_][A-Za-z0-9_]*(?:\[[^]\n]+\])?)\s*<=\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^]\n]+\])?)\s*<=\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^]\n]+\])?)",
+        rf"({inequality_atom})\s*<=\s*({inequality_atom})\s*<=\s*({inequality_atom})",
         lambda m: f"({m.group(1)} <= {m.group(2)}) /\\ ({m.group(2)} <= {m.group(3)})",
         fixed,
     )
@@ -1328,6 +1334,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         if let_idx is not None:
             fixed = "\n".join(lines[:let_idx] + lines[spec_idx:])
             result.fixes_applied.append("removed dangling LET action fragment before Spec")
+
+    fixed_new = re.sub(
+        r"(?ms)^Next\s*==\s*\n(?=Spec\s*==|====)",
+        "Next == /\\ UNCHANGED vars\n\n",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("filled empty Next with UNCHANGED vars")
+        fixed = fixed_new
 
     fixed_new = re.sub(
         r"\b([A-Za-z_][A-Za-z0-9_]*)\(([^()\n]+)\)\(([^()\n]+)\)",
@@ -1765,6 +1780,16 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     if rewrote_indented_conjunct_pseudo_defs:
         fixed = "\n".join(rewritten_lines)
         result.fixes_applied.append("rewrote indented conjunct pseudo-definitions")
+
+    fixed_new = re.sub(
+        r"(?m)^(?!\s*(?:----|\(\*))(\s*.+?)\s+--(?!\s*>)\s?(.*)$",
+        r"\1 \\* \2",
+        fixed,
+    )
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if "normalized inline double-dash comments" not in result.fixes_applied:
+            result.fixes_applied.append("normalized inline double-dash comments")
 
     fixed_new = re.sub(r"(^\s*)(?:\\/|/\\+)\s+(\w+(?:\[[^]\n]+\])?)\s*:\s*", r"\1/\\ \2 \\in ", fixed, flags=re.MULTILINE)
     if fixed_new != fixed:

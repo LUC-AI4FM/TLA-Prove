@@ -892,6 +892,19 @@ TypeInvariant ==
     assert "(-MaxOffset <= offsets[i]) /\\ (offsets[i] <= MaxOffset)" in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_chained_inequalities_with_literal_bounds() -> None:
+    spec = """---- MODULE ReadWriteLock ----
+TypeOk ==
+    /\\ (\\E r : 1 <= r <= MAX_READERS) \\/ TRUE
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote chained inequalities" in result.fixes_applied
+    assert "(1 <= r) /\\ (r <= MAX_READERS)" in result.fixed_spec
+
+
 def test_fix_tla_syntax_rewrites_nested_function_initializer_zero_body() -> None:
     spec = """---- MODULE ClockSync ----
 Init ==
@@ -930,6 +943,29 @@ Spec == Init /\\ [][Next]_<<flags, turn>>
     assert "Spec == Init /\\ [][Next]_<<flags, turn>>" in result.fixed_spec
 
 
+def test_fix_tla_syntax_fills_empty_next_after_dangling_fragment_cleanup() -> None:
+    spec = """---- MODULE ReadWriteLock ----
+VARIABLES readers, writerActive
+vars == <<readers, writerActive>>
+Init ==
+    /\\ readers = 0
+    /\\ writerActive = FALSE
+
+Next ==
+    LET nextReaders == IF writerActive THEN readers ELSE readers' IN
+    CASE
+
+Spec == Init /\\ [][Next]_vars
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "removed dangling LET action fragment before Spec" in result.fixes_applied
+    assert "filled empty Next with UNCHANGED vars" in result.fixes_applied
+    assert "Next == /\\ UNCHANGED vars" in result.fixed_spec
+
+
 def test_fix_tla_syntax_preserves_valid_let_action_before_later_definitions() -> None:
     spec = """---- MODULE Queue ----
 VARIABLES tail, size
@@ -952,6 +988,66 @@ Spec == Init /\\ [][Next]_<<tail, size>>
     assert "LET newTail == IF tail # 3 THEN tail + 1 ELSE 1 IN" in result.fixed_spec
     assert "/\\ tail' = newTail" in result.fixed_spec
     assert "Next ==" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_inline_double_dash_comment() -> None:
+    spec = """---- MODULE ReadWriteLock ----
+TypeOk ==
+    /\\ TRUE  -- placeholder for range check
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized inline double-dash comments" in result.fixes_applied
+    assert "-- placeholder for range check" not in result.fixed_spec
+    assert "\\* placeholder for range check" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_inline_double_dash_comment_on_continuation_line() -> None:
+    spec = """---- MODULE ReadWriteLock ----
+TypeOk ==
+    /\\
+        (\\E r : (1 <= r) /\\ (r <= MAX_READERS)) \\/ TRUE  -- placeholder for range check
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized inline double-dash comments" in result.fixes_applied
+    assert "-- placeholder for range check" not in result.fixed_spec
+    assert "\\* placeholder for range check" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_inline_double_dash_comment_after_pseudo_definition_rewrite() -> None:
+    spec = """---- MODULE ReadWriteLock ----
+TypeOk ==
+    readerCountInRange ==
+        (\\E r : (1 <= r) /\\ (r <= MAX_READERS)) \\/ TRUE  -- placeholder for range check
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote indented conjunct pseudo-definitions" in result.fixes_applied
+    assert "normalized inline double-dash comments" in result.fixes_applied
+    assert "-- placeholder for range check" not in result.fixed_spec
+    assert "\\* placeholder for range check" in result.fixed_spec
+
+
+def test_fix_tla_syntax_does_not_corrupt_module_header_or_block_comment_lines() -> None:
+    spec = """---- MODULE ReadWriteLock ----
+(* ------------------------------------------------------------------ *)
+TypeOk ==
+    readerCountInRange ==
+        (\\E r : (1 <= r) /\\ (r <= MAX_READERS)) \\/ TRUE  -- placeholder for range check
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "---- MODULE ReadWriteLock ----" in result.fixed_spec
+    assert "(* ------------------------------------------------------------------ *)" in result.fixed_spec
 
 
 def test_fix_tla_syntax_rewrites_multiline_function_initializer_missing_arrow() -> None:
