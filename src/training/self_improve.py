@@ -1736,6 +1736,36 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("removed conjunct labels")
         fixed = fixed_new
 
+    rewritten_lines = []
+    prev_significant = ""
+    conjunct_block_indent: int | None = None
+    rewrote_indented_conjunct_pseudo_defs = False
+    for line in fixed.splitlines():
+        current_indent = len(line) - len(line.lstrip(" "))
+        if line.strip() and conjunct_block_indent is not None and current_indent < conjunct_block_indent:
+            conjunct_block_indent = None
+        match = re.match(r"^(\s+)([A-Za-z_][A-Za-z0-9_]*)\s*==\s*(.*)$", line)
+        if match:
+            prior = prev_significant.lstrip()
+            if (
+                (
+                    prev_significant.rstrip().endswith("==")
+                    or (conjunct_block_indent is not None and current_indent >= conjunct_block_indent)
+                )
+                and not prior.startswith(("LET ", "IN ", "CASE", "[]", "|"))
+            ):
+                line = f"{match.group(1)}/\\ {match.group(3)}".rstrip()
+                conjunct_block_indent = current_indent
+                rewrote_indented_conjunct_pseudo_defs = True
+        rewritten_lines.append(line)
+        if line.strip():
+            prev_significant = line
+        else:
+            conjunct_block_indent = None
+    if rewrote_indented_conjunct_pseudo_defs:
+        fixed = "\n".join(rewritten_lines)
+        result.fixes_applied.append("rewrote indented conjunct pseudo-definitions")
+
     fixed_new = re.sub(r"(^\s*)(?:\\/|/\\+)\s+(\w+(?:\[[^]\n]+\])?)\s*:\s*", r"\1/\\ \2 \\in ", fixed, flags=re.MULTILINE)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized colon membership conjuncts")
@@ -1794,11 +1824,15 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         names = []
         seen = set()
         for fragment in fragments:
+            raw_fragment = fragment
             fragment = re.sub(r"\(\*.*?\*\)", " ", fragment)
             fragment = re.sub(r'"[^"\n]*"', " ", fragment)
             fragment = re.sub(r"\\\*.*$", " ", fragment)
             fragment = re.sub(r"\\.*$", " ", fragment)
-            for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", fragment):
+            tokens = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", fragment)
+            if "," not in raw_fragment and len(tokens) > 2:
+                continue
+            for token in tokens:
                 if token.upper() in reserved or token in defined_ops or token in seen:
                     continue
                 seen.add(token)
@@ -2151,6 +2185,13 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     if fixed_new != fixed:
         result.fixes_applied.append("removed @(...) wrapper in EXCEPT updates")
         fixed = fixed_new
+
+    fixed_new = re.sub(r"(?<![A-Za-z0-9_\"])\@(?![A-Za-z0-9_(\"])", "Nil", fixed)
+    if fixed_new != fixed:
+        fixed = fixed_new
+        if not re.search(r"(?m)^\s*Nil\s*==", fixed):
+            fixed = _prepend_helper_definition(fixed, 'Nil == "nil"')
+        result.fixes_applied.append("normalized standalone @ placeholder to Nil")
 
     fixed_new = re.sub(
         r"(^\s*/\\\s+)([A-Za-z_][A-Za-z0-9_]*)'\[([^\]\n]+)\]\s*=\s*([^\n]+)$",

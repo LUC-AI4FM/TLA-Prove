@@ -460,6 +460,53 @@ Next ==
     assert "    \\/ Terminating" in result.fixed_spec
 
 
+def test_fix_tla_syntax_rewrites_indented_conjunct_pseudo_definitions() -> None:
+    spec = """---- MODULE ReadWriteLock ----
+EXTENDS Naturals
+CONSTANT MAX_READERS
+VARIABLES readers, writerActive
+
+TypeOk ==
+    readerCountInRange ==
+        (\\E r : (1 <= r) /\\ (r <= MAX_READERS)) \\/ TRUE
+    writersAreBoolean == writerActive \\in BOOLEAN
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote indented conjunct pseudo-definitions" in result.fixes_applied
+    assert "readerCountInRange ==" not in result.fixed_spec
+    assert "writersAreBoolean ==" not in result.fixed_spec
+    assert "    /\\ writerActive \\in BOOLEAN" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="ReadWriteLock")
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_normalizes_standalone_at_placeholder_and_variable_prose() -> None:
+    spec = """---- MODULE TokenRing ----
+EXTENDS Naturals
+VARIABLE tpos      (* current owner of the token integer from 1 .. N *), msg, tpos
+          NIL means no pending message *)
+
+MsgValues == {"msg", @}
+
+Init ==
+    /\\ msg = @
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized standalone @ placeholder to Nil" in result.fixes_applied
+    assert "VARIABLE tpos, msg" in result.fixed_spec
+    assert 'Nil == "nil"' in result.fixed_spec
+    assert 'MsgValues == {"msg", Nil}' in result.fixed_spec
+    assert "/\\ msg = Nil" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="TokenRing")
+    assert sany_result.valid, sany_result.raw_output
+
+
 def test_fix_tla_syntax_collects_orphaned_constant_names_and_constraints() -> None:
     spec = """---- MODULE FileTransfer ----
 CONSTANT CHUNK_SIZE, FILE_LENGTH, PACKET_IDS
