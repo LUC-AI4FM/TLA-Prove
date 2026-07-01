@@ -146,3 +146,6 @@ docs/*.synctex.gz
 # TLAPS prover training (large source corpus + scan outputs)
 data/FormaLLM/
 outputs/tlaps_*.json
+
+# Internal operational log — never track
+memory.md
