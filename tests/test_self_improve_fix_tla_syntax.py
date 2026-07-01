@@ -774,3 +774,53 @@ Next == TRUE
 
     assert "removed dangling ELSE IF after LET-IN action" in result.fixes_applied
     assert "ELSE IF newTerm < currentTerm THEN" not in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_len_broken_in_and_escaped_comment() -> None:
+    spec = """---- MODULE ClockSync ----
+TypeInvariant ==
+    /\\ len(offsets) = NumNodes
+    /\\ (\\A j \\i n DOMAIN clocks : clocks[j] >= 0)
+
+(\\* All variables must be finite sets.\\*)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized Len(...) casing" in result.fixes_applied
+    assert "normalized broken \\i n token" in result.fixes_applied
+    assert "normalized escaped TLA comments" in result.fixes_applied
+    assert "len(offsets)" not in result.fixed_spec
+    assert "\\i n" not in result.fixed_spec
+    assert "(\\*" not in result.fixed_spec
+    assert "Len(offsets)" in result.fixed_spec
+    assert "\\A j \\in DOMAIN clocks" in result.fixed_spec
+    assert "(* All variables must be finite sets. *)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_chained_inequalities() -> None:
+    spec = """---- MODULE ClockSync ----
+TypeInvariant ==
+    /\\ (\\A i \\in DOMAIN offsets : -MaxOffset <= offsets[i] <= MaxOffset)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote chained inequalities" in result.fixes_applied
+    assert "(-MaxOffset <= offsets[i]) /\\ (offsets[i] <= MaxOffset)" in result.fixed_spec
+
+
+def test_fix_tla_syntax_rewrites_nested_function_initializer_zero_body() -> None:
+    spec = """---- MODULE ClockSync ----
+Init ==
+    /\\ offsets = [k \\in [1..NumNodes | -> 0]]
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote nested function initializer body" in result.fixes_applied
+    assert "[k \\in [1..NumNodes | -> 0]]" not in result.fixed_spec
+    assert "[k \\in 1..NumNodes |-> 0]" in result.fixed_spec

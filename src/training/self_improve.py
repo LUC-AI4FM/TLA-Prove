@@ -655,6 +655,39 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("normalized word AND/OR operators")
         fixed = fixed_new
 
+    fixed_new = re.sub(r"\blen\(", "Len(", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized Len(...) casing")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\\i\s+n\b", r"\\in", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized broken \\i n token")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"\(\\\*\s*(.*?)\s*\\\*\)", r"(* \1 *)", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized escaped TLA comments")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(-?[A-Za-z_][A-Za-z0-9_]*(?:\[[^]\n]+\])?)\s*<=\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^]\n]+\])?)\s*<=\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^]\n]+\])?)",
+        lambda m: f"({m.group(1)} <= {m.group(2)}) /\\ ({m.group(2)} <= {m.group(3)})",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote chained inequalities")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"\[\s*([A-Za-z_][A-Za-z0-9_]*)\s+\\in\s+\[\s*(.+?)\s*\|\s*->\s*([^\]\n]+?)\s*\]\s*\]",
+        r"[\1 \\in \2 |-> \3]",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote nested function initializer body")
+        fixed = fixed_new
+
     zero_arg_names = re.findall(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\(\)\s*==", fixed)
     fixed_new = re.sub(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\(\)\s*==", r"\1 ==", fixed)
     for name in zero_arg_names:
@@ -799,6 +832,9 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             normalized_lines.append(line)
             continue
         prefix, op, rhs = match.groups()
+        if "=" in prefix:
+            normalized_lines.append(line)
+            continue
         if "->" not in rhs and "-->" not in rhs:
             normalized_lines.append(line)
             continue
