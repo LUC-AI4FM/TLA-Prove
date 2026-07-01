@@ -1182,6 +1182,133 @@ Init ==
     assert sany_result.valid, sany_result.raw_output
 
 
+def test_fix_tla_syntax_adds_sequences_extend_when_len_is_used() -> None:
+    spec = """---- MODULE ClockSync ----
+EXTENDS Naturals, FiniteSets, Integers
+CONSTANT NumNodes
+VARIABLES offsets
+
+TypeInvariant ==
+    /\\ Len(offsets) = NumNodes
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "added Sequences to EXTENDS for Len" in result.fixes_applied
+    assert "EXTENDS Naturals, FiniteSets, Integers, Sequences" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="ClockSync")
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_rewrites_zero_arg_function_value_call_to_indexing() -> None:
+    spec = """---- MODULE ClockSync ----
+SyncRound ==
+    LET delta == [c \\in DOMAIN clocks |-> Sign(avgClock - clocks[c])]
+        updatedClks == [i \\in DOMAIN clocks |-> clocks[i] + delta(i)]
+    IN
+        /\\ clocks' = updatedClks
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "rewrote zero-arg function-value calls as indexing" in result.fixes_applied
+    assert "delta(i)" not in result.fixed_spec
+    assert "delta[i]" in result.fixed_spec
+
+
+def test_fix_tla_syntax_moves_forward_action_defs_before_next() -> None:
+    spec = """---- MODULE ClockSync ----
+EXTENDS Naturals
+VARIABLES clocks, offsets
+vars == <<clocks, offsets>>
+
+Init == /\\ clocks = 0 /\\ offsets = 0
+
+Next ==
+    \\/ StepDrift
+    \\/ Terminating
+
+StepDrift ==
+    /\\ clocks' = clocks
+    /\\ offsets' = offsets
+
+Terminating ==
+    /\\ UNCHANGED vars
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "moved forward action definitions before Next" in result.fixes_applied
+    assert result.fixed_spec.index("StepDrift ==") < result.fixed_spec.index("Next ==")
+    assert result.fixed_spec.index("Terminating ==") < result.fixed_spec.index("Next ==")
+    sany_result = validate_string(result.fixed_spec, module_name="ClockSync")
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_auto_defines_randomchoice_sum_and_sign_helpers() -> None:
+    spec = """---- MODULE ClockSync ----
+EXTENDS Naturals, Integers, Sequences
+CONSTANT NumNodes, MaxOffset
+VARIABLES clocks, offsets
+vars == <<clocks, offsets>>
+
+Init ==
+    /\\ clocks = [j \\in 1..NumNodes |-> 0]
+    /\\ offsets = [k \\in 1..NumNodes |-> 0]
+
+StepDrift ==
+    LET newOffsets == [n \\in 1..NumNodes |-> offsets[n] + RandomChoice(-MaxOffset .. MaxOffset)]
+    IN
+        /\\ offsets' = newOffsets
+        /\\ UNCHANGED clocks
+
+SyncRound ==
+    LET avgClock == (Sum([c \\in DOMAIN clocks |-> clocks[c]])) \\div Len(DOMAIN clocks)
+        delta == [c \\in DOMAIN clocks |-> Sign(avgClock - clocks[c])]
+        updatedClks == [i \\in DOMAIN clocks |-> clocks[i] + delta[i]]
+    IN
+        /\\ clocks' = updatedClks
+        /\\ UNCHANGED offsets
+
+Next == \\/ StepDrift \\/ SyncRound
+Spec == Init /\\ [][Next]_vars
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "auto-defined RandomChoice helper" in result.fixes_applied
+    assert "auto-defined Sum helper" in result.fixes_applied
+    assert "auto-defined Sign helper" in result.fixes_applied
+    assert "RandomChoice(S) == CHOOSE x \\in S : TRUE" in result.fixed_spec
+    assert "Sign(x) == IF x > 0 THEN 1 ELSE IF x < 0 THEN -1 ELSE 0" in result.fixed_spec
+    assert "Sum(S) ==" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="ClockSync")
+    assert sany_result.valid, sany_result.raw_output
+
+
+def test_fix_tla_syntax_normalizes_diamond_next_spec_to_boxed_next_vars() -> None:
+    spec = """---- MODULE ClockSync ----
+VARIABLES clocks, offsets
+vars == <<clocks, offsets>>
+
+Init == /\\ clocks = 0 /\\ offsets = 0
+Next == /\\ clocks' = clocks /\\ offsets' = offsets
+Spec == Init /\\ []<>(Next)
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized malformed diamond Next Spec formula" in result.fixes_applied
+    assert "Spec == Init /\\ [][Next]_vars" in result.fixed_spec
+    sany_result = validate_string(result.fixed_spec, module_name="ClockSync")
+    assert sany_result.valid, sany_result.raw_output
+
+
 def test_fix_tla_syntax_completes_conjunctive_if_block_missing_else() -> None:
     spec = """---- MODULE TwoPhaseCommit ----
 deliver(msg) ==

@@ -472,6 +472,35 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
             # All modules unknown — remove EXTENDS line entirely
             fixed = fixed[:extends_match.start()] + fixed[extends_match.end():]
             result.fixes_applied.append("removed EXTENDS with all unknown modules")
+    extends_match = re.search(r"^EXTENDS\s+(.+)$", fixed, re.MULTILINE)
+    if extends_match and "Len(" in fixed:
+        mods = [m.strip() for m in extends_match.group(1).split(",") if m.strip()]
+        if "Sequences" not in mods:
+            mods.append("Sequences")
+            new_extends = "EXTENDS " + ", ".join(mods)
+            fixed = fixed[:extends_match.start()] + new_extends + fixed[extends_match.end():]
+            result.fixes_applied.append("added Sequences to EXTENDS for Len")
+    extends_match = re.search(r"^EXTENDS\s+.+$", fixed, re.MULTILINE)
+    helper_defs = []
+    if re.search(r"\bRandomChoice\(", fixed) and not re.search(r"(?m)^\s*RandomChoice\s*\(", fixed):
+        helper_defs.append("RandomChoice(S) == CHOOSE x \\in S : TRUE\n")
+        result.fixes_applied.append("auto-defined RandomChoice helper")
+    if re.search(r"\bSign\(", fixed) and not re.search(r"(?m)^\s*Sign\s*\(", fixed):
+        helper_defs.append("Sign(x) == IF x > 0 THEN 1 ELSE IF x < 0 THEN -1 ELSE 0\n")
+        result.fixes_applied.append("auto-defined Sign helper")
+    if re.search(r"\bSum\(", fixed) and not re.search(r"(?m)^\s*Sum\s*\(", fixed):
+        helper_defs.append(
+            "Sum(S) == LET __SumHelper[ss \\in SUBSET DOMAIN S] ==\n"
+            "            IF ss = {} THEN 0\n"
+            "            ELSE LET x == CHOOSE x \\in ss : TRUE\n"
+            "                 IN S[x] + __SumHelper[ss \\ {x}]\n"
+            "          IN __SumHelper[DOMAIN S]\n"
+        )
+        result.fixes_applied.append("auto-defined Sum helper")
+    if extends_match and helper_defs:
+        insert_at = extends_match.end()
+        helper_block = "\n\n" + "\n".join(helper_defs).rstrip() + "\n"
+        fixed = fixed[:insert_at] + helper_block + fixed[insert_at:]
 
     # ── Fix 18: Fix single-line ASSUME with \notin cleanup artifacts ─────
     # Remove ASSUME lines that are now syntactically broken
@@ -637,6 +666,11 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     fixed_new = re.sub(r"Spec\s*==\s*Init\s*/\\\s*\[\]_\(\s*vars\s*\)\[\[\s*Next\s*]]", r"Spec == Init /\\ [][Next]_vars", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized malformed vars Spec temporal formula")
+        fixed = fixed_new
+
+    fixed_new = re.sub(r"Spec\s*==\s*Init\s*/\\\s*\[\]<>\\?\(\s*Next\s*\)", r"Spec == Init /\\ [][Next]_vars", fixed)
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized malformed diamond Next Spec formula")
         fixed = fixed_new
 
     fixed_new = re.sub(
@@ -894,6 +928,17 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote malformed delta set as function initializer")
         fixed = fixed_new
 
+    zero_arg_function_value_names = re.findall(
+        r"(?<![A-Za-z0-9_])([A-Za-z_][A-Za-z0-9_]*)\s*==\s*\[[^\n]+?\|->",
+        fixed,
+    )
+    fixed_new = fixed
+    for name in zero_arg_function_value_names:
+        fixed_new = re.sub(rf"\b{re.escape(name)}\(([^()\n]+)\)", rf"{name}[\1]", fixed_new)
+    if fixed_new != fixed:
+        result.fixes_applied.append("rewrote zero-arg function-value calls as indexing")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\.\.\s*\+([A-Za-z_][A-Za-z0-9_]*)", r".. \1", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized signed upper bounds in ranges")
@@ -906,6 +951,55 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
     if fixed_new != fixed:
         result.fixes_applied.append("normalized zero-arg operator definitions/calls")
         fixed = fixed_new
+
+    next_match = re.search(r"(?ms)^Next\s*==.*?(?=^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==|^====)", fixed)
+    if next_match:
+        next_block = next_match.group(0)
+        referenced_actions = []
+        for line in next_block.splitlines():
+            match = re.match(r"^\s*\\/\s+([A-Za-z_][A-Za-z0-9_]*)\b", line)
+            if match:
+                referenced_actions.append(match.group(1))
+        moved_blocks = []
+        for name in referenced_actions:
+            def_match = re.search(
+                rf"(?ms)^{re.escape(name)}\s*==.*?(?=^[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*==|^====)",
+                fixed,
+            )
+            if not def_match or def_match.start() < next_match.start():
+                continue
+            moved_blocks.append((def_match.start(), def_match.end(), def_match.group(0).rstrip()))
+        if moved_blocks:
+            rebuilt = fixed
+            for start, end, _ in reversed(moved_blocks):
+                rebuilt = rebuilt[:start] + rebuilt[end:]
+            insert_at = next_match.start()
+            blocks_text = "\n\n".join(block for _, _, block in moved_blocks) + "\n\n"
+            rebuilt = rebuilt[:insert_at] + blocks_text + rebuilt[insert_at:]
+            if rebuilt != fixed:
+                fixed = rebuilt
+                result.fixes_applied.append("moved forward action definitions before Next")
+
+    extends_match = re.search(r"^EXTENDS\s+.+$", fixed, re.MULTILINE)
+    late_helper_defs = []
+    if re.search(r"\bSign\(", fixed) and not re.search(r"(?m)^\s*Sign\s*\(", fixed):
+        late_helper_defs.append("Sign(x) == IF x > 0 THEN 1 ELSE IF x < 0 THEN -1 ELSE 0\n")
+        if "auto-defined Sign helper" not in result.fixes_applied:
+            result.fixes_applied.append("auto-defined Sign helper")
+    if re.search(r"\bSum\(", fixed) and not re.search(r"(?m)^\s*Sum\s*\(", fixed):
+        late_helper_defs.append(
+            "Sum(S) == LET __SumHelper[ss \\in SUBSET DOMAIN S] ==\n"
+            "            IF ss = {} THEN 0\n"
+            "            ELSE LET x == CHOOSE x \\in ss : TRUE\n"
+            "                 IN S[x] + __SumHelper[ss \\ {x}]\n"
+            "          IN __SumHelper[DOMAIN S]\n"
+        )
+        if "auto-defined Sum helper" not in result.fixes_applied:
+            result.fixes_applied.append("auto-defined Sum helper")
+    if extends_match and late_helper_defs:
+        insert_at = extends_match.end()
+        helper_block = "\n\n" + "\n".join(late_helper_defs).rstrip() + "\n"
+        fixed = fixed[:insert_at] + helper_block + fixed[insert_at:]
 
     def _insert_record_field_commas(match: re.Match) -> str:
         content = match.group(1)
