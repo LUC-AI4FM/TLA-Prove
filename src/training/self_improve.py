@@ -697,6 +697,25 @@ def fix_tla_syntax(spec: str, sany_errors: str = "") -> FixResult:
         result.fixes_applied.append("rewrote nested lambda zero initializer")
         fixed = fixed_new
 
+    fixed_new = re.sub(
+        r"(?ms)(^\s*/\\\s+\((?:\\A|\\forall)[^\n]+:\s*\n)\s*([A-Za-z_][A-Za-z0-9_]*(?:\[[^\]\n]+\])+)'"
+        r"\s*=\s*\n\s*IF\s+(.+?)\s+THEN\s+(.+?)\s*$",
+        lambda m: f"{m.group(1)}                     {m.group(2)}' = IF {m.group(3)} THEN {m.group(4)} ELSE {m.group(2)})",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("completed quantified IF assignment missing ELSE branch")
+        fixed = fixed_new
+
+    fixed_new = re.sub(
+        r"(?ms)(\n\s*\(merge\(ANY, ANY\)\)\s*)/\\(\s*\n\s*term\b)",
+        r"\1\\/\2",
+        fixed,
+    )
+    if fixed_new != fixed:
+        result.fixes_applied.append("normalized malformed term disjunct tail")
+        fixed = fixed_new
+
     fixed_new = re.sub(r"\(\\\*\s*(.*?)\s*\\\*\)", r"(* \1 *)", fixed)
     if fixed_new != fixed:
         result.fixes_applied.append("normalized escaped TLA comments")

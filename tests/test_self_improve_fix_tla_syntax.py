@@ -961,3 +961,35 @@ Merge ==
 
     assert "normalized uppercase IN membership in IF guard" in result.fixes_applied
     assert "IF j \\in {i} THEN MAX(counts[m][j], counts[p][j])" in result.fixed_spec
+
+
+def test_fix_tla_syntax_completes_quantified_if_assignment_missing_else() -> None:
+    spec = """---- MODULE GCounter ----
+Merge ==
+    /\\ (\\forall i,j \\in NodeSet :
+           counts[i][j]' =
+               IF j \\in {i} THEN MAX(counts[m][j], counts[p][j])
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "completed quantified IF assignment missing ELSE branch" in result.fixes_applied
+    assert "counts[i][j]' = IF j \\in {i} THEN MAX(counts[m][j], counts[p][j]) ELSE counts[i][j])" in result.fixed_spec
+
+
+def test_fix_tla_syntax_normalizes_malformed_term_disjunct_tail() -> None:
+    spec = """---- MODULE GCounter ----
+Next ==
+    LET term == /\\ UNCHANGED <<counts>>
+    IN
+        (inc(Node)) \\/
+        (merge(ANY, ANY)) /\\
+        term
+====
+"""
+
+    result = fix_tla_syntax(spec)
+
+    assert "normalized malformed term disjunct tail" in result.fixes_applied
+    assert "(merge(ANY, ANY)) \\/" in result.fixed_spec
