@@ -2,7 +2,9 @@
 # Held-out eval of the repair-GRPO adapter (the only non-coverage number a
 # checkpoint trained on all of proof_repair_primary can produce).
 #PBS -q by-gpu
-#PBS -l select=1:ngpus=1:ncpus=32:mem=120gb
+# 20B bf16 does not fit a single 40GB A100 (job 161597 OOMed at weight load);
+# use the same 2-GPU chunk the adapter was trained on.
+#PBS -l select=1:ngpus=2:ncpus=64:mem=240gb:ngpu_pairs=1
 #PBS -l walltime=02:00:00
 #PBS -l filesystems=home_fs:grand_fs
 #PBS -N repair_holdout
