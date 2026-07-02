@@ -20,14 +20,30 @@ datasets:
 pipeline_tag: text-generation
 ---
 
-# ChatTLA-20b
+# ChatTLA-20b (v22)
 
 ChatTLA is a fine-tuned version of [openai/gpt-oss-20b](https://huggingface.co/openai/gpt-oss-20b) specialised in generating **TLA+ formal specifications** — the language used by AWS, Microsoft, and Intel to mathematically verify distributed systems.
 
 Given a plain-English description of a concurrent or distributed system, ChatTLA outputs a complete, syntactically valid TLA+ module including `Init`, `Next`, `Spec`, `TypeOK`, and domain invariants, together with a TLC model-checker configuration block.
 The default prover training corpus is `1330` rows and already includes all `205` canonical `FormaLLM` benchmark examples.
 
-Current checked-in publish-readiness gates do **not** support a fresh `v21` release. The `30`-spec corpus below is archived holdout evidence from the earlier `v15` evaluation path, not the current publish-readiness basis.
+---
+
+## Benchmark Results (v22, 20-problem full suite)
+
+**SANY pass: 14/20 (70%) · TLC pass: 9/20 (45%) · Avg structural: 0.69**
+
+*Auto-updated from `benchmark_results_fc128best_full_20260701_163601.csv` (full benchmark suite; mode: `self-correct+best-of-5`).*
+
+Single-shot on the same suite (attempts=1, no self-correction): 4/20 SANY, 1/20 TLC.
+The 20 benchmark problems are not present in this checkpoint's training corpora, so
+these are generalization numbers; every TLC-pass row re-verifies from the published
+benchmark CSV alone via the repo's replay gate. Publish readiness is gated by
+checked-in manifests that record the exact source CSV, freshness window, and
+inference mode. Separately, the machine-checked proof artifact
+[`chattla-tla-prover-108-108`](https://huggingface.co/datasets/EricSpencer00/chattla-tla-prover-108-108)
+reproduces TLAPS proofs for 18 known modules (299/299 obligations) — a coverage
+result over known specs, not a generalization claim.
 
 ---
 
@@ -110,6 +126,7 @@ Diamond is the headline metric: it's the only tier that proves the spec is *sema
 | v13 (SFT + DPO) | 20-problem handcraft | 9/20 (45%) | 5/20 (25%) | not measured (trivial invariants counted as Gold) |
 | v14 (Diamond SFT) | 30-spec holdout (single-shot) | 16/30 (53%) | 5/30 (17%) | 4/30 (13%) |
 | **v15 (Repair GRPO)** | **30-spec holdout (3-shot)** | 9/30 (30%) | 9/30 (30%) | **9/30 (30%)** |
+| **v22 (fc128best, penalty-free sampling)** | **20-problem full suite (best-of-5 + self-correct)** | **14/20 (70%)** | **9/20 (45%)** | single-shot: 4/20 SANY, 1/20 TLC; all 9 TLC rows replay-verified |
 
 > v15 applies repair-based GRPO (Group Relative Policy Optimization) on top of v14's Diamond SFT weights. The model learns to fix its own broken specs by training on (broken → repaired) trajectory pairs with TLC-graded improvement reward. v15 eval uses 3-shot self-correction with TLC error feedback, matching realistic usage; v14 was evaluated single-shot, so SANY/TLC rates are not directly comparable. Diamond is the metric to track going forward.
 
