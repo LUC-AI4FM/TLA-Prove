@@ -1,0 +1,68 @@
+{
+  "adapter": "outputs/checkpoints_rl_repair_proof_primary/final",
+  "base_model": "EricSpencer00/chattla-20b",
+  "generated_at": "2026-07-02T15:56:18.486790+00:00",
+  "holdout": "tla_prover_repair_eval_holdout_v1.jsonl",
+  "improved_rows": 1,
+  "parsed_rows": 1,
+  "results": [
+    {
+      "before": 0.15,
+      "best_after": 0.0,
+      "best_completion_head": "---- MODULE AsyncTerminationDetection\nEXTENDS Naturals, FiniteSets, Sequences\n\nCONSTANTS\n    Node,            \\* set of node identifiers\n    InitActive,      \\* subset of Node: nodes active initially\n    InitPending      \\* function Node -> Nat: pending messages initially\n\n(* ------------------------------------------------------------------ *)\n(* Types and state variables *)\n(* ------------------------------------------------------------------ *)\n\n(* State variable definitions *)\nVARIABLES active, pending, terminationDetected\n\n(* ------------------------------------------------------------------ *)\n(* Pre-definitions *)\n(* ------------------------------------------------------------------ *)\n\n(* A node is active when active[i] = TRUE *)\nNodeActive(i) == active[i]\n\n(* Number of pending messages at node i *)\nPendingMessages(i) == pending[i]\n\n(* ------------------------------------------------------------------ *)\n(* Subset of Node *)\nSubsetOfNode(sub) == sub \\subseteq Node\n\n(* ------------------------------------------------------------------ *)\n(* Type invariants *)\n(* ------------------------------------------------------------------ *)\n\nTypeOK ==\n    /\\ active \\in [Node -> BOOLEA",
+      "improved": false,
+      "parsed": false,
+      "repair_id": "full_dataset::AsyncTerminationDetection::tlc_repair::d76ff10cc5b8"
+    },
+    {
+      "before": 0.15,
+      "best_after": 0.0,
+      "best_completion_head": "---- MODULE RingTerminationDetection\n/*----------------------------------------------------------------\n  An abstract specification of termination detection in a ring with\n  asynchronous communication.\n----------------------------------------------------------------*/\nEXTENDS Naturals, Sequences\n\nCONSTANTS\n    Nodes          \\* finite set of node identifiers\n    NodeMsgSize    \\* maximum number of pending messages per node\n\n/*----------------------------------------------------------------\n  Variables\n----------------------------------------------------------------*/\nVARIABLES\n    active,          \\* [node -> Bool], whether a node is active\n    pending,         \\* [node -> Nat], number of pending messages at node\n    terminationDetected \\* [Bool], whether termination has been detected\n\n/*----------------------------------------------------------------\n  State type\n----------------------------------------------------------------*/\nSTATE == [ active : Nodes -> Bool,\n           pending : Nodes -> Nat,\n           terminationDetected : Bool ]\n\n/*----------------------------------------------------------------\n  Initial condition\n----------------------------------------------------------",
+      "improved": false,
+      "parsed": false,
+      "repair_id": "full_dataset::AsyncTerminationDetection::tlc_repair::e0f7f9673a68"
+    },
+    {
+      "before": 0.15,
+      "best_after": 0.4,
+      "best_completion_head": "---- MODULE RingTermination ----\nEXTENDS Naturals, FiniteSets, Sequences, TLC\n\n(* ----------------------------------------------------------------- *)\n(* --- Module Parameters ------------------------------------------- *)\nCONSTANTS\n    Nodes,                \\* Finite set of node identifiers\n    InitActive,           \\* Finite subset of Nodes that are initially active\n    InitInactive          \\* Finite subset of Nodes that are initially inactive\n\n(* ----------------------------------------------------------------- *)\n(* --- Variables ----------------------------------------------- *)\nVARIABLES\n    active,               \\* Finite subset of Nodes that are currently active\n    terminated,           \\* Finite subset of Nodes that have terminated\n    terminationDetected   \\* BOOLEAN: whether termination has been detected\n\n(* ----------------------------------------------------------------- *)\n(* --- Helper Functions ------------------------------------------ *)\nIsActive(i) == i \\in active\nIsTerminated(i) == i \\in terminated\nIsInactive(i) == i \\in Nodes \\ (active \\cup terminated)\n\n(* ----------------------------------------------------------------- *)\n(* --- Initial State --------------",
+      "improved": true,
+      "parsed": true,
+      "repair_id": "full_dataset::SyncTerminationDetection::tlc_repair::e3467ca9675c"
+    },
+    {
+      "before": 0.15,
+      "best_after": 0.0,
+      "best_completion_head": "---- MODULE RingTerminationDetection\nEXTENDS Naturals, TLC\n\nCONSTANTS\n    Nodes          \\* Finite set of node identifiers\n    InitActive     \\* Finite set of nodes that are initially active\n\nASSUME\n    \\* Nodes must be a non-empty finite set\n    Nodes \\subseteq [1..100] /\\ Nodes \\neq {}\n    \\* InitActive must be a subset of Nodes\n    InitActive \\subseteq Nodes\n\nVARIABLES\n    active,      \\* Set of currently active nodes\n    terminated,  \\* Set of nodes that have terminated\n    terminatedDetected  \\* Boolean: has termination been detected?\n\n(* ----------------------------------------------------------------- *)\n(* Helper definitions                                             *)\n(* ----------------------------------------------------------------- *)\n\n(* A node terminates when it is active and has no outgoing activation *)\nTerminate(node) == node \\in active /\\ \\A j \\in Nodes : j \\notin active\n\n(* A node activates another node *)\nActivate(i, j) == i \\in active /\\ j \\in Nodes /\\ j \\notin active\n\n(* All nodes are inactive *)\nAllInactive == active = {}\n\n(* Termination is detected when all nodes are inactive *)\nTerminationDetected == AllInactive\n\n(* --------------------------------------",
+      "improved": false,
+      "parsed": false,
+      "repair_id": "full_dataset::SyncTerminationDetection::tlc_repair::ee4885427d53"
+    },
+    {
+      "before": 0.35,
+      "best_after": 0.0,
+      "best_completion_head": "---- MODULE AdaptiveMutex\nEXTENDS Naturals, TLC\n\nCONSTANTS\n    Threads \\in SUBSET Nat,\n    SLEEP_TIME \\in Nat\n\nVARIABLES\n    mode,        \\* mode[t] \\in {\"spinning\", \"sleeping\", \"holding\"} for t \\in Threads\n    holder       \\* holder \\in Threads \\cup {None}\n\n(* --algorithm Definitions ----------------------------------------------------------- *)\n\n(* --TYPE OK --------------------------------------------------------------------------- *)\nTypeOK ==\n    /\\ mode \\in [Threads -> {\"spinning\", \"sleeping\", \"holding\"}]\n    /\\ holder \\in Threads \\cup {None}\n\n(* --INITIAL STATE ----------------------------------------------------------- *)\nInit ==\n    /\\ mode = [t \\in Threads |-> \"spinning\"]\n    /\\ holder = None\n\n(* --NEXT STATE ----------------------------------------------------------- *)\nNext ==\n    \\* A thread can start spinning if it is not spinning or sleeping\n    \\/ \\E t \\in Threads :\n        /\\ mode[t] \\in {\"sleeping\", \"holding\"}\n        /\\ mode' = [mode EXCEPT ![t] = \"spinning\"]\n        /\\ holder' = holder\n    \\* A thread may transition from spinning to sleeping\n    \\/ \\E t \\in Threads :\n        /\\ mode[t] = \"spinning\"\n        /\\ mode' = [mode EXCEPT ![t] = \"sleeping\"]\n        /\\ ho",
+      "improved": false,
+      "parsed": false,
+      "repair_id": "full_dataset::AdaptiveMutex::inductiveness_repair::84209032206a"
+    },
+    {
+      "before": 0.35,
+      "best_after": 0.0,
+      "best_completion_head": "---- MODULE AndersonMutex\nEXTENDS Naturals, Sequences, TLC\n\nCONSTANTS\n    N \\in Nat,          \\* Number of processes\n    P \\in 1..N          \\* Current process (only used for local views)\n\nVARIABLES\n    turn,                \\* index of the process whose turn it is\n    flag,                \\* array of booleans per process\n    queue                \\* FIFO queue of waiting processes\n\n(* ----------------------------------------------------------------- *)\n(* Type definitions *)\n(* ----------------------------------------------------------------- *)\n\n(* The set of all process identifiers *)\nProcessSet == 1..N\n\n(* The domain of the queue: finite sequences of ProcessSet *)\nQueueDomain == Seq(ProcessSet)\n\n(* The domain of the flag array: a mapping from ProcessSet to BOOLEAN *)\nFlagDomain == [ProcessSet -> BOOLEAN]\n\n(* ----------------------------------------------------------------- *)\n(* Initialization *)\n(* ----------------------------------------------------------------- *)\n\nInit ==\n    /\\ turn \\in ProcessSet\n    /\\ flag \\in FlagDomain\n    /\\ queue \\in QueueDomain\n    /\\ turn = 1\n    /\\ flag = [p \\in ProcessSet |-> FALSE]\n    /\\ queue = <<>>\n\n(* -----------------------------------------",
+      "improved": false,
+      "parsed": false,
+      "repair_id": "full_dataset::AndersonMutex::inductiveness_repair::e4ee26e95e37"
+    },
+    {
+      "before": 0.35,
+      "best_after": 0.0,
+      "best_completion_head": "---- MODULE GC ----\nEXTENDS Naturals, TLC\n\nCONSTANTS\n    Objects \\in SUBSET [id: Id, fields: [field: Id -> Id]]\n    Id \\in SUBSET Int\n    Field \\in SUBSET Id\n    FromSpace \\in SUBSET Id\n    ToSpace \\in SUBSET Id\n    GcRoots \\in SUBSET Id\n\n(* Each object is identified by an integer id. *)\n(* Objects maps id to an object record. *)\n(* Objects contains all objects in the system. *)\n\nASSUME\n    /\\ FromSpace \\subset Objects.id\n    /\\ ToSpace \\subset Objects.id\n    /\\ FromSpace \\cap ToSpace = {}\n    /\\ GcRoots \\subset FromSpace\n\nVARIABLES\n    objs,          \\* mapping id -> record\n    fromSpace,     \\* set of ids\n    toSpace,       \\* set of ids\n    copied,        \\* set of ids that have been copied to toSpace\n    worklist       \\* set of ids to be processed\n\n(* The structure of an object *)\nObject == [id: Id, fields: [field: Field -> Id]]\n\n(* Type constraints *)\nTypeOK ==\n    /\\ objs \\in [Id -> Object]\n    /\\ fromSpace \\subset Id\n    /\\ toSpace \\subset Id\n    /\\ copied \\subset Id\n    /\\ worklist \\subset Id\n    /\\ \\A o \\in Id : o \\in DOMAIN objs\n    /\\ \\A o \\in DOMAIN objs : \n        objs[o].id \\in Id\n        /\\ objs[o].fields \\in [Field -> Id]\n        /\\ \\A f \\in Field : objs[o].fields[",
+      "improved": false,
+      "parsed": false,
+      "repair_id": "full_dataset::CopyingGc::inductiveness_repair::6d897b1eb768"
+    }
+  ],
+  "rows": 7,
+  "samples_per_row": 4
+}
