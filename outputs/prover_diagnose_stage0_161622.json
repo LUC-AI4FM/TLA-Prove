@@ -1,0 +1,378 @@
+{
+  "train_memorization": [
+    {
+      "tag": "train[0]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Participants, Decisions, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, Participants, Decisions, vars, CastVote, DecideCommit, DecideAbort, Reset, SafetyInv\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 2885,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    Init,\n    Next,\n    TypeOK,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_SafetyInv == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSU",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    Init,\n    Next,\n    TypeOK,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_SafetyInv == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmphrtcjfza/RTGen_AtomicCommit.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "train[1]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Nodes, Vals, MaxTs, Majority, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  <2>1. TypeOK /\\ StartWrite => TypeOK'\n    BY DEF TypeOK, Nodes, Vals, MaxTs, vars, StartWrite\n  <2>2. TypeOK /\\ (\\E n \\in Nodes, v \\in Vals : AcceptWrite(n, v)) => TypeOK'\n  ",
+      "gold_obligations": 85,
+      "raw_generation_len": 2287,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  <1>1. Init => TypeOK\n    BY <1>1\n  <1>2. []TypeOK => []TypeOK\n    BY []-implication\n  <1>3. []TypeOK /\\ []Next => []TypeOK\n    BY []-conjunction\n  <1>4. []TypeOK /\\ []Next => []TypeOK\n    BY <1>3\n  <1>5. []TypeOK /\\ []Next => []TypeOK\n    BY <1>4\n  <1>6. []TypeOK /\\ []Next => []TypeOK\n    BY <1>5\n  <1>7. []TypeOK /\\ []Next => []TypeOK\n    BY <1>6\n  <1>8. []TypeOK /\\ []Next => []TypeOK\n    BY <1>7\n  <1>9. []TypeOK /\\ []Next => []TypeOK\n    BY <1>8\n  <1>10. []TypeOK /\\ []Next => []TypeOK\n    BY <1>9\n  <1>11. []TypeOK /\\ []Next => []TypeOK\n    BY <1>10\n  <1>12. []TypeOK /\\ []Next => []TypeOK\n    BY <1>11\n  <1>13. []TypeOK /\\ []Next => []TypeOK\n    BY <1>12\n  <1>14. []TypeOK /\\ []Next => []TypeOK\n    BY <1>13\n ",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  <1>1. Init => TypeOK\n    BY <1>1\n  <1>2. []TypeOK => []TypeOK\n    BY []-implication\n  <1>3. []TypeOK /\\ []Next => []TypeOK\n    BY []-conjunction\n  <1>4. []TypeOK /\\ []Next => []TypeOK\n    BY <1>3\n  <1>5. []TypeOK /\\ []Next => []TypeOK\n    BY <1>4\n  <1>6. []TypeOK /\\ []Next => []TypeOK\n    BY <1>5\n  <1>7. []TypeOK /\\ []Next => []TypeOK\n    BY <1>6\n  <1>8. []TypeOK /\\ []Next => []TypeOK\n    BY <1>7\n  <1>9. []TypeOK /\\ []Next => []TypeOK\n    BY <1>8\n  <1>10. []TypeOK /\\ []Next => []TypeOK\n    BY <1>9\n  <1>11. []TypeOK /\\ []Next => []TypeOK\n    BY <1>10\n  <1>12. []TypeOK /\\ []Next => []TypeOK\n    BY <1>11\n  <1>13. []TypeOK /\\ []Next => []TypeOK\n    BY <1>12\n  <1>14. []TypeOK /\\ []Next => []TypeOK\n    BY <1>13\n  <1>15. []TypeOK /\\ []Next ",
+      "verification": {
+        "tier": "unproved",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": []
+      }
+    }
+  ],
+  "eval_heldout": [
+    {
+      "tag": "eval[0]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Participants, Decisions, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, Participants, Decisions, vars, CastVote, DecideCommit, DecideAbort, Reset, SafetyInv\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 2885,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    Init,\n    Next,\n    TypeOK,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_SafetyInv == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSU",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    Init,\n    Next,\n    TypeOK,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_SafetyInv == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv\n  BY\n    Init,\n    Next,\n    SafetyInv,\n    TLAPS\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE []SafetyInv",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmp2wgejrgm/RTGen_AtomicCommit.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[1]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Nodes, Vals, MaxTs, Majority, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  <2>1. TypeOK /\\ StartWrite => TypeOK'\n    BY DEF TypeOK, Nodes, Vals, MaxTs, vars, StartWrite\n  <2>2. TypeOK /\\ (\\E n \\in Nodes, v \\in Vals : AcceptWrite(n, v)) => TypeOK'\n  ",
+      "gold_obligations": 85,
+      "raw_generation_len": 2287,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  <1>1. Init => TypeOK\n    BY <1>1\n  <1>2. []TypeOK => []TypeOK\n    BY []-implication\n  <1>3. []TypeOK /\\ []Next => []TypeOK\n    BY []-conjunction\n  <1>4. []TypeOK /\\ []Next => []TypeOK\n    BY <1>3\n  <1>5. []TypeOK /\\ []Next => []TypeOK\n    BY <1>4\n  <1>6. []TypeOK /\\ []Next => []TypeOK\n    BY <1>5\n  <1>7. []TypeOK /\\ []Next => []TypeOK\n    BY <1>6\n  <1>8. []TypeOK /\\ []Next => []TypeOK\n    BY <1>7\n  <1>9. []TypeOK /\\ []Next => []TypeOK\n    BY <1>8\n  <1>10. []TypeOK /\\ []Next => []TypeOK\n    BY <1>9\n  <1>11. []TypeOK /\\ []Next => []TypeOK\n    BY <1>10\n  <1>12. []TypeOK /\\ []Next => []TypeOK\n    BY <1>11\n  <1>13. []TypeOK /\\ []Next => []TypeOK\n    BY <1>12\n  <1>14. []TypeOK /\\ []Next => []TypeOK\n    BY <1>13\n ",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  <1>1. Init => TypeOK\n    BY <1>1\n  <1>2. []TypeOK => []TypeOK\n    BY []-implication\n  <1>3. []TypeOK /\\ []Next => []TypeOK\n    BY []-conjunction\n  <1>4. []TypeOK /\\ []Next => []TypeOK\n    BY <1>3\n  <1>5. []TypeOK /\\ []Next => []TypeOK\n    BY <1>4\n  <1>6. []TypeOK /\\ []Next => []TypeOK\n    BY <1>5\n  <1>7. []TypeOK /\\ []Next => []TypeOK\n    BY <1>6\n  <1>8. []TypeOK /\\ []Next => []TypeOK\n    BY <1>7\n  <1>9. []TypeOK /\\ []Next => []TypeOK\n    BY <1>8\n  <1>10. []TypeOK /\\ []Next => []TypeOK\n    BY <1>9\n  <1>11. []TypeOK /\\ []Next => []TypeOK\n    BY <1>10\n  <1>12. []TypeOK /\\ []Next => []TypeOK\n    BY <1>11\n  <1>13. []TypeOK /\\ []Next => []TypeOK\n    BY <1>12\n  <1>14. []TypeOK /\\ []Next => []TypeOK\n    BY <1>13\n  <1>15. []TypeOK /\\ []Next ",
+      "verification": {
+        "tier": "unproved",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": []
+      }
+    },
+    {
+      "tag": "eval[2]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, F, Replicas, Honest, Values, QuorumSize, Quorums, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, F, Replicas, Honest, Values, QuorumSize, Quorums, vars, HonestAck, Equivocate, Commit, Reset, SafetyInv\n<1> QED\n  BY <1>1, <1>2, PTL ",
+      "gold_obligations": 6,
+      "raw_generation_len": 2530,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE TypeOK\n  BY Init, Next, TypeOK\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE SafetyInv\n  BY Init, Next, SafetyInv\n  QED\n\nTHEOREM ChatTLA_QuorumIntersection == Spec => [](\\A Q1, Q2 \\in Quorums : \\E r \\in Honest : r \\in Q1 /\\ r \\in Q2)\nPROOF\n  ASSUME Spec\n  PROVE (\\A Q1, Q2 \\in Quorums : \\E r \\in Honest : r \\in Q1 /\\ r \\in Q2)\n  BY Init, Next, (\\A Q1, Q2 \\in Quorums : \\E r \\in Honest : r \\in Q1 /\\ r \\in Q2)\n  QED\n\nTHEOREM ChatTLA_SafetyQuorumIntersection == Spec => []((chosen # \"none\") => (\\E Q \\in Quorums : \\A r \\in Q : acks[r] = chosen))\nPROOF\n  ASSUME Spec\n  PROVE ((chosen # \"none\") => (\\E Q \\in Quorums : \\A r \\in Q : acks[r] = chosen))\n  BY Init, Next",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE TypeOK\n  BY Init, Next, TypeOK\n  QED\n\nTHEOREM ChatTLA_Safety == Spec => []SafetyInv\nPROOF\n  ASSUME Spec\n  PROVE SafetyInv\n  BY Init, Next, SafetyInv\n  QED\n\nTHEOREM ChatTLA_QuorumIntersection == Spec => [](\\A Q1, Q2 \\in Quorums : \\E r \\in Honest : r \\in Q1 /\\ r \\in Q2)\nPROOF\n  ASSUME Spec\n  PROVE (\\A Q1, Q2 \\in Quorums : \\E r \\in Honest : r \\in Q1 /\\ r \\in Q2)\n  BY Init, Next, (\\A Q1, Q2 \\in Quorums : \\E r \\in Honest : r \\in Q1 /\\ r \\in Q2)\n  QED\n\nTHEOREM ChatTLA_SafetyQuorumIntersection == Spec => []((chosen # \"none\") => (\\E Q \\in Quorums : \\A r \\in Q : acks[r] = chosen))\nPROOF\n  ASSUME Spec\n  PROVE ((chosen # \"none\") => (\\E Q \\in Quorums : \\A r \\in Q : acks[r] = chosen))\n  BY Init, Next, ((chosen # \"none\") => (\\E",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpd46455rn/RTGen_ByzantineQuorum.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[3]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, FailLimit, vars, States\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  <2>1. TypeOK /\\ ClosedSuccess => TypeOK'\n    BY DEF TypeOK, FailLimit, vars, States, ClosedSuccess\n  <2>2. TypeOK /\\ ClosedFailure => TypeOK'\n    BY DEF TypeOK, FailLimit, vars, States,",
+      "gold_obligations": 22,
+      "raw_generation_len": 3422,
+      "raw_generation_preview": "<|channel|>final<|message|>ASSUME \"closed\" \\in States,\n       FALSE \\in BOOLEAN,\n       0 \\in 0..FailLimit,\n       0 < FailLimit,\n       FALSE # TRUE\nPROVE Spec => []TypeOK\nBY CONJUNCTS OF Init\nBY CONJUNCTS OF Next\nBY CONJUNCTS OF TypeOK\nBY CONJUNCTS OF ClosedSuccess\nBY CONJUNCTS OF ClosedFailure\nBY CONJUNCTS OF TimeoutToHalfOpen\nBY CONJUNCTS OF StartProbe\nBY CONJUNCTS OF ProbeSuccess\nBY CONJUNCTS OF ProbeFailure\nBY CONJUNCTS OF Done\nBY CONJUNCTS OF FailLimit\nBY CONJUNCTS OF States\nBY CONJUNCTS OF BOOLEAN\nBY CONJUNCTS OF 0..FailLimit\nBY CONJUNCTS OF UNCHANGED\nBY CONJUNCTS OF UNCHANGED << cbState, probeInFlight >>\nBY CONJUNCTS OF UNCHANGED << cbState, failures, probeInFlight >>\nBY CONJUNCTS OF UNCHANGED << cbState, failures >>\nBY CONJUNCTS OF UNCHANGED << cbState, failures, probeInFlight >>",
+      "extracted_proof_preview": "ASSUME \"closed\" \\in States,\n       FALSE \\in BOOLEAN,\n       0 \\in 0..FailLimit,\n       0 < FailLimit,\n       FALSE # TRUE\nPROVE Spec => []TypeOK\nBY CONJUNCTS OF Init\nBY CONJUNCTS OF Next\nBY CONJUNCTS OF TypeOK\nBY CONJUNCTS OF ClosedSuccess\nBY CONJUNCTS OF ClosedFailure\nBY CONJUNCTS OF TimeoutToHalfOpen\nBY CONJUNCTS OF StartProbe\nBY CONJUNCTS OF ProbeSuccess\nBY CONJUNCTS OF ProbeFailure\nBY CONJUNCTS OF Done\nBY CONJUNCTS OF FailLimit\nBY CONJUNCTS OF States\nBY CONJUNCTS OF BOOLEAN\nBY CONJUNCTS OF 0..FailLimit\nBY CONJUNCTS OF UNCHANGED\nBY CONJUNCTS OF UNCHANGED << cbState, probeInFlight >>\nBY CONJUNCTS OF UNCHANGED << cbState, failures, probeInFlight >>\nBY CONJUNCTS OF UNCHANGED << cbState, failures >>\nBY CONJUNCTS OF UNCHANGED << cbState, failures, probeInFlight >>\nBY CONJUNCTS OF UNCHANGED ",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmp6vnntclr/RTGen_CircuitBreaker.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[4]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, vars, NONE\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, vars, NONE, Acquire, Renew, Tick\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 3841,
+      "raw_generation_preview": "<|channel|>commentary<|message|>We need to provide TLAPS proof body for theorem ChatTLA_TypeOKSafety. The theorem states that under assumptions, Spec => []TypeOK. We need to prove that TypeOK is invariant of Spec. Usually we prove by induction: show Init => TypeOK, and show TypeOK /\\ Next => TypeOK'. Also need to show that TypeOK is preserved by Tick, Acquire, Renew. Also need to show that TypeOK holds initially. Also need to show that TypeOK is a safety property: []TypeOK. So we need to produce TLAPS proof body. Use TLAPS syntax: \"PROOF\" ... \"BY\" ... \"OBVIOUS\" etc. We can use \"BY\" with assumptions. We need to show that TypeOK is preserved by each action. Let's analyze.\n\nTypeOK: \n1. holder \\in Clients \\cup {NONE}\n2. expiry \\in 0..(MaxTime + LeaseLen)\n3. now \\in 0..MaxTime\n4. (holder = NONE",
+      "extracted_proof_preview": "",
+      "verification": {
+        "tier": "unproved",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": []
+      }
+    },
+    {
+      "tag": "eval[5]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, N, Procs, MaxCount, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, N, Procs, MaxCount, vars, StartAwait, Advance, Wake, Reset, Idle\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 3542,
+      "raw_generation_preview": "<|channel|>commentary<|message|>We need to write TLAPS proof for theorem ChatTLA_TypeOKSafety. The theorem states Spec => []TypeOK. We need to prove that the spec implies that TypeOK holds forever. This is a safety property: we need to show that TypeOK is invariant of Spec. Usually we prove by induction: show Init => TypeOK, and Next => TypeOK' whenever TypeOK holds. So we need to produce a TLAPS proof body. The module uses TLAPS, Naturals. The spec is Init /\\ [][Next]_vars. TypeOK is defined. We need to prove that Spec => []TypeOK. TLAPS proof: we can use the standard approach: use the theorem \"Spec => []TypeOK\" and prove by induction: show Init => TypeOK, and show TypeOK /\\ Next => TypeOK'. Also we need to show that TypeOK is preserved by each action: StartAwait, Advance, Wake, Reset, Id",
+      "extracted_proof_preview": "",
+      "verification": {
+        "tier": "unproved",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": []
+      }
+    },
+    {
+      "tag": "eval[6]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Nodes, K, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  <2>1. TypeOK /\\ (\\E n \\in Nodes : Heartbeat(n)) => TypeOK'\n    BY DEF TypeOK, Nodes, K, vars, Heartbeat\n  <2>2. TypeOK /\\ (\\E n \\in Nodes : TickReceived(n)) => TypeOK'\n    BY DEF TypeOK, Nodes, ",
+      "gold_obligations": 18,
+      "raw_generation_len": 3444,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Init\n  ASSUME []Next\n  PROVE []TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    In",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Init\n  ASSUME []Next\n  PROVE []TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK is preserved by each Next action\n    Next => TypeOK\n  BY\n    \\* TypeOK is preserved by Init\n    Init => TypeOK\n    \\* TypeOK ",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmp8vs9vpfd/RTGen_HeartbeatFailureDetector.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[7]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  <2>1. Init => ServedKeys = {}\n    BY DEF Init, ServedKeys, NONE\n  <2>2. Init => Cardinality(ServedKeys) = 0\n    BY <2>1, FS_EmptySet\n  <2>3. Cardinality(Keys) \\in Nat\n    BY FS_CardinalityType\n  <2>4. 0 \\in 0..Cardinality(Keys)\n    BY <2>3\n  <2> QED\n    BY <2>1, <2>2, <2",
+      "gold_obligations": 90,
+      "raw_generation_len": 191,
+      "raw_generation_preview": "<|channel|>final<|message|>ASSUME Keys # {},\n       IsFiniteSet(Keys)\nPROVE Spec => []TypeOK\nBY\n  Init => TypeOK,\n  Next => TypeOK,\n  WF_vars(Next) => TypeOK,\n  TypeOK => TypeOK\n```<|return|>",
+      "extracted_proof_preview": "ASSUME Keys # {},\n       IsFiniteSet(Keys)\nPROVE Spec => []TypeOK\nBY\n  Init => TypeOK,\n  Next => TypeOK,\n  WF_vars(Next) => TypeOK,\n  TypeOK => TypeOK\n```",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpcb6ee27j/RTGen_IdempotencyKey.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[8]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, vars, NONE\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, vars, NONE, Elect, LocalRead, Tick\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 278,
+      "raw_generation_preview": "<|channel|>final<|message|>ASSUME Nodes # {},\n       IsFiniteSet(Nodes),\n       MaxTime \\in Nat,\n       LeaseLen \\in Nat \\ {0},\n       NONE \\notin Nodes\nPROVE Spec => []TypeOK\nBY\n  Init => TypeOK,\n  Next => TypeOK,\n  WF_vars(Next) => TypeOK,\n  []TypeOK => []TypeOK\n```<|return|>",
+      "extracted_proof_preview": "ASSUME Nodes # {},\n       IsFiniteSet(Nodes),\n       MaxTime \\in Nat,\n       LeaseLen \\in Nat \\ {0},\n       NONE \\notin Nodes\nPROVE Spec => []TypeOK\nBY\n  Init => TypeOK,\n  Next => TypeOK,\n  WF_vars(Next) => TypeOK,\n  []TypeOK => []TypeOK\n```",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpo8ofkxny/RTGen_LeaderLease.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[9]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Procs, Lease, NoOne, vars, LeaseInv\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, Procs, Lease, NoOne, vars, Acquire, Tick, Expire, Release, LeaseInv\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 2251,
+      "raw_generation_preview": "<|channel|>final<|message|>ASSUME N \\in 1..3\nPROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME ",
+      "extracted_proof_preview": "ASSUME N \\in 1..3\nPROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\nBY\n  ASSUME N \\in 1..3\n  PROVE Spec => ",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpdsoyw10k/RTGen_ResourceLease.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[10]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, MaxAttempts, MaxDelay, vars, PowOf2\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, MaxAttempts, MaxDelay, vars, Succeed, FailAndBackoff, GiveUp, Done, PowOf2\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 340,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Init\n  THEN\n    UNCHANGED status\n    UNCHANGED attempts\n    UNCHANGED delay\n  THEN\n    TypeOK\n  THEN\n    UNCHANGED vars\n  THEN\n    UNCHANGED TypeOK\n  THEN\n    UNCHANGED [][Next]_vars\n  THEN\n    UNCHANGED Spec\n  THEN\n    []TypeOK\n  END\nEND)<|return|>",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Init\n  THEN\n    UNCHANGED status\n    UNCHANGED attempts\n    UNCHANGED delay\n  THEN\n    TypeOK\n  THEN\n    UNCHANGED vars\n  THEN\n    UNCHANGED TypeOK\n  THEN\n    UNCHANGED [][Next]_vars\n  THEN\n    UNCHANGED Spec\n  THEN\n    []TypeOK\n  END\nEND)",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpm6ytcdzj/RTGen_RetryWithBackoff.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[11]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, vars, NoTask, RotationInv\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, vars, NoTask, Schedule, Preempt, RotationInv\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 139,
+      "raw_generation_preview": "<|channel|>final<|message|>ASSUME N \\in 1..5\nPROVE Spec => []TypeOK\nBY\n  Init => TypeOK,\n  Next => TypeOK,\n  TypeOK => TypeOK\n```<|return|>",
+      "extracted_proof_preview": "ASSUME N \\in 1..5\nPROVE Spec => []TypeOK\nBY\n  Init => TypeOK,\n  Next => TypeOK,\n  TypeOK => TypeOK\n```",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpy1yjm2lx/RTGen_RoundRobinScheduler.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[12]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, vars, BarberInv\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, vars, WakeBarber, JoinQueue, FinishWithNext, FinishSleep, BarberInv\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 6328,
+      "raw_generation_preview": "<|channel|>final<|message|>ASSUME N \\in 1..3\nPROVE Spec => []TypeOK\nBY TLA+ BEGIN\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\n  BY TLA+ BEGIN\n    ASSUME N \\in 1..3\n    PROVE Spec => []TypeOK\n    BY TLA+ BEGIN\n      ASSUME N \\in 1..3\n      PROVE Spec => []TypeOK\n      BY TLA+ BEGIN\n        ASSUME N \\in 1..3\n        PROVE Spec => []TypeOK\n        BY TLA+ BEGIN\n          ASSUME N \\in 1..3\n          PROVE Spec => []TypeOK\n          BY TLA+ BEGIN\n            ASSUME N \\in 1..3\n            PROVE Spec => []TypeOK\n            BY TLA+ BEGIN\n              ASSUME N \\in 1..3\n              PROVE Spec => []TypeOK\n              BY TLA+ BEGIN\n                ASSUME N \\in 1..3\n                PROVE Spec => []TypeOK\n                BY TLA+ BEGIN\n                  ASSUME N \\in 1..3\n                  PROVE Sp",
+      "extracted_proof_preview": "ASSUME N \\in 1..3\nPROVE Spec => []TypeOK\nBY TLA+ BEGIN\n  ASSUME N \\in 1..3\n  PROVE Spec => []TypeOK\n  BY TLA+ BEGIN\n    ASSUME N \\in 1..3\n    PROVE Spec => []TypeOK\n    BY TLA+ BEGIN\n      ASSUME N \\in 1..3\n      PROVE Spec => []TypeOK\n      BY TLA+ BEGIN\n        ASSUME N \\in 1..3\n        PROVE Spec => []TypeOK\n        BY TLA+ BEGIN\n          ASSUME N \\in 1..3\n          PROVE Spec => []TypeOK\n          BY TLA+ BEGIN\n            ASSUME N \\in 1..3\n            PROVE Spec => []TypeOK\n            BY TLA+ BEGIN\n              ASSUME N \\in 1..3\n              PROVE Spec => []TypeOK\n              BY TLA+ BEGIN\n                ASSUME N \\in 1..3\n                PROVE Spec => []TypeOK\n                BY TLA+ BEGIN\n                  ASSUME N \\in 1..3\n                  PROVE Spec => []TypeOK\n            ",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmplnl6i3q4/RTGen_SleepingBarber.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[13]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, N, Procs, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, N, Procs, vars, EnterDoor, PassDoor, WaitInRoom, LeaveRoom, EnterCS, Leave, Idle\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 2417,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    \\* Unfold Spec\n    Init /\\ [][Next]_vars\n  BY\n    \\* Unfold TypeOK\n    /\\ level \\in [Procs -> 0..4]\n    /\\ \\A i, j \\in Procs : (i # j /\\ level[i] = 4) => level[j] # 4\n  BY\n    \\* Unfold Init\n    level = [i \\in Procs |-> 0]\n  BY\n    \\* Unfold Next\n    \\/ \\E i \\in Procs :\n          EnterDoor(i) \\/ PassDoor(i) \\/ WaitInRoom(i)\n       \\/ LeaveRoom(i) \\/ EnterCS(i) \\/ Leave(i)\n      \\/ Idle\n  BY\n    \\* Unfold each action\n    /\\ level[i] = 0\n    /\\ level' = [level EXCEPT ![i] = 1]\n  BY\n    \\* Unfold each guard\n    /\\ level[i] = 0\n    /\\ level' = [level EXCEPT ![i] = 1]\n  BY\n    \\* Unfold each guard\n    /\\ level[i] = 1\n    /\\ \\A j \\in Procs \\ {i} : level[j] < 3\n    /\\ level' =",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    \\* Unfold Spec\n    Init /\\ [][Next]_vars\n  BY\n    \\* Unfold TypeOK\n    /\\ level \\in [Procs -> 0..4]\n    /\\ \\A i, j \\in Procs : (i # j /\\ level[i] = 4) => level[j] # 4\n  BY\n    \\* Unfold Init\n    level = [i \\in Procs |-> 0]\n  BY\n    \\* Unfold Next\n    \\/ \\E i \\in Procs :\n          EnterDoor(i) \\/ PassDoor(i) \\/ WaitInRoom(i)\n       \\/ LeaveRoom(i) \\/ EnterCS(i) \\/ Leave(i)\n      \\/ Idle\n  BY\n    \\* Unfold each action\n    /\\ level[i] = 0\n    /\\ level' = [level EXCEPT ![i] = 1]\n  BY\n    \\* Unfold each guard\n    /\\ level[i] = 0\n    /\\ level' = [level EXCEPT ![i] = 1]\n  BY\n    \\* Unfold each guard\n    /\\ level[i] = 1\n    /\\ \\A j \\in Procs \\ {i} : level[j] < 3\n    /\\ level' = [level EXCEPT ![i] = 3]\n  ",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpg4fsq8yt/RTGen_SzymanskiMutex.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[14]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, N, Stations, vars\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, N, Stations, vars, StartTx, StopTx, PassToken, Done\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 188,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    Init,\n    Next,\n    TypeOK,\n    UNCHANGED vars\n  END\n```<|return|>",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    Init,\n    Next,\n    TypeOK,\n    UNCHANGED vars\n  END\n```",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmp9vyiynw9/RTGen_TokenRing.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[15]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Resources, vars, NONE\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, Resources, vars, NONE, Acquire, Wait, Release\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 6118,
+      "raw_generation_preview": "<|channel|>final<|message|>ASSUME Txns # {},\n       IsFiniteSet(Txns),\n       NONE \\notin Txns\nPROVE Spec => []TypeOK\nBY TLA+Proof\n  ASSUME Txns # {},\n         IsFiniteSet(Txns),\n         NONE \\notin Txns\n  PROVE Spec => []TypeOK\n  BY TLA+Proof\n    ASSUME Txns # {},\n           IsFiniteSet(Txns),\n           NONE \\notin Txns\n    PROVE Spec => []TypeOK\n    BY TLA+Proof\n      ASSUME Txns # {},\n             IsFiniteSet(Txns),\n             NONE \\notin Txns\n      PROVE Spec => []TypeOK\n      BY TLA+Proof\n        ASSUME Txns # {},\n               IsFiniteSet(Txns),\n               NONE \\notin Txns\n        PROVE Spec => []TypeOK\n        BY TLA+Proof\n          ASSUME Txns # {},\n                 IsFiniteSet(Txns),\n                 NONE \\notin Txns\n          PROVE Spec => []TypeOK\n          BY TLA+Proof",
+      "extracted_proof_preview": "ASSUME Txns # {},\n       IsFiniteSet(Txns),\n       NONE \\notin Txns\nPROVE Spec => []TypeOK\nBY TLA+Proof\n  ASSUME Txns # {},\n         IsFiniteSet(Txns),\n         NONE \\notin Txns\n  PROVE Spec => []TypeOK\n  BY TLA+Proof\n    ASSUME Txns # {},\n           IsFiniteSet(Txns),\n           NONE \\notin Txns\n    PROVE Spec => []TypeOK\n    BY TLA+Proof\n      ASSUME Txns # {},\n             IsFiniteSet(Txns),\n             NONE \\notin Txns\n      PROVE Spec => []TypeOK\n      BY TLA+Proof\n        ASSUME Txns # {},\n               IsFiniteSet(Txns),\n               NONE \\notin Txns\n        PROVE Spec => []TypeOK\n        BY TLA+Proof\n          ASSUME Txns # {},\n                 IsFiniteSet(Txns),\n                 NONE \\notin Txns\n          PROVE Spec => []TypeOK\n          BY TLA+Proof\n            ASSUME Txns # ",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpnil1avrn/RTGen_TwoPhaseLockingDeadlock.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[16]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Voters, Candidates, Half, vars, Tally\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, Voters, Candidates, Half, vars, Vote, Tally, Declare, Reset, SafetyInv\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 3278,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => T",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Spec\n  PROVE []TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensures TypeOK\n    Init => TypeOK\n    \\* Next preserves TypeOK\n    Next => TypeOK\n  BY\n    \\* Init ensu",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmp7tg7zh04/RTGen_VotingMajority.tla\" successfully."
+        ]
+      }
+    },
+    {
+      "tag": "eval[17]",
+      "source_file": null,
+      "theorem_line": null,
+      "gold_proof_preview": "PROOF\n<1>1. Init => TypeOK\n  BY DEF Init, TypeOK, Replicas, Roles, MaxLog\n<1>2. TypeOK /\\ [Next]_vars => TypeOK'\n  BY DEF TypeOK, Next, Replicas, Roles, MaxLog, vars, Append, Replicate, WitnessVote, Commit, Reset, SafetyInv\n<1> QED\n  BY <1>1, <1>2, PTL DEF Spec",
+      "gold_obligations": 6,
+      "raw_generation_len": 1775,
+      "raw_generation_preview": "<|channel|>final<|message|>THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Init\n  ASSUME []Next\n  ASSUME TypeOK\n  PROVE []TypeOK\n  BY\n    \\* The type invariant is preserved by each action.\n    \\* Append: log[\"primary\"] increases by 1, still <= MaxLog.\n    \\* Replicate: log[\"backup\"] increases by 1, still <= MaxLog.\n    \\* WitnessVote: log[\"witness\"] increases by 1, still <= MaxLog.\n    \\* Commit: committed increases by 1, still <= MaxLog.\n    \\* Reset: all logs reset to 0, committed reset to 0.\n    \\* All actions keep log values within 0..MaxLog and committed within 0..MaxLog.\n    \\* Thus []TypeOK holds.  QED.  <1>1.  <1>2.  <1>3.  <1>4.  <1>5.  <1>6.  <1>7.  <1>8.  <1>9.  <1>10.  <1>11.  <1>12.  <1>13.  <1>14.  <1>15.  <1>16.  <1>17.  <1>18.  <1>19.  <1>20.  <1>21.  <1>22.",
+      "extracted_proof_preview": "THEOREM ChatTLA_TypeOKSafety == Spec => []TypeOK\nPROOF\n  ASSUME Init\n  ASSUME []Next\n  ASSUME TypeOK\n  PROVE []TypeOK\n  BY\n    \\* The type invariant is preserved by each action.\n    \\* Append: log[\"primary\"] increases by 1, still <= MaxLog.\n    \\* Replicate: log[\"backup\"] increases by 1, still <= MaxLog.\n    \\* WitnessVote: log[\"witness\"] increases by 1, still <= MaxLog.\n    \\* Commit: committed increases by 1, still <= MaxLog.\n    \\* Reset: all logs reset to 0, committed reset to 0.\n    \\* All actions keep log values within 0..MaxLog and committed within 0..MaxLog.\n    \\* Thus []TypeOK holds.  QED.  <1>1.  <1>2.  <1>3.  <1>4.  <1>5.  <1>6.  <1>7.  <1>8.  <1>9.  <1>10.  <1>11.  <1>12.  <1>13.  <1>14.  <1>15.  <1>16.  <1>17.  <1>18.  <1>19.  <1>20.  <1>21.  <1>22.  <1>23.  <1>24.  <1>25.  <",
+      "verification": {
+        "tier": "parse_error",
+        "proved": 0,
+        "total": 0,
+        "failed": 0,
+        "errors": [
+          "Error: Could not parse \"/var/tmp/pbs.161622.sophia-pbs-01.lab.alcf.anl.gov/tmpniut1_x0/RTGen_WitnessReplication.tla\" successfully."
+        ]
+      }
+    }
+  ]
+}
