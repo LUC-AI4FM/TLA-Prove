@@ -22,12 +22,39 @@ in the prompt string as <!-- repair:ID --> and extracted at reward time.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from src.validators.component_validator import reward_from_spec
+
+# Optional evidence trail: when CHATTLA_REWARD_SAMPLE_LOG is set, the first
+# CHATTLA_REWARD_SAMPLE_LIMIT graded completions are appended there as JSONL.
+# Exists because a 6h GRPO run produced uniform zero rewards and the job log
+# alone could not show what the model was actually emitting.
+_SAMPLE_LOG_PATH = os.getenv("CHATTLA_REWARD_SAMPLE_LOG")
+_SAMPLE_LOG_LIMIT = int(os.getenv("CHATTLA_REWARD_SAMPLE_LIMIT", "48"))
+_sample_log_count = 0
+
+
+def _log_sample(text: str, before: float, after: float, reward: float) -> None:
+    global _sample_log_count
+    if not _SAMPLE_LOG_PATH or _sample_log_count >= _SAMPLE_LOG_LIMIT:
+        return
+    _sample_log_count += 1
+    try:
+        with open(_SAMPLE_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps({
+                "n": _sample_log_count,
+                "before": before,
+                "after": after,
+                "reward": reward,
+                "completion_head": text[:1500],
+            }) + "\n")
+    except OSError:
+        pass
 
 
 _REWARD_WORKERS = int(os.environ.get("CHATTLA_REWARD_WORKERS", "4"))
@@ -154,6 +181,8 @@ def repair_reward(
             # Fallback: treat as absolute reward (no shaping)
             before = 0.0
 
-        rewards.append(_shape_reward(before, after_scores[i]))
+        shaped = _shape_reward(before, after_scores[i])
+        _log_sample(texts[i], before, after_scores[i], shaped)
+        rewards.append(shaped)
 
     return rewards

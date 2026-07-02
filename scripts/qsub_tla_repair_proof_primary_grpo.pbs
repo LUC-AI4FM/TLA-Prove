@@ -45,6 +45,14 @@ MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
 PROFILE=proof_repair_primary
 OUT_DIR="${CHATTLA_REPAIR_OUT:-outputs/checkpoints_rl_repair_proof_primary}"
 MAX_STEPS="${CHATTLA_MAX_STEPS:-300}"
+# The benchmark repair rows carry before_score=0.0 — the trainer's default
+# --min-before-score 0.02 silently drops all 20 of them (job 161536 trained
+# on only the 15 hard validated rows and earned uniform zero reward: a failed
+# completion against before≈0.73 shapes to exactly 0). Keep them in.
+MIN_BEFORE="${CHATTLA_MIN_BEFORE_SCORE:-0.0}"
+MAX_COMPLETION="${CHATTLA_MAX_COMPLETION_LEN:-1024}"
+# First N graded completions land here so a zero-reward run is diagnosable.
+export CHATTLA_REWARD_SAMPLE_LOG="outputs/logs/repair_reward_samples_${PBS_JOBNUM}.jsonl"
 
 echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
 date
@@ -94,6 +102,8 @@ date
   --repair-corpus-profile "$PROFILE" \
   --output-dir "$OUT_DIR" \
   --max-steps "$MAX_STEPS" \
+  --min-before-score "$MIN_BEFORE" \
+  --max-completion-length "$MAX_COMPLETION" \
   --save-steps 50
 
 echo
