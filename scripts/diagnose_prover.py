@@ -26,10 +26,12 @@ from src.validators.tlaps_validator import validate_string
 from src.harmony_extract import extract_final_channel
 from scripts.tla_prover_corpus_paths import resolve_probe_corpus_file
 
-ADAPTER = REPO / "outputs" / "checkpoints_prover" / "checkpoint-48"
-BASE_MODEL = "openai/gpt-oss-20b"
+import os
+
+ADAPTER = Path(os.getenv("CHATTLA_PROVER_ADAPTER", str(REPO / "outputs" / "checkpoints_prover" / "checkpoint-48")))
+BASE_MODEL = os.getenv("CHATTLA_PROVER_BASE_MODEL", "openai/gpt-oss-20b")
 EVAL_JSONL = REPO / "data" / "processed" / "prover_eval.jsonl"
-REPORT = REPO / "outputs" / "prover_diagnose.json"
+REPORT = Path(os.getenv("CHATTLA_PROVER_DIAGNOSE_OUT", str(REPO / "outputs" / "prover_diagnose.json")))
 
 _MODULE_RE = re.compile(r"MODULE\s+(\w+)")
 _TLA_BLOCK_RE = re.compile(r"```tla\s*(.*?)\s*```", re.DOTALL)

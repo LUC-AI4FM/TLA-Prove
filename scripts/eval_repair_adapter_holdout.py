@@ -41,8 +41,8 @@ def main() -> int:
     args = parser.parse_args()
 
     import torch
-    from peft import AutoPeftModelForCausalLM
-    from transformers import AutoTokenizer
+    from peft import PeftModel
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
     from src.rlvr_canary.repair_dataset import format_repair_prompt, load_repair_prompts
     from src.rlvr_canary.repair_reward import _grade_one
@@ -60,20 +60,17 @@ def main() -> int:
     )
     print(f"[holdout-eval] rows: {len(examples)}")
 
-    # AutoPeftModelForCausalLM loads base + adapter together — the loader
-    # diagnose_prover.py adopted because the peft/accelerate balanced-memory
-    # path misbehaves on gpt-oss. Explicit max_memory leaves headroom for the
-    # cuBLAS workspace: jobs 161597/161603/161606 died with ALLOC_FAILED at
-    # the first forward because device_map=auto packed the cards full.
-    model = AutoPeftModelForCausalLM.from_pretrained(
-        args.adapter,
-        attn_implementation="eager",
-        use_cache=True,
+    # Exactly the loader train_rl_repair.py uses — the one configuration
+    # proven to generate on these 2×A100-40GB nodes with this base+adapter
+    # (job 161574 generated 1,200 completions with it). Three eval attempts
+    # with eager attention / AutoPeft / max_memory variants all died in
+    # cuBLAS allocation at the first forward.
+    model = AutoModelForCausalLM.from_pretrained(
+        args.base_model,
+        torch_dtype=torch.bfloat16,
         device_map="auto",
-        low_cpu_mem_usage=True,
-        trust_remote_code=True,
-        max_memory={0: "34GiB", 1: "34GiB"},
     )
+    model = PeftModel.from_pretrained(model, args.adapter)
     model.eval()
 
     rows = []

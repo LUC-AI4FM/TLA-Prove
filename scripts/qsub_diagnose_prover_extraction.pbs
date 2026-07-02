@@ -36,6 +36,10 @@ PY="${CHATTLA_PYTHON:-python3}"
 case "$PY" in
   /*) export PATH="$(dirname "$PY"):$PATH" ;;
 esac
+# The stage-0 rebuild (job 161602) saved checkpoint-200 trained on the
+# chattla-20b base; the original checkpoint-48 no longer exists anywhere.
+export CHATTLA_PROVER_ADAPTER="${CHATTLA_PROVER_ADAPTER:-outputs/checkpoints_prover/checkpoint-200}"
+export CHATTLA_PROVER_BASE_MODEL="${CHATTLA_PROVER_BASE_MODEL:-EricSpencer00/chattla-20b}"
 
 echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
 date
@@ -56,7 +60,7 @@ echo
 echo "===== eval_prover_checkpoint ====="
 date
 "$PY" -u scripts/eval_prover_checkpoint.py \
-  --checkpoint outputs/checkpoints_prover/checkpoint-48 \
+  --checkpoint "$CHATTLA_PROVER_ADAPTER" \
   --out "outputs/prover_eval_dump_${PBS_JOBNUM}.json"
 
 echo
