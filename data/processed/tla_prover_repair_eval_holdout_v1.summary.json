@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-07-02T13:59:30.498209+00:00",
+  "holdout_repair_ids": [
+    "full_dataset::AdaptiveMutex::inductiveness_repair::84209032206a",
+    "full_dataset::AndersonMutex::inductiveness_repair::e4ee26e95e37",
+    "full_dataset::AsyncTerminationDetection::tlc_repair::d76ff10cc5b8",
+    "full_dataset::AsyncTerminationDetection::tlc_repair::e0f7f9673a68",
+    "full_dataset::CopyingGc::inductiveness_repair::6d897b1eb768",
+    "full_dataset::SyncTerminationDetection::tlc_repair::e3467ca9675c",
+    "full_dataset::SyncTerminationDetection::tlc_repair::ee4885427d53"
+  ],
+  "holdout_rows": 7,
+  "ok": true,
+  "train_overlap": [],
+  "train_rows": 35,
+  "train_source": "tla_prover_repair_train_proof_repair_primary_v1.jsonl",
+  "validated_rows": 22,
+  "validated_source": "tla_prover_full_dataset_validated_repair_pairs_v1.jsonl"
+}
