@@ -1,0 +1,84 @@
+#!/bin/bash
+# Prover SFT rebuild for the stage-0 extraction re-measure.
+#
+# The original prover adapter (outputs/checkpoints_prover/checkpoint-48) was
+# lost with its host; the channel-aware harmony extractor was therefore never
+# re-measured on GPU. This trains a fresh prover adapter with src.training.train
+# --prover, whose TLAPSEvalCallback already uses the fixed extractor — the
+# per-eval parse/any/full stats in this job's log ARE the stage-0 re-measure.
+# Follow up with scripts/qsub_diagnose_prover_extraction.pbs for per-row detail.
+#
+# Queue shape: proven by-gpu 2-GPU chunk (finished job 161011/161574 shape).
+#PBS -q by-gpu
+#PBS -l select=1:ngpus=2:ncpus=64:mem=240gb:ngpu_pairs=1
+#PBS -l walltime=06:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N prover_sft_s0
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+mkdir -p outputs/logs
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+exec > "outputs/logs/tla_prover_sft_stage0_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI:-file:$PBS_O_WORKDIR/outputs/mlruns_tla_prover_stage0}"
+export MLFLOW_ALLOW_FILE_STORE="${MLFLOW_ALLOW_FILE_STORE:-true}"
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+
+PY="${CHATTLA_PYTHON:-python3}"
+# Batch jobs do not source conda; the env that provides $PY also provides java.
+case "$PY" in
+  /*) export PATH="$(dirname "$PY"):$PATH" ;;
+esac
+BASE_MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
+MAX_STEPS="${CHATTLA_MAX_STEPS:-200}"
+OUT="outputs/checkpoints_prover"
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+echo "BASE_MODEL=$BASE_MODEL MAX_STEPS=$MAX_STEPS"
+
+echo "===== Toolchain (TLAPSEvalCallback shells to tlapm + java) ====="
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv
+java -version
+"${CHATTLA_TLAPM:?set CHATTLA_TLAPM to the tlapm binary}" --version
+
+echo "===== Training ====="
+date
+"$PY" -u -m src.training.train \
+  --prover \
+  --sft-corpus default \
+  --eval-file data/processed/prover_eval.jsonl \
+  --output-dir "$OUT" \
+  --experiment-name ChatTLA-TLA-Prover-SFT-Stage0 \
+  --base-model "$BASE_MODEL" \
+  --max-steps "$MAX_STEPS" \
+  --epochs 1 \
+  --lr 2e-5 \
+  --max-length 2048 \
+  --per-device-batch-size 1 \
+  --gradient-accumulation-steps 4
+
+echo "===== checkpoints ====="
+ls -la "$OUT" || true
+
+if [ -n "${CHATTLA_ARTIFACT_ROOT:-}" ]; then
+  DEST="$CHATTLA_ARTIFACT_ROOT/prover_sft_stage0/$PBS_JOBNUM"
+  mkdir -p "$DEST"
+  cp -r "$OUT" "$DEST/" || true
+  cp "outputs/logs/tla_prover_sft_stage0_${PBS_JOBNUM}.log" "$DEST/" || true
+  echo "mirrored to $DEST"
+fi
+
+echo "===== done ====="
+date
