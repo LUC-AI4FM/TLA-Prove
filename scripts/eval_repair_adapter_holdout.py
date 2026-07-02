@@ -70,8 +70,26 @@ def main() -> int:
         torch_dtype=torch.bfloat16,
         device_map="auto",
     )
+    dm = getattr(model, "hf_device_map", None)
+    if dm:
+        from collections import Counter
+        print("[holdout-eval] device placement:", dict(Counter(str(v) for v in dm.values())))
+    for d in range(torch.cuda.device_count()):
+        print(f"[holdout-eval] gpu{d} allocated after base load: "
+              f"{torch.cuda.memory_allocated(d)/2**30:.1f} GiB")
     model = PeftModel.from_pretrained(model, args.adapter)
     model.eval()
+    for d in range(torch.cuda.device_count()):
+        print(f"[holdout-eval] gpu{d} allocated after adapter load: "
+              f"{torch.cuda.memory_allocated(d)/2**30:.1f} GiB")
+
+    # Smoke generate: fail fast with placement evidence above if the cards
+    # are misbalanced, before burning time on the full eval loop.
+    smoke = tokenizer("---- MODULE Smoke ----", return_tensors="pt").to(model.device)
+    with torch.no_grad():
+        model.generate(**smoke, max_new_tokens=8, do_sample=False,
+                       pad_token_id=tokenizer.pad_token_id)
+    print("[holdout-eval] smoke generate OK")
 
     rows = []
     for ex in examples:
