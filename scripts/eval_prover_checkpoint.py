@@ -66,11 +66,12 @@ def main() -> None:
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    # Same loader as eval_repair_adapter_holdout.py — the configuration
+    # proven on the 2×A100-40GB nodes (job 161611).
     base = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL,
-        attn_implementation="eager",
+        torch_dtype=torch.bfloat16,
         device_map="auto",
-        trust_remote_code=True,
     )
     print(f"[eval] loading adapter {args.checkpoint}")
     model = PeftModel.from_pretrained(base, args.checkpoint)

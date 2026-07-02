@@ -19,7 +19,6 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 import torch
-from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
 
 from src.validators.tlaps_validator import validate_string
@@ -38,22 +37,24 @@ _TLA_BLOCK_RE = re.compile(r"```tla\s*(.*?)\s*```", re.DOTALL)
 
 
 def load_model():
-    # AutoPeftModelForCausalLM loads base + adapter together and bypasses the
-    # peft/accelerate get_balanced_memory code path that crashes on gpt-oss
-    # (TypeError: unhashable type: 'set').
-    print(f"[diagnose] loading adapter+base from {ADAPTER}")
-    model = AutoPeftModelForCausalLM.from_pretrained(
-        str(ADAPTER),
-        attn_implementation="eager",
-        use_cache=True,
+    # Two-step load, exactly like eval_repair_adapter_holdout.py (job 161611,
+    # the loader proven on the 2×A100-40GB nodes): AutoPeft routes adapter
+    # loading through transformers' allocator warmup, which pre-allocates the
+    # full model byte-count on ONE device and OOMs (job 161616). PeftModel's
+    # own loader skips that warmup.
+    from peft import PeftModel
+    from transformers import AutoModelForCausalLM
+
+    print(f"[diagnose] loading base {BASE_MODEL} + adapter {ADAPTER}")
+    model = AutoModelForCausalLM.from_pretrained(
+        BASE_MODEL,
+        torch_dtype=torch.bfloat16,
         device_map="auto",
-        low_cpu_mem_usage=True,
-        trust_remote_code=True,
     )
+    model = PeftModel.from_pretrained(model, str(ADAPTER))
     model.eval()
-    # The loading warmup reserves the full model byte-count in torch's pool;
-    # cuBLAS then can't cudaMalloc its workspace (ALLOC_FAILED on the first
-    # forward — see the 1616xx holdout-eval jobs). Hand the reservation back.
+    # Release the loader's pool reservation so cuBLAS can allocate its
+    # workspace outside it (ALLOC_FAILED otherwise — jobs 161606-161610).
     torch.cuda.empty_cache()
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
     if tokenizer.pad_token is None:
