@@ -1,7 +1,7 @@
 {
-  "last_published_version": 21,
+  "last_published_version": 22,
   "note": "State aligned to remote Hugging Face publish surface on 2026-06-29.",
   "last_repo": "EricSpencer00/chattla-20b",
-  "last_gguf_path_in_repo": "gguf/chattla-20b-v21-Q8_0.gguf",
+  "last_gguf_path_in_repo": "gguf/chattla-20b-v22-Q8_0.gguf",
   "last_cycle_id": 69
 }

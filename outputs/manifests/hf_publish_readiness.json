@@ -1,6 +1,6 @@
 {
   "benchmark": {
-    "age_hours": 1462.6889402825302,
+    "age_hours": 1478.080512369209,
     "avg_struct": 0.70575,
     "execution": null,
     "fresh_within_hours": 24.0,
@@ -13,7 +13,7 @@
   },
   "benchmark_model": "chattla:20b",
   "blockers": [
-    "latest full benchmark is stale at 1462.7h (limit 24.0h)",
+    "latest full benchmark is stale at 1478.1h (limit 24.0h)",
     "latest full benchmark has zero SANY and zero TLC passes; do not publish this model"
   ],
   "claim_status": {
@@ -55,7 +55,7 @@
       "obvious_placeholder_rows": []
     }
   },
-  "generated_at": "2026-07-01T22:38:59.418105+00:00",
+  "generated_at": "2026-07-02T14:02:29.067191+00:00",
   "local": {
     "gguf_dir": "outputs/gguf",
     "gguf_files": [
@@ -71,7 +71,7 @@
     "readme_template": "outputs/hf_readme/README.md",
     "readme_template_present": true
   },
-  "next_publish_version": 22,
+  "next_publish_version": 23,
   "ready_to_publish": false,
   "remote": {
     "gguf_files": [
@@ -87,16 +87,17 @@
       "gguf/chattla-20b-v18-Q8_0.gguf",
       "gguf/chattla-20b-v19-Q8_0.gguf",
       "gguf/chattla-20b-v20-Q8_0.gguf",
-      "gguf/chattla-20b-v21-Q8_0.gguf"
+      "gguf/chattla-20b-v21-Q8_0.gguf",
+      "gguf/chattla-20b-v22-Q8_0.gguf"
     ],
-    "latest_published_version": 21
+    "latest_published_version": 22
   },
   "repair_pair_frontier": null,
   "repo_id": "EricSpencer00/chattla-20b",
   "state": {
     "last_cycle_id": 69,
-    "last_gguf_path_in_repo": "gguf/chattla-20b-v21-Q8_0.gguf",
-    "last_published_version": 21,
+    "last_gguf_path_in_repo": "gguf/chattla-20b-v22-Q8_0.gguf",
+    "last_published_version": 22,
     "last_repo": "EricSpencer00/chattla-20b",
     "note": "State aligned to remote Hugging Face publish surface on 2026-06-29.",
     "path": "data/benchmarks/hf_publish_state.json"
