@@ -79,9 +79,16 @@ def main() -> int:
               f"{torch.cuda.memory_allocated(d)/2**30:.1f} GiB")
     model = PeftModel.from_pretrained(model, args.adapter)
     model.eval()
+    # transformers' loading warmup reserves the full model byte-count per
+    # device inside torch's caching pool; cuBLAS then creates its handle via
+    # raw cudaMalloc outside the pool and gets ALLOC_FAILED even though
+    # memory_allocated looks fine (jobs 161606-161610). Release the unused
+    # reservation before the first forward.
+    torch.cuda.empty_cache()
     for d in range(torch.cuda.device_count()):
-        print(f"[holdout-eval] gpu{d} allocated after adapter load: "
-              f"{torch.cuda.memory_allocated(d)/2**30:.1f} GiB")
+        print(f"[holdout-eval] gpu{d} after adapter load: "
+              f"allocated={torch.cuda.memory_allocated(d)/2**30:.1f} GiB "
+              f"reserved={torch.cuda.memory_reserved(d)/2**30:.1f} GiB")
 
     # Smoke generate: fail fast with placement evidence above if the cards
     # are misbalanced, before burning time on the full eval loop.
