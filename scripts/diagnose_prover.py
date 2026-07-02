@@ -51,6 +51,10 @@ def load_model():
         trust_remote_code=True,
     )
     model.eval()
+    # The loading warmup reserves the full model byte-count in torch's pool;
+    # cuBLAS then can't cudaMalloc its workspace (ALLOC_FAILED on the first
+    # forward — see the 1616xx holdout-eval jobs). Hand the reservation back.
+    torch.cuda.empty_cache()
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token

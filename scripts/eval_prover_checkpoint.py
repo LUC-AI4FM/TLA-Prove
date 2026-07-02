@@ -75,6 +75,9 @@ def main() -> None:
     print(f"[eval] loading adapter {args.checkpoint}")
     model = PeftModel.from_pretrained(base, args.checkpoint)
     model.eval()
+    # Release the loader's full-model reservation so cuBLAS can allocate its
+    # workspace outside torch's pool (see the 1616xx holdout-eval jobs).
+    torch.cuda.empty_cache()
 
     dump = []
     summary = {"n": 0, "parse": 0, "no_final": 0, "any": 0, "full": 0, "sum_proved": 0}
