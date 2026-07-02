@@ -1,0 +1,48 @@
+#!/bin/bash
+# Held-out eval of the repair-GRPO adapter (the only non-coverage number a
+# checkpoint trained on all of proof_repair_primary can produce).
+#PBS -q by-gpu
+#PBS -l select=1:ngpus=1:ncpus=32:mem=120gb
+#PBS -l walltime=02:00:00
+#PBS -l filesystems=home_fs:grand_fs
+#PBS -N repair_holdout
+#PBS -j oe
+
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+
+mkdir -p outputs/logs
+PBS_JOBNUM="${PBS_JOBID%%.*}"
+exec > "outputs/logs/eval_repair_holdout_${PBS_JOBNUM}.log" 2>&1
+
+export HF_HOME="${HF_HOME:-${CHATTLA_HF_HOME:-$HOME/.cache/huggingface}}"
+export TRANSFORMERS_CACHE="$HF_HOME"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+PY="${CHATTLA_PYTHON:-python3}"
+case "$PY" in
+  /*) export PATH="$(dirname "$PY"):$PATH" ;;
+esac
+ADAPTER="${CHATTLA_REPAIR_ADAPTER:-outputs/checkpoints_rl_repair_proof_primary/final}"
+
+echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
+date
+nvidia-smi --query-gpu=name,memory.free --format=csv
+java -version
+ls "$ADAPTER"
+
+"$PY" -u scripts/eval_repair_adapter_holdout.py \
+  --adapter "$ADAPTER" \
+  --out "outputs/repair_holdout_eval_${PBS_JOBNUM}.json"
+
+if [ -n "${CHATTLA_ARTIFACT_ROOT:-}" ]; then
+  DEST="$CHATTLA_ARTIFACT_ROOT/repair_holdout_eval/$PBS_JOBNUM"
+  mkdir -p "$DEST"
+  cp "outputs/repair_holdout_eval_${PBS_JOBNUM}.json" \
+     "outputs/logs/eval_repair_holdout_${PBS_JOBNUM}.log" "$DEST/" || true
+fi
+
+echo "===== done ====="
+date
