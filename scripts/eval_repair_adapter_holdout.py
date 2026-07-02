@@ -60,10 +60,12 @@ def main() -> int:
     )
     print(f"[holdout-eval] rows: {len(examples)}")
 
+    # No dtype override: the proven loader (eval_prover_checkpoint.py) lets
+    # transformers keep the base model's quantized weights; forcing a dtype
+    # dequantizes and OOMs the 40GB cards.
     model = AutoModelForCausalLM.from_pretrained(
         args.base_model,
         attn_implementation="eager",
-        torch_dtype="auto",
         device_map="auto",
         trust_remote_code=True,
     )
