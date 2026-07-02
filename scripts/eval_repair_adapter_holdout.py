@@ -41,8 +41,8 @@ def main() -> int:
     args = parser.parse_args()
 
     import torch
-    from peft import PeftModel
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from peft import AutoPeftModelForCausalLM
+    from transformers import AutoTokenizer
 
     from src.rlvr_canary.repair_dataset import format_repair_prompt, load_repair_prompts
     from src.rlvr_canary.repair_reward import _grade_one
@@ -60,16 +60,20 @@ def main() -> int:
     )
     print(f"[holdout-eval] rows: {len(examples)}")
 
-    # No dtype override: the proven loader (eval_prover_checkpoint.py) lets
-    # transformers keep the base model's quantized weights; forcing a dtype
-    # dequantizes and OOMs the 40GB cards.
-    model = AutoModelForCausalLM.from_pretrained(
-        args.base_model,
+    # AutoPeftModelForCausalLM loads base + adapter together — the loader
+    # diagnose_prover.py adopted because the peft/accelerate balanced-memory
+    # path misbehaves on gpt-oss. Explicit max_memory leaves headroom for the
+    # cuBLAS workspace: jobs 161597/161603/161606 died with ALLOC_FAILED at
+    # the first forward because device_map=auto packed the cards full.
+    model = AutoPeftModelForCausalLM.from_pretrained(
+        args.adapter,
         attn_implementation="eager",
+        use_cache=True,
         device_map="auto",
+        low_cpu_mem_usage=True,
         trust_remote_code=True,
+        max_memory={0: "34GiB", 1: "34GiB"},
     )
-    model = PeftModel.from_pretrained(model, args.adapter)
     model.eval()
 
     rows = []
