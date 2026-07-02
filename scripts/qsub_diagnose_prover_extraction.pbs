@@ -9,7 +9,8 @@
 #   CHATTLA_TLAPM  — absolute path to tlapm 1.5.0 (validator resolves it)
 # Queue shape must stay by-gpu; single-node stalls on queue_tags (job 161463).
 #PBS -q by-gpu
-#PBS -l select=1:ngpus=1:ncpus=32:mem=120gb
+# 20B bf16 needs both cards of the 2-GPU chunk (1-GPU shape OOMs at load).
+#PBS -l select=1:ngpus=2:ncpus=64:mem=240gb:ngpu_pairs=1
 #PBS -l walltime=02:00:00
 #PBS -l filesystems=home_fs:grand_fs
 #PBS -N prover_diag
