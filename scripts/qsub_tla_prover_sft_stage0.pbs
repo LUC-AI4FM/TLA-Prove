@@ -43,6 +43,14 @@ esac
 BASE_MODEL="${CHATTLA_BASE_MODEL:-EricSpencer00/chattla-20b}"
 MAX_STEPS="${CHATTLA_MAX_STEPS:-200}"
 OUT="outputs/checkpoints_prover"
+# The default-lane jsonl is untracked; fresh worktrees only carry the publish
+# bundle copy (same content, tracked). Same fallback as the SFT preflight job.
+TRAIN_FILE="data/processed/tla_prover/chattla_tla_prover_sft_v1.jsonl"
+if [ ! -s "$TRAIN_FILE" ]; then
+  TRAIN_FILE="outputs/hf_publish/chattla-tla-prover-corpora-v1/data/train/chattla_tla_prover_sft_v1.jsonl"
+fi
+test -s "$TRAIN_FILE"
+echo "TRAIN_FILE=$TRAIN_FILE"
 
 echo "===== job ${PBS_JOBID:-unknown} on $(hostname) ====="
 date
@@ -57,7 +65,7 @@ echo "===== Training ====="
 date
 "$PY" -u -m src.training.train \
   --prover \
-  --sft-corpus default \
+  --train-file "$TRAIN_FILE" \
   --eval-file data/processed/prover_eval.jsonl \
   --output-dir "$OUT" \
   --experiment-name ChatTLA-TLA-Prover-SFT-Stage0 \
