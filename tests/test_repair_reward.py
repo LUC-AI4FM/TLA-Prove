@@ -46,3 +46,35 @@ def test_reward_sample_log_writes_jsonl(tmp_path, monkeypatch):
     assert len(lines) == 2  # capped by limit
     assert lines[0]["after"] == 0.5
     assert "completion_head" in lines[0]
+
+
+def test_aux_structure_score_orders_near_miss_above_garbage(monkeypatch):
+    import src.rlvr_canary.repair_reward as rr
+
+    monkeypatch.setattr(rr, "_grade_one", lambda text: 0.0)
+    near_miss = (
+        "---- MODULE M ----\nInit == x = 0\nNext == x' = x\n"
+        "TypeOK == x \\in Nat\n===="
+    )
+    garbage = "I think the answer involves considering the spec."
+
+    rewards = rr.repair_reward(
+        prompts=["<!-- repair:x --> p", "<!-- repair:x --> p"],
+        completions=[near_miss, garbage],
+    )
+
+    assert rewards[0] > rewards[1]
+    # Shaping must stay strictly below the improvement floor (~0.206)
+    assert all(r < 0.206 for r in rewards)
+
+
+def test_aux_structure_score_never_applied_on_parse_success(monkeypatch):
+    import src.rlvr_canary.repair_reward as rr
+
+    monkeypatch.setattr(rr, "_grade_one", lambda text: 0.5)
+    rewards = rr.repair_reward(
+        prompts=["<!-- repair:x --> p"],
+        completions=["---- MODULE M ----\nInit == TRUE\n===="],
+    )
+    # before falls back to 0.0, after 0.5 -> improvement branch, no aux cap
+    assert rewards[0] >= 0.206

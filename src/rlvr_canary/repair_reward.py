@@ -117,6 +117,23 @@ def _completion_text(comp: Any) -> str:
     return str(comp or "")
 
 
+# Textual structure markers used to grade parse-failed completions. Partial
+# credit is zero unless SANY parses, so without this a near-miss spec (one
+# mangled |->) and free-form prose tie exactly — every GRPO group has zero
+# reward variance and there is no gradient (observed on job 161556: uniform
+# 0.15). The aux term is capped below the 0.206 improvement floor so a real
+# parse always outranks any amount of almost-parsing.
+_AUX_MARKERS = ("---- MODULE", "====", "Init ==", "Next ==", "TypeOK")
+_AUX_CAP = 0.05
+
+
+def _aux_structure_score(text: str) -> float:
+    if not text:
+        return 0.0
+    hits = sum(1 for marker in _AUX_MARKERS if marker in text)
+    return min(_AUX_CAP, 0.01 * hits)
+
+
 def _grade_one(text: str) -> float:
     """Grade a single completion via the component validator."""
     if not text or not text.strip():
@@ -182,6 +199,8 @@ def repair_reward(
             before = 0.0
 
         shaped = _shape_reward(before, after_scores[i])
+        if after_scores[i] <= 0.0:
+            shaped = min(shaped + _aux_structure_score(texts[i]), 0.2)
         _log_sample(texts[i], before, after_scores[i], shaped)
         rewards.append(shaped)
 
